@@ -3,6 +3,7 @@ import { TURN_ENDED } from "#shared/types";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
 import { appUrl } from "./urls";
+import { agencyEvent, jobEvent } from "./unit-events";
 
 import type { BotEvent, BotEventType, ChatTurn, Judgement, LiveSnapshot, RunProgress, TurnReceived, TurnSpeaker } from "#shared/types";
 import type { InjectionKey, Ref } from "vue";
@@ -123,6 +124,10 @@ let attempts = 0;
 // because no screen would know it had gone deaf.
 let lastId = 0;
 let run: string | null = null;
+// The same pair for bmo-job's stream, which the relay carries beside the receiver's: its numbers count its own
+// run, so they are kept apart from the receiver's. The agency numbers its events by nothing and keeps no cursor.
+let jobLastId = 0;
+let jobRun: string | null = null;
 // Whether a stream has been open at all, which is what tells a first open from a reopen.
 let opened = false;
 // Whether the bot said it was stopping before the stream went, and the clock after which a
@@ -203,10 +208,23 @@ function endRestart(): void {
   streamState().restarting.value = false;
 }
 
+// A frame's data read as the object it carries, or null where it carries none.
+function fieldsOf(data: string): Record<string, unknown> | null {
+  try {
+    const value: unknown = JSON.parse(data);
+
+    return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
 function open(): void {
   const stream = streamState();
 
-  const asked = `?after=${lastId}${run === null ? "" : `&run=${encodeURIComponent(run)}`}`;
+  const asked =
+    `?after=${lastId}${run === null ? "" : `&run=${encodeURIComponent(run)}`}` +
+    `&jobAfter=${jobLastId}${jobRun === null ? "" : `&jobRun=${encodeURIComponent(jobRun)}`}`;
 
   source = new EventSource(`${appUrl("/api/events")}${asked}`);
   heard = false;
@@ -290,6 +308,55 @@ function open(): void {
 
     lastId = event.id;
     hand(event);
+  });
+
+  // bmo-job's run, named first on its stream as the receiver's is. A run its cursor cannot be read against
+  // drops the cursor, and everything that run has is new.
+  source.addEventListener("job-run", (message) => {
+    heard = true;
+
+    const named = fieldsOf((message as MessageEvent<string>).data)?.run;
+
+    if (typeof named !== "string") {
+      return;
+    }
+
+    if (jobRun !== null && named !== jobRun) {
+      jobLastId = 0;
+    }
+
+    jobRun = named;
+  });
+
+  // One of bmo-job's events, read as the console's: the TODO moving, a work order, an item's talk.
+  source.addEventListener("job", (message) => {
+    heard = true;
+
+    const fields = fieldsOf((message as MessageEvent<string>).data);
+    const event = fields === null ? null : jobEvent(fields);
+    const id = typeof fields?.id === "number" ? fields.id : null;
+
+    if (id === null || id <= jobLastId) {
+      return;
+    }
+
+    jobLastId = id;
+
+    if (event !== null) {
+      hand(event);
+    }
+  });
+
+  // One of the agency's turns going out or ending, which no cursor counts.
+  source.addEventListener("agency", (message) => {
+    heard = true;
+
+    const fields = fieldsOf((message as MessageEvent<string>).data);
+    const event = fields === null ? null : agencyEvent(fields);
+
+    if (event !== null) {
+      hand(event);
+    }
   });
 
   // The stream has opened. What the deployment did while it was closed was never said on it, and the

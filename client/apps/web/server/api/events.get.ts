@@ -1,21 +1,24 @@
 import { relayBotStream } from "../utils/bot-relay";
 import { roomStreamFilter } from "../utils/room-stream";
 
-// The bot's live stream, relayed event by event, with the console's own events written between
-// them. The browser cannot carry the control token, so the session is checked here and the token
-// is added on this side. A bot that is not there ends the stream, and the browser opens it again
-// on its own; whether the bot answers at all is what the health route is for. A user who reads only
-// some rooms hears only those rooms' news (docs/web.md, 「Access」).
+// The units' live streams — the receiver's, bmo-job's and the agency's — relayed event by event, with the
+// console's own events written between them. The browser cannot carry the units' tokens, so the session is
+// checked here and the tokens are added on this side. A receiver that is not there ends the stream, and the
+// browser opens it again on its own. A user who reads only some rooms hears only those rooms' news, and
+// nothing of bmo-job's or the agency's, which name no room (docs/web.md, 「Access」).
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
 
   const rooms = await readableRooms(event);
 
   const query = getQuery(event);
-  const after = readCursor(query.after) ?? 0;
-  // Which run of the bot the cursor was taken against. The bot sets a cursor from an earlier run
-  // aside and hands over its whole buffer instead, so this travels with it.
-  const run = typeof query.run === "string" ? query.run : null;
+  // Where the receiver's and bmo-job's streams resume from, each with the run of that unit its number was
+  // taken against. A unit sets a cursor from an earlier run aside and hands over its whole buffer instead, so
+  // the run travels with it.
+  const cursors = {
+    receiver: { after: readCursor(query.after) ?? 0, run: typeof query.run === "string" ? query.run : null },
+    job: { after: readCursor(query.jobAfter) ?? 0, run: typeof query.jobRun === "string" ? query.jobRun : null }
+  };
   const aborted = new AbortController();
 
   // The upstream call outlives this handler, so it ends when the browser lets go.
@@ -29,5 +32,5 @@ export default defineEventHandler(async (event) => {
     "x-accel-buffering": "no"
   });
 
-  return sendStream(event, relayBotStream(after, run, aborted, rooms === "all" ? {} : roomStreamFilter(rooms)));
+  return sendStream(event, relayBotStream(cursors, aborted, rooms === "all" ? {} : roomStreamFilter(rooms)));
 });

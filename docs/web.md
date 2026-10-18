@@ -366,7 +366,8 @@ nothing.
     picture, the turns going in those rooms and how much each was handed, and the message each holds
     queued for a turn.
   - What a turn is doing step by step, the verdicts, the other work running anywhere, the queue, the
-    console's own events and anything of a room they do not read never reach them. The one console
+    console's own events, bmo-job's and the agency's events, which name no room, and anything of a room
+    they do not read never reach them. The one console
     word that does is `deploy`, which carries nothing but that the deployment moved (「Deployment in
     the title bar」).
 - **Nothing on a member's room asks after the bot itself, its owner or the pictures index.** Whether
@@ -5331,8 +5332,16 @@ dialog open at 계정.
   reads waits here until the rest of it comes, so the frames this app writes into the same stream of its own — the
   keepalive and the stopping frame — always land between two whole events, never inside one. A unit that answers
   the relay with a refusal — a token that does not match, a fault of its own — is written in this app's log with the
-  status it gave, since the browser only sees a stream that ends. The relay holds the receiver's stream alone
-  until the screens that follow the other two are carried (`docs/boundary.md`, 「Gaps the console meets」).
+  status it gave, since the browser only sees a stream that ends, and once per refusal rather than at every try.
+  - **The receiver's stream is the tab's.** When it ends the relay ends, and the tab opens it again as below.
+  - **bmo-job's and the agency's are the relay's to keep.** One that ends, refuses or is not up yet is asked again
+    after three seconds for as long as the tab's stream stands, bmo-job's from the last event the relay passed on;
+    a unit whose address is not set is not asked.
+  - **Each reaches the tab under names of its own,** so nothing of one is read as another's: bmo-job's run as
+    `job-run` and its events as `job`, its numbers counted apart from the receiver's; the agency's turns going out
+    and ending as `agency`, with their kind beside what they carry. The tab reads bmo-job's queue moving as the
+    TODO moving, an order changing as that item's work order and the talk moving as that item's talk, and an
+    agency turn as an agent's turn going out or ending, which the worker's job line and the live board read back on.
 - **What the screen knows is this stream.** The room screen knowing what it is doing now, the live status screen
   knowing starts and ends, the home's context and usage bars moving, the TODO panel re-reading the queue and
   questions — all one thing. Instead of each screen running its own clock re-asking every few seconds, each says
@@ -5356,16 +5365,18 @@ dialog open at 계정.
 - **The first try to reopen comes after about a second.** A unit's restart takes one to three seconds, so a reopen
   that waited longer would show a break the owner never needed to see. Each try after that waits longer, up to
   fifteen seconds, so a unit that stays down is not asked in a flood. The cursor a reopen carries — the last number
-  and the run of each unit — is the same whichever try it is.
+  and the run of the receiver and of bmo-job — is the same whichever try it is. The agency numbers its events by
+  nothing and replays none, so what it said while the stream was down is covered by the catch-up read alone.
 - **A number counts only within one run of its unit.** An event number is that unit's process counting its own
   events, so its restart counts from the start. So it must be said which run a number was received in to be a
-  readable number — each unit's stream says its run in the first word, the console asks to continue naming that
-  run, and to a reader holding a past run's number the unit hands all it has. Without this, after a restart every
+  readable number — the receiver's and bmo-job's streams say their run in the first word, the console asks to
+  continue naming that run, and to a reader holding a past run's number the unit hands all it has. Without this, after a restart every
   new run's number would read as already-seen and none would pass — the connection fine but nothing carried, and
   the connection alive so the clock does not run and the screen does not even know it is deaf.
 - **A stop a unit means says so first.** A unit stopped on purpose writes a `stopping` frame on every open stream
   before it lets go. The frame carries no number and moves no cursor, like the frame that carries the live picture:
-  it is news about the stream, not an event of the run. This app relays it as it stands, and this app's own server
+  it is news about the stream, not an event of the run. This app relays the receiver's as it stands, since that
+  stream is the tab's, and this app's own server
   writes the same frame on every stream it relays when it is itself shut down.
 - **A break after that frame reads as a restart.** The screen says `재시작 중` rather than a break, and goes back
   to its usual state the moment the new run names itself on the reopened stream. If no run speaks within two

@@ -823,7 +823,10 @@ export type BotEventType =
   | "briefing"
   // A room's registration was removed with its whole record. It names the room, which no screen
   // shows again.
-  | "room-removed";
+  | "room-removed"
+  // An agent's turn went out or ended, as the agency publishes it: any agent's, a worker's among them, which
+  // the receiver's turns say nothing of.
+  | "agency-turn";
 
 // The ways a turn ends: the bot answered, it held its peace, its run failed, somebody stopped it,
 // or it did nothing but wait for the rest of what someone is typing. Whatever a turn moves — a
@@ -911,7 +914,17 @@ export type BotEvent = BotEventFields & ({
   workOrder?: never;
   document?: never;
 } | {
-  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review">;
+  type: "agency-turn";
+  // Whether the turn went out or ended, the session it is a turn of and the run it went out as.
+  phase: "started" | "ended";
+  session: string;
+  run: string;
+  todoId?: never;
+  workOrder?: never;
+  document?: never;
+  review?: never;
+} | {
+  type: Exclude<BotEventType, "work-order" | "todo-talk" | "document-talk" | "document-translation" | "code-review-talk" | "code-review" | "agency-turn">;
   todoId?: never;
   workOrder?: never;
   document?: never;

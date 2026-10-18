@@ -286,9 +286,10 @@ import type { LiveTab, OutcomeTone, RecentRow, StatusGroup } from "~/domain/stat
 const TICK_MS = 1_000;
 
 // The news that moves what this page shows: a run's whole picture, a gate's verdict written
-// down, and a turn coming to an end. A room saying something moves the archive of that room and
+// down, a turn coming to an end — the chat's, or any agent's as the agency says it — and the queue moving,
+// which a job starting or ending moves. A room saying something moves the archive of that room and
 // nothing here, so it is not on the list — and a busy room says a great deal.
-const MOVES_HISTORY: readonly BotEventType[] = ["live", "judgement", ...TURN_ENDED];
+const MOVES_HISTORY: readonly BotEventType[] = ["live", "judgement", "agency-turn", "todo", ...TURN_ENDED];
 
 // The mark a finished row wears beside its outcome word, in the outcome's own colour.
 const TONE_ICONS: Record<OutcomeTone, string> = {

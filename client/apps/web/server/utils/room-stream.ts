@@ -36,6 +36,8 @@ export function roomStreamFilter(rooms: ReadonlySet<number>): RelayFilter {
     // The deployment's word alone carries nothing but that it moved, and the route it sends them to
     // hands a member only that a run is under way (docs/web.md, 「Deployment in the title bar」).
     consoleEvent: (event) => event.name === "deploy",
+    // bmo-job's and the agency's events name no room, so none of them is a room of theirs.
+    units: false,
     derived: () => (frame) => {
       const cut = roomFrame(frame, rooms);
 

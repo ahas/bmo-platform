@@ -138,7 +138,8 @@ export function useJobLine(agent: string, run: Readonly<Ref<string | null>>): { 
   }
 
   usePolling(() => void read(), POLL_INTERVAL_MS);
-  useLiveRefresh(() => void read(), { on: TURN_ENDED, everyMs: POLL_INTERVAL_MS });
+  // A worker's turns are the agency's, so its job starting and ending is heard as an agency turn.
+  useLiveRefresh(() => void read(), { on: [...TURN_ENDED, "agency-turn"], everyMs: POLL_INTERVAL_MS });
 
   return { job, loaded };
 }

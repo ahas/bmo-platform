@@ -213,6 +213,9 @@ How the job screens stand here:
   refusal codes in `server/utils/job-codes.ts`, each said by the pack's sentence for it. `server/utils/todos.ts`
   reads the board and an item out of bmo-job's listings and readings into the rows the panel shows, and
   `server/utils/work-order-view.ts` reads an item's work order; neither holds a statement on bmo-job's tables.
+- **They read back on bmo-job's events,** which the shell's relay (`server/utils/bot-relay.ts`) carries beside the
+  receiver's from a cursor of their own, with the agency's turns; `app/domain/unit-events.ts`, written new, reads
+  both into the console's events.
 - **What bmo-job's readings do not carry stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a row's
   room, brief, filing and finishing moments, its order's progress, stop and held checkout, its job's wait and
   the deployment's wait on it; an item's approvals and its talk's turns; the questions list, so the question bar
