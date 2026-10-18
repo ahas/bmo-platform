@@ -1,0 +1,18 @@
+{
+  "line_20": "툴 검색",
+  "line_25": "브라우저 · take_snapshot",
+  "line_26": "웹 · web_fetch",
+  "line_27": "툴북 · list",
+  "line_41": "브랜치 1 · build:guard · claude-opus-5",
+  "line_42": "브랜치 1 · investigate:leak-or-load · claude-haiku-4-5-20251001",
+  "line_48": "브랜치 3 · claude-opus-5",
+  "line_48_2": "브랜치 3 · Opus 5",
+  "line_49": "브랜치 3",
+  "line_53": "브랜치 1 · build",
+  "line_57": "Task(builder) · 콘솔 막대 고치기",
+  "line_57_2": "builder · 콘솔 막대 고치기",
+  "line_58": "코워커",
+  "line_62": "클로드 실행",
+  "line_68": "브랜치 1 · build · claude-opus-5",
+  "line_70": "브랜치 1 · build · claude-opus-5"
+}

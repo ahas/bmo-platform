@@ -9,7 +9,7 @@ import {
   unrungQuestions
 } from "../../../apps/web/server/utils/pushnews";
 
-import type { JobQuestion } from "#shared/types";
+import type { JobQuestion } from "../../../apps/web/shared/types";
 import { OWNER_ID as OWNER } from "../../support/ids";
 
 // What the bot's news turns into, and what it never turns into. A notification is a line the

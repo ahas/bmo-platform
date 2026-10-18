@@ -1,0 +1,166 @@
+import { describe, expect, test } from "bun:test";
+
+import { wording } from "../../../apps/web/shared/wording";
+import { anyRunning, catalogueSave, emptyCatalogueForm, sourceText } from "../../../apps/web/app/domain/catalogue-models";
+import { companionChange, companionDraft, draftDiffers, generationBounds, generationChange, generationDraft, generationUse, movedPiece, orderRows, pieceOrder, RECOLLECTOR_DEFAULT, recollectorChange, recollectorChoices, sentPieces } from "../../../apps/web/app/domain/companions";
+import { sessionClears, sessionDetail } from "../../../apps/web/app/domain/sessions";
+
+import type { CompanionView } from "../../../apps/web/shared/agency";
+import KO from "../../fixtures/app/domain/companions.test.ko.json";
+
+// A companion's settings and the model catalogue as the console reads them (the agency's docs/companions.md,
+// 「Its settings」; the agency's docs/model-catalogue.md).
+
+const t = wording;
+const pieces = ["absolute-rules", "frame", "turn", "agent-words", "persona"];
+const settings: CompanionView["settings"] = {
+  agent: "tester-chat",
+  referenceOn: true,
+  pieces: ["absolute-rules", "frame", "trust", "turn", "persona"],
+  ownPieces: { trust: "a piece of its own" },
+  persona: null,
+  generation: { temperature: 0.7 },
+  recollectorModel: null,
+  updatedAt: null,
+  updatedBy: null,
+};
+
+const pieceRows = (one: CompanionView["settings"]) => orderRows(t, pieceOrder({ pieces, settings: one }), one.ownPieces);
+
+describe("the pieces", () => {
+  test("stand in the order they are sent, then the ones left out, its own marked", () => {
+    const rows = pieceRows(settings);
+
+    expect(rows.map((one) => [one.name, one.on, one.own])).toEqual([
+      ["absolute-rules", true, false],
+      ["frame", true, false],
+      ["trust", true, true],
+      ["turn", true, false],
+      ["persona", true, false],
+      ["agent-words", false, false],
+    ]);
+    expect(pieceRows({ ...settings, pieces: null, ownPieces: {} }).map((one) => one.name)).toEqual(pieces);
+  });
+
+  test("a move keeps the list at the edges, and a save sends only what is switched on", () => {
+    const rows = pieceRows(settings);
+
+    expect(movedPiece(rows, 0, -1)).toEqual(rows);
+    expect(sentPieces(movedPiece(rows, 2, -1))).toEqual(["absolute-rules", "trust", "frame", "turn", "persona"]);
+  });
+});
+
+describe("a catalogue entry", () => {
+  test("a save sends empty texts as nothing and the hash in lower case", () => {
+    const form = { ...emptyCatalogueForm(), name: "ko1", file: "model.gguf", bytes: 10, sha256: " ABC ", source: " " };
+
+    expect(catalogueSave(form)).toMatchObject({ name: "ko1", label: "ko1", sha256: "abc", source: null, thinking: null });
+    expect(sourceText(t, "train-a/run1")).toBe("train-a/run1");
+    expect(anyRunning([{ state: "done" }, { state: "running" }])).toBe(true);
+  });
+});
+describe("the generation settings", () => {
+  const generationSettings = [
+    { name: "temperature", min: 0, max: 2 },
+    { name: "top_k", min: 0, max: 1_000, whole: true },
+    { name: "max_tokens", min: 1, max: 262_143, whole: true },
+  ];
+
+  test("start as the saved numbers, empty where the engine's default stands, each with what it does and its bounds", () => {
+    expect(generationDraft({ generationSettings, settings })).toEqual({ temperature: "0.7", top_k: "", max_tokens: "" });
+    expect(generationUse(t, "temperature")).not.toBe("");
+    expect(generationUse(t, "mirostat")).toBe("");
+    expect(generationBounds(generationSettings[2]!)).toBe("1 ~ 262,143");
+  });
+
+  test("send only what differs from what is saved, an emptied box as the engine's default", () => {
+    expect(generationChange({ temperature: "0.7", top_k: "", max_tokens: "" }, { temperature: 0.7 })).toEqual({});
+    expect(generationChange({ temperature: "", top_k: " 20 ", max_tokens: 4096 }, { temperature: 0.7 })).toEqual({ temperature: null, top_k: 20, max_tokens: 4096 });
+  });
+
+  test("hold a switch as on, off or default and send it as on, off or the engine's default", () => {
+    const switches = [{ name: "preserve_thinking", switch: true as const, template: true as const }];
+
+    expect(generationDraft({ generationSettings: switches, settings: { ...settings, generation: { preserve_thinking: false } } })).toEqual({ preserve_thinking: "off" });
+    expect(generationDraft({ generationSettings: switches, settings: { ...settings, generation: {} } })).toEqual({ preserve_thinking: "default" });
+    expect(generationBounds(switches[0]!)).toBe("");
+    expect(generationChange({ preserve_thinking: "off" }, { preserve_thinking: false })).toEqual({});
+    expect(generationChange({ preserve_thinking: "on" }, { preserve_thinking: false })).toEqual({ preserve_thinking: true });
+    expect(generationChange({ preserve_thinking: "default" }, { preserve_thinking: false })).toEqual({ preserve_thinking: null });
+    expect(generationChange({ preserve_thinking: "default" }, {})).toEqual({});
+  });
+});
+
+describe("the form a block holds", () => {
+  const view = {
+    registration: "tester-model",
+    serving: "file-a",
+    modelUse: null,
+    thinking: null,
+    pieces,
+    settings,
+    generationSettings: [{ name: "temperature", min: 0, max: 2 }, { name: "top_k", min: 0, max: 1_000, whole: true }],
+  } as unknown as CompanionView;
+  const saved = companionDraft(view, "-");
+
+  test("holds no change until a field differs, a box typed back to its saved number included", () => {
+    const draft = { ...saved, generation: { temperature: "0.70", top_k: "" } };
+
+    expect(companionChange(draft, saved)).toEqual({});
+    expect(draftDiffers("generation", draft, saved)).toBe(false);
+  });
+
+  test("an unsent piece moved among the unsent changes nothing a save sends", () => {
+    const order = [...saved.order, { name: "extra", on: false }];
+
+    expect(draftDiffers("order", { ...saved, order }, saved)).toBe(false);
+    expect(companionChange({ ...saved, order: movedPiece(saved.order, 2, -1) }, saved)).toEqual({ pieces: ["absolute-rules", "trust", "frame", "turn", "persona"] });
+  });
+
+  test("sends every changed setting in one change, the base prompt and the engine file left to their own paths", () => {
+    const draft = { ...saved, thinking: "default" as const, referenceOn: false, persona: "tester persona", generation: { temperature: "", top_k: "20" }, base: "other", entry: "file-b" };
+
+    expect(companionChange({ ...draft, thinking: "off" }, saved)).toEqual({
+      referenceOn: false,
+      persona: "tester persona",
+      generation: { temperature: null, top_k: 20 },
+      thinking: false,
+    });
+    expect(draftDiffers("base", draft, saved) && draftDiffers("entry", draft, saved)).toBe(true);
+  });
+
+  test("an engine file being put on reads as the saved one", () => {
+    const running = { ...view, modelUse: { state: "running", entry: "file-b" } } as unknown as CompanionView;
+
+    expect(companionDraft(running, "-").entry).toBe("file-b");
+  });
+});
+
+describe("the recollectors' model", () => {
+  test(KO.line_139, () => {
+    const choices = recollectorChoices(t, { registrations: [{ name: "model-a-0-1", label: "Model A 0.1" }] });
+
+    expect(choices.map((one) => one.value)).toEqual([RECOLLECTOR_DEFAULT, "model-a-0-1"]);
+    expect(recollectorChange(RECOLLECTOR_DEFAULT)).toBeNull();
+    expect(recollectorChange("model-a-0-1")).toBe("model-a-0-1");
+  });
+
+  test(KO.line_147, () => {
+    const held = companionDraft({ registration: null, serving: null, modelUse: null, thinking: null, pieces, settings: { ...settings, recollectorModel: "model-a-0-1" }, generationSettings: [] } as unknown as CompanionView, "-");
+
+    expect(held.recollector).toBe("model-a-0-1");
+    expect(companionChange(held, held)).toEqual({});
+    expect(companionChange({ ...held, recollector: RECOLLECTOR_DEFAULT }, held)).toEqual({ recollectorModel: null });
+  });
+});
+
+describe("a session's reset", () => {
+  const session = { kind: "companion", running: false, models: ["model-a-0-1"], title: KO.line_157, chatId: -101, generation: 3 };
+
+  test("says what it clears in each holder's words, and a worker's whether it waits for its job", () => {
+    expect(sessionClears(t, session)).toContain(KO.line_160);
+    expect(sessionClears(t, { ...session, kind: "worker", chatId: null, running: false })).not.toBe(sessionClears(t, { ...session, kind: "worker", chatId: null, running: true }));
+    expect(sessionClears(t, { ...session, kind: "chat", chatId: null })).not.toBe(sessionClears(t, { ...session, kind: "unknown", chatId: null }));
+    expect(sessionDetail(t, session)).toContain("3");
+  });
+});

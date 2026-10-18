@@ -1,0 +1,237 @@
+import type { CompanionView } from "#shared/agency";
+import type { Translate } from "#shared/wording";
+
+// A companion's settings as the Companions tab reads and changes them (the agency's docs/companions.md, 「Its
+// settings」; docs/web.md, 「Agent management screen」).
+
+// Every companion's own pieces are named by the bot; these are the words the screen says for them.
+const PIECE_LABELS: Readonly<Record<string, string>> = {
+  "absolute-rules": "agents.label.piece_absolute_rules",
+  frame: "agents.label.piece_frame",
+  turn: "agents.label.piece_turn",
+  "agent-words": "agents.label.piece_agent_words",
+  persona: "agents.label.piece_persona",
+};
+
+// A piece in the order the list stands in, and whether it is sent.
+export interface PieceOrder {
+  name: string;
+  on: boolean;
+}
+
+// One piece as the list shows it: its name, what it is called, whether it is the companion's own,
+// and whether it is sent.
+export interface PieceRow {
+  name: string;
+  label: string;
+  own: boolean;
+  on: boolean;
+}
+
+export function pieceLabel(t: Translate, name: string): string {
+  const key = PIECE_LABELS[name];
+
+  return key === undefined ? name : t(key);
+}
+
+// The pieces in the order they are sent, the ones not sent after them in their own order: every
+// companion's, then its own.
+export function pieceOrder(view: Pick<CompanionView, "pieces" | "settings">): PieceOrder[] {
+  const sent = view.settings.pieces ?? [...view.pieces];
+  const all = [...view.pieces, ...Object.keys(view.settings.ownPieces)];
+
+  return [...sent.filter((one) => all.includes(one)).map((name) => ({ name, on: true })), ...all.filter((one) => !sent.includes(one)).map((name) => ({ name, on: false }))];
+}
+
+// The rows of an order a form holds, its own pieces being those the form holds.
+export function orderRows(t: Translate, order: readonly PieceOrder[], own: Readonly<Record<string, string>>): PieceRow[] {
+  return order.map(({ name, on }) => ({ name, label: pieceLabel(t, name), own: Object.hasOwn(own, name), on }));
+}
+
+// The order a save sends: the pieces switched on, in the order the list now stands.
+export function sentPieces(rows: readonly PieceOrder[]): string[] {
+  return rows.filter((one) => one.on).map((one) => one.name);
+}
+
+// The list with one row moved up or down a place, or as it was where it cannot move.
+export function movedPiece<T>(rows: readonly T[], index: number, by: -1 | 1): T[] {
+  const to = index + by;
+
+  if (to < 0 || to >= rows.length) return [...rows];
+
+  const moved = [...rows];
+  const [one] = moved.splice(index, 1);
+
+  moved.splice(to, 0, one!);
+
+  return moved;
+}
+
+// What each generation setting is for, in a few words the panel shows beside it
+// (the agency's docs/companions.md, 「Its generation settings」). A setting the bot names that this list does not is
+// shown by its name alone.
+const GENERATION_USES: Readonly<Record<string, string>> = {
+  temperature: "agents.label.use_temperature",
+  top_p: "agents.label.use_top_p",
+  top_k: "agents.label.use_top_k",
+  min_p: "agents.label.use_min_p",
+  presence_penalty: "agents.label.use_presence_penalty",
+  frequency_penalty: "agents.label.use_frequency_penalty",
+  repeat_penalty: "agents.label.use_repeat_penalty",
+  repeat_last_n: "agents.label.use_repeat_last_n",
+  dry_multiplier: "agents.label.use_dry_multiplier",
+  dry_base: "agents.label.use_dry_base",
+  dry_allowed_length: "agents.label.use_dry_allowed_length",
+  seed: "agents.label.use_seed",
+  max_tokens: "agents.label.use_max_tokens",
+  preserve_thinking: "agents.label.use_preserve_thinking",
+};
+
+export function generationUse(t: Translate, name: string): string {
+  const key = GENERATION_USES[name];
+
+  return key === undefined ? "" : t(key);
+}
+
+type GenerationSetting = CompanionView["generationSettings"][number];
+
+// A setting's bounds as its empty box shows them, with the engine's default standing for the empty value;
+// a switch has none.
+export function generationBounds(setting: GenerationSetting): string {
+  if (setting.switch === true) return "";
+
+  const number = (value: number): string => value.toLocaleString("en-US", { maximumFractionDigits: 3 });
+
+  return setting.max === null ? `${number(setting.min)} ~` : `${number(setting.min)} ~ ${number(setting.max)}`;
+}
+
+// The boxes as they start: each setting's saved number as text, empty where the engine's default stands;
+// a switch's choice as on, off or default.
+export function generationDraft(view: Pick<CompanionView, "generationSettings" | "settings">): Record<string, string> {
+  return settingsDraft(view.generationSettings, view.settings.generation);
+}
+
+// The same for any list of these settings and the values held of them, as a worker's own sampling is
+// shown (the agency's docs/own-llm.md, 「A worker pinned to a provider」).
+export function settingsDraft(settings: readonly GenerationSetting[], values: Readonly<Record<string, number | boolean>>): Record<string, string> {
+  return Object.fromEntries(settings.map((one) => {
+    const value = values[one.name];
+
+    return [one.name, one.switch === true ? thinkingOf(typeof value === "boolean" ? value : null) : value === undefined ? "" : String(value)];
+  }));
+}
+
+// What a box or a choice holds, as a save sends it: null where the engine's default stands, a switch's
+// on or off, and anything else as the number it reads as, which the bot checks.
+function generationValueOf(text: string | number | null | undefined): number | boolean | null {
+  // A number box may hand back a number rather than its text.
+  const typed = String(text ?? "").trim();
+
+  if (typed === "" || typed === "default") return null;
+  if (typed === "on" || typed === "off") return typed === "on";
+
+  return Number(typed);
+}
+
+// What a save sends of the boxes: each one that differs from what is saved, an empty one as null.
+export function generationChange(draft: Readonly<Record<string, string | number | null | undefined>>, saved: Readonly<Record<string, number | boolean>>): Record<string, number | boolean | null> {
+  return Object.fromEntries(Object.entries(draft).flatMap(([name, text]): [string, number | boolean | null][] => {
+    const value = generationValueOf(text);
+    const held = saved[name];
+
+    if (value === null) return held === undefined ? [] : [[name, null]];
+
+    return value === held ? [] : [[name, value]];
+  }));
+}
+
+// Everything a companion's block lets the owner change, as its fields hold it until the form saves
+// (docs/web.md, 「Forms」). The persona is null where the companion keeps none of its own and its
+// file's text is shown.
+export interface CompanionDraft {
+  registration: string | null;
+  entry: string | null;
+  base: string;
+  thinking: Thinking;
+  generation: Record<string, string>;
+  referenceOn: boolean;
+  order: PieceOrder[];
+  own: Record<string, string>;
+  persona: string | null;
+  // The recollectors' model as its list holds it, the default under its own mark.
+  recollector: string;
+}
+
+export type Thinking = "default" | "on" | "off";
+
+export function thinkingOf(value: boolean | null): Thinking {
+  return value === null ? "default" : value ? "on" : "off";
+}
+
+// The fields as the bot holds them now. The engine's file is the one being put on it while a choice
+// runs, since that is what was saved.
+export function companionDraft(view: CompanionView, base: string): CompanionDraft {
+  return {
+    registration: view.registration,
+    entry: view.modelUse?.state === "running" ? view.modelUse.entry : view.serving,
+    base,
+    thinking: thinkingOf(view.thinking),
+    generation: generationDraft(view),
+    referenceOn: view.settings.referenceOn,
+    order: pieceOrder(view),
+    own: { ...view.settings.ownPieces },
+    persona: view.settings.persona,
+    recollector: view.settings.recollectorModel ?? RECOLLECTOR_DEFAULT,
+  };
+}
+
+// Whether a field differs from what is saved. The list of pieces differs only where what is sent
+// does: an unsent piece moved among the unsent ones changes nothing a save would send.
+export function draftDiffers(key: keyof CompanionDraft, draft: CompanionDraft, saved: CompanionDraft): boolean {
+  if (key === "order") return JSON.stringify(sentPieces(draft.order)) !== JSON.stringify(sentPieces(saved.order));
+  if (key === "generation") return Object.keys(generationChange(draft.generation, savedGeneration(saved.generation))).length > 0;
+
+  return JSON.stringify(draft[key]) !== JSON.stringify(saved[key]);
+}
+
+function savedGeneration(boxes: Readonly<Record<string, string>>): Record<string, number | boolean> {
+  return Object.fromEntries(Object.entries(boxes).flatMap(([name, text]): [string, number | boolean][] => {
+    const value = generationValueOf(text);
+
+    return value === null ? [] : [[name, value]];
+  }));
+}
+
+// What one save of the companion's own settings sends: every field that differs, which the bot
+// checks whole. The base prompt and the engine's entry go by paths of their own.
+export function companionChange(draft: CompanionDraft, saved: CompanionDraft): Record<string, unknown> {
+  const differs = (key: keyof CompanionDraft): boolean => draftDiffers(key, draft, saved);
+
+  return {
+    ...(differs("registration") && draft.registration !== null ? { registration: draft.registration } : {}),
+    ...(differs("referenceOn") ? { referenceOn: draft.referenceOn } : {}),
+    ...(differs("own") ? { ownPieces: draft.own } : {}),
+    ...(differs("order") ? { pieces: sentPieces(draft.order) } : {}),
+    ...(differs("persona") ? { persona: draft.persona } : {}),
+    ...(differs("generation") ? { generation: generationChange(draft.generation, savedGeneration(saved.generation)) } : {}),
+    ...(differs("thinking") ? { thinking: draft.thinking === "default" ? null : draft.thinking === "on" } : {}),
+    ...(differs("recollector") ? { recollectorModel: recollectorChange(draft.recollector) } : {}),
+  };
+}
+
+// The recollectors' model as its list holds it (docs/web.md, 「Agent management screen」): the default, which leaves each
+// recollector on its own key's road, under a mark no registration's name can be, then every
+// registration with an address.
+export const RECOLLECTOR_DEFAULT = "-";
+
+export function recollectorChoices(t: Translate, view: Pick<CompanionView, "registrations">): { label: string; value: string; description?: string }[] {
+  return [
+    { label: t("agents.label.recollector_model_default"), value: RECOLLECTOR_DEFAULT },
+    ...view.registrations.map((one) => ({ label: one.label, value: one.name, description: one.name })),
+  ];
+}
+
+// A choice of the list as a save carries it: null for the default.
+export function recollectorChange(value: string): string | null {
+  return value === RECOLLECTOR_DEFAULT ? null : value;
+}

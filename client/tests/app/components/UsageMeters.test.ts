@@ -1,0 +1,165 @@
+import { describe, expect, test } from "bun:test";
+import KO from "../../fixtures/app/components/UsageMeters.test.ko.json";
+
+// What the title bar carries, and what it does with it when there is no room. The bar is one
+// axis — the two limit windows, as percentages — and a phone has no room to carry even those
+// beside the room's own name, which is what must not be cut, so below the width this console
+// folds at the two become the one mark that opens them. The rule is read off the file that
+// ships, because what makes it true is a pair of variants on two elements and nothing a
+// rendered screen would name.
+
+const source = await Bun.file(new URL("../../../apps/web/app/components/UsageMeters.vue", import.meta.url)).text();
+const template = source.slice(0, source.indexOf("<script"));
+
+// The one element of the bar, with its classes: the button that opens the figures.
+function tagOf(mark: string): string {
+  const at = template.indexOf(mark);
+
+  expect(at).toBeGreaterThan(-1);
+
+  const opened = template.lastIndexOf("<", at);
+
+  return template.slice(opened, template.indexOf(">", at) + 1);
+}
+
+describe("the mark the figures fold into", () => {
+  test("there is a template to read, so nothing below passes on an empty string", () => {
+    expect(template.length).toBeGreaterThan(500);
+    expect(template).toContain("i-material-symbols-speed");
+    expect(template).toContain("shareText(liveWindow(session, now))");
+  });
+
+  test("stands only below the width this console folds at, and the figures only above it", () => {
+    // sm is the console's own fold for this bar: it is where the words beside the figures used
+    // to appear, so nothing new is being made up here.
+    expect(tagOf("i-material-symbols-speed")).toContain("sm:hidden");
+    expect(template).toContain('<span v-else class="hidden sm:contents">');
+  });
+
+  // Folded there is nowhere on the bar to name the login, and the mark is named on hover like
+  // every icon button, so the login is said there.
+  test("names the login in the tooltip it already carries", () => {
+    expect(template).toContain("$t('usage.title.remaining_of', { name: accountName })");
+  });
+
+  test("carries the loudest of the figures in its colour, so folding hides no warning", () => {
+    expect(tagOf("i-material-symbols-speed")).toContain("toneClass(loudest)");
+  });
+
+  test("opens the same popover the figures always opened", () => {
+    // The mark is inside the button, not beside it: one press, and the whole of what the bar
+    // was saying stands in the popover.
+    expect(template.indexOf("<UPopover")).toBeLessThan(template.indexOf("i-material-symbols-speed"));
+    expect(template.indexOf("i-material-symbols-speed")).toBeLessThan(template.indexOf("</button>"));
+  });
+});
+
+// One axis on the bar and no second one. A count of tokens set beside a percentage is read as
+// another percentage, so what a model burnt stands with the counts in the popover instead.
+describe("what the wide bar carries", () => {
+  // The wide shape of the bar: what stands where the fold is not in force.
+  const wide = template.slice(template.indexOf('<span v-else class="hidden sm:contents">'), template.indexOf("</button>"));
+
+  test("the two limit windows, by name and as shares", () => {
+    expect(wide).toContain('$t("usage.label.window_session")');
+    expect(wide).toContain('$t("usage.label.window_weekly")');
+    expect(wide).toContain("shareText(liveWindow(session, now))");
+    expect(wide).toContain("shareText(liveWindow(weekly, now))");
+  });
+
+  // A window belongs to the login that reported it, and the agency holds more than one. So the bar says
+  // whose the two figures are — the login a run goes out on now — and a figure with no login
+  // named is a figure about nobody.
+  test("and the login those two figures belong to", () => {
+    expect(wide).toContain("accountName");
+    // And the figures themselves are the bot's active slot's, read off its own answer rather than
+    // taken as the first row of the order.
+    expect(source).toContain("titleWindows(fallback.value)");
+    expect(source).toContain("titleAccountLabel(fallback.value)");
+  });
+
+  test("and no figure of tokens beside them", () => {
+    for (const figure of [KO.line_81, "tokenText", "totalText", "kindFigures"]) {
+      expect(wide).not.toContain(figure);
+    }
+  });
+
+  test("the letters stand in the interface's own face, and only the digits are held to a width", () => {
+    // What this bar wants is columns of digits that do not shove the bar along as they change,
+    // and tabular figures are that. A fixed-width face is the other thing — the face code is read
+    // in — and the words here are not code: they are the interface's own, and they read in the
+    // interface's own face.
+    expect(template).not.toContain("font-mono");
+    expect(tagOf(`:aria-label="$t('usage.title.remaining')"`)).toContain("tabular-nums");
+  });
+});
+
+describe("what the popover holds", () => {
+  test("everything the folded bar no longer says, and the windows by name", () => {
+    for (const heading of ["usage.title.remaining", "usage.title.weekly_by_mode", "usage.title.saved_sessions"]) {
+      expect(template).toContain(heading);
+    }
+
+    expect(template).toContain("modeLabel($t, window.mode)");
+    expect(template).toContain("windowLabel($t, window)");
+    // Every Claude account as a group of its own, the one in use marked.
+    expect(template).toContain("v-for=\"group in claudeGroups\"");
+    expect(template).toContain(`:label="$t('usage.label.in_use')"`);
+    expect(template).toContain("focusedMode === 'openrouter'");
+  });
+
+  // Every row says what it burnt in the kinds it burnt it in, and the total stands with them
+  // rather than in front of them. A total alone is the same cached prefix read again on every
+  // resumed turn as much as anything else, and it answers a different question.
+  test("a model's row and a gate's row hand their kinds to the one thing that draws them", () => {
+    for (const row of ['<UsageSplit :tally="model"', '<UsageSplit :tally="gate"']) {
+      expect(template).toContain(row);
+    }
+
+    // And nothing of the kinds is left standing here. The two lists show the same picture, and
+    // two blocks of markup drawing one picture is how the two stop matching.
+    expect(template).not.toContain("kindFigures(");
+
+    expect(template).toContain("totalText($t, model)");
+    expect(template).toContain("totalText($t, gate)");
+  });
+
+  // The room a popover has was worked out for it before it was drawn, and this console takes its
+  // ceiling from there in one place for every popover there is. A height written on this one
+  // would be a second answer to a question already answered, and the answer that loses is
+  // whichever of the two the reader is not looking at.
+  test("and no ceiling, no height and no overflow of its own on what it opens", () => {
+    const popover = tagOf("<UPopover");
+
+    // What it does say about itself is its width and its padding, which is the shape it wants
+    // where there is room for it.
+    expect(popover).toContain("w-96");
+
+    for (const rule of ["max-h-", "h-full", "overflow", "overscroll"]) {
+      expect({ rule, said: popover.includes(rule) }).toEqual({ rule, said: false });
+    }
+  });
+
+  // A mark that stands on every screen leads to what it is about, and a panel opened from one
+  // carries the way to that thing's own page. What these figures are read against is the list of
+  // logins, their order and their switches.
+  test("and the way to the accounts the figures are of", () => {
+    expect(template).toContain('to="/agents?tab=general"');
+    expect(template).toContain(`:label="$t('usage.label.claude_accounts')"`);
+  });
+
+  test("and what the kinds do not cover stands under them", () => {
+    expect(template).toContain("{{ weeklyUnsplit }}");
+    expect(template).toContain("{{ gatesUnsplit }}");
+  });
+
+  test("a window says how long is left of it, and keeps the hour behind that", () => {
+    const row = tagOf("resetText($t, window, now)");
+
+    // The length is what stands on the row; the clock face the account gave is on the row
+    // itself, for the reader who wants the hour rather than the length.
+    expect(row).toContain(':title="resetClock($t, window)"');
+    // It counts down while it is read, so its digits are the fixed-width ones.
+    expect(row).toContain("tabular-nums");
+  });
+});

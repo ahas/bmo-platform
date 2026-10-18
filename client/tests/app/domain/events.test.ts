@@ -3,7 +3,7 @@ import { computed, createRenderer, defineComponent, onMounted, onScopeDispose, r
 
 import { retryDelay, shouldRefresh, TURN_ENDED, useBotEvents, useRoomRun } from "../../../apps/web/app/domain/events";
 
-import type { BotEvent, BotEventType, ChatTurn, LiveSnapshot, RunProgress } from "#shared/types";
+import type { BotEvent, BotEventType, ChatTurn, LiveSnapshot, RunProgress } from "../../../apps/web/shared/types";
 import type { BotStream, RefreshCause, RefreshQuestion, RoomOutcome, RoomRun, RunState } from "../../../apps/web/app/domain/events";
 import KO from "../../fixtures/app/domain/events.test.ko.json";
 
@@ -314,15 +314,15 @@ describe("the block a room shows while the chat agent is answering it", () => {
   // A companion's turn names who answers (the agency's docs/companions.md), and its block wears that name rather
   // than the chat agent's; the chat agent's own turn names nobody. In a room both answer, each turn is a block of its own.
   test("a companion's turn and the chat agent's stand as two blocks, and each ending closes its own", async () => {
-    const kakia = { id: 1_000_000_007, name: KO.line_316 };
+    const companion = { id: 1_000_000_007, name: KO.line_316 };
 
     await watching(-1003, async (screen) => {
-      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: kakia }));
+      screen.write("bot", botEvent({ type: "run-started", messageId: 41, speaker: companion }));
       screen.write("bot", botEvent({ type: "run-started", messageId: 42 }));
 
-      expect(screen.runs().map((run) => [run.messageId, run.speaker])).toEqual([[41, kakia], [42, undefined]]);
+      expect(screen.runs().map((run) => [run.messageId, run.speaker])).toEqual([[41, companion], [42, undefined]]);
 
-      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: kakia }));
+      screen.write("bot", botEvent({ type: "sent", messageId: 43, speaker: companion }));
       await screen.finishRead();
 
       expect(screen.runs().map((run) => run.messageId)).toEqual([42]);
@@ -330,17 +330,17 @@ describe("the block a room shows while the chat agent is answering it", () => {
   });
 
   test("a screen arriving in the middle of a companion's turn reads it off the picture beside the chat agent's", () => {
-    const kakia = { id: 1_000_000_007, name: KO.line_332 };
+    const companion = { id: 1_000_000_007, name: KO.line_332 };
 
     watching(-1003, (screen) => {
-      screen.write("live", picture([chatTurn({ messages: 1 }), chatTurn({ messages: 3, speaker: kakia })]));
+      screen.write("live", picture([chatTurn({ messages: 1 }), chatTurn({ messages: 3, speaker: companion })]));
 
-      expect(screen.runs().map((run) => [run.received?.messages, run.speaker])).toEqual([[1, undefined], [3, kakia]]);
+      expect(screen.runs().map((run) => [run.received?.messages, run.speaker])).toEqual([[1, undefined], [3, companion]]);
 
       // The picture lets the chat agent's turn go and keeps the companion's: only the agent's block comes down.
-      screen.write("live", picture([chatTurn({ messages: 3, speaker: kakia })]));
+      screen.write("live", picture([chatTurn({ messages: 3, speaker: companion })]));
 
-      expect(screen.runs().map((run) => run.speaker)).toEqual([kakia]);
+      expect(screen.runs().map((run) => run.speaker)).toEqual([companion]);
     });
   });
 
@@ -348,14 +348,14 @@ describe("the block a room shows while the chat agent is answering it", () => {
   // screen opened in the middle of the wait reads it as waiting, and as waiting no longer once the
   // picture lets the wait go (the agency's docs/companions.md, 「The engine it shares」).
   test("a screen arriving while a companion's turn waits for its engine reads the wait off the picture", () => {
-    const kakia = { id: 1_000_000_007, name: KO.line_350 };
+    const companion = { id: 1_000_000_007, name: KO.line_350 };
 
     watching(-1003, (screen) => {
-      screen.write("live", picture([chatTurn({ messages: 1, speaker: kakia, waiting: { jobId: 5, todoId: 1099 } })]));
+      screen.write("live", picture([chatTurn({ messages: 1, speaker: companion, waiting: { jobId: 5, todoId: 1099 } })]));
 
       expect(screen.runs().map((run) => [run.progress?.phase, run.progress?.waitingFor])).toEqual([["waiting", { jobId: 5, todoId: 1099 }]]);
 
-      screen.write("live", picture([chatTurn({ messages: 2, speaker: kakia, waiting: null })]));
+      screen.write("live", picture([chatTurn({ messages: 2, speaker: companion, waiting: null })]));
 
       expect(screen.runs().map((run) => [run.progress, run.received?.messages])).toEqual([[null, 2]]);
     });

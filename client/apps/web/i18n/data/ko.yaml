@@ -5,3 +5,7 @@
 # text is its mark, with the recording's length where one is known, then the words it says.
 marks:
   voice: "음성"
+
+# The word a Claude Workflow's branch is filed under in the name a run stores, ahead of the branch's number.
+filed:
+  branch: "브랜치"

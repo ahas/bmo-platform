@@ -5,9 +5,13 @@ import data from "../i18n/data/ko.yaml";
 
 interface TextMarks {
   marks: { voice: string };
+  filed: { branch: string };
 }
 
 const MARKS = (data as TextMarks).marks;
+
+/** The word a Claude Workflow's branch is filed under in the name a run stores, ahead of its number. */
+export const BRANCH_WORD = (data as TextMarks).filed.branch;
 
 function escaped(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

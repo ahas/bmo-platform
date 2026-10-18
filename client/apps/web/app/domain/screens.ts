@@ -1,3 +1,6 @@
+import { AGENT_TABS } from "./agent-settings";
+import { LIVE_TABS } from "./status";
+
 import type { Translate } from "#shared/wording";
 import type { NavigationMenuItem } from "@nuxt/ui";
 
@@ -47,6 +50,9 @@ export interface ScreenTab {
 // The screens that stand in this console now, in the order the sidebar shows them. A screen's group
 // puts its entry here as it brings the screen; a unit not yet split stands as its placeholder's entry.
 export const SCREENS: readonly Screen[] = [
+  // The live status screen stands on its own above the rest. A section of it is a tab kept in the address, so the
+  // console search lands on the section rather than on the screen.
+  { label: "screens.label.live", to: "/live", icon: "i-material-symbols-monitor-heart-outline", nested: false, tabs: LIVE_TABS },
   // The mailboxes, bmo-mail's. Its screen had places below its address, so they light it too.
   { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, placeholder: true },
   // A machine's drives walked as files, bmo-drive's.
@@ -58,6 +64,9 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
   // A checkout read at a commit with reviews pinned to its lines, bmo-review's.
   { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, placeholder: true },
+  // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
+  // its address are the agents' own, so they do not light it.
+  { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
   // Every machine's hardware, bmo-node's. This machine's own monitor stood below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, placeholder: true },
   // The cards and who holds them, bmo-arbiter's.

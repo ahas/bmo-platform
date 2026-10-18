@@ -5,7 +5,7 @@ import { Glob } from "bun";
 import { CONTROL_CHECKING, CONTROL_SLOW, CONTROL_UNREACHABLE } from "../../../apps/web/shared/config";
 import { controlLine, controlLink, controlTone, useControlStatus } from "../../../apps/web/app/domain/control";
 
-import type { ControlStatus } from "#shared/types";
+import type { ControlStatus } from "../../../apps/web/shared/types";
 
 describe("what a screen says of the bot's control API", () => {
   test("not having heard is asking, not a failure", () => {

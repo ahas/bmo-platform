@@ -1,0 +1,442 @@
+// The agency's answers as its routes give them (the agency's `docs/api.md`): the shapes the agency screens read
+// and the bodies they send. They are written here because the console reads the agency over HTTP and imports
+// none of its code; a field the agency adds is one the screens do not read until they are written to.
+
+import type { AgentProviderName, StopTarget } from "./types";
+
+export type TierProvider = AgentProviderName;
+
+export interface ModelCapability { provider: TierProvider; model: string; efforts: readonly (string | null)[] }
+
+interface SettingBase {
+  name: string;
+  // Whether the chat template reads it, so the request carries it under `chat_template_kwargs`.
+  template?: true;
+}
+
+export interface NumberSetting extends SettingBase {
+  switch?: undefined;
+  min: number;
+  // The highest value, or null where the registration's window sets it.
+  max: number | null;
+  // Whether the lowest value itself is refused, as `top_p` 0 is.
+  aboveMin?: boolean;
+  // Whether it takes whole numbers only.
+  whole?: boolean;
+}
+
+// A setting that takes on or off, with no bounds.
+export interface SwitchSetting extends SettingBase {
+  switch: true;
+}
+
+export type GenerationSetting = NumberSetting | SwitchSetting;
+
+export type GenerationValue = number | boolean;
+
+export type ModelTier = string;
+export type CoworkerTier = string;
+
+// A provider as the tier screen heads its column: its own label, whether its mapping carries an answer
+// ceiling, the efforts it takes and whether it is on.
+export interface TierProviderView {
+  provider: TierProvider;
+  label: string;
+  capsAnswerTokens: boolean;
+  efforts: (string | null)[];
+  enabled: boolean;
+}
+
+export interface TierChoice {
+  model: string;
+  effort: string | null;
+}
+
+// The registry's mapping also names the ceiling of the answer's tokens; null is the work's own default.
+export interface TierMapping extends TierChoice {
+  provider: TierProvider;
+  tier: ModelTier;
+  answerTokens?: number | null;
+}
+
+export interface TierConflict {
+  key: string;
+  provider: TierProvider;
+  previous: TierChoice;
+  accepted: boolean;
+}
+
+// One work key's tier, the tiers it may take, and what it resolves to on each provider or why it does not.
+export interface TierAssignmentView {
+  key: string;
+  tier: ModelTier;
+  choices: ModelTier[];
+  effective: { provider: TierProvider; selection: TierMapping | null; error: string | null }[];
+}
+
+// The tiers, their mappings on each provider and every work key's assignment (the agency's docs/model-tiers.md).
+export interface TierSettingsView {
+  tiers: ModelTier[];
+  providers: TierProviderView[];
+  mappings: TierMapping[];
+  conflicts: TierConflict[];
+  assignments: TierAssignmentView[];
+}
+// What one model of a provider's catalogue offers a screen beyond the capability a save is checked
+// against. Each fact is the provider's to answer and absent from one that does not: `free` from
+// OpenRouter, and from a provider whose catalogue tells a generation in service from a superseded
+// one, `inService` — with `staleReadAt` saying, where the whole list served was read past that
+// provider's own freshness mark, when that read was taken.
+export interface TierCatalogueEntry extends ModelCapability { free?: boolean; inService?: boolean; staleReadAt?: number }
+
+// One session as a holder holds it.
+export interface AgentSession {
+  agent: string;
+  // The room it is one room's, or null.
+  chatId: number | null;
+  // The holder's kind, which says what a reset of it clears.
+  kind: string;
+  // What tells this session apart: the room's title and the generation, the models it runs on.
+  title: string | null;
+  generation: number | null;
+  models: string[];
+  // Whether a turn or a job of it is known to be running now, which a reset waits for.
+  running: boolean;
+}
+
+export interface SessionView extends AgentSession {
+  label: string;
+  icon: string | null;
+  waiting: SessionReset | null;
+  lastDoneAt: number | null;
+}
+
+export interface SessionReset {
+  id: number;
+  agent: string;
+  // The room whose session it is, or null for a session that is no one room's.
+  chatId: number | null;
+  by: string;
+  at: number;
+  reason: string;
+  // When it was carried out, or null while it waits.
+  doneAt: number | null;
+}
+
+export interface ModelUseView extends ModelUse {
+  logTail: string[];
+}
+
+export interface CatalogueEntryView extends CatalogueEntry {
+  // Whether its engine serves its file now, as the engine's health names it.
+  serving: boolean;
+}
+
+export interface CatalogueView {
+  entries: CatalogueEntryView[];
+  uses: ModelUseView[];
+}
+
+// The model files the deployment's own engines serve (the agency's docs/model-catalogue.md): each entry a name, a label, the
+// file with its size and hash, where it comes from, the engine that serves it and the registration
+// that engine is reached by, the nodes it lies on, how a request to it is asked by default, and a
+// note; beside them, every time an entry was chosen for its engine.
+
+// How a request to a model is asked where the asker names nothing; each one empty or a value.
+export interface GenerationDefaults {
+  thinking: boolean | null;
+  temperature: number | null;
+  topP: number | null;
+  presencePenalty: number | null;
+  maxTokens: number | null;
+}
+
+export interface CatalogueEntry extends GenerationDefaults {
+  name: string;
+  label: string;
+  file: string;
+  bytes: number;
+  sha256: string;
+  // An https address it is fetched from, or the path under the data root of the run that made it.
+  source: string | null;
+  // The engine that serves it, by its installer's name.
+  engine: string | null;
+  // The registration that engine is reached by.
+  registration: string | null;
+  // The nodes the file lies on, by their names in the node list.
+  nodes: string[];
+  note: string | null;
+}
+
+// One time an entry was chosen for its engine, and how it went.
+export type ModelUseState = "running" | "done" | "failed";
+
+export interface ModelUse {
+  id: number;
+  entry: string;
+  engine: string;
+  chosenBy: string;
+  startedAt: number;
+  endedAt: number | null;
+  state: ModelUseState;
+  // Where it stands while running, and why it failed where it did.
+  step: string | null;
+  reason: string | null;
+  // Its log under the data root.
+  log: string | null;
+}
+
+// The live picture of the common co-worker pool the console's live status screen draws as tiles
+// (docs/web.md, 「Live status screen」): a tile for every place a tier has on a provider that is
+// turned on and lends co-workers, and one for every worker's own turn, as the agency reads it on every ask.
+
+// Where one tile's work can be read while it runs: an agent's log, at the place one run of it begins.
+export interface PoolBoardLog {
+  agent: string;
+  run: string;
+}
+
+// What holds a place. `kind` names who asked for it, which is all the screen needs to pick a mark.
+export interface PoolBoardWork {
+  kind: "cowork" | "search" | "browse" | "native" | "turn" | "other";
+  role: string;
+  // The tier as the pool holds it.
+  tier: string;
+  provider: TierProvider;
+  model: string;
+  effort: string | null;
+  // The item or run it serves, and the step of it, in the words the rest of the console uses.
+  title: string;
+  detail: string | null;
+  todoId: number | null;
+  since: number | null;
+  log: PoolBoardLog | null;
+  // What a stop of this tile names. A co-worker has no reach of its own — no unit, no envelope, no
+  // cancel file — so what a tile is stopped by is the run it works inside, which is the same run
+  // its log belongs to (`the agency's docs/agent-control.md` 「Stopping」). A place held for work that has not
+  // started names nothing.
+  stop: StopTarget | null;
+}
+
+export interface PoolBoardTile {
+  // Working: a child runs in it. Held: a reservation keeps it for an owner. Idle: nobody is in it.
+  state: "working" | "held" | "idle";
+  work: PoolBoardWork | null;
+}
+
+export interface PoolBoardBucket {
+  provider: TierProvider;
+  tier: CoworkerTier;
+  capacity: number;
+  tiles: PoolBoardTile[];
+  waiting: PoolBoardWork[];
+}
+
+// One job worker: its turns are bounded by its checkout, so it has exactly one place, which an
+// ordinary job of its fills as well as a co-work turn.
+export interface PoolBoardWorker {
+  name: string;
+  label: string;
+  tile: PoolBoardTile;
+  waiting: PoolBoardWork[];
+}
+
+export interface PoolBoard {
+  readAt: number;
+  buckets: PoolBoardBucket[];
+  workers: PoolBoardWorker[];
+}
+
+export interface AddressView {
+  node: string;
+  url: string;
+  key: KeyState;
+}
+
+export interface RegistrationView extends Omit<Registration, "addresses"> {
+  addresses: AddressView[];
+  // What names the registration, so a screen can say why it may not be removed.
+  referrers: string[];
+}
+
+// The gateway as its launcher last wrote of it: the table it serves, whether a new one is starting
+// and how many old children are still finishing; null where it has written nothing.
+export interface GatewayView {
+  serving: string | null;
+  starting: string | null;
+  draining: number;
+  at: number;
+}
+
+export interface RegistryView {
+  registrations: RegistrationView[];
+  gateway: GatewayView | null;
+}
+
+// The keys of the registered models' addresses (the agency's docs/own-llm.md, 「The keys」): written, taken away and
+// checked by the harness-machine binary (the agency's docs/harness-machine.md, 「The keys」), which reads a key off
+// its standing input alone. Nothing here returns a key or writes one anywhere else.
+
+// What a screen is shown of an address's key: usable, none named, or named but not usable.
+export type KeyState = "usable" | "none" | "unusable";
+
+// The models the owner registers for the chat, the workers and the editors to run on (the agency's docs/own-llm.md,
+// 「Registered models」): each a name, a label, the model its addresses serve, its sizes, its wait,
+// its thinking default, whether the automatic walk asks it and whether the research its runs set off
+// runs on it, with one or more addresses, each a node
+// the same model is served on. A row holds where a key is kept and never a key.
+
+export interface RegisteredAddress {
+  // The node's label, unique within its registration.
+  node: string;
+  // The OpenAI-compatible chat completions address.
+  url: string;
+  // The key's file under the data root's `env/`, or null where the address takes no key.
+  keyFile: string | null;
+  // Whether the agency wrote that file, and so may take it away.
+  keyOwned: boolean;
+  // When the address was last given a new session, in seconds; null where it never was.
+  placedAt: number | null;
+}
+
+export interface Registration {
+  name: string;
+  label: string;
+  model: string;
+  contextTokens: number;
+  answerTokens: number;
+  waitSeconds: number;
+  thinking: boolean;
+  walked: boolean;
+  // Whether a search or a browse a run on it sets off runs on it as well, opening no branch
+  // (bmo-artifact's docs/research-runs.md, 「A research run set off on a registration」).
+  keepsResearch: boolean;
+  addresses: RegisteredAddress[];
+}
+
+export interface CompanionView {
+  agent: string;
+  label: string;
+  icon: string | null;
+  // Whether the deployment seeds it, so the console offers no removal: it would stand again at the
+  // next start.
+  builtin: boolean;
+  // The registration it is pinned to, and every registration with an address it may be pinned to.
+  registration: string | null;
+  registrations: { name: string; label: string }[];
+  // The catalogue's entries served behind its registration, and the file its engine serves now.
+  entries: Pick<CatalogueEntry, "name" | "label" | "file" | "engine">[];
+  serving: string | null;
+  // The latest choice of a model for the engine behind its registration.
+  modelUse: ModelUseView | null;
+  settings: CompanionSettings;
+  // Its generation settings with their bounds, `max_tokens` held under its registration's window, and
+  // its thinking as its agent row names it, null where its model's default stands.
+  generationSettings: GenerationSetting[];
+  thinking: boolean | null;
+  // Every piece in its default order, and the persona its file holds.
+  pieces: readonly string[];
+  personaFile: string;
+  // The base prompt it chooses, by name, and every base prompt it may choose (the agency's docs/base-prompts.md).
+  basePrompt: string | null;
+  basePrompts: { name: string; label: string }[];
+  // The system prompt the next turn sends.
+  system: { text: string; characters: number; hash: string };
+  // Each room it holds a session in, with a reset of it waiting and when it was last cleared.
+  sessions: { chatId: number; title: string | null; generation: number; systemResetAt: number | null; resetWaiting: boolean; lastResetAt: number | null }[];
+}
+
+// What an add answers (the agency's docs/companions.md, 「Where a companion and its rooms come from」): every companion as it
+// then stands, and the console room the added one answers — its number, whether it was taken back from a removed
+// companion of the same name, and the sentence saying so where it was.
+export interface CompanionAdded {
+  companions: CompanionView[];
+  room: { chatId: number; takenBack: boolean; said: string | null };
+}
+
+export interface CompanionSettings {
+  agent: string;
+  // Whether a turn is given its reference — the sheets, memories and gate picks in front of its words.
+  referenceOn: boolean;
+  // The pieces of the system prompt in the order they are sent, or null for the composer's default.
+  pieces: string[] | null;
+  // The pieces of its own, by name, each a text the pieces may place anywhere among the others.
+  ownPieces: Record<string, string>;
+  // The persona's text, or null for the companion's own file.
+  persona: string | null;
+  // Its generation settings, each by the name the engine reads it under, with the number or the switch
+  // it holds; a setting left out is the engine's own default.
+  generation: Record<string, number | boolean>;
+  // The registration every recollector writing its memory runs on, or null where each runs on its own
+  // key's road (the agency's docs/agent-ownership.md, 「Which model a recollector runs on」).
+  recollectorModel: string | null;
+  // When and by whom the row was last saved, null where nobody ever saved it.
+  updatedAt: number | null;
+  updatedBy: string | null;
+}
+
+// A companion's reset as bmo-server's route answers it (the agency's docs/companions.md, 「Starting it afresh」):
+// what a reset of the ranges asked takes, or took, as the console reads it. The route does the
+// work; the console and `bmo companion reset` only ask it and show its answer.
+
+export type CompanionResetRange = "conversation" | "person";
+
+export interface CompanionResetRoom {
+  chatId: number;
+  title: string | null;
+}
+
+export interface CompanionResetAnswer {
+  agent: string;
+  label: string;
+  ranges: CompanionResetRange[];
+  // The rooms whose whole record goes, and the rooms where only the companion's own rows go.
+  alone: CompanionResetRoom[];
+  shared: CompanionResetRoom[];
+  rows: { table: string; range: CompanionResetRange; rows: number }[];
+  // The files and folders that go, by absolute path.
+  files: string[];
+  // The copies of the archive that give up rows, or would, each with how many, and those that could
+  // not be read or written.
+  copies: { path: string; rows: number | null; failure: string | null }[];
+  // The person-book writer's runs it stops, by name.
+  writerRuns: string[];
+  // Only on a reset that ran: what came of the brain's commit, and what could not be removed.
+  brain?: "committed" | "nothing" | "failed" | null;
+  failures?: string[];
+}
+
+export function companionResetTotal(answer: Pick<CompanionResetAnswer, "rows">): number {
+  return answer.rows.reduce((sum, one) => sum + one.rows, 0);
+}
+
+export interface BasePromptView extends BasePrompt {
+  characters: number;
+  // The agents that choose it, with their labels.
+  choosers: { agent: string; label: string }[];
+}
+
+export interface BasePromptsView {
+  prompts: BasePromptView[];
+  // Every agent's choice that names one, by agent.
+  choices: Record<string, string>;
+  // The value names a prompt may carry.
+  values: string[];
+}
+
+export interface BasePrompt {
+  name: string;
+  label: string;
+  text: string;
+  // When and by whom it was last saved, null for a seed nobody has saved since.
+  updatedAt: number | null;
+  updatedBy: string | null;
+}
+
+export interface AgentSamplingView {
+  agent: string;
+  // The settings a worker samples with, with their bounds.
+  settings: readonly GenerationSetting[];
+  // What it holds of them; a setting left out is the engine's own default.
+  values: Record<string, GenerationValue>;
+}

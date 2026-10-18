@@ -4,7 +4,7 @@ import { AVATAR_TONES, avatarFor, avatarIndex, avatarKey, avatarTone, FACE_TONES
 
 import { registerChatAgent } from "../../../apps/web/shared/agent-names";
 
-import type { AvatarRef } from "#shared/types";
+import type { AvatarRef } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/avatars.test.ko.json";
 
 const refs: AvatarRef[] = [
@@ -64,8 +64,8 @@ describe("what one room or one person wears", () => {
   });
 
   test("a colour of the identity's own, so two letters alike are still told apart", () => {
-    const one = avatarFor(new Map(), "room", -1, "Site-app");
-    const other = avatarFor(new Map(), "room", -2, "Site-app");
+    const one = avatarFor(new Map(), "room", -1, "Worker C");
+    const other = avatarFor(new Map(), "room", -2, "Worker C");
 
     expect(one.text).toBe(other.text);
     expect(one.class).not.toBe(other.class);

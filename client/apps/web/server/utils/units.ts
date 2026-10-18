@@ -43,6 +43,10 @@ export interface UnitCall {
   carryReason?: boolean | number[];
   // Statuses beyond the usual ones that travel on as they are, where the caller's screen tells them apart.
   passStatus?: number[];
+  // The unit's refusal codes, each with the pack's key for the sentence it is said in. The unit's own words
+  // are English and for an agent to read, so a refusal whose code stands here is said in the pack's sentence;
+  // the table is the calling unit's, written where its calls are.
+  codes?: Readonly<Record<string, string>>;
 }
 
 // A unit that does not answer is this app's own failure, not the fetch's error: the view reads that one line
@@ -69,11 +73,26 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
 
   if (!response.ok) {
     const status = asked.passStatus?.includes(response.status) === true ? response.status : statusOf(response.status);
+    const body = await refusalOf(response);
+    const coded = typeof body?.code === "string" ? asked.codes?.[body.code] : undefined;
+    const reason = coded !== undefined ? wording(coded) : reasonIn(body, response.status, carries(asked, response.status));
 
-    throw fail(status, await reasonOf(response, carries(asked, response.status)));
+    // A refusal about one field names it, so the screen can say it under that field; its code travels too, for
+    // the caller that tells refusals apart.
+    throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof body?.code === "string" ? body.code : null } });
   }
 
-  return (await response.json()) as T;
+  return (response.status === 204 ? null : await response.json()) as T;
+}
+
+interface Refusal {
+  error?: unknown;
+  code?: unknown;
+  field?: unknown;
+}
+
+async function refusalOf(response: Response): Promise<Refusal | null> {
+  return (await response.json().catch(async () => null)) as Refusal | null;
 }
 
 function timedOut(error: unknown): boolean {
@@ -98,13 +117,15 @@ function statusOf(status: number): number {
 // A refusal a unit wrote for a person is the whole of what they need, and saying "the unit answered 400" in
 // its place would throw the answer away. Every unit's refusal carries its sentence as `error`.
 export async function reasonOf(response: Response, carry: boolean): Promise<string> {
-  const body = (await response.json().catch(async () => null)) as { error?: unknown } | null;
+  return reasonIn(await refusalOf(response), response.status, carry);
+}
 
+function reasonIn(body: Refusal | null, status: number, carry: boolean): string {
   if (carry && typeof body?.error === "string" && body.error !== "") {
     return body.error;
   }
 
-  return wording("control.error.status", { status: response.status });
+  return wording("control.error.status", { status });
 }
 
 /** Whether a unit answers its health at all. */

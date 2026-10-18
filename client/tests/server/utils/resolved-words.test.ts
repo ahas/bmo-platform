@@ -7,7 +7,7 @@ import { fail } from "../../../apps/web/server/utils/fail";
 
 import { questionPush } from "../../../apps/web/server/utils/pushnews";
 
-import type { JobQuestion } from "#shared/types";
+import type { JobQuestion } from "../../../apps/web/shared/types";
 
 // The server names a key and answers with its words. What leaves it — the message a refused
 // request carries, the lines a notification rings with, the manifest an installed app reads —

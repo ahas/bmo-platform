@@ -5,7 +5,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { PUSH_DENIED, PUSH_UNCONFIGURED, PUSH_UNSUPPORTED } from "../../../apps/web/shared/config";
 import { deviceOf, keyBytes, otherDevices, pushStanding, standingNotice } from "../../../apps/web/app/domain/push";
 
-import type { PushDevice } from "#shared/types";
+import type { PushDevice } from "../../../apps/web/shared/types";
 
 // What the console may say about ringing this browser, and how it tells this device from the
 // others the account has. A device is known by the endpoint its own browser gave it.

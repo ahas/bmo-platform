@@ -4,7 +4,7 @@ import { firstLine, ROOM_GATHER_MS, ROOM_QUIET_MS, RoomRinger, roomPush } from "
 import { RoomWatchers } from "../../../apps/web/server/utils/watching";
 
 import type { RoomLine } from "../../../apps/web/server/utils/roomnews";
-import type { PushPayload } from "#shared/types";
+import type { PushPayload } from "../../../apps/web/shared/types";
 import { wording } from "../../../apps/web/shared/wording";
 import { ROOM_ID as ROOM } from "../../support/ids";
 import KO from "../../fixtures/server/utils/roomnews.test.ko.json";

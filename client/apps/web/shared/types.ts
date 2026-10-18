@@ -2,7 +2,7 @@
 // as that unit's document states it, since the console reads every unit over HTTP and imports none of their
 // code (docs/boundary.md, 「Calls the console makes」). Each screen's group adds the shapes it reads.
 
-import type { PushKind } from "./config";
+import type { FallbackRouteMode, PushKind } from "./config";
 
 // bmo-job's shapes (bmo-job's `docs/api.md`).
 
@@ -56,8 +56,10 @@ export interface RanOn {
 
 // The agency's shapes (the agency's `docs/api.md`).
 
-/** The providers an agent runs on. */
-export type AgentProviderName = "claude-code" | "codex" | "openrouter" | "registered";
+/** The providers an agent runs on, one name to each provider the agency carries. */
+export const agentProviderNames = ["claude-code", "codex", "openrouter", "registered"] as const;
+
+export type AgentProviderName = (typeof agentProviderNames)[number];
 
 /** What a turn's record says it wrote: a note, a memory, a rule, a TODO row or a watch. */
 export type TurnRecordKind = "note" | "memory" | "rule" | "todo-add" | "todo-append" | "watch";
@@ -79,8 +81,112 @@ export interface TurnRecord {
 /** The emotion a voice briefing is spoken with, as the voice unit names it. */
 export type BriefingEmotion = string;
 /** A machine's standing and every node's reading, as the node unit gives them. */
-export type MachineStanding = unknown;
-export type NodesReading = unknown;
+/** The share of a stretch some or all tasks stood stalled, in percent, over 10, 60 and 300 seconds. */
+export interface PressureLine {
+  avg10: number;
+  avg60: number;
+  avg300: number;
+}
+
+export interface Pressure {
+  some: PressureLine;
+  // Null for a resource the kernel keeps no `full` line for.
+  full: PressureLine | null;
+}
+
+export interface MachineReading {
+  /** When it was read, in milliseconds. */
+  at: number;
+  load1: number;
+  threads: number;
+  memTotalGb: number;
+  memAvailableGb: number;
+  swapTotalGb: number;
+  swapFreeGb: number;
+  // The free space of the disk the caller named, for a writer that is not the root user; null where
+  // none was named or it could not be read.
+  diskFreeGb: number | null;
+  // Null where the kernel keeps no pressure figures.
+  memory: Pressure | null;
+  cpu: Pressure | null;
+}
+
+/** One process worth naming: a browser, or one holding enough memory to matter. */
+export interface MachineProcess {
+  pid: number;
+  name: string;
+  /** Resident memory and swap together, in megabytes. */
+  megabytes: number;
+  browser: boolean;
+  /** The agent place its environment names, by the place's own name; null for none. */
+  place: string | null;
+}
+
+/** The machines work goes round, as the readings show them (the agency's docs/work-nodes.md, 「The rotation」). */
+export interface NodesReading {
+  machines: { name: string; label: string; node: string | null; jobs: number; runs: number; room: MachineStanding }[];
+  // The machine the next heavy run goes to, by its label; null where no node takes runs.
+  nextRun: string | null;
+}
+
+/** What one job, or one agent with no job open, holds of the machine. */
+export interface MachineHolder {
+  // The agent place the processes name: a worker's name for a job's, the agent's own otherwise.
+  place: string;
+  jobId: number | null;
+  todoId: number | null;
+  megabytes: number;
+  browsers: number;
+}
+
+export interface MachineStanding {
+  // Null where the machine could not be read, which holds nothing.
+  reading: MachineReading | null;
+  jobs: number;
+  browserJobs: number;
+  browsers: number;
+  // Every launch limit met, in a few words each; empty where the machine has room.
+  held: string[];
+  // Whose memory, largest first.
+  holders: MachineHolder[];
+  // The five largest processes, with the place each names.
+  largest: Pick<MachineProcess, "pid" | "name" | "megabytes" | "place">[];
+  // The testbed's queue: who holds the machine's turn for heavy commands, and who waits behind it;
+  // absent from a standing a bot that does not read the testbed wrote.
+  testbed?: TestbedStanding;
+  // The narrow lane's queue beside it (the testbed's docs/testbed.md, 「The lanes」); absent from a standing a bot
+  // that does not read the lanes wrote.
+  narrow?: TestbedStanding;
+}
+
+/** One entry of the testbed's queue, with the job its place names where one is open. */
+export interface TestbedEntry extends TurnEntry {
+  jobId: number | null;
+  todoId: number | null;
+}
+
+export interface TestbedStanding {
+  holder: TestbedEntry | null;
+  waiting: TestbedEntry[];
+}
+
+/** One entry of the testbed's queue for heavy commands. */
+export interface TurnEntry {
+  // The agent place of the job that started it, where one did.
+  place: string | null;
+  checkout: string;
+  command: string;
+  // When it asked for the turn, and when the turn came, in milliseconds.
+  asked: number;
+  since?: number;
+  pid: number;
+  // A place kept for a job coming back after its wait ran out.
+  kept?: boolean;
+  // A caller at the front of the line.
+  front?: boolean;
+  // A caller standing next, behind the front.
+  next?: boolean;
+}
 
 
 export interface RoomSummary {
@@ -250,7 +356,7 @@ export interface RoundSpend extends SpendFigure {
 
 /**
  * One road a gate run walked on its way to a verdict: the provider and model it asked, how that
- * road ended, and how long it held the turn. A stage that asked J3090, waited out its share and
+ * road ended, and how long it held the turn. A stage that asked the local model, waited out its share and
  * was answered by the Claude line carries two of these, in the order they were walked.
  */
 export interface JudgementRoad {
@@ -1007,3 +1113,767 @@ export interface PushPayload {
 
 // Every provider the bot carries, as the bot names them.
 export type AgentMode = AgentProviderName;
+
+// The agency screens' shapes, as the agency, bmo-job and the receiver answer them (each one's `docs/api.md` or `docs/boundary-api.md`).
+
+// What one run of an agent spent, named by the run its log lines are kept under. A turn of the chat agent's
+// chat carries its whole round — the roads of every run of it and their sum — and any other run
+// carries its own reading with no roads. A run nothing was recorded for has no spend.
+export interface TurnFigures {
+  run: string;
+  roads: TurnRoad[];
+  spend: SpendFigure | null;
+}
+
+export interface AgentSummary {
+  name: string;
+  kind: string;
+  // What it is for, which decides the bundles its turns are given (the agency's docs/agent-roles.md); null where
+  // its row names none, absent where the archive holds no such column yet.
+  role?: string | null;
+  // How the one runner carries a conversational agent (the agency's docs/agents.md, 「One runner」): one session
+  // across its rooms or one in each, its window's turns or its settings' pieces, and whether it answers
+  // every room that names nobody. The scope and shape are null and the answering false on every other
+  // row.
+  sessionScope: "agent" | "room" | null;
+  turnShape: "window" | "pieces" | null;
+  defaultAnswerer: boolean;
+  // The model and provider the agent is configured to begin on, as the bot resolves its work key
+  // against the shared tier settings. Null where the agent has no work key or the settings refuse
+  // it, and null or absent when the list was read from the archive while the bot was not
+  // answering. lastMode and lastModel below remain what actually answered.
+  model: string | null;
+  configuredMode?: AgentMode | null;
+  // What the provider and the model it begins on are called, each as it answers for itself: the
+  // provider's label, and a registration's where the model is one. Absent or null where the bot did
+  // not say, and a screen then names them its own way.
+  configuredLabel?: string | null;
+  modelLabel?: string | null;
+  lastMode: AgentMode | null;
+  lastModel: string | null;
+  lastEffort: string | null;
+  // What the catalogue calls this agent, the other names the owner calls it by, and the mark a
+  // screen puts on it. All three are the archive's, so a screen never keeps a list of its own.
+  label: string | null;
+  aliases: string | null;
+  icon: string | null;
+  // Where a worker's jobs run. Null for every other kind of agent.
+  cwd: string | null;
+  // Whether a worker's directory is a git checkout; one that is not runs ordinary jobs only.
+  // Absent for every other kind of agent.
+  checkout?: boolean;
+  // What a worker's job prompts open with, and the one line its standing dev server runs. Null for
+  // every other kind, and absent when the list came from an archive that has not got the columns.
+  preamble?: string | null;
+  devCommand?: string | null;
+  // Whether the bot writes this row on every start. A built-in agent is part of the machine; one
+  // the owner added is theirs to change and to remove.
+  builtin: boolean;
+  chatId: number | null;
+  // The room sessions a designated agent holds, each with the moment its log last took a line there;
+  // absent for an agent that holds none.
+  sessions?: { chatId: number; lastAt: number | null }[];
+  runs: number;
+  lastRunAt: number | null;
+  lastKeepaliveAt: number | null;
+  // What this session was carrying when it last answered. Only a session that keeps one has it.
+  contextTokens: number | null;
+  // Whether the owner has stopped this agent's keepalive. A stopped agent still answers
+  // everything asked of it; what is off is the ping that holds its prefix warm.
+  keepaliveStopped: boolean;
+  // When a worker's keepalive was turned off until its next job, in seconds, or null.
+  keepalivePausedAt: number | null;
+  // Whether a worker's session is dropped when a run of it falls to a lesser model. Present for a
+  // worker only; one read from an archive that has not got the column reads as on.
+  downgradeHeal?: boolean;
+  // A base worker's two support settings, and a support worker's base and number
+  // (the agency's docs/worker-slots.md). Present for a worker only.
+  supportCount?: number;
+  supportKeepalive?: number;
+  supportOf?: string | null;
+  supportSlot?: number | null;
+  // The node a worker's checkout stands on, its directory being a path there; null for this machine
+  // (the agency's docs/work-nodes.md). Present for a worker only.
+  node?: string | null;
+  // The one provider a worker is pinned to, null where it follows the worker key's road. Present
+  // for a worker only.
+  pinnedProvider?: AgentMode | null;
+  // The one model of that provider the worker is pinned to — a registration — or null where the pin
+  // is the provider alone. Present for a worker only.
+  pinnedModel?: string | null;
+  // The agent's own thinking and effort over its tier (the agency's docs/model-tiers.md, 「An agent's own thinking
+  // and effort」). Null for an agent no choice of its own reaches — a gate, a support worker — and
+  // absent where the list was read from the archive while the bot was not answering.
+  reasoning?: AgentReasoningView | null;
+  // The gates the agent's turn passes, each with the agent's own switch (the gate unit's docs/gates.md, 「Each
+  // agent's own gates」). Null for an agent that answers in no room, and absent where the list was
+  // read from the archive while the bot was not answering.
+  gates?: AgentGateView[] | null;
+}
+
+// One gate an agent's turn passes, in the first part of the turn it stands in.
+export interface AgentGateView {
+  part: "pre" | "post";
+  key: string;
+  on: boolean;
+}
+
+// What an agent's row names of its own thinking and effort, each null where its tier and its line
+// decide, and what of it reaches the provider and model it begins on, as that provider answers: null
+// where it begins on none.
+export interface AgentReasoningView {
+  thinking: boolean | null;
+  effort: string | null;
+  reaches: { thinking: boolean; levels: string[] } | null;
+}
+
+// One of a harness account's latest windows. Claude carries it on a run and Codex supplies it on
+// its account-reader clock; the share is 0 to 1, and the reset is when the window starts over.
+export interface UsageWindow {
+  name: string;
+  // The Claude account whose run reported it, and the name the owner gave that account. Two logins
+  // report the same window names, each about its own limit, so a row says whose reading it is. A
+  // road holding no login of the agency's carries neither.
+  account: string;
+  accountName: string | null;
+  mode: AgentMode;
+  utilization: number;
+  resetsAt: number | null;
+  seenAt: number;
+  durationMinutes: number | null;
+  limitName: string | null;
+}
+
+// One job of a worker's as the foot of its screen reads it, the way the CLI's own status line does:
+// which item it is, how long it went, how many tools it called and what each model it used spent.
+export interface JobLine {
+  run: string;
+  todoId: number | null;
+  title: string | null;
+  // Why a job with no item was launched, as its launcher wrote it.
+  purpose: string | null;
+  startedAt: number;
+  // Null while the job runs.
+  finishedAt: number | null;
+  tools: number;
+  // One entry a model, read off the usage rows of a finished job and off the session record of a
+  // running one. Empty where neither has anything to say.
+  models: Array<TokenSplit & { model: string }>;
+}
+
+// A job's prompt as a person reads it (the agency's docs/worker-language.md, 「A job's prompt」): its Korean
+// reading, and the English its worker was handed where that says something else.
+export interface JobPrompt {
+  text: string;
+  english: string | null;
+}
+
+// One line of a tally, whichever way the rows were grouped. The plain total counts every row
+// there is; the kinds cover only the rows carrying them, and the two unsplit figures — how many
+// rows carry none and what those carry — say how much of the line they do not cover, so a figure
+// worked out from the kinds is never shown without saying what it leaves out.
+export interface UsageTally extends TokenSplit {
+  tokens: number;
+  cost: number;
+  runs: number;
+  unsplitRuns: number;
+  unsplitTokens: number;
+}
+
+// What one model has cost over a window, counted from the bot's own runs. The account names no
+// model in what it reports, so this is a tally rather than a limit.
+export interface ModelUsage extends UsageTally {
+  mode: AgentMode;
+  model: string;
+}
+
+export interface SessionContext {
+  name: string;
+  chatId: number | null;
+  mode: AgentMode;
+  model: string | null;
+  contextTokens: number | null;
+}
+
+// What one agent has cost over a window, counted from the rows the bot writes as each of its
+// runs answers. Every run carries the name of the agent that made it, so this is a real sum per
+// agent — and an agent with no row at all is simply absent, which is not the same as nought.
+export interface AgentTokenUsage extends UsageTally {
+  agent: string;
+}
+
+// What one user's work has cost over the week, on the Claude accounts that are theirs
+// (docs/web.md, 「Access」). Off the multi-user model no account names a user, so
+// there is no row.
+export interface UserTokenUsage extends UsageTally {
+  user: number;
+  name: string;
+}
+
+export interface UsageView {
+  windows: UsageWindow[];
+  fiveHour: ModelUsage[];
+  weekly: ModelUsage[];
+  // What each agent has cost over the week. The gates are in here with the rest: they keep no
+  // session and leave no transcript, so these rows are the only record of what they burn.
+  agents: AgentTokenUsage[];
+  users: UserTokenUsage[];
+  sessions: SessionContext[];
+}
+
+// Every answer that depends on the bot's control API says whether the bot answered at all,
+// so the view can go read-only instead of showing an error, and — where it did not — whether it
+// took the call and was too busy to answer in time rather than being gone (`slow`).
+// One role an agent may hold, with the bundles it gives, as the bot declares them.
+export interface RoleView {
+  name: string;
+  label: string;
+  bundles: { name: string; label: string }[];
+}
+
+export interface AgentList {
+  reachable: boolean;
+  slow?: boolean;
+  agents: AgentSummary[];
+  // Every role an agent may hold, in the order the bot lists them; empty while it is not answering.
+  roles: RoleView[];
+  // The gate order, which is the code's own and stands whether the bot answers or not. Empty only
+  // before the first read has come back.
+  // The gate order is the gate unit's, which is not split yet; null while no unit answers it.
+  gateOrder: GatePartView[] | null;
+}
+
+// The kinds of line an agent's log holds, in the words the writer stores. A `context` line is
+// what a turn was handed before it ran, and its name says which sort of thing that was.
+export type AgentLogKind =
+  | "start"
+  | "thinking"
+  | "text"
+  | "tool"
+  | "tool-result"
+  | "prompt"
+  | "context"
+  | "note"
+  | "end";
+
+export type AgentLogState = "requested" | "running" | "succeeded" | "failed" | "unverified" | "unavailable" | AgentLogContextState;
+
+export type AgentLogContext =
+  | "room"
+  | "memory"
+  | "person"
+  | "document"
+  | "rule"
+  | "situation"
+  | "knowledge"
+  | "archive";
+
+export interface AgentLogLine {
+  id: number;
+  agent: string;
+  // Which single run of that agent the line belongs to, so the screen knows where one run
+  // ends and the next begins.
+  run: string;
+  chatId: number | null;
+  at: number;
+  kind: AgentLogKind;
+  // The tool a call or its result is about; an MCP tool keeps its own name, as its road wrote it.
+  name: string | null;
+  // How a call or its result shows the tool: the tool's own name — an MCP tool's without its server
+  // — and the icon the tool declares, or null for the one icon every other tool takes. Null on a line
+  // about no tool.
+  tool: AgentLogTool | null;
+  // The Task call this line came out of, so a co-worker's branch reads on its own.
+  parent: string | null;
+  // The tool_use id: a call carries its own, a result carries the id of the call it answers.
+  ref: string | null;
+  // How the run itself said that line ended: a call requested, a result succeeded or failed. Null
+  // on a line whose writer said nothing of the sort.
+  state: AgentLogState | null;
+  // Whether the line was cut at the per-line cap.
+  truncated: boolean;
+  text: string;
+  // What a result changed, file by file, where a job's record holds it: a file tool's one file, or
+  // every file a shell command changed. Empty on every other line.
+  patches: AgentLogPatch[];
+  // Files a shell command changed that the provider counted but did not record.
+  patchesMore: number;
+}
+
+// One run of changed lines as the provider recorded it: where it starts and how long it is on
+// either side, and its lines, each led by "+", "-" or a space.
+export interface AgentLogHunk {
+  oldStart: number;
+  oldLines: number;
+  newStart: number;
+  newLines: number;
+  lines: string[];
+}
+
+// What was done to one file. An edit carries its hunks and no type; a write says whether it
+// created the file or replaced it, and a created or deleted file comes as its content with no
+// hunks. `by` says whether a file tool made the change or a shell command did, which is what the
+// terminal heads it by.
+export interface AgentLogPatch {
+  filePath: string;
+  type: "create" | "update" | "delete" | null;
+  by: "tool" | "command";
+  hunks: AgentLogHunk[];
+  content: string | null;
+  // The change is bigger than the screen is sent; the result is read the ordinary way instead.
+  tooLarge: boolean;
+}
+
+export interface AgentLogPage {
+  lines: AgentLogLine[];
+  // Whether another page waits on the side this one was read towards: older lines for the page
+  // a screen opens on, newer lines for a page read forward from a moment in the log.
+  hasMore: boolean;
+  // Only a page read from a moment says this, since it alone has a log on both sides of it.
+  hasOlder?: boolean;
+  // A page no unit serves: the log across an agent's runs, which the agency reads only by run.
+  unavailable?: true;
+}
+
+export interface WorkerChanged {
+  ok: true;
+}
+
+// One model OpenRouter offers, as a chooser needs it: which model, what it is called, how much
+// it can be told, and whether it costs anything.
+export interface OpenRouterModel {
+  id: string;
+  name: string;
+  contextLength: number | null;
+  free: boolean;
+}
+
+// One model the installed Codex CLI offers. The executable is the catalogue; the console keeps
+// no model list of its own, and the reasoning levels here are the ones that exact build accepts.
+export interface CodexModel {
+  id: string;
+  name: string;
+  description: string;
+  contextLength: number | null;
+  defaultReasoningEffort: string;
+  supportedReasoningEfforts: string[];
+}
+
+// One provider whose models answer a request with no tools, and whether it can answer on this
+// machine.
+export interface OwnLlmServiceView {
+  name: AgentMode;
+  label: string;
+  shortLabel: string;
+  present: boolean;
+}
+
+// What one work key asks one own LLM service for.
+export interface OwnLlmSettingsView {
+  provider: AgentMode;
+  model: string;
+  thinking: boolean;
+  answerTokens: number;
+}
+
+// One provider as a work key's chooser offers it: the name the route stores, the label the owner
+// reads, and why it cannot be chosen for this key — this machine lacks what the provider needs,
+// or the program behind it does not carry the key's line. Null where it can.
+export interface OfferedProvider {
+  name: Exclude<FallbackRouteMode, "auto">;
+  label: string;
+  reason: string | null;
+}
+
+// One agent provider in the owner's order, with its switch. Laya is a gate's road and never in it.
+export interface OrderedProvider {
+  name: AgentMode;
+  label: string;
+  reason: string | null;
+  enabled: boolean;
+}
+
+// The sort of work a key is, in the agency's own words: `bmo` is the chat's work, its word on the wire.
+export type FallbackKind = "bmo" | "worker" | "gate" | "editor";
+
+// One piece of work and every choice of its road: the provider it begins on and each provider's
+// model. The key is the agency's stable name for the work, not the primary provider's current model:
+// changing a Claude launch line cannot silently move the Codex or OpenRouter choices attached to
+// it. The line is the run line the key is carried on, which is what decides the providers offered.
+export interface FallbackProfile {
+  key: string;
+  label: string;
+  kind: FallbackKind;
+  line: string;
+  codexModel: string;
+  codexEffort: string;
+  defaultCodexModel: string;
+  defaultCodexEffort: string;
+  codexOverridden: boolean;
+  claudeModel: string;
+  // What the key asks each own LLM service for, one entry per service; a gate's is held to its floor.
+  services: OwnLlmSettingsView[];
+  // A gate's wait as the owner chose it, beside what the gate runs on — its tier's thinking and
+  // answer room with that wait — and its defaults. Absent on every key that is not a gate.
+  gateOptions?: GateOptionsView;
+  noRoute: string | null;
+  openrouterModel: string | null;
+  routeMode: FallbackRouteMode;
+  // The Claude account the key is pinned to, or null where it walks the account order.
+  account: string | null;
+  setAt: number | null;
+  offered: OfferedProvider[];
+}
+
+// One gate's request options as a screen reads them.
+export interface GateOptionsView {
+  timeoutMs: number;
+  // What the owner chose for the gate's Laya mode and τ, null where nothing, and whether the gate
+  // has a Laya probe at all (the gate unit's docs/laya.md).
+  layaMode: LayaMode | null;
+  layaTau: number | null;
+  layaProbe: boolean;
+  // Whether the owner may switch the gate off, and whether it runs (the gate unit's docs/gates.md).
+  switchable: boolean;
+  enabled: boolean;
+  // The LLM the gate asks while it stands on Laya and Laya gives no verdict: a provider's name, `none`,
+  // or null for the provider its road would begin on (the gate unit's docs/laya.md).
+  layaFallback: string | null;
+  effective: { thinking: boolean; answerTokens: number; timeoutMs: number; layaMode: LayaMode; layaTau: number | null };
+  defaults: { thinking: boolean; answerTokens: number; layaMode: LayaMode; layaTau: number | null };
+}
+
+// What the console may know about the ordered fallback. The OpenRouter secret is not here and
+// never will be: the screen gets only whether it exists. `key` inside a profile is a route name,
+// not that secret.
+// One of a slot's two headline windows, as the bot picked it: its share and when it starts over.
+export interface HeadlineWindow {
+  name: string;
+  utilization: number;
+  resetsAt: number | null;
+  durationMinutes: number | null;
+  limitName: string | null;
+}
+
+// The agent serving now, as the bot answers it: the provider the road answers on, the login it
+// walks to where the provider holds logins, and that slot's own session and weekly windows. The
+// console picks no provider or login of its own.
+export interface ActiveAgentView {
+  provider: AgentMode;
+  account: string | null;
+  // The name the owner gave that login, or the provider's own label where it holds none.
+  accountName: string;
+  // How many logins the provider holds, which is what says whether naming one tells anything apart.
+  accounts: number;
+  session: HeadlineWindow | null;
+  week: HeadlineWindow | null;
+}
+
+export interface FallbackView {
+  active: ActiveAgentView;
+  codexPresent: boolean;
+  keyPresent: boolean;
+  services: OwnLlmServiceView[];
+  // When a stand-in began answering, and null while the primary provider is answering.
+  since: number | null;
+  // The owner's provider order as every walk follows it, each provider with the reason it cannot
+  // answer on this machine right now, or null where it can.
+  order: OrderedProvider[];
+  orderIsDefault: boolean;
+  // The Claude Code entry's own list: the accounts in the order it walks them. What the screen
+  // learns of a credential is the path it is reached by — no token and no file body is here.
+  accounts: ClaudeAccountView[];
+  profiles: FallbackProfile[];
+}
+
+export interface FallbackChanged {
+  ok: true;
+}
+
+// What the console may know about the warming round as a whole. Which agents are stopped one by
+// one is on the agents list, since that is where the rows are.
+export interface KeepaliveView {
+  stopped: boolean;
+}
+
+export interface KeepaliveChanged {
+  ok: true;
+}
+
+// Whether the voice briefing is on: off, no briefing is made on any road (the voice unit's docs/voice-briefing.md).
+export interface VoiceBriefingView {
+  on: boolean;
+  // Whether a briefing plays by itself when it arrives (the voice unit's docs/voice-briefing.md, 「Playing by itself」).
+  autoplay: boolean;
+}
+
+// What the bot answers when one runner is stopped from the live board. The row is closed by the
+// runner itself once the signal reaches it, so this says only which unit was asked to end.
+/**
+ * What a stop answers with. The target is the one it reached, and the state says how far it got:
+ * a run asked to stop is still winding up, a run confirmed is gone (`the agency's docs/agent-control.md`
+ * 「Stopping」). `unit` and `agent` stand where the target was a unit and a row still named one,
+ * which is what the board read back before targets had a kind of their own.
+ */
+export interface RunStopped {
+  ok: true;
+  target: StopTarget;
+  state: "asked" | "confirmed";
+  // How many runs this one stop reached: one for a run, an item's own count for an item.
+  runs: number;
+  unit?: string;
+  agent?: string;
+}
+
+// What stopping everything answers with: what was asked, and what could not be — a run that ended
+// between the reading and the asking is the ordinary way the second happens, and it never keeps
+// the rest running.
+export interface RunStopAll {
+  ok: true;
+  stopped: Omit<RunStopped, "ok">[];
+  refused: { target: StopTarget; why: string }[];
+}
+
+
+// What a screen may know about a Claude account. It is the account's own row, its place in the
+// order the Claude road walks, one fact about its login — whether it stands, is near its end or is
+// gone — and where the road stands with it: whether the owner chose it to run on now, whether runs go
+// out on it now, and how long a limit rest keeps it out of the walk.
+//
+// **The path is the whole of what is shown of a credential.** No token, no cookie and no part of a
+// credential file's body is in this view, so nothing that renders it or carries it can put one on a
+// screen: what the browser learns is where the login is kept and when it ends, which is exactly
+// what the owner needs to sign it in again and nothing more.
+
+export interface ClaudeAccountView {
+  id: string;
+  name: string;
+  place: number;
+  enabled: boolean;
+  // How the credential is reached — a configuration directory, or the file a long-lived token sits
+  // in — and the path it is reached by. Never the credential.
+  credentialKind: ClaudeCredentialKind;
+  credentialPath: string;
+  login: LoginStanding;
+  // When the login ends, in seconds, or null where it has no end to read — a login the CLI renews
+  // for itself, or one whose file says nothing. Neither is a login that has ended.
+  loginEndsAt: number | null;
+  // Whether this is the account the owner chose to run on now, where the walk starts once the login in use
+  // cannot answer.
+  chosen: boolean;
+  // Whether automatic runs go out on this account now: the head of the walk, which is the login in
+  // use wherever it can answer. It differs from the chosen one where the chosen one is resting, its
+  // login is gone, or the login in use is still being spent to its end.
+  serving: boolean;
+  // Until when, in seconds, a limit rest keeps this account out of the walk, or null where none does.
+  restUntil: number | null;
+}
+
+/** How a login is standing: answering, near its end, or gone. */
+export type LoginStanding = "standing" | "ending" | "gone";
+
+// The agency holds more than one Claude login, and each of them is an account: a name the owner gives it, a
+// place in the account order, an on/off, and where its credential is reached. The Claude Code
+// entry of the provider order is the list of them, walked in that order, and everything a login
+// owns — its sessions, its transcripts, its usage windows, its rest — belongs to the account
+// rather than to the road.
+//
+// **What is kept is where a credential is, never a credential.** A row carries a path and
+// nothing else: no token, no cookie and no part of a credential file's body crosses to the console.
+
+// How a run reaches an account's login.
+//
+// - `directory` — the account names a configuration home of its own, and the CLI keeps that
+//   login in that directory's `.credentials.json`. Two directories are two logins with nothing
+//   shared.
+// - `token` — the account names a file holding the long-lived token the CLI issues, handed to a
+//   run as `CLAUDE_CODE_OAUTH_TOKEN`. Such a token stands for a year, carries no refresh of its
+//   own and is inference-only, so it dies rather than lapsing.
+export type ClaudeCredentialKind = "directory" | "token";
+
+// The node unit's shapes, which the agency screens show of the machines their workers stand on.
+
+// One node as a screen reads it (the node unit's docs/nodes.md, 「In the console」): where it is reached, where its
+// credential is kept, and its last check in the words every list says it in. It holds no credential.
+export interface NodeView {
+  name: string;
+  label: string;
+  // The connection type, which the node's screen and the monitor show and the list does not.
+  kind: NodeKind;
+  // A jake node's agent, by the name its hub knows it by.
+  agent: string | null;
+  address: string;
+  // The place the credential is kept: a key's path, or the environment file holding a hub's token.
+  // Null where an ssh node offers whatever the account's own SSH configuration does.
+  credential: string | null;
+  // The one service the node is reserved for, or null where several may share it.
+  role: string | null;
+  state: NodeState;
+  stateWord: string;
+  tone: NodeTone;
+  detail: string | null;
+  checkedAt: number | null;
+  connectedAt: number | null;
+  // Whether the node is the machine reading the list, as that machine judges it (the node unit's docs/hardware.md,
+  // 「Which machines」). Never true for a jake node, whose hub says nothing of where its agent runs.
+  thisMachine: boolean;
+  // Whether a worker's checkout may be placed on it: another machine reached over SSH whose role
+  // allows jobs (the agency's docs/work-nodes.md, 「Which machines take work」).
+  takesJobs: boolean;
+}
+
+// What a node's last check came to, in the words every list says it in (the node unit's docs/nodes.md, 「The state
+// words」), read from the shared policy Rust reads them from too. The web console reads this file as
+// herdr's labels do, so the lists cannot say a state differently. Nothing here touches the archive or
+// the machine.
+
+export const NODE_KINDS = ["ssh", "jake"] as const;
+
+export type NodeKind = (typeof NODE_KINDS)[number];
+
+export const NODE_STATES = ["connected", "disconnected", "auth", "hostkey", "unreachable", "error", "unknown"] as const;
+
+export type NodeState = (typeof NODE_STATES)[number];
+
+// How a state reads at a glance: reached, not reached, or not yet asked.
+export type NodeTone = "good" | "bad" | "unknown";
+
+// The gate unit's shapes, which the agency screens show of the gates.
+
+export interface LayaHealthView extends LayaHealth {
+  stateWord: string;
+  tone: NodeTone;
+  // The node of the node list the server's address stands on, where one does: its screen is the page
+  // the state leads to.
+  node: string | null;
+}
+
+// One gate that declares a Laya probe: the mode and τ it runs on, and its agreement with its LLM, or
+// none where no pair is recorded yet.
+export interface LayaGateView {
+  stage: string;
+  mode: LayaMode;
+  tau: number | null;
+  agreement: LayaAgreement | null;
+  // The checkpoint the server named for this gate in its latest health check, where it named one:
+  // what answers the gate on Laya (the gate unit's docs/laya.md, 「A gate whose provider is Laya」).
+  checkpoint: string | null;
+  // The modes the bot would refuse this gate, each with why (the gate unit's docs/laya.md, 「Mode and τ per gate」),
+  // so the screen offers them greyed rather than letting a choice be turned away.
+  refused: Partial<Record<LayaMode, LayaModeRefusal>>;
+}
+
+export interface LayaView {
+  health: LayaHealthView;
+  gates: LayaGateView[];
+  // The modes in the words a screen shows them in, and the τ a gate may be given — the grid its
+  // agreement is counted at, so every τ offered has a figure beside it.
+  modes: { value: LayaMode; label: string }[];
+  taus: readonly number[];
+}
+
+// What the archive keeps of Laya: the modes a gate may stand beside it in, the verdict record and the
+// bounds on it (the gate unit's docs/laya.md, 「The verdict record」). The archive stores and sweeps these rows, so
+// their shape stands with it; the Laya client is the gate base's (`laya.ts`).
+
+// How a gate runs beside Laya (the gate unit's docs/laya.md, 「Modes」): alone, with Laya recorded beside it, with
+// Laya settling what it is sure of, or with Laya settling only the gate's safe verdict.
+export const layaModes = ["off", "shadow", "filter", "asymmetric"] as const;
+
+export type LayaMode = (typeof layaModes)[number];
+
+// How a call to Laya failed, as the record and the health row keep it.
+export type LayaFailure = "unreachable" | "timeout" | "refused" | "bad-answer" | "too-large";
+
+// Why the bot would not put a gate in a Laya mode, or null where it runs in it (the gate unit's docs/laya.md, 「Mode
+// and τ per gate」): no probe to ask with, no safe verdict for asymmetric, or no checkpoint on the
+// server for a mode in which Laya decides. `checkpoints` are the gates the last health check named.
+export type LayaModeRefusal = "no-probe" | "no-safe-verdict" | "no-checkpoint";
+
+export interface LayaAgreementAt {
+  tau: number;
+  // The share of pairs Laya would settle at this τ, and how often it agrees with the LLM on them.
+  coverage: number | null;
+  agreement: number | null;
+  // For a gate with a safe verdict: how many pairs Laya called safe at this τ, and how often the LLM
+  // called them safe too.
+  safeCount: number | null;
+  safeAgreement: number | null;
+}
+
+export interface LayaAgreement {
+  stage: string;
+  // What the figures are counted over: pairs, or for a gate settled one question at a time its
+  // questions, in which case `pairs` is how many questions were compared.
+  unit: "pair" | "question";
+  pairs: number;
+  failures: number;
+  agreement: number | null;
+  byTau: LayaAgreementAt[];
+  // For a gate counted by question: the share of the questions Laya answered that it settled for the
+  // gate. Null for a gate counted by pair.
+  settled: number | null;
+}
+
+// The Laya server's last health check, kept as one row (the gate unit's docs/laya.md, 「The health watcher」). The
+// archive settles and keeps the row, so its store stands with it; the watcher that asks the server
+// is the gate base's (`laya-health.ts`).
+
+// `up` is a server that answered; `off` is a bot with no address set, which asks nothing; `unknown`
+// is a server nobody has checked yet; every other word is the failure the last check met.
+export type LayaHealthState = "up" | "off" | "unknown" | LayaFailure;
+
+export interface LayaHealth {
+  state: LayaHealthState;
+  model: string | null;
+  device: string | null;
+  vramBytes: number | null;
+  loadMs: number | null;
+  versions: Record<string, string>;
+  // The address the check asked, so a screen can say which machine the server stands on.
+  address: string | null;
+  // How long the last check took in milliseconds, and when it was made and when the server last
+  // answered one, in unix seconds.
+  checkMs: number | null;
+  checkedAt: number | null;
+  healthyAt: number | null;
+}
+
+// What a gate order is: where each gate stands against a chat turn (`the gate unit's docs/gates.md`). The pre-gate
+// and post-gate parts are steps in the order a turn passes them, a step holding the gates the turn
+// starts together; the off-turn part is the gates that run outside any turn. Which gates there are
+// and where each stands is the deployment's own order, handed to whatever reads it.
+
+// What a step of the gate order may run under, where it runs in some turns only: the turn replaces
+// the agent's session, or the room's dialect folds its answers (`the gate unit's docs/chat-providers.md`).
+export const gateConditions = ["fresh-session", "folding-dialect"] as const;
+
+export type GateCondition = (typeof gateConditions)[number];
+
+// A gate's place in a step: the gate alone, or the gate with the one condition its step runs under.
+export type GatePlace = string | { readonly key: string; readonly condition: GateCondition };
+
+export interface GateOrder {
+  pre: readonly (readonly GatePlace[])[];
+  post: readonly (readonly GatePlace[])[];
+  apart: readonly string[];
+}
+
+export type GatePart = keyof GateOrder;
+
+export interface GatePlaceView {
+  key: string;
+  condition: GateCondition | null;
+}
+
+export interface GateStepView {
+  places: GatePlaceView[];
+}
+
+export interface GatePartView {
+  part: GatePart;
+  // Whether the steps are a turn's order. The off-turn part's are not: each of its gates is a step of
+  // its own, in the order the part lists them.
+  inTurn: boolean;
+  steps: GateStepView[];
+}

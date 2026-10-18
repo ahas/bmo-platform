@@ -195,18 +195,23 @@ states them.
 | Unit | What the console reaches it for | Routes |
 |---|---|---|
 | the server (this repository) | sign-in, the session, users, phone keys, grants, checks, the model | every route above |
-| the agency (`docs/api.md`) | the agents and their gates, reasoning, roles and sampling; base prompts; companions and their reset; sessions and a session's reset; the event stream; the co-worker pool; a run's log and records; the models, the registry, the tiers and the roads; the stand-in; the rest; a worker's node | `GET /agents`, `GET /rulebooks`, `POST /agent-gate`, `POST /agent-reasoning`, `POST /agent-role`, `GET`/`POST /agent-sampling`, `GET`/`POST /base-prompts`, `GET`/`POST /companions`, `GET`/`POST /companions/reset`, `GET /sessions`, `POST /session-reset`, `GET /events`, `GET /coworker-pool`, `GET /run-log`, `GET /run-records`, `GET`/`POST /models`, `/registry`, `/model-tiers`, `/fallback`, `GET /model-tiers/models`, `/fallback/codex-models`, `/fallback/openrouter-models`, `GET /stand-in`, `GET`/`POST /rest`, `POST /worker/node`, `POST /runs/stop`, `GET /health` |
+| the agency (`docs/api.md`) | the agents and their gates, reasoning, roles and sampling; base prompts; companions' settings and a companion's reset; sessions and a session's reset; the co-worker pool; a run's log; the models, the registry, the tiers, the roads and the Claude accounts; a worker's node | `GET /agents`, `POST /agent-gate`, `POST /agent-reasoning`, `POST /agent-role`, `GET`/`POST /agent-sampling`, `GET`/`POST /base-prompts`, `GET`/`POST /companions`, `POST /companions/reset`, `GET /sessions`, `POST /session-reset`, `GET /coworker-pool`, `GET /run-log`, `GET`/`POST /models`, `GET`/`POST /registry`, `GET`/`POST /model-tiers`, `GET /model-tiers/models`, `GET`/`POST /fallback`, `GET /fallback/codex-models`, `GET /fallback/openrouter-models`, `POST /worker/node` |
 | bmo-job (`docs/api.md`) | the TODO panel and an item, its talk and its work order; the questions; the queue's holds and pause; the deploy hold; a launch; the workers and a word to one; a room's jobs; the event stream | `GET /todos`, `GET /todos/{item}`, `GET /todos/worker-lines`, `GET /todos/{item}/worker-lines`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `GET /work-orders/{item}/current`, `GET /work-orders/{item}/tasks/{task}`, `POST /work-order`, `POST /question`, `POST /question-pause`, `GET /queue/holds`, `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /task`, `GET /workers`, `GET /workers/{name}`, `POST /worker`, `POST /worker-word`, `GET /rooms/{chat}/jobs`, `POST /run/stop`, `GET /events`, `GET /health` |
 | the receiver (`docs/boundary-api.md`) | the room list, a room's title and messages; the senders each room has, for which rooms a user reads; the owner and the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; what opened a turn; the voice briefing's switch and a line's reading; companions with a room; a talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `POST /instruct`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /talks`, `GET /health` |
 | the brain (`docs/boundary-api.md`) | the memories screen; a fragment's standing in the document viewer | `GET /memories`, `POST /memories/active`, `GET /fragments`, `POST /fragments/active`, `GET /health` |
 | bmo-artifact (`docs/api.md`, `docs/layout.md`) | the archive screen of its console plugin bundle, the share page, the research settings | every road under `/api/archive` and `/api/share/`, and `/searches` and `/collected` as moved screens, handed on whole behind the console's sign-in (the share page's roads take none); `GET`/`POST /research-settings` |
 | the cache siren (`docs/api.md`) | the cache siren screen | `GET /stats`, `GET /events?limit=` |
-| the cache warmer (`docs/api.md`) | the keepalive view: the round, the targets, a subject's switch and pause | `GET /round`, `PUT /round`, `GET /targets`, `PUT /consumers/{consumer}/subjects/{subject}/switch`, `POST /consumers/{consumer}/subjects/{subject}/pause` |
+| the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PUT /round`, `GET /targets?consumer=`, `GET /consumers/{consumer}/subjects`, `PUT /consumers/{consumer}/subjects/{subject}/switch`, `POST /consumers/{consumer}/subjects/{subject}/pause` |
 | the Telegram service (`docs/boundary-api.md`) | the profile photos of rooms and people | `GET /avatars/{kind}/{id}` |
 | the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read at the path a setting names; the testbed writes it and a reader needs only the file and the run's process |
 
 - **The console's own tables** are read and written in the server's database directly, through the database
   `WEB_DATABASE_URL` names (`docs/accounts.md`, 「The tables」); no other unit's table is.
+- **A refusal is said by the pack's sentence for its code.** The units answer English sentences for an agent to
+  read; the console holds, beside each call, the table from that unit's codes to the pack's keys, and a refusal
+  whose code stands there is said in the pack's words. The agency's codes are its statuses' own names, so a
+  person is told which kind of refusal it was; a refusal about one field is said under that field as a value
+  refused.
 - **A call that does not reach its unit,** or an answer that does not read as its shape, is that screen's
   failure: the region shows the failure and a way to ask again (`docs/skeleton-loading.md`), and every other
   region stands.
@@ -236,6 +241,7 @@ environment. No address, token or name is written into the code.
 | console | `ARTIFACT_ADDRESS`, `ARTIFACT_TOKEN` | bmo-artifact |
 | console | `CACHE_SIREN_ADDRESS` | the cache siren |
 | console | `CACHE_WARMER_ADDRESS` | the cache warmer |
+| console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
 | console | `DEPLOY_PROGRESS_FILE` | the testbed's progress record |
 | console | `WEB_DATA_DIR` | the console's own data folder, inside no checkout |
@@ -256,8 +262,24 @@ for it, and no file or table of that unit is read meanwhile.
   kind, and neither plays nor opens it.
 - **The rooms each sender has stood in.** The console reads them from the receiver's `POST /rooms/titles`,
   which the receiver's document states for another caller; the console reads it as that document states it.
-- **The streams of bmo-job and the agency.** The console relays the receiver's stream alone; the screens that
-  follow bmo-job's and the agency's streams are not carried, and those streams join the relay with them.
+- **The streams of bmo-job and the agency.** The console relays the receiver's stream alone, so the agency
+  screens are read again on the receiver's events and on their own reads, and hear nothing the agency publishes.
+- **An agent's log across its runs.** The agency reads its run log by the run (`GET /run-log`), so a log opened at
+  one run reads and follows that run; the newest page of an agent's log, the pages before it and the page at a
+  moment stand unavailable.
+- **What is running beside the chat, and what has just run.** The receiver's live picture holds the chat's turns
+  and the rooms folding; the runs of runners, job workers, gates and editors going now, the executions, gate runs,
+  runner and job records and standing watches that have just run, the machine's standing and the nodes are lists
+  no unit serves, so the live board stands without them and a stop names its target from what the board holds.
+- **Usage.** The usage windows, the tallies by model, agent and user, and each session's context are served by no
+  unit, so every meter reads as having nothing to say.
+- **A turn's figures and a worker's job.** The roads a turn walked with what each spent, and the job a worker's
+  screen keeps its line for with its prompt, are recorded by the agency and bmo-job and served by no route, so a
+  turn stands without its figures and a worker's screen without its job line.
+- **A tool's icon.** Which icon each of the deployment's own tools declares is the tool host's to say, and no unit
+  hands it to the console, so every tool in a log takes the one generic icon.
+- **A companion's room taken back.** The receiver answers whether an added companion took a room back; the console
+  says so in the pack's words and reads nothing else of the receiver's answer about it.
 
 ## Screens of units not yet split
 
@@ -281,7 +303,11 @@ screen is carried. `docs/inventory.md` lists every file of those screens.
 | bmo-voice | `/briefing` | none |
 
 - **The voice briefing's player** stood in the layout, over every screen; it is not carried, and the layout
-  holds no player.
+  holds no player. The voice briefing's switch on the agents screen is the receiver's route; while the console
+  carries no call on it, its section says it cannot be read.
+- **What the agency screens show of a unit not yet split** stands unavailable and makes no call: Laya and the
+  gate order, the gate unit's; the nodes a worker may stand on, the node unit's. The gates stand in the agent list
+  as one run, a worker stands on this machine alone, and a gate's own screen is the gates placeholder.
 
 ## The codes the packs render
 

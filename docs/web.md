@@ -2796,7 +2796,10 @@ Two ways, split because the running places differ.
 
 - The log is **the agency's run log** (the agency's `docs/api.md`, 「Run log and run records」): the very process
   reading the run's stream writes it a line at a time as it reads, and the console reads it through the agency's
-  `GET /run-log`.
+  `GET /run-log`, which reads a run's lines after the last one held. A log opened at one run reads that run and
+  follows it; the log across an agent's runs — its newest page, the pages before it, the page at a moment — is a
+  read the agency serves no route for, and the screen says it cannot be read yet (`docs/boundary.md`, 「Gaps the
+  console meets」).
 - **Why it is written rather than streamed:** each arriving line is kept, so a run killed from outside stays up to
   just before it died, and a finished run rewinds by going back by id. Relaying the stream alone would lose a killed
   run's end and could not rewind a finished one, and pushing what one job pours to each connected browser is the
@@ -5504,6 +5507,8 @@ started and restarted by the testbed's deployment of this repository (`testbed.t
   `request timed out after 10 seconds` while the browser sees the request fail. A change carried to a unit can take
   longer — a companion's reset waits out a person-book run's stop — so the unit sets `NITRO_BUN_IDLE_TIMEOUT` to that
   ceiling.
+- **A build takes a larger heap than Node gives by default.** Bundling the server runs past the default heap
+  limit, so the build script raises it to six gigabytes (`NODE_OPTIONS=--max-old-space-size=6144`).
 - **Each deployment is a release of its own.** The testbed builds a release into a directory of its own and flips
   the deploy tree's link to it, and the units run out of the link. A running Nitro server reads a route's chunk from
   disk the moment it is first asked, and a chunk name carries a hash of its content, so rebuilding onto the standing
