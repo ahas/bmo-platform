@@ -60,6 +60,9 @@ fn every_part_reads_as_its_type() {
   assert!(!tool_probe::TOOL_PROBE.columns.line.is_empty());
   assert!(!browse::BROWSE.run_title.is_empty());
   assert!(!draws::DRAWS.line.head.is_empty());
+  assert!(fixed_lines::FIXED_LINES.rest_begins.contains("{chat_agent}"));
+  assert!(!particles::PARTICLES.subject.unknown.is_empty());
+  assert!(search::SEARCH.reading.untitled.contains("{place}"));
   assert!(!full_suite::FULL_SUITE.account.is_empty());
   assert!(!generation::GENERATION_WORDS.refusals.number.is_empty());
   assert!(!job_ask::JOB_ASK.refusals.say.is_empty());

@@ -16,3 +16,7 @@ valkey = "redis://127.0.0.1:6379/13"
 # The receiver's base address and its token, which a message check asks for a message's sender; a
 # deployment sets them.
 [receiver]
+
+# The names the language pack's lines are filled with: `chat_agent`, the name the chat agent goes by in a room,
+# without which the server does not stand; a deployment sets it.
+[names]

@@ -1,5 +1,6 @@
 //! The server's binary (docs/accounts.md): `serve` stands the account service on the address its settings
-//! name, `migrate` brings its database up to date, and `user` is the account command.
+//! name, `migrate` brings its database up to date, `user` is the account command, and `wording` writes the
+//! document wording file from the language pack.
 
 use std::fs;
 use std::io::{self, Write};
@@ -13,6 +14,7 @@ use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
 use bmo_web_server::routes::{in_force, stand};
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
+use bmo_web_server::wording::document_wording;
 use bmo_web_server::{holdings, migration, store};
 use clap::{Parser, Subcommand};
 use tokio::net::TcpListener;
@@ -48,6 +50,12 @@ enum Verb {
     /// Makes the user the platform administrator too.
     #[arg(long)]
     administrator: bool,
+  },
+  /// Writes the document wording file bmo-artifact reads, from the language pack (docs/language-pack.md,
+  /// 「What other units read」).
+  Wording {
+    /// The file written.
+    file: PathBuf,
   },
 }
 
@@ -121,6 +129,11 @@ async fn serve(settings: Settings) -> Result<(), String> {
     .clone()
     .filter(|token| !token.trim().is_empty())
     .ok_or("the server does not stand without its token, `server.token`")?;
+
+  if settings.names.chat_agent.trim().is_empty() {
+    return Err("the server does not stand without the chat agent's name, `names.chat_agent`".to_owned());
+  }
+
   let listen = settings.server.listen;
   let listener = TcpListener::bind(listen)
     .await
@@ -129,7 +142,7 @@ async fn serve(settings: Settings) -> Result<(), String> {
     .await
     .map_err(|why| format!("the service's database could not be reached: {why}"))?;
   let receiver = receiver(&settings)?;
-  let service = stand(db, receiver.clone())
+  let service = stand(db, receiver.clone(), settings.names.clone())
     .await
     .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
   let app = in_force(service, token).await.map_err(|why| why.to_string())?;
@@ -184,8 +197,25 @@ async fn user(settings: Settings, name: String, administrator: bool) -> ExitCode
   }
 }
 
+// The document wording file written to `file`, from the pack alone, so a release writes it with no settings.
+fn wording(file: &PathBuf) -> ExitCode {
+  let written = document_wording().and_then(|text| {
+    fs::write(file, text).map_err(|why| format!("{} cannot be written: {why}", file.display()))
+  });
+
+  match written {
+    Ok(()) => ExitCode::SUCCESS,
+    Err(why) => refused(why),
+  }
+}
+
 fn main() -> ExitCode {
   let cli = Cli::parse();
+
+  if let Verb::Wording { file } = &cli.verb {
+    return wording(file);
+  }
+
   let settings = match Settings::load() {
     Ok(settings) => settings,
     Err(why) => return refused(why),
@@ -219,6 +249,7 @@ fn main() -> ExitCode {
         name,
         administrator,
       } => user(settings, name, administrator).await,
+      Verb::Wording { .. } => ExitCode::SUCCESS,
     }
   })
 }

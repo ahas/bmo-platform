@@ -22,6 +22,16 @@ pub struct Settings {
   /// Nothing set here leaves the receiver unknown.
   #[serde(default)]
   pub receiver: Unit,
+  #[serde(default)]
+  pub names: Names,
+}
+
+/// The names the pack's lines are filled with where a line names one, since no name stands in the pack.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Names {
+  /// The name the chat agent goes by in a room; the server does not stand without one.
+  #[serde(default)]
+  pub chat_agent: String,
 }
 
 /// The HTTP server.

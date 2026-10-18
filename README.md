@@ -10,7 +10,7 @@ answers in English messages and codes, which these packs render.
 
 | Folder | Holds |
 |---|---|
-| `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` |
+| `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the fixed lines' renderer, the document wording file, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` with their fixtures under `tests/fixtures/` |
 | `.cargo/` | Cargo's configuration for this checkout: sumida, a git dependency, fetched through the git program |
 | `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
 

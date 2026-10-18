@@ -145,7 +145,7 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 | `bot/bmo-server/tests/integration/grants.rs` and `sign_in.rs`, and the scratch archive and test ids they stood on | `server/tests/grants.rs`, `server/tests/sign_in.rs` and `server/tests/support/`: 11 tests and 1 | build-2 |
 | the two tests of `grants.rs` on whose work an item is (`requester_run`, approvals on a standing rule) | not carried: bmo-job's, standing on its items and the agency's Claude accounts | — |
 | `bot/accounts/account-service.ts`, `account-service-fixture.ts`, `bunfig.toml`, `package.json`, `tsconfig.json` (5 files) | `client/packages/accounts/` | build-6 |
-| `bot/bmo-server/src/control/claude_accounts.rs`, `claude_account_changes.rs`, the `claude_accounts` table and the policy files `claude-code.toml` and `rest.toml` | not carried: bmo-agency's | — |
+| `bot/bmo-server/src/control/claude_accounts.rs`, `claude_account_changes.rs`, the `claude_accounts` table and the policy files `claude-code.toml` and `rest.toml` | not carried: bmo-agency's, but for `rest.toml`'s line a room is told as a usage limit begins (below, 「Fixed lines and the document wording」) | — |
 
 ### The tables
 
@@ -172,7 +172,7 @@ receiver's talk takes the earlier turns from its caller.
 
 | Old member | Stands here as |
 |---|---|
-| the 69 parts under `lang/bmo-lang/lang/ko/` | `server/lang/ko/` of the same names; a name of the chat agent, the owner or a room in a value is a mark (`{chat_agent}`, `{chat_agent_subject}`, `{owner}`, `{owner_subject}`, `{owner_chat}`, `{owner_chat_agent}`, `{companion}`), and in a comment a role |
+| the 69 parts under `lang/bmo-lang/lang/ko/` | `server/lang/ko/` of the same names, beside the two parts the fixed lines added; a name of the chat agent, the owner or a room in a value is a mark (`{chat_agent}`, `{chat_agent_subject}`, `{owner}`, `{owner_subject}`, `{owner_chat}`, `{owner_chat_agent}`, `{companion}`), and in a comment a role |
 | `lang/bmo-lang/src/lib.rs` | `server/src/lang/mod.rs`, the reader and the `part!` macro |
 | its 67 other modules | `server/src/lang/` of the same names |
 | its test module, `every_part_reads_as_its_type` | `server/tests/language_pack.rs`, beside the private-chat warning's mark |
@@ -180,6 +180,24 @@ receiver's talk takes the earlier turns from its caller.
 | `lang/bmo-lang/package.json`, `bunfig.toml` | not carried: the console's tests import a part by its path under `server/lang/` |
 
 The console's own pack, `client/i18n/locales/ko.yaml`, travels with the shell.
+
+## Fixed lines and the document wording
+
+The sentences other units used to compose themselves, and that the server now renders (build-5). Each old member
+stays its own unit's; what is taken is the sentence or the composition, never the file.
+
+| Old member | What is taken | Stands here as |
+|---|---|---|
+| `policy/bmo-policy/policy/rest.toml` | the line a room is told as a usage limit begins, the chat agent's name made a mark | `server/lang/ko/fixed-lines.yaml`, `rest_begins` |
+| `policy/bmo-policy/policy/roads.toml` | the line a shut room is told | `server/lang/ko/fixed-lines.yaml`, `chat_denied` |
+| `policy/bmo-policy/policy/companion-runner.toml` | the line a room is told of a companion's cut turn | `server/lang/ko/fixed-lines.yaml`, `companion_cut` |
+| `bot/word-chain/src/particles.rs` | the subject particle joined to a name | `server/src/words.rs`, with its particles in `server/lang/ko/particles.yaml` |
+| `bot/bmo-server/src/doctor.rs`, `queue/telling/failure.rs` | the broken run's account and the last resort | `server/src/words.rs`, `run-broken` |
+| `bot/bmo-server/src/chat/restart.rs` | the stopping service's notice | `server/src/words.rs`, `going-down-for-update` and `going-down` |
+| `bot/bmo-server/src/chat/health.rs`, `chat/fold.rs` | which line an outage and a fold say | `server/src/words.rs`, `provider-down`, `compacting` and `compact-failed` |
+| `bot/bmo-server/src/companion/words.rs` | which line an engine's error says | `server/src/words.rs`, `companion-engine-error` |
+| `bot/bmo-server/src/verbs/draws.rs` | a draw's room line, what was asked and what came out | `server/src/words.rs`, `draw` |
+| `markup/markup/finding-markdown.ts`, `archive/archive/archive-kinds/search.ts` | the labels a finding is read with, and what an untitled finding is called | `server/lang/ko/search.yaml`, `reading` |
 
 ## The documents: 5
 

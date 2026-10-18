@@ -18,6 +18,8 @@ pub mod rules;
 pub mod settings;
 pub mod store;
 pub mod users;
+pub mod wording;
+pub mod words;
 
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
@@ -31,17 +33,19 @@ use sumida::api::SumidaState;
 use sumida::error::SumidaApiError;
 
 use crate::receiver::Receiver;
+use crate::settings::Names;
 
 /// The server's version, the repository's.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// What every handler stands on: the service's database, where sumida's tables stand beside the service's
-/// own, the receiver a message's sender is asked of, and whether the model has been seen in force, which
-/// once seen stays.
+/// own, the receiver a message's sender is asked of, the names the pack's lines are filled with, and whether
+/// the model has been seen in force, which once seen stays.
 #[derive(Clone)]
 pub struct Service {
   pub db: DatabaseConnection,
   pub receiver: Arc<dyn Receiver>,
+  pub names: Arc<Names>,
   pub seen_in_force: Arc<AtomicBool>,
 }
 

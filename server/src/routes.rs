@@ -15,7 +15,7 @@ use axum::{Json, Router};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 use sumida::api::Sumida;
 use sumida::api::authz::Authz;
 
@@ -25,8 +25,9 @@ use crate::grants::{GrantAsk, RevokeAsk, grant, revoke, standing_in};
 use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
 use crate::rules::RULES;
+use crate::settings::Names;
 use crate::users::{user_of_sender, user_subject};
-use crate::{Refusal, Service, VERSION, all, holdings, one, phones};
+use crate::{Refusal, Service, VERSION, all, holdings, one, phones, words};
 
 /// Where sumida's own router is mounted: apart from the deployment's routes, whose paths other units name
 /// and some of which sumida's own (its users among them) would take.
@@ -34,8 +35,12 @@ pub const SUMIDA_ROOT: &str = "/sumida";
 
 /// sumida's rules and the deployment's, read and held to the database: every table a rule reads stands, and
 /// every relation they declare is written where a grant names it. A database the rules do not fit is refused
-/// before anything is answered.
-pub async fn stand(db: DatabaseConnection, receiver: Arc<dyn Receiver>) -> Result<Service, Refusal> {
+/// before anything is answered. `names` fill the pack's lines that name one.
+pub async fn stand(
+  db: DatabaseConnection,
+  receiver: Arc<dyn Receiver>,
+  names: Names,
+) -> Result<Service, Refusal> {
   Authz::install_rules(RULES)?;
   Authz::boot_or_abort(&db).await?;
   Authz::sync_schema(&db).await?;
@@ -43,6 +48,7 @@ pub async fn stand(db: DatabaseConnection, receiver: Arc<dyn Receiver>) -> Resul
   Ok(Service {
     db,
     receiver,
+    names: Arc::new(names),
     seen_in_force: Arc::default(),
   })
 }
@@ -149,11 +155,13 @@ fn user_in(path: &str) -> Result<i32, Refusal> {
   parsed(path).ok_or_else(|| Refusal::bad(format!("`{path}` is no user's id")))
 }
 
-/// The routes that stand whether or not the model is in force: its state and the move that brings it.
+/// The routes that stand whether or not the model is in force: its state, the move that brings it, and the
+/// fixed lines, which read no account.
 fn model() -> Router<Service> {
   Router::new()
     .route("/accounts/model", get(model_route))
     .route("/accounts/move", post(move_route))
+    .route("/words/render", post(render_route))
 }
 
 /// The routes that need the model in force.
@@ -398,4 +406,8 @@ async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) 
 
 async fn holdings_route(State(service): State<Service>, Path(chat): Path<i64>) -> Answer {
   Ok(Json(json!({ "holdings": holdings::held(&service.db, chat).await? })))
+}
+
+async fn render_route(State(service): State<Service>, Body(asked): Body<Map<String, Value>>) -> Answer {
+  Ok(Json(json!({ "text": words::rendered(asked, &service.names)? })))
 }

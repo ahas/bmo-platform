@@ -23,6 +23,7 @@ pub mod deployment;
 pub mod dev_servers;
 pub mod draws;
 pub mod files;
+pub mod fixed_lines;
 pub mod full_suite;
 pub mod gate_eval;
 pub mod generation;
@@ -39,6 +40,7 @@ pub mod node_land;
 pub mod nodes;
 pub mod outside_hosting;
 pub mod owner_sends;
+pub mod particles;
 pub mod process_memory;
 pub mod providers;
 pub mod reference_benches;
@@ -86,10 +88,18 @@ pub fn read<T: DeserializeOwned>(file: &str, text: &str) -> T {
 macro_rules! part {
   ($vis:vis $name:ident: $type:ty = $file:literal) => {
     $vis static $name: std::sync::LazyLock<$type> = std::sync::LazyLock::new(|| {
-      $crate::lang::read(
-        concat!("ko/", $file, ".yaml"),
-        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/lang/ko/", $file, ".yaml")),
-      )
+      $crate::lang::read(concat!("ko/", $file, ".yaml"), $crate::part_text!($file))
     });
+  };
+}
+
+/// The language the pack is compiled in, as a caller names it: the folder `part!` and `part_text!` read.
+pub const LANGUAGE: &str = "ko";
+
+/// A part's file as it is written, in the language the pack is compiled in: `crate::part_text!("search")`.
+#[macro_export]
+macro_rules! part_text {
+  ($file:literal) => {
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/lang/ko/", $file, ".yaml"))
   };
 }

@@ -22,7 +22,8 @@
 - **What only an agent reads is no wording.** A prompt, a tool's answer to an agent and a refusal an agent acts
   on are English, and stand in no pack.
 - **No agent's name and no person's name stands in a pack.** A sentence that names an agent or a room carries a
-  mark the code fills from the agent's registration or the room's record.
+  mark the code fills from the agent's registration, the room's record, or for the chat agent the server's
+  `names.chat_agent` setting.
 
 ## A language is a folder
 
@@ -43,7 +44,8 @@
   - A value is filled by marks written `{name}`, every mark at once, so a value holding a mark of its own is
     left as it is (the server's `fill_marks`).
   - A name the pack cannot know is handed in with its particle already joined by the code's particle helper,
-    and its mark says so: `{subject}` is a name with 이 or 가, `{topic}` a word with 은 or 는.
+    and its mark says so: `{subject}` is a name with 이 or 가, `{topic}` a word with 은 or 는. The server's
+    helper takes the particles from the pack's `particles` part.
   - A short piece joined between parts of a line — a separator, a lead space — is a key of its own where it is
     wording, and stays in the code where it is markup.
 
@@ -60,6 +62,10 @@
   sentence (`docs/boundary.md`, 「Fixed lines」).
 - **The document wording file** is rendered from the server's pack into the file bmo-artifact's settings name,
   holding every key of bmo-artifact's 「Wording」 table and no other, and travels with the server's release.
+  - Its groups are the pack's `archive-docs` part, as `archive_docs`, and its `search` part, as `search`; each
+    holds bmo-artifact's keys under the same names, so a key added to either is a key added to the file.
+  - `bmo-web-server wording <file>` writes it; the server's tests hold its keys and each line's marks to
+    bmo-artifact's table, kept beside them as a fixture.
 
 ## How it is held
 

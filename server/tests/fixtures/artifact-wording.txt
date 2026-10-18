@@ -1,0 +1,80 @@
+# bmo-artifact's document wording keys, as its docs/api.md 「Wording」 table lists them: one key to a line, then
+# the {name} marks its line is filled in with. The document wording file holds these keys and no other.
+archive_docs.header.kind {kind}
+archive_docs.header.request {request}
+archive_docs.header.written {time}
+archive_docs.header.attached {names}
+archive_docs.kinds.record
+archive_docs.kinds.learning
+archive_docs.kinds.import
+archive_docs.kinds.page
+archive_docs.time.line {year} {month} {day} {half} {hour} {minute}
+archive_docs.time.morning
+archive_docs.time.afternoon
+search.archive_name
+search.import_query {source}
+search.head.untitled {query}
+search.head.query {value}
+search.head.topic {value}
+search.head.keywords {value}
+search.head.rule {value}
+search.head.option {name} {value}
+search.head.depth {value}
+search.head.status {value}
+search.head.started {value}
+search.head.finished {value}
+search.head.runs {value}
+search.result.heading
+search.result.empty
+search.result.branch {branch}
+search.result.sources
+search.trail.heading
+search.trail.summary
+search.trail.own
+search.trail.run {run}
+search.trail.asked
+search.trail.opened
+search.trail.found
+search.parts.VERDICT
+search.parts.SUMMARY
+search.parts.INTRO
+search.parts.BODY
+search.parts.CONCLUSION
+search.parts.UNCONFIRMED
+search.parts.MORE
+search.fields.ADDRESS {value}
+search.fields.MAP {value}
+search.fields.ROADVIEW {value}
+search.fields.MENU {value}
+search.fields.menu_alone
+search.fields.RELEASED {value}
+search.fields.NEWER {value}
+search.fields.STOCK {value}
+search.fields.deal {now} {usual} {real}
+search.fields.deal_usual {usual}
+search.fields.deal_real {real}
+search.fields.review_link {page}
+search.fields.no_rating
+search.fields.original {address}
+search.reading.address
+search.reading.map
+search.reading.street_view
+search.reading.menu
+search.reading.dish
+search.reading.price
+search.reading.notes
+search.reading.released
+search.reading.newer
+search.reading.stock
+search.reading.product_page
+search.reading.deal
+search.reading.usual {usual}
+search.reading.review
+search.reading.untitled {place}
+search.import.answered
+search.import.topic {host}
+search.import.missing {n} {caption}
+search.import.kept
+search.import.moved
+search.import.cited
+search.import.cited_text {text}

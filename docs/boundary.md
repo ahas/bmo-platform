@@ -133,15 +133,34 @@ that unit's document states them.
 
 - **A fixed line** is one of the few lines no agent's session says: a code a unit answers with, rendered in
   the room's language from the server's pack. The codes it renders are the receiver's `FixedLine` codes
-  (the receiver's `docs/codes.md`, 「Fixed lines」), each to the sentence it renders as.
-- **A code the pack does not hold, or a language it does not have,** is refused 404 `unknown_code` or
-  `unknown_language`; the caller then sends the line as its code and fields, so a room is never silent.
+  (the receiver's `docs/codes.md`, 「Fixed lines」), each to the sentence it renders as:
+
+  | Code | Fields read | The sentence |
+  |---|---|---|
+  | `rest-begins` | none (`until` is carried and not read) | `fixed-lines.rest_begins`, said as the chat agent |
+  | `provider-down` | none | `chat-health.rest.outage`, said as the chat agent |
+  | `compacting` | none | `chat-health.fold.going` |
+  | `compact-failed` | none | `chat-health.fold.failed` |
+  | `run-broken` | `agent`, `cause`, `record` | `chat-health.account.line` opened by `account.broke`, its cause `causes.unknown` where none was read and its record line where one is kept; then `last_resort.speaking` with the agent and its subject particle |
+  | `chat-denied` | none | `fixed-lines.chat_denied` |
+  | `going-down-for-update` | `items` | `roads.service.mark`, then `service.stopping.deploying` with the items as `#n` where any |
+  | `going-down` | none | `roads.service.mark`, then `service.stopping.restarting` |
+  | `companion-engine-error` | `kind` | `companions.engine_error` of the kind |
+  | `companion-cut` | `agent`, `reason` | `fixed-lines.companion_cut` |
+  | `draw` | `label`, `asked`, `result`, `number`, `seed`, `method`, `answered`, `next` | `draws.line`, what was asked by `draws.spec` and what came out by `draws.dice_total` where dice are summed |
+
+- **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.
+- **`language` names the pack's language,** `ko`; another language is refused 404 `unknown_language`. A code
+  the pack does not hold is refused 404 `unknown_code`, and a line whose fields do not read as its code's
+  shape 400 `bad_request`. The caller then sends the line as its code and fields, so a room is never silent.
+- **The route answers whether or not the account model is in force,** since it reads no account.
 
 ### The document wording file
 
 The server's release carries the document wording file bmo-artifact's `[wording] file` setting names: every
 key of the artifact's 「Wording」 table, rendered from the server's pack, and no other key (`docs/language-pack.md`,
-「What other units read」).
+「What other units read」). The server's binary writes it, `bmo-web-server wording <file>`, from the pack alone
+and with no settings, and the release ships the file it writes.
 
 ### sumida's own routes
 
@@ -204,7 +223,7 @@ environment. No address, token or name is written into the code.
 | server | `database.url` | the server's PostgreSQL database |
 | server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
-| server | `language` | the language the pack renders in where a call names none |
+| server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |

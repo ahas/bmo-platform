@@ -45,6 +45,26 @@ pub struct Trail {
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct Reading {
+  pub address: String,
+  pub map: String,
+  pub street_view: String,
+  pub menu: String,
+  pub dish: String,
+  pub price: String,
+  pub notes: String,
+  pub released: String,
+  pub newer: String,
+  pub stock: String,
+  pub product_page: String,
+  pub deal: String,
+  pub usual: String,
+  pub review: String,
+  pub untitled: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Import {
   pub answered: String,
   pub topic: String,
@@ -68,6 +88,8 @@ pub struct Search {
   /// What each line of an entry is written as, by its label, beside the pieces a deal, a review and a kept
   /// picture are made of.
   pub fields: BTreeMap<String, String>,
+  /// What the console's reading of a finding draws it with.
+  pub reading: Reading,
   pub import: Import,
 }
 

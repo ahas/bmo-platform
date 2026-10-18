@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use bmo_web_server::migration::Migrator;
 use bmo_web_server::receiver::{Holding, Receiver, no_such_message};
 use bmo_web_server::routes::stand;
+use bmo_web_server::settings::Names;
 use bmo_web_server::{Refusal, Service, store};
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement, Value};
 use sea_orm_migration::MigratorTrait;
@@ -169,7 +170,7 @@ impl SharedDatabase {
       })
       .await
       .clone();
-    let service = stand(connect(&database).await, Arc::new(messages.clone()))
+    let service = stand(connect(&database).await, Arc::new(messages.clone()), names())
       .await
       .expect("the rules stand");
 
@@ -198,7 +199,7 @@ impl Scratch {
     admin.close().await.expect("the server connection closes");
 
     let messages = Messages::default();
-    let service = stand(connect(database).await, Arc::new(messages.clone()))
+    let service = stand(connect(database).await, Arc::new(messages.clone()), names())
       .await
       .expect("the rules stand");
 
@@ -303,3 +304,13 @@ pub fn console_hash(password: &str) -> String {
 /// The fixed numbers a test names the owner and a group room by, the values the testbed's test ids hold.
 pub const OWNER: i64 = 42;
 pub const ROOM: i64 = -100;
+
+/// The name a test's chat agent goes by.
+pub const CHAT_AGENT: &str = "agent-1";
+
+/// The names a test's service fills the pack's lines with.
+pub fn names() -> Names {
+  Names {
+    chat_agent: CHAT_AGENT.to_owned(),
+  }
+}

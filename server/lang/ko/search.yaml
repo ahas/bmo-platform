@@ -75,6 +75,27 @@ fields:
   no_rating: "없음"
   original: "원본: {address}"
 
+# What the console's reading of a finding draws it with: the labels of an entry's address, its map and street
+# view links, a menu with its dish, price and notes columns, when a product was released, its newer model, its
+# state and its page, a deal and what it {usual}ly costs, the page a review stands on, and what a finding with
+# no words of its own is called in the contents, by its {place}.
+reading:
+  address: "주소"
+  map: "지도"
+  street_view: "거리뷰"
+  menu: "메뉴"
+  dish: "메뉴"
+  price: "가격"
+  notes: "비고"
+  released: "출시"
+  newer: "최신 모델"
+  stock: "판매 상태"
+  product_page: "상품 페이지"
+  deal: "할인"
+  usual: "평소 {usual}"
+  review: "리뷰"
+  untitled: "{place}번째 내용"
+
 # A page brought in whole, as its result: the line that says it was answered, its topic by the page's
 # {host}, the figure {n} with its {caption} that could not be captured, and what each source line says of the
 # page kept, of the address asked that moved to it, and of a work the page cites with its {text} where any.
