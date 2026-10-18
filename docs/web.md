@@ -517,8 +517,11 @@ edit to that file alone.
   - Client app code takes nothing from that module but the `Translate` type; a screen's words come
     from the module's own instance.
 - **No Korean stands in the code.** A string compared against a value, used as an id or a key, sent to
-  a unit or matched against what a unit answers is not wording, and stands in a data file beside the pack,
-  read by name; a code file holds none.
+  a unit or matched against what a unit answers is not wording, and stands in the data file beside the pack,
+  `client/apps/web/i18n/data/ko.yaml`, read by name; a code file holds none.
+- **The pack answers the layers it extends.** The bmo-ui layer and bmo-artifact's console plugin bundle read
+  keys of their own from the host's pack (bmo-ui's `docs/boundary.md`, 「Wording keys」; bmo-artifact's
+  `docs/api.md`, 「Wording」), so a key either of them reads counts as asked for, and the pack holds every one.
 - **Words a unit answers with as codes are rendered here.** A label the console shows of another unit's
   state — a held item's label, a queue place, the parts of a TODO row — comes to it as that unit's code and
   fields, and is rendered from the server's pack (`docs/language-pack.md`), the same words a room is told.
@@ -526,8 +529,9 @@ edit to that file alone.
     `{name}` marks, one sentence to a key — and stay two files, since this pack is compiled by
     vue-i18n and the server's is read as plain text with its marks filled.
 - **A guard keeps it so** (`client/tests/i18n/wording.test.ts`). It fails on Korean standing in the source of
-  `app`, `server`, `shared` or the service worker under `public` of `client/apps/web`, on a key
-  asked for that the pack does not hold, on a key the pack holds that nothing asks for, on a key built
+  `app`, `server`, `shared`, `scripts` or the service worker under `public` of `client/apps/web`, on a key
+  asked for that the pack does not hold, on a key the pack holds that nothing asks for — the console, the
+  bmo-ui layer or the artifact bundle — on a key the bmo-ui layer reads that the pack lacks, on a key built
   out of pieces, on a key not named by the rule above, on a value the engine cannot read, and on client
   app code taking anything but a type from `shared/wording.ts`, which would carry the pack into
   the browser's bundle where the development server cannot serve it.
@@ -5319,7 +5323,8 @@ dialog open at 계정.
   reads waits here until the rest of it comes, so the frames this app writes into the same stream of its own — the
   keepalive and the stopping frame — always land between two whole events, never inside one. A unit that answers
   the relay with a refusal — a token that does not match, a fault of its own — is written in this app's log with the
-  status it gave, since the browser only sees a stream that ends.
+  status it gave, since the browser only sees a stream that ends. The relay holds the receiver's stream alone
+  until the screens that follow the other two are carried (`docs/boundary.md`, 「Gaps the console meets」).
 - **What the screen knows is this stream.** The room screen knowing what it is doing now, the live status screen
   knowing starts and ends, the home's context and usage bars moving, the TODO panel re-reading the queue and
   questions — all one thing. Instead of each screen running its own clock re-asking every few seconds, each says
@@ -5397,6 +5402,10 @@ The console reads its settings from its environment: the units' addresses and to
 |---|---|
 | `PORT` | The port the built server listens on |
 | `NUXT_SESSION_PASSWORD` | The key sealing the login cookie. 32 characters or more. Changing it logs everyone out |
+| `WEB_DATABASE_URL` | The server's PostgreSQL database, where the console's own tables stand (「Tables」) |
+| `NUXT_PUBLIC_CHAT_AGENT_NAME` | The name the chat agent's messages stand under, which the console tells its lines by |
+| `NUXT_PUBLIC_CHAT_AGENT_LABEL` | The label a room and a page call the chat agent by |
+| `BMO_WEB_SERVER_BIN`, `BMO_WEB_SERVER_DIR` | The server's binary and the folder its settings stand in, which the account command runs (「Making an account and resetting a password」) |
 | `BMO_VAPID_PUBLIC_KEY` | The public side of the notification key pair. Goes to each subscribing browser |
 | `BMO_VAPID_PRIVATE_KEY` | Its secret side. Never leaves the machine. Without either, notifications cannot be sent |
 | `BMO_VAPID_SUBJECT` | Where to contact about this server's push. A `mailto:` or `https:` address, and the default points at no person |
@@ -5448,8 +5457,9 @@ hashed with argon2id so the original stays nowhere.
 
 Where the model is in force, the sign-in is the account service's, so the command also makes or resets the
 service's user of that name through the account command (`docs/accounts.md`, 「The account command」).
-`--administrator` makes that user the platform administrator. The command takes the server's binary out of the tree
-it runs in: the deploy tree's `bin/`, or the checkout's own build.
+`--administrator` makes that user the platform administrator. The command runs the binary `BMO_WEB_SERVER_BIN`
+names in the folder `BMO_WEB_SERVER_DIR` names, and refuses with neither set. The console account is written in
+the database `WEB_DATABASE_URL` names.
 
 ## Running in development
 
@@ -5523,6 +5533,8 @@ journalctl --user -u <unit> -f
 
 - A profile photo is the chat service's: the console reads it through the chat service that keeps it, a room's and
   a person's by their kind and id, and serves it under its own path behind the sign-in.
+- No unit serves the list of the pictures it keeps, so the console lists none and every face stands as its letter
+  (`docs/boundary.md`, 「Gaps the console meets」).
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
   once on reconnect. Opening a screen does not call the chat service's platform.

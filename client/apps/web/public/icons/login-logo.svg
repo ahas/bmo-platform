@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="478" height="200" viewBox="0 0 478 200">
+  <g transform="translate(2 0) scale(0.5714285714285714)">
+  <rect x="2.5" y="2.5" width="261" height="345" rx="24" fill="#5fbb9c" stroke="#12201f" stroke-width="5"/>
+  <rect x="27" y="27" width="212" height="158" rx="14" fill="#c6e1d0" stroke="#12201f" stroke-width="4.5"/>
+  <ellipse cx="71" cy="86" rx="8" ry="11.5" fill="#12201f"/>
+  <ellipse cx="195" cy="86" rx="8" ry="11.5" fill="#12201f"/>
+  <path d="M 114 120 C 117 131, 149 131, 152 120" fill="none" stroke="#12201f" stroke-width="4" stroke-linecap="round"/>
+  <rect x="31" y="197" width="144" height="15" rx="2" fill="#0b2c2a"/>
+  <circle cx="209" cy="205" r="8" fill="#3850a8" stroke="#12201f" stroke-width="3.5"/>
+  <polygon points="61,220.25 79,220.25 79,238.25 97,238.25 97,256.25 79,256.25 79,274.25 61,274.25 61,256.25 43,256.25 43,238.25 61,238.25" fill="#f9e000" stroke="#a68800" stroke-width="3.5" stroke-linejoin="round"/><polygon points="181,240.25 164,266.25 198,266.25" fill="#6dcdf7" stroke="#086791" stroke-width="3.5" stroke-linejoin="round"/><circle cx="222" cy="268.25" r="10" fill="#5db851" stroke="#346d2c" stroke-width="3.5"/><circle cx="187" cy="298.25" r="19" fill="#ef3538" stroke="#a50d10" stroke-width="3.5"/>
+  <rect x="43" y="308" width="26" height="11" rx="5.5" fill="#1a163f"/>
+  <rect x="86" y="308" width="26" height="11" rx="5.5" fill="#1a163f"/>
+  </g>
+  <path d="M 187 55 V 165 M 187 55 H 217 A 25 25 0 0 1 217 107 H 187 M 217 107 A 29 29 0 0 1 217 165 H 187" fill="none" stroke="#5fbb9c" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 282 165 V 55 L 320 125 L 358 55 V 165" fill="none" stroke="#5fbb9c" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="394" y="55" width="68" height="110" rx="34" fill="none" stroke="#5fbb9c" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 187 55 V 165 M 187 55 H 217 A 25 25 0 0 1 217 107 H 187 M 217 107 A 29 29 0 0 1 217 165 H 187" fill="none" stroke="#12201f" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 282 165 V 55 L 320 125 L 358 55 V 165" fill="none" stroke="#12201f" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="394" y="55" width="68" height="110" rx="34" fill="none" stroke="#12201f" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

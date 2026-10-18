@@ -1,0 +1,75 @@
+// Where a notification goes when it is pressed. The server writes these into a push and the
+// browser opens them, so both sides read the one set of rules rather than each spelling out
+// paths of its own.
+
+// The console lives under this prefix, in the browser's address and in the service worker's
+// scope alike.
+export const CONSOLE_BASE = "/bmo";
+
+// The owner's room, which is where the queue's panel stands. A console that does not know which
+// chat is theirs opens the home page instead — every room is one press from there, and a guessed
+// number would open somebody else's room.
+export function ownerRoomPath(ownerChatId: number | null): string {
+  return ownerChatId === null ? `${CONSOLE_BASE}/` : roomPath(ownerChatId);
+}
+
+// One room's screen.
+export function roomPath(chatId: number): string {
+  return `${CONSOLE_BASE}/rooms/${chatId}`;
+}
+
+// One item of the queue, with the panel opened on it. The panel reads the number off the address
+// and opens that row, so a notification about a question or a report lands on the thing it is
+// about rather than on a list to search through.
+export function todoPath(ownerChatId: number | null, todoId: number): string {
+  return `${ownerRoomPath(ownerChatId)}?todo=${todoId}`;
+}
+
+// The item a path names, for the panel reading its own address back. Anything that is not a
+// whole positive number names no item.
+export function todoOfQuery(value: unknown): number | null {
+  return positiveQueryId(value);
+}
+
+// Query values are decimal text, not the permissive numeric prefixes accepted by parseInt.
+function positiveQueryId(value: unknown): number | null {
+  if (typeof value !== "string" || !/^[1-9]\d*$/.test(value)) return null;
+  const id = Number(value);
+
+  return Number.isSafeInteger(id) ? id : null;
+}
+
+// One message in a room. The room reads the number off the address and carries the screen to
+// that row, which is how a notification or the playing bar sends them back to where a thing was
+// said rather than to the foot of the conversation.
+export function messagePath(chatId: number, messageId: number): string {
+  return `${CONSOLE_BASE}/rooms/${chatId}?at=${messageId}`;
+}
+
+// The same room as a route inside the app rather than as an address. The router already works
+// below the console's own base, so handing it a path that carries the base puts it on twice and
+// the screen lands nowhere. Anything outside the app — a notification the browser opens — wants
+// the full address instead, which is what the two above are for.
+export function roomRoute(chatId: number): string {
+  return `/rooms/${chatId}`;
+}
+
+// One message as a route inside the app: the room's own route with the message named on it, for
+// a screen sending a reader to where something was posted.
+export function messageRoute(chatId: number, messageId: number): string {
+  return `${roomRoute(chatId)}?at=${messageId}`;
+}
+
+// The message an address names, for a room reading its own address back. A room numbers its
+// messages from both ends — Telegram's above zero, the archive's own below it — so either is one.
+export function messageOfQuery(value: unknown): number | null {
+  const id = Number.parseInt(typeof value === "string" ? value : "", 10);
+
+  return Number.isSafeInteger(id) && id !== 0 ? id : null;
+}
+
+// One conversation of one mail account, opened from its inbox: the account by the local part of
+// its address, the conversation by its key, which is a message ID and so needs escaping.
+export function mailThreadPath(account: string, key: string): string {
+  return `${CONSOLE_BASE}/mail/${encodeURIComponent(account)}/inbox/${encodeURIComponent(key)}`;
+}

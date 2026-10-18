@@ -197,7 +197,7 @@ states them.
 | the server (this repository) | sign-in, the session, users, phone keys, grants, checks, the model | every route above |
 | the agency (`docs/api.md`) | the agents and their gates, reasoning, roles and sampling; base prompts; companions and their reset; sessions and a session's reset; the event stream; the co-worker pool; a run's log and records; the models, the registry, the tiers and the roads; the stand-in; the rest; a worker's node | `GET /agents`, `GET /rulebooks`, `POST /agent-gate`, `POST /agent-reasoning`, `POST /agent-role`, `GET`/`POST /agent-sampling`, `GET`/`POST /base-prompts`, `GET`/`POST /companions`, `GET`/`POST /companions/reset`, `GET /sessions`, `POST /session-reset`, `GET /events`, `GET /coworker-pool`, `GET /run-log`, `GET /run-records`, `GET`/`POST /models`, `/registry`, `/model-tiers`, `/fallback`, `GET /model-tiers/models`, `/fallback/codex-models`, `/fallback/openrouter-models`, `GET /stand-in`, `GET`/`POST /rest`, `POST /worker/node`, `POST /runs/stop`, `GET /health` |
 | bmo-job (`docs/api.md`) | the TODO panel and an item, its talk and its work order; the questions; the queue's holds and pause; the deploy hold; a launch; the workers and a word to one; a room's jobs; the event stream | `GET /todos`, `GET /todos/{item}`, `GET /todos/worker-lines`, `GET /todos/{item}/worker-lines`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `GET /work-orders/{item}/current`, `GET /work-orders/{item}/tasks/{task}`, `POST /work-order`, `POST /question`, `POST /question-pause`, `GET /queue/holds`, `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /task`, `GET /workers`, `GET /workers/{name}`, `POST /worker`, `POST /worker-word`, `GET /rooms/{chat}/jobs`, `POST /run/stop`, `GET /events`, `GET /health` |
-| the receiver (`docs/boundary-api.md`) | the room list, a room's title and messages; the owner and the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; what opened a turn; the voice briefing's switch and a line's reading; companions with a room; a talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `GET /owner`, `POST /say`, `POST /say-file`, `POST /instruct`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /talks`, `GET /health` |
+| the receiver (`docs/boundary-api.md`) | the room list, a room's title and messages; the senders each room has, for which rooms a user reads; the owner and the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; what opened a turn; the voice briefing's switch and a line's reading; companions with a room; a talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `POST /instruct`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /talks`, `GET /health` |
 | the brain (`docs/boundary-api.md`) | the memories screen; a fragment's standing in the document viewer | `GET /memories`, `POST /memories/active`, `GET /fragments`, `POST /fragments/active`, `GET /health` |
 | bmo-artifact (`docs/api.md`, `docs/layout.md`) | the archive screen of its console plugin bundle, the share page, the research settings | every road under `/api/archive` and `/api/share/`, and `/searches` and `/collected` as moved screens, handed on whole behind the console's sign-in (the share page's roads take none); `GET`/`POST /research-settings` |
 | the cache siren (`docs/api.md`) | the cache siren screen | `GET /stats`, `GET /events?limit=` |
@@ -205,6 +205,8 @@ states them.
 | the Telegram service (`docs/boundary-api.md`) | the profile photos of rooms and people | `GET /avatars/{kind}/{id}` |
 | the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read at the path a setting names; the testbed writes it and a reader needs only the file and the run's process |
 
+- **The console's own tables** are read and written in the server's database directly, through the database
+  `WEB_DATABASE_URL` names (`docs/accounts.md`, 「The tables」); no other unit's table is.
 - **A call that does not reach its unit,** or an answer that does not read as its shape, is that screen's
   failure: the region shows the failure and a way to ask again (`docs/skeleton-loading.md`), and every other
   region stands.
@@ -225,6 +227,8 @@ environment. No address, token or name is written into the code.
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
 | server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
+| console | `WEB_DATABASE_URL` | the server's PostgreSQL database, where the console's own tables stand |
+| console | `NUXT_PUBLIC_CHAT_AGENT_NAME`, `NUXT_PUBLIC_CHAT_AGENT_LABEL` | the name the chat agent's messages stand under, and the label a room calls it by |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |
 | console | `JOB_ADDRESS`, `JOB_TOKEN` | bmo-job |
 | console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver |
@@ -239,6 +243,21 @@ environment. No address, token or name is written into the code.
 
 - **A unit whose address is not set** is a unit the console does not reach: its screens stand as they do for a
   unit not yet split (below), and no call is made.
+
+## Gaps the console meets
+
+What the console needs and no unit serves stands empty in the console until a unit's document states a route
+for it, and no file or table of that unit is read meanwhile.
+
+- **The list of profile pictures.** The Telegram service serves one picture by its kind and id, but no unit
+  serves the list of the pictures it keeps with the moment each was taken, so the console lists none and every
+  face stands as its letter.
+- **A message's files.** No unit serves the file a message points at, so a room's line names its file and its
+  kind, and neither plays nor opens it.
+- **The rooms each sender has stood in.** The console reads them from the receiver's `POST /rooms/titles`,
+  which the receiver's document states for another caller; the console reads it as that document states it.
+- **The streams of bmo-job and the agency.** The console relays the receiver's stream alone; the screens that
+  follow bmo-job's and the agency's streams are not carried, and those streams join the relay with them.
 
 ## Screens of units not yet split
 

@@ -3,16 +3,19 @@ import { fileURLToPath } from "node:url";
 import { parseYAML } from "confbox";
 
 // The server's language pack (docs/language-pack.md), whose parts the console's own code reads where
-// it shows a line a unit answers with as a code. A part is imported from its file under the server's
-// `lang/`, read into a module holding the part's tree. The build runs on Node, where the runtime's own
-// YAML import is not at hand, so the parser is the one Nuxt's own configuration loading carries. Only
-// the server pack's files are read here: the console's pack is the i18n module's to read.
-const serverPackFolder = fileURLToPath(new URL("../../../server/lang/", import.meta.url));
-const serverLanguagePack = {
-  name: "bmo-web-server-language-pack",
+// it shows a line a unit answers with as a code, and the data beside the console's pack, the words it
+// matches on. A file is imported as a module holding its tree. The build runs on Node, where the
+// runtime's own YAML import is not at hand, so the parser is the one Nuxt's own configuration loading
+// carries. The console's pack itself is the i18n module's to read.
+const yamlFolders = [
+  fileURLToPath(new URL("../../../server/lang/", import.meta.url)),
+  fileURLToPath(new URL("./i18n/data/", import.meta.url))
+];
+const yamlData = {
+  name: "bmo-web-yaml-data",
   enforce: "pre" as const,
   transform(code: string, id: string) {
-    return id.startsWith(serverPackFolder) && id.endsWith(".yaml")
+    return yamlFolders.some((folder) => id.startsWith(folder)) && id.endsWith(".yaml")
       ? { code: `export default ${JSON.stringify(parseYAML(code))};`, map: null }
       : null;
   }
@@ -28,6 +31,9 @@ export default defineNuxtConfig({
   // bmo-artifact's `docs/layout.md`, 「The console plugin bundle」).
   extends: ["bmo-artifact-client", "bmo-ui"],
   modules: ["nuxt-auth-utils", "@nuxtjs/i18n"],
+  // The console's own styles, stated after the layers' (the conversation's measures and colours, its
+  // documents and its interface faces); what bmo-ui's stylesheet carries is the layer's.
+  css: ["~/assets/css/main.css"],
   compatibilityDate: "2025-09-01",
   devtools: { enabled: false },
   ssr: true,
@@ -64,10 +70,20 @@ export default defineNuxtConfig({
   appConfig: {
     bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" }
   },
+  // The chat agent's names, the deployment's to set and no code file's (docs/web.md, 「Settings」): the name its
+  // messages stand under and the label rooms call it by, set at run time as `NUXT_PUBLIC_CHAT_AGENT_NAME` and
+  // `NUXT_PUBLIC_CHAT_AGENT_LABEL`.
+  runtimeConfig: {
+    public: {
+      chatAgent: { name: "", label: "" },
+      // The installed app's shell version, which the shell-version module states as the build stands.
+      shellVersion: ""
+    }
+  },
   // A dev server answers only the hosts it is told of: those `BMO_WEB_DEV_HOSTS` names, comma-separated.
   vite: {
     server: { allowedHosts: (process.env.BMO_WEB_DEV_HOSTS ?? "").split(",").filter((host) => host !== "") },
-    plugins: [serverLanguagePack],
+    plugins: [yamlData],
     build: {
       // Rolldown's notice of how much of a build its plugins took is off. Most of a Nuxt build is plugin
       // work by its nature, so the notice stands on every build and names nothing a change could act on.
@@ -85,7 +101,7 @@ export default defineNuxtConfig({
     // names the directory here; with nothing named the build writes where it always does.
     output: { dir: process.env.BMO_WEB_OUTPUT_DIR ?? ".output" },
     // The runtime's own modules stay imports, not bundled files.
-    rollupConfig: { external: [/^bun:/], plugins: [serverLanguagePack] },
+    rollupConfig: { external: [/^bun$/, /^bun:/], plugins: [yamlData] },
     typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } }
   },
   $production: {

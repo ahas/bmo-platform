@@ -1,0 +1,62 @@
+import { sessionUser, signIn, userOf } from "@web/accounts/account-service";
+
+import { wording } from "#shared/wording";
+
+import type { AccountUser } from "#shared/types";
+
+interface LoginBody {
+  name?: unknown;
+  password?: unknown;
+  remember?: unknown;
+}
+
+export default defineEventHandler(async (event): Promise<{ user: AccountUser }> => {
+  const body = await readBody<LoginBody>(event);
+  const name = normalizeName(body?.name);
+  const password = normalizePassword(body?.password);
+  // Keeping the login is off unless the switch was on, so a request that says nothing about it —
+  // an older screen, a road taken by hand — gets the browser-session login rather than the kept one.
+  const remember = body?.remember === true;
+
+  if (name === null || password === null) {
+    throw fail(401, wording("app.error.wrong_credentials"));
+  }
+
+  const model = await consoleModel();
+
+  // On the multi-user model the sign-in is the account service's, and its session is held inside
+  // this console's own seal (docs/web.md, 「Access」); a service that does not answer signs nobody in.
+  if (model === "down") {
+    throw fail(503, wording("app.error.accounts_down"));
+  }
+
+  if (model === "on") {
+    const address = browserAddress(event);
+    const sid = await signIn(name, password, address);
+
+    if (sid === null) {
+      throw fail(401, wording("app.error.wrong_credentials"));
+    }
+
+    const session = await sessionUser(sid, address);
+    const user = session === null ? null : await userOf(session.id);
+
+    if (user === null) {
+      throw fail(401, wording("app.error.wrong_credentials"));
+    }
+
+    await setUserSession(event, { user: { name, id: Number(user.id) }, sid, administrator: user.administrator, loggedInAt: Date.now(), remember }, sessionLife(remember));
+
+    return { user: { name } };
+  }
+
+  const user = await findWebUser(name);
+
+  if (!(await checkPassword(user, password))) {
+    throw fail(401, wording("app.error.wrong_credentials"));
+  }
+
+  await setUserSession(event, { user: { name }, loggedInAt: Date.now(), remember }, sessionLife(remember));
+
+  return { user: { name } };
+});

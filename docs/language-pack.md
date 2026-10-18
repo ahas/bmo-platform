@@ -14,7 +14,9 @@
     console's tests read the same files where a test builds an expected line from a part.
   - **The console's pack** is what its screens show: `client/apps/web/i18n/locales/ko.yaml`
     (`docs/web.md`, 「Wording and the language pack」). It also answers every key the bmo-ui layer and the
-    bmo-artifact bundle read.
+    bmo-artifact bundle read, and those keys count as asked for, so none of them is pruned as unread.
+  - **Korean the console's code matches on is data, not wording:** a string compared against what a unit
+    answers stands in `client/apps/web/i18n/data/ko.yaml`, beside the pack, and is read by name.
   - **They stay apart because their readers read a value differently.** The console's pack is compiled by
     vue-i18n, whose message syntax gives `@`, `|`, `{` and `}` meanings of their own; the server's is read as
     plain text with `{name}` marks filled in. A value written for one reader would be misread by the other, so

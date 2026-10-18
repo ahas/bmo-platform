@@ -1,3 +1,406 @@
-# The console's language pack (docs/web.md, 「Wording and the language pack」). Its keys come with the
-# console's shell, which carries the pack whole.
-{}
+# Every word the console shows, and nothing else. A key is `<domain>.<role>.<key>`; the rules for
+# adding one are in docs/web.md, "Wording and the language pack".
+
+app:
+  label:
+    account: 계정
+    color_mode: 화면 모드
+    manifest_name: BMO Chat
+    mode_dark: 어둡게
+    mode_light: 밝게
+    mode_system: 시스템
+    name: 비모챗
+    password: 비밀번호
+    remember: 로그인 유지
+    search_group: 그룹
+    search_key: 키
+    search_name: 이름
+    search_place: 위치
+    search_screens: 화면
+    sidebar: 사이드바
+    sidebar_description: 화면, 방, 에이전트
+    user_id: 아이디
+  action:
+    login: 로그인
+    logout: 로그아웃
+  message:
+    manifest_description: 방 대화와 에이전트 판정을 보고, 방의 에이전트에게 메시지를 보냅니다.
+    login_again: 다시 로그인해 주세요.
+    session_ended: 로그인이 만료되었습니다.
+  error:
+    login_failed: 로그인하지 못했습니다.
+    wrong_credentials: 아이디 또는 비밀번호가 맞지 않습니다.
+    accounts_down: 계정 서비스가 응답하지 않아 지금은 로그인할 수 없습니다.
+
+common:
+  title:
+    share_link: 공유 링크
+  label:
+    all: 전체
+    count: "{n}개"
+    day_format: YYYY년 M월 D일 (ddd)
+    days: "{d}일"
+    days_hours: "{d}일 {h}시간"
+    depth_basic: 기본
+    depth_exhaustive: 초정밀
+    depth_thorough: 정밀
+    expired: 만료됨
+    expires_at: "{time}까지"
+    expiry: 만료 시간
+    forever: 무기한
+    hours: "{h}시간"
+    hours_minutes: "{h}시간 {m}분"
+    left_days: "{n}일 남음"
+    left_hours: "{n}시간 남음"
+    left_minutes: "{n}분 남음"
+    left_under_minute: 1분 미만 남음
+    link: 링크
+    minutes: "{m}분"
+    minutes_seconds: "{m}분 {s}초"
+    no_expiry: 만료 없음
+    no_record: 기록 없음
+    picture_caption: 캡션
+    picture_resolution: 해상도
+    picture_resolution_value: "{width} × {height}"
+    play_position: 재생 위치
+    properties: 속성
+    room: 방
+    seconds: "{n}초"
+    span_1h: 1시간
+    span_24h: 24시간
+    span_30d: 30일
+    span_6h: 6시간
+    span_7d: 7일
+    toc: 목차
+    unplayable: 재생할 수 없음
+    palette_forest: 숲
+    palette_lemon: 레몬
+    palette_sea: 바다
+    palette_sunset: 노을
+    palette_teal: 청록
+    palette_violet: 보라
+    theme_forest: 숲
+    theme_sea: 바다
+    theme_sunset: 노을
+    theme_teal: 청록
+    theme_violet: 보라
+  action:
+    cancel: 취소
+    choose_all: 전체 선택
+    choose_none: 전체 해제
+    clear_search: 검색어 삭제
+    close: 닫기
+    close_all_tabs: 모든 탭 닫기
+    close_other_tabs: 다른 탭 닫기
+    close_right_tabs: 오른쪽 탭 닫기
+    collapse: 축소
+    copy: 복사
+    create_link: 만들기
+    discard: 버리기
+    expand: 확장
+    fit_screen: 화면에 맞추기
+    more: 더보기
+    next_picture: 다음 사진
+    pause: 일시정지
+    pin: 고정
+    play: 재생
+    previous_picture: 이전 사진
+    refresh: 새로고침
+    save: 저장
+    share: 공유
+    unpin: 고정 해제
+    unshare: 공유 해제
+    zoom_in: 확대
+    zoom_out: 축소
+  aria:
+    close_named: "{name} 닫기"
+    column_width: "{name} 너비"
+    decrease: 감소
+    document_menu: 문서 메뉴
+    download_named: "{name} 내려받기"
+    image_zoom: "{title}, 휠이나 두 손가락으로 확대"
+    increase: 증가
+    more_notices: "알림 {n}건 더 있음"
+    pinned_named: "{name} 고정됨"
+    share_address: 공유 링크 주소
+  status:
+    copied: 복사됨
+    loading: 불러오는 중…
+    no_rooms: 기록된 방 없음
+    picture_loading: 사진 불러오는 중…
+    reconnecting: 다시 연결하는 중
+    rooms_loading: 방 불러오는 중…
+    share_loading: 공유 링크 불러오는 중…
+    video_loading: 영상 정보 불러오는 중…
+  message:
+    discard_confirm: 저장하지 않은 변경을 버릴까요?
+    link_copied: 링크를 복사했습니다.
+    preview_badge: 진행 중
+    preview_field: 검색
+    preview_link: 자세히 보기
+    preview_meta: 어제 오후 7:12 수정
+    preview_note: 회의록
+  error:
+    administrator_only: 관리자만 할 수 있습니다.
+    bad_cursor: 커서 값이 올바르지 않습니다.
+    bad_limit: 개수 값이 올바르지 않습니다.
+    editor_failed: 코드 편집기를 불러오지 못했습니다.
+    link_copy_failed: 링크를 복사하지 못했습니다.
+    not_saved_named: "{name} 저장 안 됨"
+    picture_failed: 사진을 불러오지 못했습니다.
+    rooms_failed: 방 목록을 불러오지 못했습니다.
+    share_create_failed: 공유 링크를 만들지 못했습니다.
+    share_not_found: 공유 링크를 찾을 수 없습니다.
+    share_read_failed: 공유 링크를 읽지 못했습니다.
+    unshare_failed: 공유를 해제하지 못했습니다.
+    video_failed: 영상을 불러오지 못했습니다.
+
+archive:
+  title:
+    body_links: "본문의 링크 · {n}"
+    cited_sources: 인용한 출처
+    document: "문서 {id}"
+    opened_pages: "열어 본 페이지 · {n}"
+    sources_count: "출처 {n}"
+  label:
+    attachments: 첨부
+    body: 본문
+    branch: "브랜치 · {branch}"
+    branch_run: "브랜치 · {branch} · 실행 {run}"
+    end: 끝
+    findings_pages: "조사 {findings} · 페이지 {pages}"
+    head_depth: 깊이
+    head_description: 설명
+    head_keywords: 키워드
+    head_question: 질문
+    head_request: 요청
+    head_rule: 적용 룰
+    head_topic: 주제
+    link_map: 지도
+    listen: 들으며 보세요
+    option_exclude: 제외
+    option_period: 기간
+    option_region: 지역
+    option_shape: 결과 모양
+    option_source: 가져온 원문
+    picture_address: 주소
+    shared_only: 공유 중인 문서만
+    sharing: "공유 중 · {left}"
+    show_all: 전체 보기
+    snippet_only: 요약문만 확인
+    sources: 출처
+    start: 시작
+    started_at: "{time} 시작"
+    state: 상태
+    value_brief: 요약만
+    value_domestic: 국내
+    value_full: 전체 문서
+    value_global: 해외 포함
+    value_learning: 학습자료
+    value_table: 표 포함
+  action:
+    back_to_list: 목록으로
+    details: 자세히
+    document_original: 문서 원문
+    download: 내려받기
+    open_new_tab: 새 탭에서 열기
+    open_page: 페이지 열기
+    original: 원본
+  aria:
+    kind: 종류
+    opens_new_tab: (새 탭에서 열림)
+    search: 문서 검색
+  placeholder:
+    search: 검색
+  status:
+    attachment_loading: 첨부 불러오는 중…
+    cut_short: 중간에 끊김
+    document_loading: 문서 불러오는 중…
+    done: 완료
+    empty: 내용 없음
+    end: 끝
+    failed: 실패
+    map_loading: 지도 불러오는 중…
+    more_loading: 더 불러오는 중…
+    no_documents: 문서 없음
+    no_match: "‘{phrase}’ 검색 결과 없음"
+    no_shared: 공유 중인 문서 없음
+    no_sources: 출처 없음
+    open: 실행 중
+    refreshing: 목록 갱신 중…
+    stopped: 중지됨
+    unanswered: 답을 찾지 못함
+    value_only: 답이 값 하나뿐인 검색이라 문서가 없습니다
+  error:
+    attachment_read_failed: 첨부를 읽지 못했습니다.
+    bad_attachment_id: 첨부 번호가 올바르지 않습니다.
+    bad_id: 문서 번호가 올바르지 않습니다.
+    list_failed: 목록을 읽지 못했습니다.
+    open_failed: 문서를 열지 못했습니다.
+    read_failed: 문서를 읽지 못했습니다.
+
+control:
+  status:
+    checking: API 로드 중
+  error:
+    reader_disconnected: 리더가 연결되지 않아 보낼 수 없습니다.
+    slow: API 응답 지연
+    status: "봇 제어 API가 {status}로 응답했습니다."
+    unreachable: API 로드 실패
+
+db:
+  label:
+    masked: 가려진 값
+
+files:
+  label:
+    progress: "{done}/{all} {percent}%"
+  action:
+    keep_both: 둘 다 유지
+    replace: 덮어쓰기
+    skip: 건너뛰기
+  aria:
+    name_field: 새 이름
+  status:
+    uploading: 업로드 중
+  message:
+    conflict: 같은 이름이 이미 있습니다.
+
+push:
+  title:
+    question: "항목 #{id} Job의 질문"
+    question_titled: "#{id} {title} · Job의 질문"
+    room_bundled: "{room} · 새 메시지 {n}개"
+  label:
+    mail: 새 메일
+    question: Job의 질문
+    room: 방 메시지
+  message:
+    mail: 받은편지함에 새 메일이 와서 읽지 않은 상태일 때 알립니다. 필터가 옮겼거나 읽음으로 표시한 메일은 알리지 않습니다.
+    room: 에이전트와 대화 상대가 방에 보낸 메시지와 보고를 알립니다. 그 방을 보고 있을 때는 알리지 않고, 한 방의 메시지는 하나로 묶습니다.
+    room_line: "{sender}: {line}"
+    question: Job이 답을 기다리며 멈춰 있고, 1분이 지나면 추천 답으로 정해집니다. 콘솔에서 타이머를 멈출 수 있습니다.
+    test_body: 이 기기로 알림이 도착합니다.
+    test_nowhere: 알림을 받도록 설정한 기기가 없어 보내지 않았습니다.
+    test_sent: "{n}개 기기로 보냈습니다."
+  error:
+    bad_subscription: 구독 정보가 온전하지 않습니다.
+    bad_watch: 탭이 보고 있는 방 정보의 형식이 올바르지 않습니다.
+    change_failed: 알림 설정을 바꾸지 못했습니다.
+    denied: 알림이 차단돼 있습니다. 브라우저 설정에서 이 사이트의 알림을 허용해 주세요.
+    no_device: 연결을 해제할 기기가 지정되지 않았습니다.
+    no_worker: 이 브라우저에 서비스 워커가 없어 알림을 받을 수 없습니다.
+    read_failed: 알림 설정을 읽지 못했습니다.
+    unconfigured: 이 서버에 푸시 키가 없어 알림을 보낼 수 없습니다.
+    unsupported: 이 브라우저는 푸시를 지원하지 않습니다.
+
+question:
+  error:
+    settled_by_deadline: "그 사이 시간이 초과돼 추천 답으로 정해졌습니다: {answer}"
+    settled_elsewhere: "그 사이 다른 곳에서 먼저 정해졌습니다: {answer}"
+
+room:
+  status:
+    outcome_run_failed: "{name}의 실행이 실패했습니다."
+    outcome_run_stopped: "{name}의 실행을 중지했습니다."
+    outcome_skipped: "{subject} 이번에는 답하지 않았습니다."
+    outcome_waited: "{subject} 메시지가 더 이어질 것 같아 기다렸습니다."
+  error:
+    avatar_not_found: 프로필 사진을 찾을 수 없습니다.
+    bad_avatar_id: 프로필 사진 번호가 올바르지 않습니다.
+    bad_avatar_kind: 프로필 사진 종류가 올바르지 않습니다.
+    bad_chat_id: 방 번호가 올바르지 않습니다.
+    bad_message_id: 메시지 번호가 올바르지 않습니다.
+    bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
+    file_not_found: 파일을 찾을 수 없습니다.
+
+screens:
+  label:
+    archive: 아카이브
+    find_description: 화면, 방, 에이전트로 이동
+    search: 검색
+  placeholder:
+    find: 화면·방·에이전트 찾기
+  status:
+    disconnected: 연결 끊김
+    restarting: 재시작 중
+  error:
+    bad_screen_name: 화면 이름이 올바르지 않습니다.
+    no_tab_state: 탭 상태가 없습니다.
+    tab_state_too_large: 탭 상태가 너무 큽니다.
+
+siren:
+  error:
+    unreachable: 캐시 사이렌이 응답하지 않습니다.
+
+todo:
+  error:
+    bad_item_id: 항목 번호가 올바르지 않습니다.
+    cannot_append: 완료된 항목에는 지시를 추가할 수 없습니다. 다시 연 뒤에 추가해 주세요.
+    cannot_finish: 이미 완료됐거나, Job이 실행 중이거나, 중지·재개 대기 중인 항목은 완료 처리할 수 없습니다.
+    cannot_hold: 완료된 항목이거나 이미 보류한 항목입니다.
+    cannot_unappend: 이미 삭제된 지시입니다. 목록을 새로고침해 주세요.
+    not_held: 보류 중인 항목이 아닙니다.
+    nothing_to_raise: 그 항목에는 미결이 없어 새 항목을 만들 수 없습니다.
+    queue_moved: 그 사이 대기열이 바뀌어 순서를 저장하지 못했습니다. 새로고침한 뒤 옮겨 주세요.
+    stop_reason_needed: 중지 사유를 입력해 주세요.
+    unfinished_not_open: 해소할 미결이 없거나 이미 해소된 항목입니다.
+
+account:
+  title:
+    login: 로그인 정보
+  label:
+    current_password: 현재 비밀번호
+    device_since: "{time}부터 · {kinds}"
+    new_password: 새 비밀번호
+    nothing_subscribed: 받는 알림 없음
+    optional: 선택
+    other_devices: "다른 기기 {n}개"
+    palette: 팔레트
+    palette_description: 대화방 색
+    preview: 미리보기
+    theme: 테마
+    theme_description: 강조색과 회색
+    user_id: 아이디
+  action:
+    change: 변경
+    reset_palette: 초기화
+    reset_theme: 초기화
+    send_test: 테스트 발송
+    subscribe: 알림 받기
+    unsubscribe: 알림 끄기
+  status:
+    not_subscribed: 이 기기는 아직 알림을 받지 않습니다.
+    notifications_loading: 알림 설정 불러오는 중…
+  message:
+    saved: 계정 정보를 변경했습니다.
+    user_usage: "사용법: bun scripts/user.ts set <아이디> <비밀번호> [--administrator]"
+    user_saved: "{name} 계정을 저장했습니다."
+    user_service_saved: "{name} 사용자를 계정 서비스에 저장했습니다."
+    user_service_saved_administrator: "{name} 사용자를 계정 서비스에 플랫폼 관리자로 저장했습니다."
+    user_service_unset: "계정 모델이 쓰이고 있지만 서버의 실행 파일과 설정 폴더가 지정되지 않아 계정 서비스의 사용자는 저장하지 않았습니다. 서버의 user 명령으로 저장해 주세요."
+  error:
+    bad_new_password: 새 비밀번호가 너무 짧거나 깁니다.
+    user_name_shape: "아이디는 {min}~{max}자의 영문, 숫자, 점, 밑줄, 하이픈이어야 합니다."
+    user_password_short: "비밀번호는 {min}자 이상이어야 합니다."
+    user_service_failed: "계정 서비스의 사용자를 만들지 못했습니다: {reason}"
+    bad_palette: 없는 팔레트입니다.
+    bad_theme: 없는 테마입니다.
+    bad_user_id: 아이디는 영문, 숫자, 점, 밑줄, 하이픈만 사용할 수 있습니다.
+    current_password_empty: 현재 비밀번호를 입력해 주세요.
+    current_password_wrong: 현재 비밀번호가 맞지 않습니다.
+    palette_failed: 팔레트를 저장하지 못했습니다.
+    save_failed: 계정 정보를 변경하지 못했습니다.
+    theme_failed: 테마를 저장하지 못했습니다.
+    user_id_taken: 이미 사용 중인 아이디입니다.
+
+settings:
+  title:
+    settings: 설정
+  label:
+    account: 계정
+    notifications: 알림
+    palette: 대화방
+    theme: 테마
+  action:
+    back: 뒤로

@@ -1,0 +1,7 @@
+# Words the console matches on rather than shows (docs/web.md, 「Wording and the language pack」): what another
+# unit writes into a text in this language, read by name in `shared/text-marks.ts`. A code file holds none.
+
+# The marks a message's text opens with where it stands for something other than words. A voice message's
+# text is its mark, with the recording's length where one is known, then the words it says.
+marks:
+  voice: "음성"

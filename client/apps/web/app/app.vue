@@ -1,5 +1,53 @@
 <template>
-  <UApp>
-    <NuxtPage />
+  <!-- The console says everything it has to say on the one island at the top of the screen
+       (`~/domain/island`), so the component library's own toaster is not stood up at all. Left
+       standing it would be a second road for news, and a road nobody watches is a road news is
+       lost down. -->
+  <UApp :locale="locale" :tooltip="TOOLTIPS" :toaster="null">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+
+    <SettingsModal v-if="loggedIn" />
+    <MessageIsland />
+    <CutLineTip />
   </UApp>
 </template>
+
+<script setup lang="ts">
+import { ko } from "@nuxt/ui/locale";
+
+import type { Messages } from "@nuxt/ui";
+
+const { t } = useI18n();
+const { loggedIn } = useUserSession();
+
+// The sidebar's drawer names itself with keys Nuxt UI's own locales do not carry, so a screen
+// reader would read the key; the console supplies them. Its fold button is named as the console
+// names every fold button, and that name is the tooltip it wears.
+const locale = extendLocale(ko, {
+  messages: {
+    dashboardSidebar: { title: t("app.label.sidebar"), description: t("app.label.sidebar_description") },
+    dashboardSidebarCollapse: { collapse: t("common.action.collapse"), expand: t("common.action.expand") }
+  } as unknown as Messages
+});
+
+// The interface's faces are asked for with the page rather than once the stylesheet has been read
+// and laid out, so the first screen is drawn in them instead of swapping into them a moment after
+// (docs/web.md, 「Fonts」). Every weight carried is asked for: the first screen wears all four.
+const INTERFACE_FACES = Object.values(
+  import.meta.glob<string>("~/assets/fonts/AppleSDGothicNeo-*.woff2", { eager: true, query: "?url", import: "default" })
+);
+
+// The console's name stands in the browser tab and under an installed copy's icon.
+useHead({
+  title: t("app.label.name"),
+  meta: [{ name: "apple-mobile-web-app-title", content: t("app.label.name") }],
+  link: INTERFACE_FACES.map((href) => ({ rel: "preload", as: "font", type: "font/woff2", crossorigin: "anonymous", href }))
+});
+
+// A tooltip answers hover and the keyboard. Focus handed back by a closing sheet or dialog to the
+// button that opened it is neither, and on a phone it would leave the button's name standing over
+// what the sheet had just opened.
+const TOOLTIPS = { ignoreNonKeyboardFocus: true };
+</script>

@@ -84,6 +84,57 @@ export (below, 「Already in bmo-ui」), and each holds only that name:
 
 `app/app.config.ts`; `app/app.vue`; `app/assets/css/main.css`; `app/assets/fonts/AppleSDGothicNeo-Bold.subset.woff2`; `app/assets/fonts/AppleSDGothicNeo-Medium.subset.woff2`; `app/assets/fonts/AppleSDGothicNeo-Regular.subset.woff2`; `app/assets/fonts/AppleSDGothicNeo-SemiBold.subset.woff2`; `app/assets/fonts/LICENSE-NotoSansSymbols2.txt`; `app/assets/fonts/NotoSansSymbols2-subset.woff2`; `app/components/BmoMark.test.ts`; `app/components/BmoMark.vue`; `app/components/ChatInput.vue`; `app/components/ItemTip.vue`; `app/components/MarkdownText.test.ts`; `app/components/MarkdownText.vue`; `app/components/PalettePreview.vue`; `app/components/ReadFailure.vue`; `app/components/SettingsAccount.vue`; `app/components/SettingsChoiceCell.vue`; `app/components/SettingsInputCell.vue`; `app/components/SettingsModal.vue`; `app/components/SettingsNotifications.vue`; `app/components/SettingsPalette.vue`; `app/components/SettingsPopoverCell.vue`; `app/components/SettingsTheme.vue`; `app/components/UserMenu.vue`; `app/domain/access.ts`; `app/domain/avatars.test.ts`; `app/domain/avatars.ts`; `app/domain/control.test.ts`; `app/domain/control.ts`; `app/domain/copy.test.ts`; `app/domain/copy.ts`; `app/domain/events.test.ts`; `app/domain/events.ts`; `app/domain/finding-blocks.ts`; `app/domain/item-tips.test.ts`; `app/domain/item-tips.ts`; `app/domain/jump.test.ts`; `app/domain/jump.ts`; `app/domain/kept-choice.ts`; `app/domain/login-end.test.ts`; `app/domain/login-end.ts`; `app/domain/markdown-load.ts`; `app/domain/markdown.test.ts`; `app/domain/markdown.ts`; `app/domain/palette.ts`; `app/domain/push.test.ts`; `app/domain/push.ts`; `app/domain/route-key.test.ts`; `app/domain/route-key.ts`; `app/domain/screens.test.ts`; `app/domain/screens.ts`; `app/domain/settings-dialog.ts`; `app/domain/settings.ts`; `app/domain/tab-state.ts`; `app/domain/theme.ts`; `app/domain/urls.ts`; `app/domain/watching.test.ts`; `app/domain/watching.ts`; `app/forms.test.ts`; `app/layouts/` (3 files); `app/middleware/auth.global.ts`; `app/pages/account.vue`; `app/pages/login.vue`; `app/pages/rooms/index.vue`; `app/plugins/appearance.ts`; `app/plugins/login-end.client.ts`; `app/plugins/names.ts`; `app/plugins/pwa.client.ts`; `app/plugins/watching.client.ts`; `app/returning.test.ts`; `browser/bubble-contrast.test.ts`; `browser/console-ids.test.ts`; `browser/dragselect-harness.ts`; `browser/holdmenu-harness.ts`; `browser/markdown.test.ts`; `browser/market-move-contrast.test.ts`; `browser/measure-source.ts`; `browser/measure.ts`; `browser/motion-harness.ts`; `browser/openings-harness.ts`; `browser/page-import-dom.test.ts`; `browser/shot.test.ts`; `browser/shot.ts`; `browser/skeleton.test.ts`; `i18n/` (2 files); `modules/dev-measure.ts`; `modules/shell-version.ts`; `public/icons/` (19 files); `public/sw.js`; `scripts/archive-shape.ts`; `scripts/icons.ts`; `scripts/interface-font.py`; `scripts/rooms.ts`; `scripts/turn.ts`; `scripts/user.ts`; `scripts/vapid.ts`; `server/api/account.post.ts`; `server/api/account/` (6 files); `server/api/auth/` (4 files); `server/api/avatars.get.ts`; `server/api/avatars/[kind]/[id].get.ts`; `server/api/control.get.ts`; `server/api/events.get.ts`; `server/api/media/[kind]/[chatId]/[messageId].get.ts`; `server/api/push.delete.ts`; `server/api/push.get.ts`; `server/api/push.post.ts`; `server/api/push/` (2 files); `server/api/tab-states/` (3 files); `server/middleware/account-session.ts`; `server/middleware/route-scope.ts`; `server/middleware/session-slide.ts`; `server/plugins/push.ts`; `server/plugins/registrations.ts`; `server/plugins/relays.ts`; `server/route-scope.test.ts`; `server/routes/manifest.webmanifest.get.ts`; `server/utils/accounts.ts`; `server/utils/app-manifest.ts`; `server/utils/avatars.test.ts`; `server/utils/avatars.ts`; `server/utils/bot-relay.ts`; `server/utils/build.ts`; `server/utils/console-events.ts`; `server/utils/control.test.ts`; `server/utils/control.ts`; `server/utils/db.test.ts`; `server/utils/db.ts`; `server/utils/fail.ts`; `server/utils/media.test.ts`; `server/utils/media.ts`; `server/utils/opened-routes.ts`; `server/utils/palettes.ts`; `server/utils/push.test.ts`; `server/utils/push.ts`; `server/utils/pushnews.test.ts`; `server/utils/pushnews.ts`; `server/utils/pushsweep.test.ts`; `server/utils/pushsweep.ts`; `server/utils/relays.test.ts`; `server/utils/relays.ts`; `server/utils/request.ts`; `server/utils/resolved-words.test.ts`; `server/utils/room-reach.test.ts`; `server/utils/room-reach.ts`; `server/utils/room-stream.test.ts`; `server/utils/room-stream.ts`; `server/utils/roomnews.test.ts`; `server/utils/roomnews.ts`; `server/utils/session-cookie.ts`; `server/utils/session-life.test.ts`; `server/utils/session-life.ts`; `server/utils/sse-frames.test.ts`; `server/utils/sse-frames.ts`; `server/utils/sw.test.ts`; `server/utils/tab-states.ts`; `server/utils/themes.ts`; `server/utils/todosearch.test.ts`; `server/utils/users.ts`; `server/utils/watching.ts`; `shared/auth.d.ts`; `shared/bmo-controls.test.ts`; `shared/bmo-controls.ts`; `shared/config.ts`; `shared/document-design.test.ts`; `shared/document-design.ts`; `shared/paths.test.ts`; `shared/paths.ts`; `shared/pinned-rooms.test.ts`; `shared/pinned-rooms.ts`; `shared/shell-version.ts`; `shared/wording.ts`; `shared/yaml.d.ts`.
 
+How the shell stands here:
+
+- **Its database is the server's.** `server/utils/db.ts` reaches the console's own tables in the server's
+  PostgreSQL through Bun's SQL client and holds no statement on another unit's table; the old control port's
+  uses are calls on the units' routes through `server/utils/units.ts` (`docs/boundary.md`, 「Calls the console
+  makes」).
+- **Written for it:** `shared/agent-names.ts`, the chat agent's name and label as the deployment sets them;
+  `shared/text-marks.ts` over the data file `i18n/data/ko.yaml`, the Korean the code matches on;
+  `server/utils/units.ts`, a unit's address, token and call; `server/utils/owner.ts`, the owner's private chat
+  as the receiver answers it; `server/plugins/names.ts` and `app/plugins/names.ts`, which register the chat
+  agent's names; `app/domain/settings-cells.ts`, the settings cells' shared classes; and among the tests
+  `client/tests/support/web-database.ts` with its fixture `client/tests/fixtures/web-tables.sql`, a scratch
+  database holding the console's tables.
+- **Copied in from the old shared packages:** `shared/markdown-structure.ts` and `shared/web-address.ts`, the
+  markdown reader's structure and an address's reading, from the old markup package.
+- **Its fixtures:** a test's Korean input stands in `client/tests/fixtures/`, at the test's own path, read by
+  key; `server/utils/media.test.ts` reads none, its case on the old roads file being the receiver's.
+
+Of the 210, these are not carried here:
+
+| Old member | Where it stands |
+|---|---|
+| `app/domain/settings.ts` | split: each settings section goes with the group whose screen it sets, and the cells' classes stand in `app/domain/settings-cells.ts` |
+| `app/domain/finding-blocks.ts` | not carried: the bmo-artifact bundle draws a finding, and the shell's markdown reads none |
+| `app/components/PalettePreview.vue` | the receiver screens, build-11: it draws a room's bubbles |
+| `app/components/ItemTip.vue`, `app/domain/item-tips.ts`, `app/domain/item-tips.test.ts`, `server/utils/todosearch.test.ts` | the job screens, build-10 |
+| `app/domain/copy.test.ts` | the receiver screens, build-11, with the room copy `app/domain/copy.ts` loses; the shell keeps `copyText` alone |
+| `server/utils/db.test.ts` | not carried: it carried the share links' table of the old archive file across a change of shape, and that table is bmo-artifact's; `client/tests/server/web-tables.test.ts` holds the console's tables |
+| `browser/page-import-dom.test.ts` | not carried: it ran the old web layer's page reading, which is not this repository's |
+| `app/returning.test.ts` | the agency screens, build-9, for its agents screen's cases; its mail and archive cases are bmo-mail's and bmo-artifact's, whose screens are not the shell's |
+| `browser/market-move-contrast.test.ts` | not carried: it measured a finding's marks, which the bmo-artifact bundle draws |
+| `server/plugins/registrations.ts`, the old `app/plugins/names.ts` | not carried: they registered the bot's names, archive seeds and providers for the bot's own modules, none of which the console loads; the names plugins above register the chat agent's names from the deployment's settings |
+| `scripts/rooms.ts`, `scripts/archive-shape.ts`, `scripts/turn.ts` | not carried: each read the old archive's tables, which are other units' |
+| `app/assets/fonts/NotoSansSymbols2-subset.woff2`, `app/assets/fonts/LICENSE-NotoSansSymbols2.txt` | with bmo-remote's screens, build-8: only the remote terminal drew those symbols |
+
+The places in the shell that name a later group's file are cut here, and that group restores them:
+
+- **The job screens (build-10):** the TODO panel's aside and drawer, the question bar, the TODO query, the
+  push plugin's ringing of a question, the item tips, and the TODO choices of the settings.
+- **The receiver screens (build-11):** the rooms list in both layouts, the room jump group and `roomItems` of
+  the screens, the palette preview, the opened room, image, link and picture routes, a sent attachment, the
+  turn actions' fold, the report copy, and `shared/briefings.ts`, whose voice mark now reads the data file.
+- **The agency screens (build-9):** the agent groups, the live runs, `/api/status`, the agent folds, the
+  stream notice's link to the live screen, the agents and live screen entries, and the configuration's gate,
+  fallback, Laya and job-model values.
+- **The ops screens (build-13):** the home page at `/`, `/api/deploy`, the deployment mark on the rooms page,
+  and the cache-siren and database entries and choices.
+- **The brain screens (build-12):** the documents and memories entries.
+- **The placeholders (build-8):** the mail, files, graph, code, monitor and remote entries, the mail notices
+  and the briefing player.
+
 ### The agency screens (163 files)
 
 Stands here as `client/apps/web/` at the same path, calling the agency over HTTP; a test under `client/tests/`. Carried by build-9 (agency screens).
@@ -219,7 +270,7 @@ receiver's talk takes the earlier turns from its caller.
 | `lang/bmo-lang/Cargo.toml` | the server's own dependencies (`indexmap`, `serde-saphyr`) |
 | `lang/bmo-lang/package.json`, `bunfig.toml` | not carried: the console's tests import a part by its path under `server/lang/` |
 
-The console's own pack, `client/i18n/locales/ko.yaml`, travels with the shell.
+The console's own pack, `client/apps/web/i18n/locales/ko.yaml`, travels with the shell.
 
 ## Fixed lines and the document wording
 
