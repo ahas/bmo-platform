@@ -4,7 +4,10 @@ testbed = 0
 name = "web"
 
 [test]
-languages = []
+languages = ["cargo"]
+
+# The server's tests make their own scratch databases on the server, so no template is named.
+[test.database]
 
 [check]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table and the
@@ -12,5 +15,23 @@ languages = []
 # name being allowed none; no code file of this repository holds any.
 quick = ["korean", "layout", "dependencies"]
 korean_ledger = "korean-ledger.json"
-# The base libraries, and the console plugin bundle the console extends (docs/boundary.md).
-base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client"]
+# The base libraries, the console plugin bundle the console extends (docs/boundary.md), and sumida, the
+# server's base, a git dependency.
+base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client", "sumida"]
+
+[[check.step]]
+id = "check"
+command = "cargo check --workspace --all-targets"
+lane = "wide"
+
+[[check.step]]
+id = "clippy"
+command = "cargo clippy --workspace --all-targets -- -D warnings"
+lane = "wide"
+
+[[check.step]]
+id = "fmt"
+command = "cargo fmt --all --check"
+
+[build]
+binaries = ["bmo-web-server"]

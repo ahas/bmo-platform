@@ -1,0 +1,208 @@
+//! The server's binary (docs/accounts.md): `serve` stands the account service on the address its settings
+//! name, `migrate` brings its database up to date, and `user` is the account command.
+
+use std::fs;
+use std::io::{self, Write};
+use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
+use std::path::PathBuf;
+use std::process::ExitCode;
+use std::sync::Arc;
+
+use bmo_web_server::data_move::moved;
+use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
+use bmo_web_server::routes::{in_force, stand};
+use bmo_web_server::settings::Settings;
+use bmo_web_server::users::set_sign_in;
+use bmo_web_server::{migration, store};
+use clap::{Parser, Subcommand};
+use tokio::net::TcpListener;
+use tokio::signal::unix::{SignalKind, signal};
+
+// The account service's own runtime: sumida's user-agent parser keeps its scratch tables on every thread
+// that reads a session, so the service is kept to these few (docs/accounts.md, 「What it is」).
+const ACCOUNT_THREADS: usize = 2;
+const ACCOUNT_THREAD_NAME: &str = "account-service";
+
+#[derive(Parser)]
+#[command(
+  name = "bmo-web-server",
+  version,
+  about = "The web console's server: the account service on sumida."
+)]
+struct Cli {
+  #[command(subcommand)]
+  verb: Verb,
+}
+
+#[derive(Subcommand)]
+enum Verb {
+  /// Stands the account service on the address the settings name, until the process is stopped.
+  Serve,
+  /// Brings the database the settings name up to date with every migration.
+  Migrate,
+  /// Makes the user a name signs in as, or gives one standing a new password, read from standard input
+  /// (docs/accounts.md, 「The account command」).
+  User {
+    /// The name the user signs in with.
+    name: String,
+    /// Makes the user the platform administrator too.
+    #[arg(long)]
+    administrator: bool,
+  },
+}
+
+fn refused(why: impl std::fmt::Display) -> ExitCode {
+  eprintln!("bmo-web-server: {why}");
+
+  ExitCode::FAILURE
+}
+
+/// The folder sumida's settings are written into: the user's runtime folder where one stands, the system's
+/// temporary folder otherwise.
+fn runtime_dir() -> PathBuf {
+  std::env::var_os("XDG_RUNTIME_DIR")
+    .map(PathBuf::from)
+    .unwrap_or_else(std::env::temp_dir)
+    .join("bmo-web-server")
+}
+
+/// sumida's settings written into the runtime folder and named for sumida, with the values that are not
+/// fixed handed in its own environment variables. sumida reads them once, at its first reading, so this runs
+/// before anything else does.
+fn settle_sumida(settings: &Settings) -> io::Result<()> {
+  let dir = runtime_dir();
+
+  fs::DirBuilder::new().recursive(true).mode(0o700).create(&dir)?;
+
+  let path = dir.join(format!("sumida-{}.toml", std::process::id()));
+
+  fs::write(&path, include_str!("../../sumida.toml"))?;
+  fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
+
+  // SAFETY: the process holds one thread yet, so nothing reads the environment while it is written.
+  unsafe {
+    std::env::set_var("SUMIDA_SETTINGS", &path);
+    std::env::set_var("SUMIDA_DATABASE__URL", &settings.database.url);
+    std::env::set_var("SUMIDA_SESSION__REDIS__URL", &settings.sessions.valkey);
+  }
+
+  Ok(())
+}
+
+/// The receiver the settings name, or one that refuses every ask where they name none.
+fn receiver(settings: &Settings) -> Result<Arc<dyn Receiver>, String> {
+  match (&settings.receiver.base, &settings.receiver.token) {
+    (Some(base), Some(token)) => Ok(Arc::new(ReceiverClient::new(base, token)?)),
+    (None, None) => Ok(Arc::new(NoReceiver)),
+    _ => Err("the receiver's settings name its address and its token together, or neither".to_owned()),
+  }
+}
+
+async fn stopped() {
+  let (Ok(mut term), Ok(mut interrupt)) =
+    (signal(SignalKind::terminate()), signal(SignalKind::interrupt()))
+  else {
+    return std::future::pending().await;
+  };
+
+  tokio::select! {
+    _ = term.recv() => {}
+    _ = interrupt.recv() => {}
+  }
+}
+
+/// The account service on its address, until the process is stopped; an error where it cannot stand.
+async fn serve(settings: Settings) -> Result<(), String> {
+  let listen = settings.server.listen;
+  let listener = TcpListener::bind(listen)
+    .await
+    .map_err(|why| format!("{listen} cannot be listened on: {why}"))?;
+  let db = store::connect(&settings.database.url, store::pool(5).min_connections(1))
+    .await
+    .map_err(|why| format!("the service's database could not be reached: {why}"))?;
+  let service = stand(db, receiver(&settings)?)
+    .await
+    .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
+  let app = in_force(service).await.map_err(|why| why.to_string())?;
+
+  println!("bmo-web-server {} on {listen}: in force", bmo_web_server::VERSION);
+  let _ = io::stdout().flush();
+
+  axum::serve(listener, app)
+    .with_graceful_shutdown(stopped())
+    .await
+    .map_err(|why| why.to_string())
+}
+
+/// The account command: the user written into the database the service reads, refused where the data move
+/// has not run, since there the console's own accounts sign in.
+async fn user(settings: Settings, name: String, administrator: bool) -> ExitCode {
+  let mut password = String::new();
+
+  if let Err(why) = io::stdin().read_line(&mut password) {
+    return refused(format!("the password could not be read from standard input: {why}"));
+  }
+
+  let password = password.trim_end_matches(['\r', '\n']);
+  let db = match store::connect(&settings.database.url, store::pool(1)).await {
+    Ok(db) => db,
+    Err(why) => return refused(format!("the service's database could not be reached: {why}")),
+  };
+
+  match moved(&db).await {
+    Ok(true) => {}
+    Ok(false) => return refused("the data move has not run, so the console's own accounts sign in"),
+    Err(why) => return refused(why),
+  }
+
+  match set_sign_in(&db, &name, password, administrator).await {
+    Ok(set) => {
+      let what = if set.made { "made" } else { "given the new password" };
+      let role = if administrator { ", the platform administrator" } else { "" };
+
+      println!("bmo-web-server: user {name} ({}) {what}{role}", set.user);
+
+      ExitCode::SUCCESS
+    }
+    Err(why) => refused(why),
+  }
+}
+
+fn main() -> ExitCode {
+  let cli = Cli::parse();
+  let settings = match Settings::load() {
+    Ok(settings) => settings,
+    Err(why) => return refused(why),
+  };
+
+  if let Err(why) = settle_sumida(&settings) {
+    return refused(format!("sumida's settings could not be written: {why}"));
+  }
+
+  let runtime = tokio::runtime::Builder::new_multi_thread()
+    .worker_threads(ACCOUNT_THREADS)
+    .thread_name(ACCOUNT_THREAD_NAME)
+    .enable_all()
+    .build();
+  let runtime = match runtime {
+    Ok(runtime) => runtime,
+    Err(why) => return refused(format!("the account service's runtime: {why}")),
+  };
+
+  runtime.block_on(async move {
+    match cli.verb {
+      Verb::Serve => match serve(settings).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(why) => refused(why),
+      },
+      Verb::Migrate => match migration::migrate(&settings.database.url).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(why) => refused(format!("the migrations did not run: {why}")),
+      },
+      Verb::User {
+        name,
+        administrator,
+      } => user(settings, name, administrator).await,
+    }
+  })
+}

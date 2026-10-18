@@ -31,8 +31,9 @@ bundle; a screen of a unit not yet split is a placeholder.
   it.
 - **Tests live in `tests/`:** the server's in `server/tests/`, the client's in `client/tests/`, and the checks
   that span the repository in the root `tests/`. No test sits beside the code it tests.
-- **No directory named after its parent** (no `x/x`), and **no manifest at the root**: the server's
-  `Cargo.toml` stands in `server/`, the client's workspace `package.json` in `client/`.
+- **No directory named after its parent** (no `x/x`), and **one manifest at the root**: the Cargo workspace's,
+  whose one member is `server/`. The client is a Bun project of its own, its `package.json` and lockfile in
+  `client/`.
 - **Documents state what is true now**: no change history, no quoted source and no file-and-line pins.
 
 ## Checks
@@ -40,12 +41,11 @@ bundle; a screen of a unit not yet split is a placeholder.
 A change moves through three stages in order:
 
 1. Writing: the static check of the half the change touches. The server:
-   `bmo-testbed cargo check --manifest-path server/Cargo.toml --all-targets`. The client: `bun run typecheck`
-   in `client/apps/web`.
+   `bmo-testbed cargo check --workspace --all-targets`. The client: `bun run typecheck` in `client/apps/web`.
 2. Review: read the whole diff against what the change is for and the document governing it, then the linter
-   and the formatter: `bmo-testbed cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings`
-   and `cargo fmt --manifest-path server/Cargo.toml --all --check` (108 columns, 2-space indentation, as
-   `rustfmt.toml` sets) for the server; `bmo-testbed check quick` for the whole tree.
+   and the formatter: `bmo-testbed cargo clippy --workspace --all-targets -- -D warnings` and
+   `cargo fmt --all --check` (108 columns, 2-space indentation, as `rustfmt.toml` sets) for the server;
+   `bmo-testbed check quick` for the whole tree.
 3. Verification: the test targets the change touched, then the suite `testbed.toml` declares, once.
 
 Cargo runs through the testbed's Cargo verb, `bmo-testbed cargo <cargo arguments…>`, which builds in the one

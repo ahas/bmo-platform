@@ -187,16 +187,18 @@ states them.
 
 ## Settings
 
-The server reads its own settings file, overridden by the environment; the console reads its runtime
-configuration from the environment. No address, token or name is written into the code.
+The server reads `settings.toml` in the directory it starts in, overridden by `settings.local.toml` beside it
+and then by the environment, where a variable named `BMO_WEB_SERVER_`, the table, two underscores and the key
+sets that key (`BMO_WEB_SERVER_DATABASE__URL`); the console reads its runtime configuration from the
+environment. No address, token or name is written into the code.
 
 | Process | Setting | What it names |
 |---|---|---|
-| server | `listen` | the socket address the server binds |
-| server | `token` | the bearer token every caller presents |
-| server | `database` | the server's PostgreSQL database |
-| server | `valkey` | the Valkey sumida keeps its sessions in |
-| server | `receiver.base`, `receiver.token` | the receiver |
+| server | `server.listen` | the socket address the server binds |
+| server | `server.token` | the bearer token every caller presents |
+| server | `database.url` | the server's PostgreSQL database |
+| server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
+| server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
 | server | `language` | the language the pack renders in where a call names none |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
 | console | `AGENCY_ADDRESS`, `AGENCY_TOKEN` | the agency |

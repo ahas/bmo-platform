@@ -1,0 +1,38 @@
+//! The service's migrations (docs/accounts.md, 「The tables」), run by sea-orm's migrator, which keeps the
+//! versions it ran in its own table. sumida's own tables are made by sumida's migrations, only the ones its
+//! users, keys and grants need; its boards, files and membership stay unmade, and its rules over them read
+//! as absent.
+
+use sea_orm_migration::prelude::*;
+
+mod m20261019_000000_extensions;
+pub mod m20261019_000001_tables;
+
+pub struct Migrator;
+
+#[async_trait::async_trait]
+impl MigratorTrait for Migrator {
+  fn migrations() -> Vec<Box<dyn MigrationTrait>> {
+    vec![
+      Box::new(m20261019_000000_extensions::Migration),
+      Box::new(sumida::entity::migration::init::Migration),
+      Box::new(sumida::entity::migration::rebac::Migration),
+      Box::new(sumida::entity::migration::access_log::Migration),
+      Box::new(m20261019_000001_tables::Migration),
+    ]
+  }
+}
+
+/// The migrations up over the database an address names.
+pub async fn migrate(address: &str) -> Result<(), DbErr> {
+  let mut options = sea_orm_migration::sea_orm::ConnectOptions::new(address.to_owned());
+
+  options.sqlx_logging(false);
+
+  let db = sea_orm_migration::sea_orm::Database::connect(options).await?;
+
+  Migrator::up(&db, None).await?;
+  db.close().await?;
+
+  Ok(())
+}

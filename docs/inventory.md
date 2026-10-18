@@ -135,12 +135,15 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 |---|---|---|
 | `bot/bmo-server/src/bmo.sz`, `checks.rs`, `data_move.rs`, `grants.rs`, `phones.rs`, `routes.rs`, `rules.rs`, `users.rs` (the eight files the account-service crate split of commit `2d1704af` moved) | `server/src/` of the same names | build-2 |
 | the `Service` and `Refusal` of `bot/bmo-server/src/lib.rs` | `server/src/lib.rs` | build-2 |
-| `settle_sumida`, `account` and `account_apart` of `bot/bmo-server/src/main.rs` | the server's binary under `server/src/bin/` | build-2 |
-| the account part of `bot/bmo-server/src/settings.toml` | `server/settings.toml` | build-2 |
-| `fill_marks` of the old shared policy crate | a function of the server's own | build-2 |
+| `settle_sumida`, `account` and `account_apart`, and the `user` command, of `bot/bmo-server/src/main.rs` | the server's binary, `server/src/bin/bmo-web-server.rs`: `serve`, `migrate` and `user` | build-2 |
+| `bot/bmo-server/src/settings.toml`, sumida's settings for the account service | `server/sumida.toml`; the server's own settings in `server/settings.toml` | build-2 |
+| the statement helpers of the old archive pool (`one`, `all`, `run`, the pool and the replanned statement) | `server/src/store.rs` | build-2 |
+| `fill_marks` of the old shared policy crate | `server/src/marks.rs` | build-2 |
 | the `sumida` git dependency at rev `1ecbf4e48f052ecfd1c12f936fdcb1417d8e5ae0` | `server/Cargo.toml` | build-2 |
+| the read of a message's sender out of the shared `messages` table, which a message check and a grant are made on | the receiver port, `server/src/receiver.rs`, asking the receiver's `GET /rooms/{chat}/messages/{message}` | build-2 |
 | the room record the account service declared its holdings to | the holdings route and the declaration to the receiver | build-3 |
-| `bot/bmo-server/tests/integration/grants.rs`, `sign_in.rs` (2 tests) | `server/tests/` | build-2 |
+| `bot/bmo-server/tests/integration/grants.rs` and `sign_in.rs`, and the scratch archive and test ids they stood on | `server/tests/grants.rs`, `server/tests/sign_in.rs` and `server/tests/support/`: 11 tests and 1 | build-2 |
+| the two tests of `grants.rs` on whose work an item is (`requester_run`, approvals on a standing rule) | not carried: bmo-job's, standing on its items and the agency's Claude accounts | — |
 | `bot/accounts/account-service.ts`, `account-service-fixture.ts`, `bunfig.toml`, `package.json`, `tsconfig.json` (5 files) | `client/packages/accounts/` | build-6 |
 | `bot/bmo-server/src/control/claude_accounts.rs`, `claude_account_changes.rs`, the `claude_accounts` table and the policy files `claude-code.toml` and `rest.toml` | not carried: bmo-agency's | — |
 

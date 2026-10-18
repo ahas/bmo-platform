@@ -1,0 +1,30 @@
+# sumida's settings for the account service (docs/accounts.md). The service writes this into its runtime
+# folder and names it in SUMIDA_SETTINGS before sumida first reads it, and hands in the two values that are
+# not fixed: the database's address (SUMIDA_DATABASE__URL) and Valkey's (SUMIDA_SESSION__REDIS__URL).
+
+[server]
+host = "127.0.0.1:0"
+stage = "prod"
+
+[database]
+url = "postgres:///bmo_web"
+
+# The console's server alone calls the service, so the address a ban reads is the browser's, handed on by
+# the console in X-Real-IP.
+[session]
+ip_source = "XRealIp"
+
+[session.redis]
+url = "redis://127.0.0.1:6379/13"
+
+# The cookie travels only between the console's server and the service, never to a browser. Every sign-in
+# asks for the ordinary window, an idle one the service extends at each request, which is the console's own
+# 7 days counted from the last visit.
+[session.cookie]
+name = "bmo.sid"
+secure = false
+same_site = "strict"
+
+[session.cookie.expiry]
+default = "7d"
+remember_me = "7d"

@@ -1,0 +1,17 @@
+# The server's settings (docs/boundary.md, 「Settings」). A deployment overrides them in settings.local.toml,
+# which git ignores, or in the environment: a variable named BMO_WEB_SERVER_, then the table, two
+# underscores and the key, sets that key, so BMO_WEB_SERVER_DATABASE__URL sets the database's address.
+
+[server]
+listen = "127.0.0.1:3240"
+
+[database]
+url = "postgres://localhost/bmo_web"
+
+# The Valkey sumida keeps its sessions in.
+[sessions]
+valkey = "redis://127.0.0.1:6379/13"
+
+# The receiver's base address and its token, which a message check asks for a message's sender; a
+# deployment sets them.
+[receiver]

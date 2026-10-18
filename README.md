@@ -10,12 +10,14 @@ answers in English messages and codes, which these packs render.
 
 | Folder | Holds |
 |---|---|
+| `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings and the migrations under `src/migration/`), its binary under `src/bin/`, its settings and sumida's, and its tests under `tests/` |
+| `.cargo/` | Cargo's configuration for this checkout: sumida, a git dependency, fetched through the git program |
 | `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
 
-At the root stand the version in `VERSION`, `testbed.toml` (the testbed's declaration of how this repository
-is tested, checked, built and deployed), `rustfmt.toml`, `CLAUDE.md` and `korean-ledger.json` (the Korean left
-in a code file, which the testbed's Korean sweep holds every file to; no code file of this repository holds
-any). No manifest stands at the root: the server's and the client's each stand in their own folder.
+At the root stand the Cargo workspace manifest, whose one member is `server/`, and its lockfile; the version in
+`VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
+deployed); `rustfmt.toml`; `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which the
+testbed's Korean sweep holds every file to; no code file of this repository holds any).
 
 ## Documents
 
