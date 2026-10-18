@@ -170,8 +170,9 @@ How the agency screens stand here:
   (out of the old settings module) and the row drag's pointer rules, which `app/domain/row-drag.ts` now holds
   (out of the TODO module).
 - **What no unit serves stands unavailable** (`docs/boundary.md`, 「Gaps the console meets」): the log across an
-  agent's runs, the runs going beside the chat and what has just run, usage, a turn's figures, a worker's job
-  line, the tools' icons; and of the units not yet split, Laya, the gate order and the nodes.
+  agent's runs, the runs going beside the chat and what has just run but the jobs, usage, a turn's figures and
+  what a running job has spent, the tools' icons; and of the units not yet split, Laya, the gate order and the
+  nodes.
 - **The Korean the tests feed in** stands in `client/tests/fixtures/` at each test's own path; the branch word a
   run's name is filed under stands in the data file beside the pack. The tests stand the units in on loopback
   ports (`client/tests/support/units.ts`), with Nitro's own imports in place (`client/tests/support/nitro.ts`),
@@ -182,10 +183,10 @@ Of these, not carried here:
 
 | Old member | Where it stands |
 |---|---|
-| `server/utils/status.ts` | not carried: it read the executions, gate runs, runner and job records, watches, the machine's standing and the nodes out of the old archive, which no unit serves (`docs/boundary.md`, 「Gaps the console meets」) |
+| `server/utils/status.ts` | not carried: it read the executions, gate runs, runner and job records, watches, the machine's standing and the nodes out of the old archive; the job records are read through bmo-job's `GET /jobs/recent`, and the rest no unit serves (`docs/boundary.md`, 「Gaps the console meets」) |
 | `server/utils/usage.ts`, `server/utils/usage.test.ts` | not carried: they read the usage rows and sessions of the old archive, which no unit serves |
 | `server/utils/turns.ts`, `server/utils/turns.test.ts` | not carried: they read a turn's roads and spend out of the old archive, which no unit serves |
-| `server/utils/job-line.ts`, `server/utils/job-line.test.ts` | not carried: they read a worker's job out of bmo-job's tables and the agency's transcripts, which no route serves |
+| `server/utils/job-line.ts`, `server/utils/job-line.test.ts` | not carried: they read a worker's job out of bmo-job's tables and the agency's transcripts; `server/utils/job-runs.ts` reads the job line, its prompt and the jobs that have just run through bmo-job's routes, held by `server/api/agent-job.get.test.ts` |
 | `server/utils/control-change.ts` | not carried: `server/utils/agency.ts` stands in its place |
 | `server/utils/agentlog.test.ts` | rewritten: the log is read through the agency's run log, so the test stands the agency in |
 | the agency route tests (`server/api/agents.get.test.ts`, `fallback.post.test.ts`, `keepalive.post.test.ts`, `research-settings.post.test.ts`, `run-stop.post.test.ts`) | rewritten onto stood-in units, each refusal said by the pack's sentence |

@@ -4,7 +4,8 @@ import { wording } from "#shared/wording";
 import type { JobPrompt } from "#shared/types";
 
 // The prompt of the job a worker's screen keeps its line for, asked when the line is spread: the same job the
-// line speaks of, which no unit serves yet (docs/boundary.md, 「Gaps the console meets」).
+// line speaks of, its prompt in the deployment's language with the English its worker was handed, as bmo-job
+// reads it.
 export default defineEventHandler(async (event): Promise<{ prompt: JobPrompt | null }> => {
   await requireUserSession(event);
 
@@ -14,5 +15,7 @@ export default defineEventHandler(async (event): Promise<{ prompt: JobPrompt | n
     throw fail(400, wording("agents.error.bad_agent_name"));
   }
 
-  return { prompt: null };
+  const run = getQuery(event).run;
+
+  return { prompt: await readWorkerJobPrompt(name, typeof run === "string" ? run : null) };
 });

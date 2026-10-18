@@ -33,6 +33,7 @@ for (const module of [
   await import("../../apps/web/server/utils/agentlog"),
   await import("../../apps/web/server/utils/request"),
   await import("../../apps/web/server/utils/job"),
+  await import("../../apps/web/server/utils/job-runs"),
   await import("../../apps/web/server/utils/todos"),
   await import("../../apps/web/server/utils/work-order-view")
 ]) {

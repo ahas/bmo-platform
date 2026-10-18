@@ -1,19 +1,28 @@
-import type { LiveSnapshot, StatusView } from "#shared/types";
+import type { JobRecord, LiveSnapshot, StatusView } from "#shared/types";
 
 // What is running now, as the receiver's live picture holds it: the rooms whose session is folding, at the
-// moment it was read. The runs going on beside the chat — a runner, a job worker, a gate, an editor — and what
-// has just run are lists no unit serves, so they stand empty (docs/boundary.md, 「Gaps the console meets」). A
-// receiver that does not answer leaves the picture empty rather than failing the route.
+// moment it was read; and the jobs that have just run, as bmo-job reads them. The runs going on beside the chat
+// — a runner, a job worker, a gate, an editor — and the other records of what has just run are lists no unit
+// serves, so they stand empty (docs/boundary.md, 「Gaps the console meets」). A unit that does not answer leaves
+// its part of the picture empty rather than failing the route.
 export default defineEventHandler(async (event): Promise<StatusView> => {
   await requireUserSession(event);
 
-  const history = { executions: [], watches: [], gates: [], runners: [], jobs: [], machine: null, nodes: null };
+  const [snapshot, jobs] = await Promise.all([
+    unitFetch<Pick<LiveSnapshot, "at" | "compacting">>("RECEIVER", "/live").then(
+      (read) => ({ read, error: null }),
+      (error: unknown) => ({ read: null, error })
+    ),
+    // A job not finished yet is under way rather than run, and the board tells what has run from what runs by
+    // the live runs, which no unit serves yet; so only the finished ones stand among what has just run.
+    readRecentJobs().then(
+      (read) => read.filter((job) => job.finishedAt !== null),
+      (): JobRecord[] => []
+    )
+  ]);
+  const history = { executions: [], watches: [], gates: [], runners: [], jobs, machine: null, nodes: null };
 
-  try {
-    const snapshot = await unitFetch<Pick<LiveSnapshot, "at" | "compacting">>("RECEIVER", "/live");
-
-    return { reachable: true, live: [], compacting: snapshot.compacting ?? [], liveAt: snapshot.at, ...history };
-  } catch (error) {
-    return { reachable: false, slow: unitSlow(error), live: [], compacting: [], liveAt: null, ...history };
-  }
+  return snapshot.read === null
+    ? { reachable: false, slow: unitSlow(snapshot.error), live: [], compacting: [], liveAt: null, ...history }
+    : { reachable: true, live: [], compacting: snapshot.read.compacting ?? [], liveAt: snapshot.read.at, ...history };
 });

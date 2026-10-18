@@ -2716,12 +2716,11 @@ Two ways, split because the running places differ.
     Then one line per model the job used: the model, 「총 …」, and its four kinds as
     the popover's bar (「Usage in the title bar」). Under them stands the way to the item itself, the
     TODO panel opened on that row. A job with no item has no such way.
-  - A finished job's figures are its usage rows, which name the job's run. A running job's are read
-    off the session record the worker's standing program is writing, from the moment the job
-    started: every request the session and the subagents it spawned made since then, one request
-    counted once, so the line moves as the job goes. Nothing new is recorded for it.
-  - A running job whose program keeps no such record — a provider other than Claude Code, a job not
-    in a standing program — and a finished job with no usage row read one 「—」, and spread no model.
+  - The line is bmo-job's (its `docs/reading.md`, "A worker's job line"). A finished job's figures are
+    what the spans it wrote as it ended say it called and spent. A running job's tool calls are
+    counted in its run's log at the agency, and what its models have spent so far is said by no
+    route (`docs/boundary.md`, 「Gaps the console meets」), so a running job reads one 「—」 and
+    spreads no model; so does a finished job that wrote no spend.
   - The line is asked again on the poll and whenever a turn ends, and it follows a job starting or
     ending without the screen being reopened.
   - A road written before the record carried the round is placed by time instead. The turn's own
