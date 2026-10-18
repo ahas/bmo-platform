@@ -77,11 +77,20 @@
       </template>
     </UDashboardSidebar>
 
+    <!-- What outlives moving between rooms: a job that has stopped to ask something stays asked.
+         It stands above every screen because it is about something going on elsewhere, and it is
+         nothing at all when there is nothing to say. -->
     <div class="flex min-w-0 flex-1 flex-col">
+      <QuestionBar />
+
+      <!-- The page has a box of its own beside the task panel. The boundary between that box and the task
+           panel is the task panel's own leading edge, so the page's last panel must stay the last element of
+           its box, where it draws no trailing edge. -->
       <div class="flex min-h-0 min-w-0 flex-1">
         <div class="relative flex min-h-0 min-w-0 flex-1">
           <slot />
         </div>
+        <TodoPanel place="aside" />
       </div>
     </div>
     <UContentSearch
@@ -93,6 +102,19 @@
       :title="$t('screens.label.search')"
       :description="$t('screens.label.find_description')"
     />
+    <UDrawer
+      v-model:open="todoOpen"
+      direction="right"
+      title="TODO"
+      :description="$t('screens.label.todo_description')"
+      :handle="false"
+      :handle-only="true"
+      :ui="{ content: 'flex-col w-4/5 max-w-sm xl:hidden' }"
+    >
+      <template #content>
+        <TodoPanel place="drawer" @close="todoOpen = false" />
+      </template>
+    </UDrawer>
   </UDashboardGroup>
 </template>
 
@@ -104,7 +126,7 @@ import { avatarFor, useAvatars } from "~/domain/avatars";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
 import { jumpGroups, screenGroup } from "~/domain/jump";
-import { SCREEN_FRAME, useVisibleScreen } from "bmo-ui/app/domain/screen";
+import { SCREEN_FRAME, useNarrow, useVisibleScreen } from "bmo-ui/app/domain/screen";
 import { namedWhenFolded, screenItems } from "~/domain/screens";
 
 import type { LiveRun, RoomSummary, StatusView } from "#shared/types";
@@ -125,6 +147,20 @@ useVisibleScreen();
 
 const open = ref(false);
 const { t } = useI18n();
+const todoOpen = useState<boolean>("todo-open", () => false);
+
+// An address naming a TODO item opens that item wherever the panel stands. Below the width the
+// panel stands beside the page at, the panel is the drawer, so the drawer opens to show it.
+const asideShown = useNarrow("(min-width: 1280px)");
+
+function openAskedTodo(): void {
+  if (route.query.todo !== undefined && !asideShown.value) {
+    todoOpen.value = true;
+  }
+}
+
+watch(() => route.query.todo, openAskedTodo);
+onMounted(() => nextTick(openAskedTodo));
 
 // Whether the sidebar stands folded. The menu's rows are built from it: a folded row is its icon
 // alone, and a mark it carries is drawn over that icon rather than given a cell of its own.

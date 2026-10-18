@@ -4334,8 +4334,8 @@ Four bounds keep it from growing forever.
   - **Right: 상태, 이야기 and 관리** — what became of the item and what the owner does to it.
     - **상태** stands the **실행 기록**, then the **코워커 목록**, then what a job asked, then the **결재 기록**:
       every approval and every approval taken back, newest first, each with who did it — a person, an agent or a
-      job — by which road and when (bmo-job's `docs/todo.md`, 「Approval」). An item whose record holds no row says so in one
-      line. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
+      job — by which road and when (bmo-job's `docs/todo.md`, 「Approval」). bmo-job serves the record by no route yet
+      (`docs/boundary.md`, 「Gaps the console meets」), so it says in one line that it holds no row. The 실행 기록 always stands, saying which run is going if a job runs and that there is none yet if no job
       has run — an empty place saying nothing would leave the reader unable to tell no record from unread.
     - **이야기** is the talk with the chat agent about the item. The talk takes the tab's whole height and the words box, the room's
       own box, attaches to the tab's bottom edge — with no turns yet, while they load and when they fail alike, the empty
@@ -4367,7 +4367,9 @@ Four bounds keep it from growing forever.
     as the translator writes it, so the switch's own spinner is the whole of the progress and no count stands beside it.
     It stands as it was left: the next step opened in the dialog and the next visit both read the same way. A tab whose
     text is empty draws no toggle. What the translator could not render says so in one line under the row, with the press
-    that asks for it again. 원문 keeps the text the bot read.
+    that asks for it again. 원문 keeps the text the worker read. The translator is bmo-gate's, which serves the console no
+    route for it yet, so turning the toggle on says in that line that the translation is unavailable and the text
+    stands as it was written (`docs/boundary.md`, 「Gaps the console meets」).
   - The verbs the task's state takes — 지시 수정, 건너뛰기, 되돌리기, 다시 실행 — stand in the foot at its right end. What a
     verb asks for before it is sent stands at the end of the body, and the foot then holds 취소 and the verb's own button.
 - **Ending a work order.** The work order's own buttons — 중지 and **지시서 종료** — stand at the right. 지시서 종료 asks for
@@ -4383,8 +4385,8 @@ Four bounds keep it from growing forever.
   tabs stand as one row over one scroll. From 1024px the modal uses nearly the whole window and the two sets stand as two
   columns, each with its own tab row and its own scroll, so a long instruction is read on the left while the talk stays
   in place on the right. When the chat agent rewrites the draft in talk, the work order on the left is seen changing beside it.
-- The TODO is in the archive's table, and here is where the owner handles those lines. Three groups stand top to bottom in this
-  order.
+- The TODO is bmo-job's, read through its listings and its readings of an item (`docs/boundary.md`, 「Calls the console
+  makes」), and here is where the owner handles those lines. Three groups stand top to bottom in this order.
   - **결재 대기** — requests another room's chat agent received from a room's person and filed gather at the top. The only group
     asking the owner something, so first. Who asked in which room stands, and it does not enter the queue before approval.
   - **대기열** — approved unfinished items stand. With several workers this one line splits into per-worker lines to run, but
@@ -4425,8 +4427,8 @@ Four bounds keep it from growing forever.
     holds the queue waiting for jobs to end, each item whose job it waits on carries one more line under it behind a rocket,
     「이 Job이 끝나면 배포가 올라감」, so the paused queue reads as waiting on named work. Both lines are part of the row, plain
     words with no hover or press of their own, and the row opens by its title like every other line of it. Both
-    are searched like every other word on the row. They come from the bot's archive, so the panel re-reads them with every TODO event
-    the bot sends and says what `running.ts` says.
+    are searched like every other word on the row. bmo-job's readings carry neither the wait nor the deployment's wait on a
+    row yet (`docs/boundary.md`, 「Gaps the console meets」), so neither line stands until they do.
   - **중단 대기 중** — an item held while a run of it is still going stands in the queue under this word, in the
     warning colour, until the run has ended (bmo-job's `docs/work-orders.md`). The 진행 중 filter shows it, since it is still
     running.
@@ -4450,12 +4452,9 @@ Four bounds keep it from growing forever.
     a merged item: the 관리 tab says only which item carries it, and no words are added to it. Once the carrying item is
     finished, the merged ones are finished with it and stand among the 완료 with a **#N에 병합** line.
   - **완료** — items whose report is done. Completion is marking not deleting, so what has been done stays here.
-    - **The most recently finished stands first.** The order is the time each item was closed, which the closing
-      writes on the row; items closed in the same second stand by item number, highest first.
-    - **A row with no closing time stands by the latest time it records**: when it was filed, set aside, or had its
-      unfinished-item resolved. The table keeps no modification time of its own, and a row that is finished yet
-      carries no closing time would otherwise stand first on one archive engine and last on the other.
-    - **The archive sorts it,** so the page in hand and every 더 보기 after it continue one order, and a search
+    - **The most recently filed stands first,** by item number, highest first: bmo-job's lines carry no moment an item
+      was closed, and the number is the order items were filed in.
+    - **The server sorts it,** so the page in hand and every 더 보기 after it continue one order, and a search
       narrows that order without rearranging it.
     - If a finished job wrote a completion report too, that line stands a document mark, and if it left unfinished-items
       a **미결** tag — telling which line left its own story without opening. A resolved unfinished-item reads as
@@ -4470,10 +4469,10 @@ Four bounds keep it from growing forever.
   pressing stops the machine moving on to the next item: the chat agent is told of no waiting queue and launches nothing. While stopped a band stands below the header saying 자동 진행 일시정지, with the
   resume button in that band. When the panel is folded the vertical band's text says the pause too — a folded screen not knowing it is
   stopped is the worst this switch can do. What stops is only the moving on: the queue's lines, approval and order stand as is,
-  and a job and a co-work stage already running run to the end. Pressing goes to the bot's control API like this screen's other
-  writes, and the value the screen reads rides in the list the panel asks for anyway — so even with the bot down it says
-  correctly whether it is stopped now, and a press from another screen follows within seconds on the notice the queue moved.
-  The state is bmo-job's so it stays when the bot restarts, and bmo-job's command line, `bmo todo --pause` and
+  and a job and a co-work stage already running run to the end. Pressing goes to bmo-job like this screen's other
+  writes, and the value the screen reads rides in the board the panel asks for anyway, read from bmo-job's holds; a press
+  from another screen follows when the panel next reads.
+  The state is bmo-job's so it stays when the service restarts, and bmo-job's command line, `bmo todo --pause` and
   `--resume`, holds the same switch. The switch is their pause alone: resuming never lets a deployment's hold go, and where one
   still stands the panel says so with what it waits for.
 - **A deployment's hold stands in a band of its own.** While a backlog deployment holds the queue for a schema move older
@@ -4481,8 +4480,8 @@ Four bounds keep it from growing forever.
   #1389 끝나면 올라감」 — and a folded panel carries the word too. Pressing the band opens the title bar's deployment
   popover, the one place the hold stands whole; the panel keeps no window of its own repeating it, and a panel standing
   as a drawer steps aside for the popover. The popover's 해제 button asks first in the message pill what letting it go does — the deployment deploys nothing and the commits
-  stay waiting, since restarting now could break the jobs running across the restart — and then goes to the bot's
-  control API. The hold is read out of the archive with the board, so the band is true with the bot down.
+  stay waiting, since restarting now could break the jobs running across the restart — and then goes to bmo-job. The hold
+  is read from bmo-job's holds with the board.
 - **A line reads first by its tag colour.** Completion wears the finished colour, told at a glance from states beside it. 대기
   and 보류 are a neutral saying nothing, 진행 중 and 완료 보고 중 are the console's primary, and only 결재 대기 is a warning
   colour — the only line asking the owner something. And **a completed line reads at the same brightness as others** — a record of
@@ -4505,9 +4504,10 @@ Four bounds keep it from growing forever.
   search inside them finds only among what they left. The button shows how many are set, the popover's 「모두
   해제」 and the button beside the filter button drop them all in one press, and the choice is kept in this browser
   like the tab and the order.
-- **A condition is applied in the archive, not to the lines in hand.** 완료 comes a page at a time, so narrowing only
-  the page on screen would leave it thin; the page, its total and the unfinished groups all answer to the same
-  conditions. Under a condition a group left empty does not stand, and the line under the search says how many
+- **A condition is applied on the server, to every line bmo-job lists, not to the lines in hand.** 완료 comes a page at
+  a time, so narrowing only the page on screen would leave it thin; the page, its total and the unfinished groups all
+  answer to the same conditions. The room a request came from is not on bmo-job's lines, so the room condition offers
+  none to pick. Under a condition a group left empty does not stand, and the line under the search says how many
   matched. The lists a condition is picked from are read from the whole table and never narrowed, so a condition that
   empties the panel can still be changed.
 - **The tab badges count the whole table,** or in a room made for companions the whole of that room's items. They are
@@ -4523,8 +4523,8 @@ Four bounds keep it from growing forever.
   the next twenty, and when all came it says how many there were — so no confusion whether the list merely stopped or ended.
   The front two groups come whole. Those two are the work they hold now so the count is plain, and above all **a queue with a
   line missing cannot be dragged to order**.
-- Asking the next group, the panel asks not for the next twenty but **whole for as far as skimmed so far**. A list the archive
-  answered at once always agrees with itself front and back, but piling pages up would skip a line or stand it twice if some
+- Asking the next group, the panel asks not for the next twenty but **whole for as far as skimmed so far**. A list read
+  at once always agrees with itself front and back, but piling pages up would skip a line or stand it twice if some
   item turned to complete in between. This table is hundreds of lines so the cost of re-reading the front is cheaper than the
   cost of preventing that mismatch.
 - **Search searches the whole table.** Searching only the loaded lines would change the answer by how far down you came, and
@@ -4537,8 +4537,9 @@ Four bounds keep it from growing forever.
   marks from, so the two never disagree about why a line was found. And **all three groups are searched** — searching only complete would find nothing when
   looking for work standing in the queue, and that is a trap. How many were found stands below the box summing the three
   groups. Found results append the same way, and clearing the search returns to the original list.
-- **A live notice does not throw away what was skimmed.** When the bot says the queue moved the panel re-reads, and what it
-  asks is not the first twenty but as much as it already held, and the search term goes too. While a line is being dragged and
+- **A fresh read does not throw away what was skimmed.** When the panel reads again — on its own clock, since bmo-job's
+  stream is not relayed (`docs/boundary.md`, 「Gaps the console meets」) — what it asks is not the first twenty but as much
+  as it already held, and the search term goes too. While a line is being dragged and
   while an order saves, appending waits too — a line growing below moves the ground under the dragging foot.
 - **A running line is always at the top.** A running job's item stands at the front of the queue whatever its priority. What
   runs now is not to be found scrolling down the queue but seen the moment the panel opens. This top is not laid on the screen
@@ -4549,10 +4550,10 @@ Four bounds keep it from growing forever.
   running and was at the front anyway when assigned. When the job ends that line leaves the queue and the rest stay in the order
   they gave. A 완료 보고 중 line does not count here.
 - **Which worker does it is decided by opening the line.** Opening a line stands a worker-choosing cell in the modal head's tag
-  line, and every worker on this machine stands in the list — the list is the archive's `agents` table, so if the owner makes one more
+  line, and every worker on this machine stands in the list — the list is the agency's, so if the owner makes one more
   worker it stands here at once. Beside the chosen worker stands its repository path, since the name alone does not say where the
   work happens. Choosing **배정 없음** releases the assignment and that item becomes the Built-in worker's. This value is not a
-  past record but a future assignment — it is what the bot reads on assigning, and the session launches the job on the worker it
+  past record but a future assignment — it is what bmo-job reads on assigning, and the session launches the job on the worker it
   points at. Changing the assignment leaves the item's place, approval and rest unchanged.
 - **Whether to run as co-work is set in the same modal.** Right behind the worker-choosing cell stands a switch — on, that item's
   job runs splitting branches; off, it runs as one session. Off is every worker's default, so a line nobody turned on is all one

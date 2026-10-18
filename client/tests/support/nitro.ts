@@ -19,6 +19,7 @@ globals.createError = createError;
 globals.fail = fail;
 globals.requireUserSession = async () => ({ user: { id: 1, name: "tester" } });
 globals.requireAdministrator = async () => ({ id: 1, name: "tester", administrator: true });
+globals.signedInUser = async () => ({ id: 1, name: "tester", administrator: true });
 globals.readBody = async (event: RouteEvent) => event.body;
 globals.getQuery = (event: RouteEvent) => event.query ?? {};
 globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[name];
@@ -30,7 +31,10 @@ for (const module of [
   await import("../../apps/web/server/utils/research"),
   await import("../../apps/web/server/utils/companions"),
   await import("../../apps/web/server/utils/agentlog"),
-  await import("../../apps/web/server/utils/request")
+  await import("../../apps/web/server/utils/request"),
+  await import("../../apps/web/server/utils/job"),
+  await import("../../apps/web/server/utils/todos"),
+  await import("../../apps/web/server/utils/work-order-view")
 ]) {
   Object.assign(globals, module);
 }

@@ -90,6 +90,8 @@ common:
     span_30d: 30일
     span_6h: 6시간
     span_7d: 7일
+    speaker_bmo: 채팅 에이전트
+    speaker_owner: 소유자
     theme_forest: 숲
     theme_sea: 바다
     theme_sunset: 노을
@@ -148,6 +150,7 @@ common:
     refresh_standing: "{standing} · 새로고침"
     share_address: 공유 링크 주소
   status:
+    bmo_answering: 채팅 에이전트가 답을 쓰는 중…
     copied: 복사됨
     loading: 불러오는 중…
     no_rooms: 기록된 방 없음
@@ -166,18 +169,25 @@ common:
     preview_note: 회의록
   error:
     administrator_only: 관리자만 할 수 있습니다.
+    attachments_too_large: "한 파일에 50MB까지, 한 번에 {n}개까지 보낼 수 있습니다."
+    attachments_too_many: "한 번에 {n}개까지 보낼 수 있습니다."
     bad_action: 요청한 동작이 올바르지 않습니다.
     bad_cursor: 커서 값이 올바르지 않습니다.
     bad_limit: 개수 값이 올바르지 않습니다.
     editor_failed: 코드 편집기를 불러오지 못했습니다.
+    file_too_large: 한 파일에 50MB까지 보낼 수 있습니다.
     link_copy_failed: 링크를 복사하지 못했습니다.
     not_saved_named: "{name} 저장 안 됨"
+    not_sent: 보내지 못했습니다.
     picture_failed: 사진을 불러오지 못했습니다.
     rooms_failed: 방 목록을 불러오지 못했습니다.
     save_failed: 저장하지 못했습니다.
+    say_to_bmo_empty: 채팅 에이전트에게 보낼 메시지를 입력해 주세요.
+    send_failed: 메시지를 보내지 못했습니다.
     share_create_failed: 공유 링크를 만들지 못했습니다.
     share_not_found: 공유 링크를 찾을 수 없습니다.
     share_read_failed: 공유 링크를 읽지 못했습니다.
+    too_long: "메시지가 너무 깁니다. {n}자까지 보낼 수 있습니다."
     unshare_failed: 공유를 해제하지 못했습니다.
     video_failed: 영상을 불러오지 못했습니다.
 
@@ -322,8 +332,43 @@ push:
 
 question:
   error:
+    already_paused: 타이머가 이미 정지돼 있습니다.
+    already_running: 타이머가 이미 실행 중입니다.
+    answer_failed: 답을 보내지 못했습니다.
+    bad_option: 선택한 항목이 올바르지 않습니다.
+    bad_own_answer: 직접 입력한 답이 비었거나 너무 깁니다.
+    bad_question_id: 질문 번호가 올바르지 않습니다.
+    one_answer: 선택한 번호와 직접 입력한 답 중 하나만 보내야 합니다.
+    pause_direction: 타이머를 정지할지 재개할지 정해 주세요.
+    pause_failed: 타이머를 정지하지 못했습니다.
+    resume_failed: 타이머를 재개하지 못했습니다.
     settled_by_deadline: "그 사이 시간이 초과돼 추천 답으로 정해졌습니다: {answer}"
     settled_elsewhere: "그 사이 다른 곳에서 먼저 정해졌습니다: {answer}"
+  action:
+    answer: 답하기
+    answer_as_written: 이대로 답하기
+    answer_with: "{number}번으로 답하기"
+    close: 알림 닫기
+    pause: 타이머 정지
+    resume: 타이머 재개
+    unpick: 선택 취소
+  aria:
+    own_answer: 직접 입력한 답
+  label:
+    asked: "Job의 질문 · 항목 #{id}"
+    asked_prefix: Job의 질문 · 항목
+    recommended: (추천)
+    summary: "질문 {n}건"
+    why: "질문 이유:"
+  placeholder:
+    own_answer: 선택지에 없는 답 (직접 입력하면 Job이 그대로 읽습니다)
+  status:
+    deadline: 무응답 · 추천 답으로 결정
+    missed: 시간 초과
+    open: 답 기다리는 중
+    owner: 소유자가 답함
+    paused: "타이머 정지 · {time} 뒤 {number}번으로"
+    running: "{time} 남음 · 무응답 시 {number}번으로"
 
 room:
   status:
@@ -448,6 +493,7 @@ screens:
     monitor: 모니터
     remote: 원격
     search: 검색
+    todo_description: 대기열과 결재 대기
   placeholder:
     find: 화면·방·에이전트 찾기
   status:
@@ -469,16 +515,392 @@ siren:
 
 todo:
   error:
+    approvals_load_failed: 결재 기록을 불러오지 못했습니다.
+    auto_change_failed: 자동 진행을 바꾸지 못했습니다.
+    bad_action: 할 수 없는 동작입니다.
+    bad_cowork: 협업 여부가 올바르지 않습니다.
+    bad_direction: 옮길 방향이 올바르지 않습니다.
     bad_item_id: 항목 번호가 올바르지 않습니다.
+    bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
+    bad_order: 저장할 순서가 올바르지 않습니다.
+    bad_source_ids: 함께 출처로 삼을 항목 번호가 올바르지 않습니다.
+    bad_worker: 워커 이름이 올바르지 않습니다.
+    bot_refused: bmo-job이 요청을 거부했습니다.
     cannot_append: 완료된 항목에는 지시를 추가할 수 없습니다. 다시 연 뒤에 추가해 주세요.
     cannot_finish: 이미 완료됐거나, Job이 실행 중이거나, 중지·재개 대기 중인 항목은 완료 처리할 수 없습니다.
     cannot_hold: 완료된 항목이거나 이미 보류한 항목입니다.
     cannot_unappend: 이미 삭제된 지시입니다. 목록을 새로고침해 주세요.
+    change_failed: TODO를 바꾸지 못했습니다.
+    cowork_change_failed: 협업 여부를 바꾸지 못했습니다.
+    create_failed: 새 항목을 만들지 못했습니다.
+    item_read_failed: "#{id}번을 읽지 못했습니다."
+    job_ended: "#{id}번 Job이 이미 끝났습니다."
+    job_read_failed: "#{id}번 Job을 읽지 못했습니다."
+    load_failed: TODO를 불러오지 못했습니다.
     not_held: 보류 중인 항목이 아닙니다.
+    note_delete_failed: 지시를 삭제하지 못했습니다.
+    note_empty: 추가할 지시를 입력해 주세요.
+    note_pick: 삭제할 지시를 찾지 못했습니다.
+    note_send_failed: 지시 사항을 보내지 못했습니다.
+    notes_load_failed: 추가 지시를 불러오지 못했습니다.
     nothing_to_raise: 그 항목에는 미결이 없어 새 항목을 만들 수 없습니다.
+    order_save_failed: 순서를 저장하지 못했습니다.
     queue_moved: 그 사이 대기열이 바뀌어 순서를 저장하지 못했습니다. 새로고침한 뒤 옮겨 주세요.
+    queue_pause_direction: 자동 진행을 일시정지할지 재개할지 정해 주세요.
+    raise_body_empty: 이 미결로 할 일을 입력해 주세요.
+    raise_title_empty: 새 항목의 제목을 입력해 주세요.
+    resolve_reason_empty: 미결을 해소한 사유를 한 줄로 입력해 주세요.
     stop_reason_needed: 중지 사유를 입력해 주세요.
+    talk_load_failed: 대화를 불러오지 못했습니다.
+    translation_ask_failed: 번역을 요청하지 못했습니다.
+    translation_read_failed: 번역을 읽지 못했습니다.
+    translation_unavailable: 작업 지시 번역은 아직 콘솔에서 쓸 수 없습니다. 원문으로 읽어 주세요.
+    translation_unreachable: 번역기에 연결되지 않아 번역을 요청할 수 없습니다.
     unfinished_not_open: 해소할 미결이 없거나 이미 해소된 항목입니다.
+    work_order_fold_failed: 작업 지시서를 종료하지 못했습니다.
+    work_order_load_failed: 작업 지시서를 불러오지 못했습니다.
+    work_order_save_failed: 작업 지시서를 저장하지 못했습니다.
+    work_order_stop_failed: 작업 지시서를 중지하지 못했습니다.
+    worker_change_failed: 워커를 바꾸지 못했습니다.
+  action:
+    approve: 승인
+    auto_pause: 자동 진행 일시정지
+    auto_resume: 자동 진행 재개
+    brief_english: 영어 원문 보기
+    brief_korean: 한국어로 보기
+    clear_all: 모두 해제
+    clear_filters: 필터 모두 해제
+    clear_search: 검색어 삭제
+    confirm_delete: 정말 삭제
+    confirm_discard: 정말 버리기
+    create_item: 항목 만들기
+    discard: 버리기
+    edit_reopen: 수정해서 다시 열기
+    end_work_order: 지시서 종료
+    give_up: 그만두기
+    mark_done: 완료 처리
+    move_bottom: 맨 아래로
+    move_top: 맨 위로
+    open_item: "#{id} 열기"
+    open_todo: TODO 열기
+    panel_close: TODO 패널 닫기
+    panel_collapse: TODO 패널 닫기
+    panel_expand: TODO 패널 열기
+    reopen_keep: 이전 결과를 유지하고 다시 열기
+    resume: 재개
+    resume_from_done: 완료 단계부터 재개
+    retry_translation: 다시 요청
+    save_instruction: 지시 저장
+    skip_and_end: 남은 작업 건너뛰고 종료
+    stop: 중지
+    stop_and_hold: 즉시 중지하고 보류
+    submit_for_approval: 결재 요청
+    task_edit: 지시 수정
+    task_rerun: 다시 실행
+    task_restore: 건너뛰기 취소
+    task_restore_confirm: 되돌리기
+    task_skip: 건너뛰기
+    unapprove: 결재 취소
+    unhold: 보류 해제
+    worker_status: 워커 현황
+    write_separately: 따로 작성
+  aria:
+    drag_reorder: 드래그해서 순서 변경
+    filter: TODO 필터
+    filter_of: "{name} 필터"
+    filters_set: "필터 {n}개"
+    hold_reason: 보류 사유
+    item_body: 항목 내용
+    item_manage: 항목 상태와 관리
+    item_view: 항목 보기
+    item_worker: 이 항목을 맡을 워커
+    more_sources: 이 항목 외에 함께 출처로 삼을 미결
+    new_body: 새 항목으로 만들 내용
+    panel_width: TODO 패널 너비 조절
+    resolve_reason: 미결 해소 사유
+    search: TODO 검색
+    task_choose: 작업 선택
+    task_view_choose: 작업 보기 선택
+    work_instruction: 작업 지시
+    work_purpose: 작업 목적
+  label:
+    approval_by_agent: "에이전트 {name}"
+    approval_by_job: "Job {name}"
+    approval_by_person: "{name}"
+    approval_given: 결재
+    approval_road_chat_tool: 챗 도구
+    approval_road_console: 콘솔
+    approval_road_verb: bmo todo
+    approval_taken: 결재 취소
+    approval_via_grant: 위임받은 권한
+    approval_via_owner: 소유자의 결정
+    approval_via_rule: 상시 규칙
+    approved: 결재됨
+    builder_model: Builder 모델
+    builder_stage: "{n}단계 · {title}"
+    checkout_release_wait: 체크아웃을 놓을 차례를 기다리는 중
+    conversation: 대화
+    deploy_waits: 이 Job이 끝나면 배포가 올라감
+    detail_description: 지시와 기록
+    edited_instruction: 수정한 지시
+    end_reason: 종료 사유
+    field_checkout: 체크아웃
+    field_checkout_reason: "체크아웃 점유 이유: {reason}"
+    field_cowork: 협업
+    field_deploy_waits: 배포 대기
+    field_id: 번호
+    field_instruction: 지시
+    field_merged: 병합
+    field_merged_into: "#{id}에 병합"
+    field_model: 모델
+    field_note: 결재 의견
+    field_report: 보고
+    field_requester: 요청
+    field_state: 상태
+    field_stopped: 중지 사유
+    field_title: 제목
+    field_unfinished: 미결
+    field_waiting: 대기
+    field_worker: 워커
+    filter: 필터
+    held_failure: 실패로 보류
+    held_pause: 재개 대기
+    held_pausing: 마무리 중
+    held_pending: 중단 대기 중
+    held_plain: 보류
+    held_since: "{since}부터 {kind}"
+    held_since_reason: "{since}부터 {kind} · {reason}"
+    held_stop: 중지
+    held_stopping: 중지 중
+    instruction_text: 지시문
+    item_head: "#{id} {title}"
+    keep_tier: 현재 등급 / 역할 설정 유지
+    manage: 관리
+    merged_done: "{target}에 병합되어 함께 완료"
+    merged_done_since: "{since} {target}에 병합되어 함께 완료"
+    merged_into: "#{id}에 병합됨"
+    merged_open: "{target}에 병합됨 · 그 항목이 완료되면 함께 완료"
+    merged_open_since: "{since} {target}에 병합됨 · 그 항목이 완료되면 함께 완료"
+    model_changed: (모델 바뀜)
+    model_fallback: (폴백)
+    model_requested: "(요청 {model})"
+    model_round: "{model} · {n}회차"
+    new_title: 새 항목 제목
+    no_room: 방 없음
+    not_approved: 결재 전
+    notes_count_removed: "{n}건 · 삭제 {removed}건"
+    order_active: 진행 중
+    order_closing: 종료 중
+    order_done: 완료
+    order_draft: 초안
+    order_paused: 중단
+    owner_note: 소유자의 결재 의견
+    owner_stopped: "중지: {why}"
+    part_conclusion: 결론
+    part_to_do: 무엇을 해야 하는지
+    part_what: 무슨 작업인지
+    phase_finish: 마무리
+    phase_ready: 준비
+    phase_run: 에이전트 실행
+    phase_wait: 대기
+    priority: 우선순위
+    purpose_conclusion: 목적 · 채팅 에이전트의 결론
+    purpose_same: "목적·지시: 항목 지시와 같음"
+    queue_place: "대기열 순서: {place}"
+    queue_place_failures: "{turn}: {why} · 실패 {failures}번"
+    queue_turn_held: 보류
+    queue_turn_passed: 차례를 넘기는 중
+    queue_turn_resume: 재개할 차례
+    queue_turn_why: "{turn}: {why}"
+    removed_at: "삭제 {time}"
+    requested_by: 요청한 사람
+    requested_room: 요청한 방
+    rerun_instruction: 다시 실행할 지시
+    resolved_at: "해소 · {time}"
+    result: 결과
+    round_result: "{round}차 결과"
+    run_cowork: 협업으로 실행
+    run_id: "실행 #{id}"
+    run_id_took: "실행 #{id} · {time}"
+    single_session: 한 세션
+    skip_reason: 건너뛰는 이유
+    skipped_at: "건너뛴 이유 · {time}"
+    skipped_count: "건너뜀 {n}"
+    sources: 출처
+    span_end: "끝 {time}"
+    span_start: "시작 {time}"
+    span_times: "{n}회"
+    span_tokens: "토큰 {tokens}"
+    span_total: "총 {time}"
+    state_done: 완료
+    state_held: 보류
+    state_merged: 병합됨
+    state_pending: 결재 대기
+    state_reporting: 완료 보고 중
+    state_running: 진행 중
+    state_running_progress: "진행 중 · {progress}"
+    state_stopped: 중지됨
+    state_waiting: 대기
+    step_build: 구현
+    step_build_place: "구현 {n}/{of}"
+    step_final: 최종 검증
+    step_investigate: 조사
+    step_plan: 계획
+    step_review: 검토
+    step_synthesis: 설계 종합
+    stop_failures: "실패 {n}번"
+    stop_reason: 중지 사유
+    stop_reason_line: "중지 사유: {reason}"
+    summary_held: "보류 {n}"
+    summary_merged: "병합 {n}"
+    summary_pending: "결재 대기 {n}"
+    summary_queue: "{n}건"
+    talk: 대화
+    task_done: 완료
+    task_failed: 실패
+    task_pending: 대기
+    task_running: 실행 중
+    task_skipped: 건너뜀
+    task_step: 작업 단계
+    task_tier: 작업 모델 등급
+    time_attempts: "{n}번 실행"
+    time_rest: "기타 {n}가지"
+    time_total: "총 {time}"
+    translation: 번역
+    unassigned_builtin: 배정 없음 (Built-in 워커)
+    unfinished_open: 미결
+    unfinished_remaining: 미결 남음
+    unfinished_resolved: 미결 해소
+    waiting_overdue: 예상 시각 초과
+    waiting_pid: "대기 중: {what} · pid {pid} · {left}"
+    waiting_unit: "대기 중: {what} · 유닛 {name} · {left}"
+    work_order_state: "작업 지시서 · {state}"
+    work_todo: 조사·검증·구현할 일
+  message:
+    approved: 결재했습니다.
+    approved_with_note: 결재하고 의견을 남겼습니다.
+    auto_paused: 자동 진행을 일시정지했습니다.
+    auto_resumed: 자동 진행을 재개합니다.
+    auto_resumed_hold_stands: "자동 진행을 재개합니다.
+
+      배포 대기가 해제되기 전에는 새 Job이 시작되지 않습니다: {hold}"
+    cowork_off: "#{id}번은 한 세션으로 실행합니다."
+    cowork_on: "#{id}번은 협업으로 실행합니다."
+    discard_confirm: "#{id}번을 버릴까요?"
+    discard_effect: 항목이 삭제되고 되돌릴 수 없습니다.
+    discarded: "#{id}번을 버렸습니다."
+    done_all_found: "검색된 완료 항목 {n}건을 모두 불러왔습니다."
+    done_all_loaded: "완료 항목 {n}건을 모두 불러왔습니다."
+    held: "#{id}번을 보류했습니다.\n대기열에서 제외됩니다."
+    marked_done: "#{id}번을 완료 처리했습니다."
+    note_added: "#{id}번에 추가 지시를 보냈습니다."
+    note_delivered: 이 지시를 담은 채팅 에이전트의 수정 내용이 이미 실행 중인 Job에 전달되어 그 Job에는 그대로 남습니다.
+    queue_all_busy: 기다리는 일이 모두 작업 중인 체크아웃이나 에이전트 차례가 아닌 턴 뒤에 서 있습니다.
+    queue_machine_short: 머신에 Job을 하나 더 돌릴 여유가 없어, 여유가 생기면 다시 알립니다.
+    queue_nothing_waiting: 어느 워커에게도 기다리는 일이 없습니다.
+    queue_paused: 소유자의 일시정지나 배포 보류가 아직 서 있습니다.
+    queue_told: 에이전트에게 큐 상황을 알렸습니다.
+    queue_unchanged: 이미 알린 큐 상황에서 달라진 것이 없습니다.
+    queue_unreadable: 지금 무엇이 실행 중인지 읽지 못했습니다.
+    raised: "{from}의 미결에서 항목을 만들었습니다.
+
+      결재 대기로 올라갔습니다."
+    raised_item: "{from}의 미결에서 #{id}번을 만들었습니다.
+
+      결재 대기로 올라갔습니다."
+    search_found: "{n}건을 찾았습니다."
+    search_none: 찾은 항목이 없습니다.
+    section_done_empty: 완료된 항목 없음
+    section_held_empty: 보류한 항목 없음
+    section_merged_empty: 병합된 항목 없음
+    section_pending_empty: 대기 중인 요청 없음
+    section_queue_empty: 남은 항목 없음
+    stopped: "#{id}번을 중지했습니다.
+
+      보류를 해제하면 중단된 지점부터 이어서 진행합니다."
+    talk_limit: 사용 한도에 걸려 이번 말에는 답하지 못했습니다.
+    talk_other: 이번 말에는 답이 오지 않았습니다.
+    talk_outage: API가 응답하지 않아 이번 말에는 답하지 못했습니다.
+    talk_resting: 채팅 에이전트가 휴식 상태라 이번 말에는 답하지 못했습니다.
+    talk_silent: 채팅 에이전트가 이번 말에 아무 말도 하지 않았습니다.
+    time_inside_note: 동시에 실행된 도구는 시간이 겹쳐서 합계가 실제 시간보다 길 수 있습니다
+    unapprove_confirm: "#{id}번의 결재를 취소할까요?"
+    unapprove_effect: 항목이 대기열에서 빠지고, 작업 지시서의 다음 단계도 다시 결재할 때까지 시작되지 않습니다.
+    unapproved: "#{id}의 결재를 취소했습니다.
+
+      항목은 삭제되지 않고 결재 대기로 돌아갔습니다."
+    unfinished_resolved: "#{id}의 미결을 해소했습니다.
+
+      미결 내용은 그대로 남아 있습니다."
+    unheld: "#{id}의 보류를 해제했습니다.\n원래 순서로 돌아갔습니다."
+    worker_assigned: "#{id}번은 {worker}가 맡습니다."
+    worker_unassigned: "#{id}의 워커 배정을 해제했습니다.
+
+      Built-in 워커가 맡습니다."
+  placeholder:
+    approval_note: 결재 의견 (선택)
+    more_sources: 다른 미결도 출처로
+    new_body: 할 일
+    note: 지시 사항
+    reason_optional: 사유 (선택)
+    resolve_reason: 해소 사유
+    say_to_bmo: 채팅 에이전트에게 메시지 보내기
+    search: 검색
+    source_search: 항목 번호나 제목
+  status:
+    approvals_loading: 결재 기록 불러오는 중…
+    auto_paused_hint: 자동 진행 일시정지 중 · 재개해야 다음 단계가 시작됨
+    brief_rendering: 한국어로 옮기는 중
+    change_handed: "{time} Job에 전달됨"
+    change_no_job: 실행 중인 Job 없음 · 다음 Job이 읽음
+    change_waiting: Job에 전달 대기
+    cowork_ran: 협업 실행됨
+    coworkers_loading: 코워커 목록 불러오는 중…
+    delivered_suffix: Job에 전달됨
+    deploy_hold_after: "{items} 끝나면 올라감"
+    deploy_hold_jobs: "Job {n}개 끝나면 올라감"
+    deploy_hold_jobs_unread: Job 목록을 읽지 못함
+    deploy_hold_no_jobs: 기다리는 Job 없음
+    deploy_hold_suffix: 배포 대기
+    done_nothing_to_do: 완료된 항목이라 할 일 없음
+    item_loading: 항목 불러오는 중…
+    item_missing: "#{id}번 항목 없음"
+    list_refreshing: 목록 갱신 중…
+    loading: TODO 불러오는 중…
+    more_done_loading: 완료 항목 더 불러오는 중…
+    next_run_applies: 다음 실행부터 반영
+    no_approvals: 결재 기록 없음
+    no_brief: 아직 정리된 지시 없음 · 처음 실행할 때 채팅 에이전트가 씀
+    no_coworkers: 코워커 없음
+    no_job_yet: 아직 실행된 Job 없음
+    no_notes: 추가 지시 없음
+    no_talk: 대화 없음
+    notes_loading: 추가 지시 불러오는 중…
+    nothing_left: 남긴 것 없음
+    paused_suffix: 일시정지
+    running_attempt: "{n}번째 실행 중"
+    talk_loading: 대화 불러오는 중…
+    translating: 번역 중
+    work_order_loading: 작업 지시서 불러오는 중…
+  title:
+    approvals: 결재 기록
+    brief: 정리된 지시
+    brief_changes: 채팅 에이전트가 고친 내용
+    conversation: 오간 대화
+    coworkers: 코워커 목록
+    instruction_as_said: 지시 원문
+    notes: 추가 지시
+    questions: Job의 질문
+    report: 완료 보고
+    run_log: 실행 기록
+    section_done: 완료
+    section_held: 보류
+    section_merged: 병합됨
+    section_pending: 결재 대기
+    section_queue: 대기열
+    time_inside: 클로드 실행 중 도구별 시간
+    time_phases: 구간
+    work_order: 작업 지시서
 
 account:
   title:
@@ -582,6 +1004,7 @@ agents:
     pause_keepalive_of: "{name} 다음 Job까지 캐시 유지 끄기"
     provider_of: "{name} 공급자"
     role_of: "{name} 롤"
+    search_depth: 검색 깊이
     session_reset_of: "{name} 세션 초기화"
     settings_sections: 설정 섹션
     switch_of: "{name} 사용"
@@ -606,8 +1029,10 @@ agents:
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
     bad_answer_size: 출력 크기는 1024·2048·4096·8192 중 하나여야 합니다.
     bad_credential_kind: 자격 증명은 설정 디렉터리이거나 토큰 파일입니다.
+    bad_depth: 검색 깊이가 올바르지 않습니다.
     bad_effort: Effort는 기본이거나 단계 하나여야 합니다.
     bad_gate_switch: 사용 여부는 켬·끔 값이어야 합니다.
+    bad_launch_agent: 실행할 에이전트가 올바르지 않습니다.
     bad_laya_fallback: Laya 대체 LLM은 공급자 이름이나 끔이어야 합니다.
     bad_laya_mode: "Laya 모드는 {modes} 가운데 하나여야 합니다."
     bad_role: 롤 이름이 올바르지 않습니다.
@@ -615,6 +1040,7 @@ agents:
     bad_tau: τ는 0에서 1 사이의 숫자여야 합니다.
     bad_thinking: 생각은 켬·끔 값이어야 합니다.
     bad_timeout: 제한시간은 1초에서 300초 사이여야 합니다.
+    bad_word_worker: 메시지를 보낼 워커가 올바르지 않습니다.
     base_prompt_action: 기본 프롬프트에 요청한 동작이 올바르지 않습니다.
     base_prompts_read_failed: 기본 프롬프트를 불러오지 못했습니다.
     catalogue_action: 모델 파일에 요청한 동작이 올바르지 않습니다.
@@ -643,6 +1069,8 @@ agents:
     keepalive_refused: 캐시 워머가 요청을 받아들이지 않았습니다.
     keepalive_worker: 캐시 유지를 끌 워커를 정해 주세요.
     label_needed: 이름표를 입력해 주세요.
+    launch_empty: 작업 지시를 입력해 주세요.
+    launch_failed: 실행하지 못했습니다.
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     model_unlisted: 목록에 없는 모델입니다. 다시 선택해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
@@ -667,6 +1095,7 @@ agents:
     settings_read_failed: 설정을 불러오지 못했습니다.
     tier_not_saved: 등급 저장 안 됨
     tiers_read_failed: 등급 설정을 불러오지 못했습니다.
+    word_empty: 메시지를 입력해 주세요.
     worker_name_empty: 워커 이름을 입력해 주세요.
   label:
     account_chosen: 선택한 계정
@@ -785,6 +1214,8 @@ agents:
     key_unusable: 키 확인 필요
     key_usable: 키 있음
     last_read_list: "마지막으로 읽은 목록 · {time}"
+    launch_say: 메시지
+    launch_task: 작업 지시
     laya_address: 주소
     laya_at_tau: "τ {tau} 커버리지 {coverage} · 일치 {agreement}"
     laya_checked: 확인
@@ -1437,3 +1868,266 @@ usage:
     weekly_by_gate: 주간 게이트별
     weekly_by_mode: 주간 모드·모델별
     weekly_by_user: 주간 사용자별
+job:
+  error:
+    action_wrong: 이 경로가 받지 않는 동작입니다.
+    add_anchor: 새 태스크는 기다리는 빌드 태스크 옆에만 둘 수 있습니다.
+    after_not_open: 보류 뒤에 재개할 항목이 아직 끝나지 않은 다른 항목이 아닙니다.
+    agency: bmo-job이 에이전시를 부르지 못했습니다.
+    agent_name_taken: 이미 있는 에이전트 이름입니다.
+    append_empty: 덧붙일 말이 비어 있습니다.
+    back_here_needs_path: 이 머신으로 데려오는 워커에는 이 머신의 경로가 필요합니다.
+    banned_terms: 쓰지 않기로 한 표현이 들어 있습니다.
+    base_on_node: 노드에 선 기본 워커에는 노드 체크아웃을 줄 수 없습니다.
+    before_and_after: 앞과 뒤를 함께 지정할 수 없습니다.
+    body_not_json: 요청 본문이 JSON이 아닙니다.
+    brain: bmo-job이 브레인을 부르지 못했습니다.
+    brief_agent_only: 브리프는 채팅 에이전트만 고쳐 쓸 수 있습니다.
+    brief_empty: 브리프가 비어 있습니다.
+    brief_needs_change: 브리프에는 바뀐 내용이 함께 와야 합니다.
+    brief_not_english: 브리프와 바뀐 내용은 영어로 써야 합니다.
+    build_move: 빌드 태스크나 그 기준이 기다리는 중이 아니라 옮길 수 없습니다.
+    build_running: 빌드 태스크가 실행 중입니다.
+    builder_running: 실행 중인 빌더 턴은 건너뛸 수 없습니다.
+    builtin_not_removed: 기본 제공 워커는 지울 수 없습니다.
+    builtin_path_fixed: 기본 제공 워커의 경로는 옮길 수 없습니다.
+    builtin_stays_here: 기본 제공 워커는 노드에 둘 수 없습니다.
+    chat_wrong: 방의 채팅 번호가 아닙니다.
+    checkout_already_on_node: 그 노드에 이미 체크아웃이 있습니다.
+    checkout_busy: 체크아웃의 워커에서 Job이 실행 중입니다.
+    checkout_held: 체크아웃에서 이미 일하는 중입니다.
+    checkout_held_by_order: 체크아웃을 다른 작업 지시서들이 잡고 있고, 워커에 빈 체크아웃이 없습니다.
+    checkout_name_long: 노드 체크아웃의 이름이 워커 이름 규칙을 어깁니다.
+    checkout_not_git: 체크아웃이 git 저장소가 아닙니다.
+    checkout_not_on_node: 그 노드에 체크아웃이 없습니다.
+    checkout_not_removed: 체크아웃의 워커를 치우지 못했습니다.
+    checkout_of_done: 끝난 작업 지시서의 체크아웃은 바꿀 수 없습니다.
+    close_builder_running: 빌더 턴이 실행 중이라 닫을 수 없습니다.
+    close_reason_size: 닫는 이유는 1자에서 2000자 사이여야 합니다.
+    closing_refused: 마무리 보고나 미결이 마무리 조건을 통과하지 못했습니다.
+    commit_already_live: 이미 라이브인 커밋입니다.
+    commit_not_on_main: main에 없는 커밋이라 배포로 라이브가 되지 않습니다.
+    condition_both: 보류의 재개 조건은 항목과 배포 중 하나만 받습니다.
+    control_turn_untouched: 계획, 종합, 마무리 턴은 고칠 수 없습니다.
+    cowork_needs_item: 공동 작업은 항목이 있어야 실행합니다.
+    cowork_needs_switch: 공동 작업은 켜거나 꺼야 합니다.
+    coworker_tier_wrong: 코워커가 쓸 수 있는 티어가 아닙니다.
+    database: bmo-job의 데이터베이스를 읽거나 쓰지 못했습니다.
+    dev_command_lines: 워커의 개발 서버 명령은 한 줄이어야 합니다.
+    dev_command_long: 워커의 개발 서버 명령이 너무 깁니다.
+    document_exists: 그 경로에 결과 문서가 이미 있습니다.
+    done_task_edit: 끝난 태스크는 고치지 말고 다시 돌려야 합니다.
+    done_while_held: 재개 대기나 중지 상태의 항목은 완료로 닫을 수 없습니다.
+    draft_only: 초안을 지난 작업 지시서는 초안으로 바꿀 수 없습니다.
+    edit_job_running: 고쳐 쓸 내용으로 Job이 일하는 중입니다.
+    edit_no_part: 항목에 그런 부분이 없습니다.
+    edit_nothing: 고칠 부분을 하나는 지정해야 합니다.
+    edit_order_started: 작업 지시서가 이미 시작되어 초안만 고쳐 쓸 수 있습니다.
+    edit_part_empty: 고칠 부분이 비어 있습니다.
+    field_missing: 요청에 값이 빠졌습니다.
+    field_not_text: 요청의 값이 글자가 아닙니다.
+    field_wrong: 요청의 값이 빠졌거나 형식이 맞지 않습니다.
+    file_empty: 빈 파일이 있습니다.
+    file_too_large: 받을 수 있는 크기보다 큰 파일이 있습니다.
+    filing_parts_missing: 항목을 이루는 부분이 빠져 있습니다.
+    from_todo_unread: 출처를 항목과 갈래 번호로 읽을 수 없습니다.
+    gate: bmo-job이 게이트를 부르지 못했습니다.
+    graph: bmo-job이 그래프를 부르지 못했습니다.
+    has_support: 지원 워커나 노드 체크아웃이 있는 워커는 노드에 둘 수 없습니다.
+    history_edit: 지난 회차의 태스크는 고칠 수 없습니다.
+    history_rerun: 지난 회차의 태스크는 다시 돌릴 수 없습니다.
+    history_restore: 지난 회차의 태스크는 되살릴 수 없습니다.
+    hold_not_taken: 이미 끝났거나, 병합되었거나, 보류된 항목입니다.
+    hold_takes_no_after: 그냥 보류에는 뒤에 재개할 항목을 지정할 수 없습니다.
+    impact_unread: 영향 근거가 하나의 JSON 객체로 읽히지 않습니다.
+    instruction_size: 태스크 지시는 1자에서 30000자 사이여야 합니다.
+    item_absent: 그런 항목이 없습니다.
+    item_closed_already: 이미 끝난 항목이라 덧붙인 말이 아무에게도 닿지 않습니다.
+    item_launch_takes_no_why: 항목의 실행에는 이유 한 줄을 줄 수 없습니다.
+    item_merged: 다른 항목에 병합된 항목이라, 쓰는 말은 그 항목으로 갑니다.
+    item_not_approved: 승인되어 실행할 수 있는 항목이 아닙니다.
+    item_number_wrong: 항목 번호가 정수가 아닙니다.
+    itemless_needs_why: 항목 없는 실행에는 이유 한 줄이 필요합니다.
+    job_cannot_unhold: Job은 보류를 풀 수 없습니다.
+    job_model_wrong: 지정한 Job 모델이 티어도, 제공자도, 모델도 아닙니다.
+    job_range_form: Job 범위는 처음과 마지막 Job이어야 합니다.
+    judgement_empty: 판단이 비어 있습니다.
+    judgement_needs_title_and_room: 판단으로 올리는 행에는 제목과 방이 필요합니다.
+    judgement_with_conversation: 판단으로 올리는 행에는 대화의 부분을 넣을 수 없습니다.
+    keepalive_count_form: 킵얼라이브 수는 0 이상의 정수여야 합니다.
+    keepalive_over_count: 킵얼라이브 수가 지원 워커 수를 넘습니다.
+    label_empty: 워커의 이름표가 비어 있습니다.
+    label_long: 워커의 이름표가 너무 깁니다.
+    launch_beyond_count: 기본 워커가 정한 수를 넘는 지원 워커입니다.
+    launch_held_by_machine: 이 머신에 Job을 더 띄울 여유가 없습니다.
+    launch_item_absent: 실행할 항목이 없습니다.
+    launch_item_at_work: 이미 일하는 중인 항목이라 두 번 실행하지 않습니다.
+    launch_item_done: 이미 끝난 항목입니다.
+    launch_item_held: 보류된 항목입니다.
+    launch_item_merged: 다른 항목에 병합된 항목입니다.
+    launch_item_other_worker: 다른 워커의 일인 항목입니다.
+    launch_item_unapproved: 아직 승인되지 않은 항목입니다.
+    launch_needs_launcher: 누가 실행했는지가 필요합니다.
+    launch_waits: 최근 실행이 일에 닿기 전에 죽어, 기다리는 시간이 아직 남았습니다.
+    made_path_blocked: 새 워커의 폴더를 만들 자리에 폴더가 아닌 것이 있습니다.
+    manager_unreachable: Job 유닛을 띄울 서비스 관리자에 닿지 못했습니다.
+    mark_needs_status: 상태 표시에는 상태 줄이 필요합니다.
+    merge_finished: 끝난 항목은 병합하거나 병합해 들어갈 수 없습니다.
+    merge_itself: 항목을 자기 자신에 병합할 수 없습니다.
+    merge_needs_items: 병합에는 병합할 항목과 병합해 들어갈 항목이 필요합니다.
+    merge_running: Job이 일하는 중인 항목은 병합할 수 없습니다.
+    merged_finished: 병합해 들어간 항목과 함께 이미 끝난 항목입니다.
+    message_not_archived: 인용한 메시지가 방에 남아 있지 않습니다.
+    middle_step_closes: 작업 지시서의 중간 단계는 항목을 닫을 수 없습니다. 마지막 턴이 닫습니다.
+    model_needed: 모델 설정은 auto나 모델 이름이어야 합니다.
+    model_tier_wrong: 있는 모델 티어가 아닙니다.
+    move_kinds: 다른 종류의 태스크 사이로 옮길 수 없습니다.
+    no_deploy_hold: 풀 배포 대기가 서 있지 않습니다.
+    no_job_model: 켜져 있는 제공자 중 Job 모델을 제공하는 곳이 없습니다.
+    no_node: 그런 노드가 없습니다.
+    no_such_item: 그런 항목이 없습니다.
+    no_such_note: 그 번호의 덧붙인 말이 없습니다.
+    no_such_strand: 미결에 그 번호의 갈래가 없습니다.
+    no_such_worker: 그런 워커가 없습니다.
+    no_unfinished: 해소할 미결이 없습니다.
+    no_waiting_commits: 이 항목에는 배포를 기다리는 커밋이 없습니다.
+    no_worker: 그런 워커가 없습니다.
+    node_path_form: 노드의 경로는 / 나 ~/ 로 시작해야 합니다.
+    node_takes_no_jobs: 그 노드는 Job을 받지 않습니다.
+    not_a_base: 기본 워커가 아닙니다.
+    not_a_commit: 지정한 커밋이 이 저장소의 커밋이 아닙니다.
+    not_built: 실행 중인 bmo-job에 이 동작이 들어 있지 않습니다.
+    not_held: 보류되지 않은 항목입니다.
+    not_merged: 병합되지 않은 항목입니다.
+    not_restable: 소유자가 추가하지 않은 워커는 쉬게 하거나 깨울 수 없습니다.
+    note_needs_number: 덧붙인 말은 번호로만 지울 수 있습니다.
+    nothing_to_change: 바꿀 것이 없습니다.
+    nothing_to_edit: 고칠 지시나 모델이 없습니다.
+    order_active: 작업 지시서의 단계가 이미 실행 중입니다.
+    order_and_model: 작업 지시서나 모델을 읽을 수 없습니다.
+    order_closing: 작업 지시서가 마무리 중이라 아직 끝나지 않았습니다.
+    order_done: 끝난 작업 지시서는 다시 돌리지 않습니다.
+    order_draft: 아직 돌지 않은 초안입니다.
+    order_finished: 끝난 작업 지시서는 다시 열지 않습니다.
+    order_paused: 작업 지시서가 멈춰 워커의 줄에서 차례를 기다리는 중입니다.
+    order_step_holds: 작업 지시서의 단계가 자기 항목을 보류할 수 없는 때입니다.
+    path_absent: 워커의 경로가 없습니다.
+    path_empty: 워커의 경로가 비어 있습니다.
+    path_not_absolute: 워커의 경로가 절대 경로가 아닙니다.
+    path_not_directory: 워커의 경로가 폴더가 아닙니다.
+    phase_wrong: 지금 단계에서는 이 태스크를 다시 돌리지 않습니다.
+    pin_wrong: 에이전시가 워커의 고정 값을 받아들이지 않았습니다.
+    plan_model_form: 모델은 제공자와 모델로 적어야 합니다.
+    plan_no_stages: 계획에 단계 목록이 없습니다.
+    plan_not_object: 계획이 JSON 객체가 아닙니다.
+    plan_part_empty: 계획의 한 부분이 비었거나 너무 깁니다.
+    plan_role_wrong: 태스크의 역할이 있는 역할이 아닙니다.
+    plan_stage_empty: 태스크가 없는 단계가 있습니다.
+    plan_too_many_builds: 종합이 지을 수 있는 수보다 많은 빌드를 짓습니다.
+    preamble_long: 워커의 머리말이 너무 깁니다.
+    priority_needs_number: 우선순위는 숫자여야 합니다.
+    prompt_not_written: Job에 줄 글을 쓰지 못했습니다.
+    provider_off: 이 실행의 제공자가 꺼져 있습니다.
+    question_absent: 그런 질문이 없습니다.
+    question_answer_wrong: 답은 선택지 번호이거나 직접 쓴 말 중 하나여야 합니다.
+    question_banned_terms: 쓰지 않기로 한 표현이 들어 있습니다.
+    question_item: 질문에 항목이 없습니다.
+    question_option_empty: 선택지는 내용이 있는 한 줄이어야 합니다.
+    question_options: 질문에 선택지가 두 개 이상 있어야 합니다.
+    question_outside_hosting: 배포 바깥에서 호스팅되는 페이지를 건넵니다.
+    question_recommend: 추천은 선택지 번호 중 하나여야 합니다.
+    question_room: 질문은 방을 지정하지 않고 소유자의 개인 채팅으로만 갑니다.
+    question_takes_no_talk: 말을 받지 않는 질문입니다.
+    question_talk_number: 질문 번호를 지정해야 말을 남길 수 있습니다.
+    question_talk_say: 남길 말이 비어 있습니다.
+    question_talk_settled: 이미 답이 정해진 질문입니다.
+    question_text: 질문에 묻는 내용이 없습니다.
+    question_wait: 기다리는 시간이 밀리초 수가 아닙니다.
+    question_why: 정하지 않고 묻는 이유가 없습니다.
+    raised_by_needed: 판단으로 올리는 행에는 그 행을 올린 항목이 필요합니다.
+    raised_by_not_item: 행을 올린 항목으로 지정한 항목이 없습니다.
+    receiver: bmo-job이 리시버를 부르지 못했습니다.
+    recover_job_known: 작업 지시서에 이미 있는 Job입니다.
+    recover_job_running: 아직 끝나지 않은 Job입니다.
+    recover_no_builder: 범위에 목적과 지시를 읽을 빌더 턴이 없습니다.
+    recover_no_jobs: 범위에 이 항목의 Job이 없습니다.
+    recover_no_success: 범위에 성공한 단계가 없습니다.
+    recover_not_done: 끝나지 않은 작업 지시서는 복구하지 않습니다.
+    recover_not_step: 이 항목의 작업 지시서 단계가 아닌 Job입니다.
+    recover_prompt_unread: Job의 글에서 역할과 지시를 읽을 수 없습니다.
+    recover_task_twice: 이미 작업 지시서에 있는 태스크입니다.
+    reopen_not_done: 끝나지 않은 작업 지시서는 다시 열지 않습니다.
+    reorder_stale: 큐가 그사이 바뀌었습니다. 다시 읽은 순서로 옮겨 주세요.
+    repairs_chain_full: 수리 사슬이 이미 정한 횟수를 다 썼습니다.
+    repairs_cycle: 이 항목을 수리하는 항목을 다시 이 항목의 수리로 연결할 수 없습니다.
+    repairs_itself: 항목을 자기 자신의 수리로 연결할 수 없습니다.
+    repairs_needs_target: 수리 연결은 항목을 지정하거나 연결을 풀어야 합니다.
+    repairs_on_filing: 등록할 때는 수리 연결을 함께 줄 수 없습니다.
+    requester_lacks: 요청한 사람에게 필요한 권한이나 켜진 Claude 계정이 없습니다.
+    research_over: 조사 단계가 지나 조사 태스크를 다시 돌릴 수 없습니다.
+    resolve_needs_why: 미결 해소에는 사유가 필요합니다.
+    resume_not_held: 재개할 일이 승인되지 않았거나, 보류되었거나, 병합되었습니다.
+    resume_not_stopped: 재개할 일이 멈춰 있지 않습니다.
+    route_absent: bmo-job에 그런 경로가 없습니다.
+    runner_depth_wrong: 러너가 받지 않는 깊이입니다.
+    runner_not_launched: 러너를 시작하지 못했습니다.
+    runner_unknown: 그런 러너가 없습니다.
+    running_task_edit: 실행 중인 태스크의 지시는 바꿀 수 없습니다.
+    runs_still_alive: 멈추라고 한 실행이 아직 끝나지 않았습니다.
+    same_anchor: 태스크를 자기 자신을 기준으로 옮길 수 없습니다.
+    server: bmo-job이 자기 서버를 부르지 못했습니다.
+    session_launches_item: 채팅 세션은 항목을 실행하지 않습니다.
+    single_model_provider: 모델 하나만 제공하는 제공자에게는 코워커를 요청할 수 없습니다.
+    skip_reason_size: 건너뛰는 이유는 1자에서 2000자 사이여야 합니다.
+    source_left_nothing: 출처 항목에 남은 미결이 없습니다.
+    source_not_item: 행의 출처로 지정한 항목이 없습니다.
+    stage_move_past: 지금 단계나 그 앞의 단계는 옮길 수 없습니다.
+    stage_move_pending: 기다리지 않는 태스크가 있는 단계는 옮길 수 없습니다.
+    stage_not_yet: 태스크의 단계가 아직 오지 않았습니다.
+    stage_running: 지금 단계에 실행 중인 태스크가 있습니다.
+    stop_done_item: 끝난 항목은 멈출 수 없습니다.
+    stop_here_closed: 이미 끝났거나 병합된 항목입니다.
+    stop_here_held_takes_no_reason: 이미 보류된 항목에는 사유나 재개 조건을 다시 줄 수 없습니다.
+    stop_here_needs_reason: 일하는 중인 항목에 멈춘 곳을 남기려면 사유가 필요합니다.
+    stop_here_needs_report: 멈춘 곳을 남기려면 보고가 필요합니다.
+    stop_here_not_held: 보류되지도 일하는 중이지도 않은 항목입니다.
+    stop_needs_why: 중지에는 사유가 필요합니다.
+    stop_reason_size: 멈추는 이유는 1자에서 2000자 사이여야 합니다.
+    strand_not_named: 갈래가 여럿인 미결은 갈래 번호를 지정해야 합니다.
+    support_changed_by_base: 지원 워커의 설정은 기본 워커의 설정을 따릅니다.
+    support_count_range: 지원 워커 수는 0부터 최대치까지의 정수여야 합니다.
+    support_follows_base: 지원 워커는 기본 워커와 떨어져 둘 수 없습니다.
+    support_has_no_settings: 지원 워커에는 지원 설정을 따로 줄 수 없습니다.
+    support_name_long: 기본 워커의 이름이 너무 길어 마지막 지원 워커의 이름이 규칙을 어깁니다.
+    support_removed_by_count: 지원 워커는 지우지 말고 기본 워커의 수로 줄여야 합니다.
+    takes_no_files: 이 요청은 파일을 받지 않습니다.
+    talk_busy: 앞선 말에 아직 답하는 중입니다.
+    talk_item_absent: 대화할 항목이 없습니다.
+    task_absent: 작업 지시서에 그런 태스크가 없습니다.
+    task_already_skipped: 이미 건너뛴 태스크입니다.
+    task_move: 태스크 하나가 아니라 단계 전체를 옮겨야 합니다.
+    task_needs_room_and_work: 실행할 방과 할 일이 필요합니다.
+    task_not_skipped: 건너뛰지 않은 태스크입니다.
+    task_pending: 이미 기다리는 태스크입니다.
+    task_running: 태스크가 실행 중입니다.
+    testbed: bmo-job이 테스트베드를 부르지 못했습니다.
+    too_many_files: 파일이 받을 수 있는 수보다 많습니다.
+    unfinished_resolved_already: 미결이 이미 해소되었습니다.
+    unit_not_started: Job 유닛이 시작되지 않았습니다.
+    web: bmo-job이 웹 콘솔 서버를 부르지 못했습니다.
+    why_one_line: 이유는 한 줄이어야 합니다.
+    wind_down_needs_why: 재개 대기에는 사유가 필요합니다.
+    wind_down_not_taken: 이미 끝났거나, 병합되었거나, 중지된 항목입니다.
+    worker_is_support: 지원 워커는 기본 워커를 통해서만 지정할 수 있습니다.
+    worker_name_form: 새 워커의 이름이 워커 이름 규칙을 어깁니다.
+    worker_needs_name: 워커를 지정하거나 지정을 풀어야 합니다.
+deploy:
+  status:
+    hold: 배포 대기
+documents:
+  label:
+    language_en: 영어
+    language_ko: 한국어
+    translation_of: "{language} 번역"
+  status:
+    translation_failed_parts: "번역 실패 {n}건"

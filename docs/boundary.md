@@ -196,7 +196,7 @@ states them.
 |---|---|---|
 | the server (this repository) | sign-in, the session, users, phone keys, grants, checks, the model | every route above |
 | the agency (`docs/api.md`) | the agents and their gates, reasoning, roles and sampling; base prompts; companions' settings and a companion's reset; sessions and a session's reset; the co-worker pool; a run's log; the models, the registry, the tiers, the roads and the Claude accounts; a worker's node | `GET /agents`, `POST /agent-gate`, `POST /agent-reasoning`, `POST /agent-role`, `GET`/`POST /agent-sampling`, `GET`/`POST /base-prompts`, `GET`/`POST /companions`, `POST /companions/reset`, `GET /sessions`, `POST /session-reset`, `GET /coworker-pool`, `GET /run-log`, `GET`/`POST /models`, `GET`/`POST /registry`, `GET`/`POST /model-tiers`, `GET /model-tiers/models`, `GET`/`POST /fallback`, `GET /fallback/codex-models`, `GET /fallback/openrouter-models`, `POST /worker/node` |
-| bmo-job (`docs/api.md`) | the TODO panel and an item, its talk and its work order; the questions; the queue's holds and pause; the deploy hold; a launch; the workers and a word to one; a room's jobs; the event stream | `GET /todos`, `GET /todos/{item}`, `GET /todos/worker-lines`, `GET /todos/{item}/worker-lines`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `GET /work-orders/{item}/current`, `GET /work-orders/{item}/tasks/{task}`, `POST /work-order`, `POST /question`, `POST /question-pause`, `GET /queue/holds`, `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /task`, `GET /workers`, `GET /workers/{name}`, `POST /worker`, `POST /worker-word`, `GET /rooms/{chat}/jobs`, `POST /run/stop`, `GET /events`, `GET /health` |
+| bmo-job (`docs/api.md`) | the TODO panel: every item's line, each item opened, the verbs on an item, its talk and its work order; the items at work, from the pool board; answering a question and stopping its clock; the queue's holds, its pause and the deployment's hold let go; a runner's launch; the workers and a word to one; a run's stop | `GET /todos?all`, `GET /todos?all&held`, `GET /todos?all&merged` (each with `&chat=` where the panel stands in a room), `GET /todos/{item}`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `POST /work-order`, `GET /coworker-pool`, `POST /question`, `POST /question-pause`, `GET /queue/holds`, `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /worker`, `POST /worker-word`, `POST /run/stop` |
 | the receiver (`docs/boundary-api.md`) | the room list, a room's title and messages; the senders each room has, for which rooms a user reads; the owner and the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; what opened a turn; the voice briefing's switch and a line's reading; companions with a room; a talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `POST /instruct`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /talks`, `GET /health` |
 | the brain (`docs/boundary-api.md`) | the memories screen; a fragment's standing in the document viewer | `GET /memories`, `POST /memories/active`, `GET /fragments`, `POST /fragments/active`, `GET /health` |
 | bmo-artifact (`docs/api.md`, `docs/layout.md`) | the archive screen of its console plugin bundle, the share page, the research settings | every road under `/api/archive` and `/api/share/`, and `/searches` and `/collected` as moved screens, handed on whole behind the console's sign-in (the share page's roads take none); `GET`/`POST /research-settings` |
@@ -263,7 +263,8 @@ for it, and no file or table of that unit is read meanwhile.
 - **The rooms each sender has stood in.** The console reads them from the receiver's `POST /rooms/titles`,
   which the receiver's document states for another caller; the console reads it as that document states it.
 - **The streams of bmo-job and the agency.** The console relays the receiver's stream alone, so the agency
-  screens are read again on the receiver's events and on their own reads, and hear nothing the agency publishes.
+  screens and the TODO panel are read again on the receiver's events and on their own reads, and hear nothing the
+  agency or bmo-job publishes: a change to the queue reaches the panel when it next reads.
 - **An agent's log across its runs.** The agency reads its run log by the run (`GET /run-log`), so a log opened at
   one run reads and follows that run; the newest page of an agent's log, the pages before it and the page at a
   moment stand unavailable.
@@ -276,6 +277,19 @@ for it, and no file or table of that unit is read meanwhile.
 - **A turn's figures and a worker's job.** The roads a turn walked with what each spent, and the job a worker's
   screen keeps its line for with its prompt, are recorded by the agency and bmo-job and served by no route, so a
   turn stands without its figures and a worker's screen without its job line.
+- **What bmo-job's readings of an item do not carry.** An item's line and its opened reading carry no room it came
+  from, no brief, no moment it was filed or finished, no progress, stop or held checkout of its work order, no
+  wait its job marked, nothing of whether a deployment waits on it or whether its order is under way; and no route
+  serves an item's approvals, the turns of its talk, every open question with its words and options (a room's
+  open questions come without them), or when each task of a work order ended. The panel's rows stand without
+  those, a finished item whose run still ends reads as finished rather than as reporting, an item's approvals and talk stand empty, the question bar and a question's ringing stand with nothing
+  to say, and a task stands without its end. A search reaches every open item whole and a finished one by its
+  line, its number, title and status, since opening every finished item is a read per item.
+- **A work order's text in the other language.** The translator and the translations it keeps are bmo-gate's,
+  which serves the console no route for them yet, so a work order's text reads as it was written and asking for
+  its translation is answered as unavailable.
+- **A worker's downgrade heal.** Whether a worker's session is put back on its model when it answered on a lesser
+  one is set by the agency's command line and taken by no route, so the console's switch for it changes nothing.
 - **A tool's icon.** Which icon each of the deployment's own tools declares is the tool host's to say, and no unit
   hands it to the console, so every tool in a log takes the one generic icon.
 - **A companion's room taken back.** The receiver answers whether an added companion took a room back; the console
@@ -317,7 +331,7 @@ shown as.
 | Unit | Codes | Where they are listed |
 |---|---|---|
 | the receiver | its refusals, facts, fixed lines and kinds; the fixed lines through `POST /words/render` | the receiver's `docs/codes.md` |
-| bmo-job | its refusals, answers, facts and kinds, where a screen shows one | bmo-job's `docs/api.md`, 「Codes」 |
+| bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
 | the brain | the codes it answers with, where a screen shows one | the brain's `docs/boundary-api.md`, 「Codes the brain answers with」 |
 | bmo-artifact | the document wording file's keys | bmo-artifact's `docs/api.md`, 「Wording」 |
 | bmo-ui | the 76 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |

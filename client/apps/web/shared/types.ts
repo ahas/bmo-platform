@@ -1877,3 +1877,364 @@ export interface GatePartView {
   inTurn: boolean;
   steps: GateStepView[];
 }
+
+// The job screens' shapes, as bmo-job answers them (bmo-job's `docs/api.md`).
+
+// Which chat is the owner's own, as this app itself knows it. The bot's health answer carries
+// the same number, and this one is here for the screens that have to be drawn before any answer
+// of the bot's has come back.
+export interface OwnerChat {
+  chatId: number | null;
+  // Whether the one signed in is the platform administrator, who alone is offered what only the owner may do.
+  administrator: boolean;
+}
+
+// One lot of words added to an item that already stands, as the archive's todo_notes holds it.
+// The work is often already under way when the next condition is thought of, and this is where
+// those words wait: who added them, when, and which job was running at that moment. Nothing
+// edits or deletes one, so an item read afterwards says what was asked of it while it was being
+// done.
+export interface TodoNote {
+  id: number;
+  todoId: number;
+  author: string;
+  // Who the author is in Telegram, where the words came from somebody the archive knows.
+  authorId: number | null;
+  text: string;
+  addedAt: number;
+  jobId: number | null;
+  // When a running session was handed these words. Null is a note no running job has been handed.
+  deliveredAt: number | null;
+  // Whether the words may be in a run already: a change of the chat agent's made after them has been handed
+  // to a job, or they were handed themselves. Taking them back does not reach into that run.
+  carried: boolean;
+  // "change" is the chat agent's change to the item's brief, the only kind a running job is handed; null is
+  // words a person, a companion or a job added.
+  kind: "change" | null;
+  // When the words were taken back, and by whom. The row stays where it is and is marked instead
+  // of being deleted, so the item still says that this was asked and then withdrawn; no reading
+  // and no prompt carries it again.
+  removedAt: number | null;
+  removedBy: string | null;
+}
+
+// One change of an item's approval, given or taken back, as the item's approval record keeps it
+// (docs/todo.md, 「Approval」): whose hand it was, the road it came by and when, in seconds. The way
+// an approval came is null on one taken back.
+export interface TodoApproval {
+  id: number;
+  approved: boolean;
+  via: "owner" | "rule" | "grant" | null;
+  whoKind: "person" | "agent" | "job";
+  who: string;
+  road: "console" | "verb" | "chat_tool";
+  at: number;
+}
+
+// What the console asks the bot to do to one row. reorder carries the whole queue in its new
+// order rather than a step, since dragging says where every row stands rather than which way one
+// of them went. resolve carries the line that says why a finished item's unfinished note no longer stands.
+export type TodoAction =
+  | "approve"
+  | "unapprove"
+  | "move"
+  | "top"
+  // Behind every other row of the queue, in one step; the rest keep their numbers.
+  | "bottom"
+  | "drop"
+  // Marked done by the owner himself, keeping whatever account the row already carries.
+  | "done"
+  | "reorder"
+  | "resolve"
+  // A new row raised out of an unfinished note being read, on the reader's own words about it.
+  | "raise"
+  // Words added to an item that already stands. They accumulate on the row rather than replacing
+  // anything, and a job that is running when they land is handed them before it may report.
+  | "append"
+  // One of those lots of words taken back. It is marked rather than deleted, so the item keeps
+  // the record that it was said; what it asked for reaches no later reading and no later prompt.
+  | "unappend"
+  // Set aside for now, and taken back. Neither is a deletion: the row keeps its place.
+  | "hold"
+  | "release"
+  // Set aside as the owner's stop: whatever of the item is running is ended now, and what it finished is
+  // kept to resume from once the hold is taken back. A reason is required.
+  | "stop"
+  // Which worker is to do it. An assignment, not a record: it is what the queue reads to decide
+  // whose turn the item is.
+  | "worker"
+  // Whether its job fans out into branches. Off is what every item runs as unless it is turned on.
+  | "cowork";
+
+export interface TodoActionResult {
+  ok: true;
+  // The number of the row a raising made, so the console can name it back rather than leaving the owner
+  // to go and find it. Absent for every other verb, which makes no row.
+  raised?: number;
+  // How many runs a stop asked to end. Absent for every other verb.
+  stopped?: number;
+}
+
+export interface QuestionAnswerResult {
+  ok: true;
+}
+
+// A question's clock stopped or started again: what the countdown has left while stopped, and
+// the time the question now settles by.
+export interface QuestionPauseResult {
+  ok: true;
+  pausedLeft: number | null;
+  dueAt: number;
+}
+
+// Who said one turn of the talk about an item: the owner, or the chat agent answering them.
+export type TalkSpeaker = "owner" | "bmo";
+
+// One turn of the talk an item carries, kept with the item so reopening it reads the whole talk
+// back.
+export interface TodoTalkTurn {
+  id: number;
+  todoId: number;
+  speaker: TalkSpeaker;
+  text: string;
+  saidAt: number;
+}
+
+// The talk as the panel reads it: the turns kept with the item, and where the chat agent stands on it —
+// whether it is answering now, and why the last turn came back with nothing. Those two live in
+// the running bot, and a bot that cannot be asked is answering nothing.
+export interface TodoTalk {
+  turns: TodoTalkTurn[];
+  answering: boolean;
+  failure: string | null;
+}
+
+// What the bot answers a launch with. The unit is up; the run itself is watched in the log.
+export interface LaunchResult {
+  ok: true;
+}
+
+// What the bot answers a word to a worker with. It is written down and handed to that worker's
+// own session; what the worker answers reaches the owner's private chat, not this call.
+export interface WorkerWordSent {
+  ok: true;
+}
+
+// What the bot answers when the auto-progression is switched. The queue result is what the
+// naming a resume asks for found; a pause names nothing and answers null. A resume lets go of the
+// owner's pause alone, so it says whether a deployment's hold still stands.
+export interface QueuePauseChanged {
+  ok: true;
+  paused: boolean;
+  queue: string | null;
+  deployHold: boolean;
+}
+
+// What the bot answers when the deployment's hold is let go by hand: what the naming the queue is
+// then told found.
+export interface DeployHoldReleased {
+  ok: true;
+  queue: string | null;
+}
+
+// The two languages a document is read in; a document is translated into the one it is not in.
+export type DocumentLanguage = "ko" | "en";
+
+// One part of a document as its translation stands: the original text of the part, and the
+// translation where there is one, or the mark that it could not be translated.
+export interface DocumentTranslationPart {
+  part: number;
+  source: string;
+  text: string | null;
+  failed: boolean;
+}
+
+export interface DocumentTranslationFailure {
+  reason: string;
+  provider: string | null;
+  model: string | null;
+}
+
+export interface DocumentTranslation {
+  version: string;
+  language: DocumentLanguage;
+  target: DocumentLanguage;
+  parts: DocumentTranslationPart[];
+  // How many parts the bot is still translating; null where the bot could not be asked.
+  pending: number | null;
+  failure: DocumentTranslationFailure | null;
+}
+
+// One text of a work order — a task's instruction, or its result — as its translation stands. The
+// same shape a document's translation has, with the name the parts are kept under so the screen
+// knows which news is about this text.
+export interface WorkTextTranslation extends DocumentTranslation {
+  document: string;
+}
+
+// A work order as the console reads it: the order, and when each of its tasks ended — the finish
+// of the job that ran it, in unix seconds, by task id. A task keeps its own start; its end is its
+// job's, so nothing is recorded twice.
+export type WorkOrderView = WorkOrder & { ended: Record<string, number> };
+
+// A production role is an archive row; its name is what a task names.
+export type WorkRole = string;
+
+export type WorkPhase = "planning" | "research" | "synthesis" | "implementation" | "finalization";
+
+export interface WorkTask {
+  id: string;
+  // The name the plan gave this one task, in the plan's own words. It is what the console calls
+  // the task and what heads its result document, so a task is told apart from the three beside it
+  // in the same stage by what it does rather than by its role and model, which they share. A task
+  // no plan named — a build task written as a bare instruction, a round recovered from job rows —
+  // carries none, and the screen puts the name of its group there instead.
+  title?: string;
+  role: WorkRole;
+  model: string;
+  // The tier the task runs at, as the deployment's tier plan names it.
+  tier?: string;
+  followRole?: boolean;
+  legacyModel?: string;
+  instruction: string;
+  state: "pending" | "running" | "done" | "failed" | "skipped";
+  // Why a task was decided against, and when. A skipped task is passed over like a done one and is
+  // never counted as done: the record and the screen keep what was achieved apart from what was not.
+  skip?: { why: string; at: number };
+  attempt: number;
+  recoveryProviders?: string[];
+  // The provider and model the task's last execution actually went out on, and whether its executions
+  // went out on more than one road. The order runner writes it; `model` stays the road the launch asked
+  // for (bmo-job's docs/work-orders.md 「The model a step ran on」).
+  ranOn?: RanOn;
+  // How the bot's retry of a stopped order runs this task: on a fresh session, or on the retry model.
+  retry?: { freshSession?: true; model?: string };
+  unit: string | null;
+  jobId: number | null;
+  startedAt: number | null;
+  // The durable FIFO request for a branch model slot. Waiting tasks keep it across bot restarts;
+  // the same token becomes their lease before launch and is cleared only after a terminal fact.
+  poolRequest?: string;
+  // A cancelled wait has no physical attempt, so its next FIFO identity advances separately.
+  poolGeneration?: number;
+  // A runaway branch keeps its lease until the supervisor confirms the requested stop. These
+  // fields make that wait restart-safe and prevent a stop request from being sent every tick.
+  stopRequestedAt?: number;
+  stopReason?: string;
+  // The standing place this task borrowed. A builder turn runs in the worker's own checkout and
+  // never takes one; a branch takes one when it is launched and keeps the number afterwards, so
+  // what it ran in is still known when its result lands and when the list is written.
+  slot?: number | null;
+  // That this attempt has already been put in front of the owner for going nowhere. One attempt is told
+  // about once, however many ticks pass over it afterwards, and a fresh attempt starts silent.
+  told?: boolean;
+  result: string | null;
+  artifact: string | null;
+  error: string | null;
+  // The run of the order this task was done in, set only on a task carried over when a finished
+  // order was reopened. Its id then wears the same number, so the round it belongs to is read off
+  // both the record and the name the next turn is shown.
+  round?: number;
+}
+
+// What one earlier run of a reopened order was for. The new plan is told it beside what that run
+// found, since a finding is only worth carrying on from once it is known what it was looking for.
+export interface WorkRound { round: number; intent: string; instruction: string }
+
+// What a stage of the plan does: find things out, or check a finding or the plan. It is what the stage is
+// called wherever a step is named (bmo-job's docs/work-orders.md 「What a step is called」); a stage the plan gave
+// no kind finds things out.
+export const STAGE_KINDS = ["investigate", "review"] as const;
+
+export type StageKind = (typeof STAGE_KINDS)[number];
+
+export interface WorkStage { title: string; kind?: StageKind; tasks: WorkTask[] }
+
+export interface WorkOrder {
+  todoId: number;
+  intent: string;
+  instruction: string;
+  status: "draft" | "active" | "paused" | "done";
+  phase: WorkPhase;
+  stage: number;
+  stages: WorkStage[];
+  tasks: WorkTask[];
+  history: WorkTask[];
+  control: WorkTask | null;
+  worker: string;
+  cwd: string;
+  chatId: number;
+  model: string;
+  // What the order's own line — every turn but a branch — last went out on, so an item whose model is
+  // `auto` or was moved to another road is shown by the road it took (bmo-job's docs/work-orders.md 「The model a
+  // step ran on」).
+  ranOn?: RanOn;
+  error: string | null;
+  updatedAt: number;
+  worktreeBaseline?: WorktreeState;
+  // Which run of this order is the current one; absent is the first. It rises each time the order
+  // is reopened, and every name a run leaves behind carries it so no run overwrites another's.
+  round?: number;
+  earlier?: WorkRound[];
+  // That this order holds its worker's checkout: from its first launch there until it is done or
+  // stops and has taken its change out of the way, no other order launches anything there
+  // (bmo-job's docs/work-orders.md 「One checkout, one work order」). What the checkout held when it was handed
+  // over is kept with it, since that is what tells the order's own change from what was open already.
+  holdsCheckout?: boolean;
+  checkoutBaseline?: WorktreeState;
+  // The order's own turns launched in the checkout since it took it, each by its unit and when it
+  // started: a stopped order takes as its own only what was written while one of them ran.
+  checkoutTurns?: { unit: string; from: number }[];
+  // What a stopped order that still holds the checkout is waiting on before it lets it go.
+  releaseWait?: string;
+  // Where the change a stopped order opened went: committed onto the checkout's branch, or onto a
+  // branch of the order's own that is merged back when the order holds the checkout again.
+  parked?: ParkedWork;
+  // Files a merge-back left conflicted, for the order's next builder turn to resolve first.
+  conflicts?: string[];
+  // A close that could not finish at once: the order held its checkout, so it stands stopped with
+  // the reason until the runner has taken its change out of the tree and let the checkout go, and
+  // is done only then.
+  closing?: { why: string; at: number };
+  // That the owner stopped the order mid-run, why and when. The interrupted tasks went back to waiting and
+  // the finished ones stand, so the order resumes from there once the item's hold is taken back
+  // (bmo-job's docs/work-orders.md 「The owner stops an item now」); nothing it stopped is counted as a failure.
+  ownerStop?: { why: string; at: number };
+  // When the order last stopped: a stopped order's turn in its worker's queue is measured from it
+  // (bmo-job's docs/work-orders.md 「A stopped work order's turn」).
+  stoppedAt?: number;
+  // How many of its stops since a task last completed were the work itself failing. The third sets
+  // the item aside.
+  failedStops?: number;
+  // The attempts the final turns of this run counted before they handed the order back to its build for
+  // the steps added ahead of them; the fresh final turn after those steps counts on from it.
+  finalAttempt?: number;
+  // How many times a final turn of this run has held its own item; the order waits on one such hold only.
+  finalHolds?: number;
+  // Where the runner's judgement of the turn last left this stopped order in its worker's queue, and
+  // why it is not resumed yet; what running.ts and the console show (bmo-job's docs/work-orders.md
+  // 「A stopped work order's turn」). Absent where the order is not stopped or not at the head.
+  queuePlace?: WorkQueuePlace;
+}
+
+// What a checkout held at one moment: its uncommitted tracked changes and the paths git has never seen.
+export interface WorktreeState {
+  // Tracked paths with uncommitted changes, each against a digest of what its own patches say.
+  // What they say is compared and not just the names: preserving somebody else's dirty file is
+  // fine; changing that same file and leaving the new patch behind is not.
+  tracked:Record<string,string>;
+  // The same paths, each with the lines its uncommitted change adds and removes, as short digests.
+  // They are what tells whose a file's change is: a line somebody else had open stays theirs however
+  // many of their neighbours were committed or edited, while a line that was not open then is the
+  // current actor's. A reading written before these were kept has none, and is compared by digest.
+  lines?:Record<string,string[]>;
+  // Paths git has never seen, by name. There is no patch to digest for one, so a path already
+  // here is somebody else's whatever its bytes now say — which costs nothing, because an
+  // untracked file refuses no job and is deployed by nothing.
+  untracked:string[];
+}
+
+/** Where a stopped order's change went. */
+export type ParkedWork =
+  | { kind: "main"; at: number; commit: string; paths: string[] }
+  | { kind: "branch"; at: number; branch: string; commit: string; paths: string[] };

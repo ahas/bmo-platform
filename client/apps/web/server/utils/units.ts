@@ -75,20 +75,37 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
     const status = asked.passStatus?.includes(response.status) === true ? response.status : statusOf(response.status);
     const body = await refusalOf(response);
     const coded = typeof body?.code === "string" ? asked.codes?.[body.code] : undefined;
-    const reason = coded !== undefined ? wording(coded) : reasonIn(body, response.status, carries(asked, response.status));
+    const reason = coded !== undefined ? wording(coded, fieldsOf(body)) : reasonIn(body, response.status, carries(asked, response.status));
 
     // A refusal about one field names it, so the screen can say it under that field; its code travels too, for
     // the caller that tells refusals apart.
     throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof body?.code === "string" ? body.code : null } });
   }
 
-  return (response.status === 204 ? null : await response.json()) as T;
+  // An answer with no body — a 204, or a turn taken to be answered later — answers nothing.
+  const text = response.status === 204 ? "" : await response.text();
+
+  return (text === "" ? null : JSON.parse(text)) as T;
 }
 
 interface Refusal {
   error?: unknown;
   code?: unknown;
   field?: unknown;
+}
+
+// A refusal's own fields, which fill the marks of the sentence its code is said in: a word or a number as it
+// stands, and a list of them joined into one.
+function fieldsOf(body: Refusal | null): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+
+  for (const [name, value] of Object.entries(body ?? {})) {
+    if (name === "code" || name === "error") continue;
+    if (typeof value === "string" || typeof value === "number") fields[name] = value;
+    else if (Array.isArray(value) && value.every((one) => typeof one === "string" || typeof one === "number")) fields[name] = value.join(", ");
+  }
+
+  return fields;
 }
 
 async function refusalOf(response: Response): Promise<Refusal | null> {

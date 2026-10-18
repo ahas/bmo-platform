@@ -109,7 +109,8 @@ Of the 210, these are not carried here:
 | `app/domain/settings.ts` | split: each settings section goes with the group whose screen it sets, and the cells' classes stand in `app/domain/settings-cells.ts` |
 | `app/domain/finding-blocks.ts` | not carried: the bmo-artifact bundle draws a finding, and the shell's markdown reads none |
 | `app/components/PalettePreview.vue` | the receiver screens, build-11: it draws a room's bubbles |
-| `app/components/ItemTip.vue`, `app/domain/item-tips.ts`, `app/domain/item-tips.test.ts`, `server/utils/todosearch.test.ts` | the job screens, build-10 |
+| `app/components/ItemTip.vue`, `app/domain/item-tips.ts`, `app/domain/item-tips.test.ts` | with the job screens, build-10, at the same path |
+| `server/utils/todosearch.test.ts` | not carried: it searched the old archive's rows; the board's search over bmo-job's readings is held by `server/utils/todos.test.ts` |
 | `app/domain/copy.test.ts` | the receiver screens, build-11, with the room copy `app/domain/copy.ts` loses; the shell keeps `copyText` alone |
 | `server/utils/db.test.ts` | not carried: it carried the share links' table of the old archive file across a change of shape, and that table is bmo-artifact's; `client/tests/server/web-tables.test.ts` holds the console's tables |
 | `browser/page-import-dom.test.ts` | not carried: it ran the old web layer's page reading, which is not this repository's |
@@ -121,8 +122,10 @@ Of the 210, these are not carried here:
 
 The places in the shell that name a later group's file are cut here, and that group restores them:
 
-- **The job screens (build-10):** the TODO panel's aside and drawer, the question bar, the TODO query, the
-  push plugin's ringing of a question, the item tips, and the TODO choices of the settings.
+- **The job screens (build-10):** stand again — the TODO panel's aside and drawer, the question bar, the TODO
+  query, the item tips and the TODO choices of the settings (`app/domain/todo-settings.ts`, out of the old
+  settings module). The push plugin's ringing of a question stays cut: it read every open question with its
+  words, which no route serves (`docs/boundary.md`, 「Gaps the console meets」).
 - **The receiver screens (build-11):** the rooms list in both layouts, the room jump group and `roomItems` of
   the screens, the palette preview, the opened room, image, link and picture routes, a sent attachment, the
   turn actions' fold, the report copy, and `shared/briefings.ts`, whose voice mark now reads the data file.
@@ -194,14 +197,53 @@ The places in the agency screens that name a later group's file are cut here, an
   on the agents screen; the voice briefing's switch, whose section stands unavailable while its route is not
   carried; where the read-now mark stands in a room's turn actions; and the room module's own use of
   `app/domain/polling.ts`.
-- **The job screens (build-10):** the TODO module's use of the row drag's pointer rules in
-  `app/domain/row-drag.ts`.
+- **The job screens (build-10):** stand again — the TODO module and its panel take the row drag's pointer rules
+  from `app/domain/row-drag.ts`.
 
 ### The job screens (53 files)
 
 Stands here as `client/apps/web/` at the same path, calling bmo-job over HTTP; a test under `client/tests/`. Carried by build-10 (job screens).
 
 `app/components/BuilderResult.vue`; `app/components/LaunchPrompt.test.ts`; `app/components/LaunchPrompt.vue`; `app/components/QuestionAsk.vue`; `app/components/QuestionBar.vue`; `app/components/TodoInstruction.vue`; `app/components/TodoItemDetail.vue`; `app/components/TodoOpenButton.vue`; `app/components/TodoPanel.test.ts`; `app/components/TodoPanel.vue`; `app/components/TodoRowSkeleton.vue`; `app/components/TodoTime.vue`; `app/components/TodoUnapproveStep.vue`; `app/components/WorkOrderPanel.test.ts`; `app/components/WorkOrderPanel.vue`; `app/components/WorkTaskDialog.test.ts`; `app/components/WorkTaskDialog.vue`; `app/domain/questions.test.ts`; `app/domain/questions.ts`; `app/domain/todos.test.ts`; `app/domain/todos.ts`; `app/domain/work-translation.test.ts`; `app/domain/work-translation.ts`; `app/domain/workorder.test.ts`; `app/domain/workorder.ts`; `server/api/deploy-hold-release.post.ts`; `server/api/launch.post.ts`; `server/api/question-pause.post.ts`; `server/api/questions.get.ts`; `server/api/questions.post.ts`; `server/api/queue-pause.post.test.ts`; `server/api/queue-pause.post.ts`; `server/api/todos.get.ts`; `server/api/todos.post.test.ts`; `server/api/todos.post.ts`; `server/api/todos/` (10 files); `server/api/worker-word.post.test.ts`; `server/api/worker-word.post.ts`; `server/api/workers.post.ts`; `server/utils/todos.test.ts`; `server/utils/todos.ts`; `server/utils/work-order-view.ts`; `server/utils/work-text.test.ts`; `server/utils/work-text.ts`.
+
+How the job screens stand here:
+
+- **They call bmo-job** (`docs/boundary.md`, 「Calls the console makes」) through `server/utils/job.ts`, with its
+  refusal codes in `server/utils/job-codes.ts`, each said by the pack's sentence for it. `server/utils/todos.ts`
+  reads the board and an item out of bmo-job's listings and readings into the rows the panel shows, and
+  `server/utils/work-order-view.ts` reads an item's work order; neither holds a statement on bmo-job's tables.
+- **What bmo-job's readings do not carry stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a row's
+  room, brief, filing and finishing moments, its order's progress, stop and held checkout, its job's wait and
+  the deployment's wait on it; an item's approvals and its talk's turns; the questions list, so the question bar
+  and the question card stand with none; a task's end; and a work order's translation, bmo-gate's.
+- **Copied in from the old shared packages:** `shared/todo-blocks.ts`, `shared/ran-model.ts` and
+  `shared/work-time.ts`, out of the old job package, and `app/domain/queue-place.ts`, its words for a stopped
+  order's place and a held row said through the pack; the work-order shapes stand in `shared/types.ts`. Out of
+  modules of later groups the job screens read: `shared/translation.ts` and `shared/translation-parts.ts`, the
+  cutting of a text for the translator (listed with the brain screens, whose document viewer reads them too; their
+  test comes with that group); the deployment hold's
+  line, `holdWaits`, into `app/domain/queue-place.ts`; and a language's name, `languageName`, into
+  `app/domain/work-translation.ts`. The job models' check the agency screens left to this group stays out: no
+  member of it reads one.
+- **The launch box stands on the room's composer,** `app/components/ChatComposer.vue`, which comes with the
+  receiver screens; until it does, the box draws nothing. The room list and the owner the panel names a request
+  and its own room by, `/api/rooms` and `/api/owner`, come with the receiver screens too; until then a request is
+  named by its requester alone. The deployment's hold opens the title bar's deployment popover, which comes with
+  the ops screens.
+- **Every sentence a person reads stands in the pack:** the block heads bmo-job writes an instruction in, the
+  phases a job's time is divided into, the held words and a stopped order's place, what came of telling the
+  queue and why a talk's turn went unanswered. The branch word a co-work span is filed under is bmo-job's own,
+  `branch`, in the data file. The tests stand bmo-job in on a loopback port, and their Korean stands in
+  `client/tests/fixtures/` at each test's own path.
+
+Of these, not carried here:
+
+| Old member | Where it stands |
+|---|---|
+| `server/utils/work-text.ts`, `server/utils/work-text.test.ts` | not carried: they read a work order's text out of the old archive to translate it, which is bmo-gate's |
+| `server/utils/todos.test.ts`, the route tests (`server/api/queue-pause.post.test.ts`, `todos.post.test.ts`, `worker-word.post.test.ts`) | rewritten onto a stood-in bmo-job, each refusal said by the pack's sentence for its code |
+| the cross-check of `app/domain/todos.test.ts` against the old sources' phase words, and its instructions composed by the old job package | not carried: another unit's files are never read; the phases and the block heads are bmo-job's as its documents state them |
+| the room screen's check in `app/domain/questions.test.ts` and the deployment mark's in `app/components/TodoPanel.test.ts` | with the receiver screens, build-11, and the ops screens, build-13, whose files they read |
 
 ### The receiver screens (136 files)
 

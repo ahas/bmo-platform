@@ -6,6 +6,6 @@
 marks:
   voice: "음성"
 
-# The word a Claude Workflow's branch is filed under in the name a run stores, ahead of the branch's number.
+# The word bmo-job files a co-work branch's span under in the name it stores, ahead of the branch's number.
 filed:
-  branch: "브랜치"
+  branch: "branch"

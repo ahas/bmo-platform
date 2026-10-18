@@ -1,0 +1,534 @@
+import { describe, expect, test } from "bun:test";
+
+import { packEntries } from "../../../apps/web/shared/wording";
+import KO from "../../fixtures/app/components/TodoPanel.test.ko.json";
+
+// The keys whose words carry a phrase, so a check that a screen never says it reads the keys.
+const keysSaying = (phrase: string) => packEntries().filter(([, value]) => value.includes(phrase)).map(([key]) => key);
+
+// How a finished row is read. It is a record of what was done, so it stands at the brightness
+// every other row stands at, and what tells it apart from the ones beside it is the colour of
+// its word — which one place decides, for the panel and for anything else that asks. Both of
+// those are an attribute on one element, which a rendered screen would name as neither, so the
+// rule is read off the file that ships.
+
+const source = await Bun.file(new URL("../../../apps/web/app/components/TodoPanel.vue", import.meta.url)).text();
+const template = source.slice(0, source.indexOf("<script"));
+// The open row's dialog is a component of its own, and what it draws is read off its own file.
+const detailSource = await Bun.file(new URL("../../../apps/web/app/components/TodoItemDetail.vue", import.meta.url)).text();
+const detailTemplate = detailSource.slice(0, detailSource.indexOf("<script"));
+
+// The opening tag of the one element a mark stands in, with its attributes and nothing of what
+// it holds: the mark may be inside the tag or in the element's own text, and either way it is
+// that tag alone that is being read.
+function tagOf(mark: string, within: string = template): string {
+  const at = within.indexOf(mark);
+
+  expect(at).toBeGreaterThan(-1);
+
+  const opened = within.lastIndexOf("<", at);
+
+  return within.slice(opened, within.indexOf(">", opened) + 1);
+}
+
+// The row itself, and not the list around it: a row being carried by a drag wears an opacity of
+// its own elsewhere in this file, and reading the whole template would let that mark answer for
+// a question it is not the answer to.
+const row = tagOf('v-for="item in section.items"');
+
+// An order holding its worker's checkout and unable to use it puts what is in the way on the row,
+// in the runner's own words. The panel never works one out of its own, so the line reads the
+// item's own field and nothing else.
+describe("the checkout a row's order is holding", () => {
+  test("the reason is shown from the item, under its own label", () => {
+    const line = template.slice(template.indexOf('v-if="item.holding !== null"'), template.indexOf("</p>", template.indexOf('v-if="item.holding !== null"')));
+
+    expect(line).toContain("todo.label.field_checkout_reason");
+    expect(template).toContain(":text=\"$t('todo.label.field_checkout_reason', { reason: item.holding })\"");
+  });
+});
+
+describe("a row of the list", () => {
+  test("there is a template to read, so nothing below passes on an empty string", () => {
+    expect(template.length).toBeGreaterThan(500);
+    expect(template).toContain('<SearchText :text="stateLabel($t, item)" :query="searched" />');
+    expect(row).toContain("<li");
+  });
+
+  test("is read at the same brightness whether it is done or not", () => {
+    for (const dimming of ["opacity", "dimmed", "text-muted", "grayscale", "item.done"]) {
+      expect({ dimming, said: row.includes(dimming) }).toEqual({ dimming, said: false });
+    }
+  });
+
+  // What a row says in words stands under its title and its chips stand last, so a line such as
+  // a job's wait never sits squeezed under a run of chips.
+  test("stands its lines of words under the title and its chips at its foot", () => {
+    const chips = template.indexOf('<div class="mt-1 flex flex-wrap items-center gap-1">');
+    const title = template.indexOf('@click="toggle(item.id)"');
+
+    expect(chips).toBeGreaterThan(-1);
+
+    for (const line of ["waitingLine($t, item, now) !== null", "deployWaitsLine($t, item) !== null", "stoppedLine($t, item) !== null", "item.mergedInto !== null", 'v-if="item.holding !== null"']) {
+      const at = template.indexOf(line);
+
+      expect({ line, underTitle: at > title, aboveChips: at < chips }).toEqual({ line, underTitle: true, aboveChips: true });
+    }
+  });
+
+  test("gives a job's wait line no hover or press of its own", () => {
+    const wait = tagOf('v-if="waitingLine($t, item, now) !== null"');
+
+    expect(wait.startsWith("<p")).toBe(true);
+    expect(wait).not.toContain("hover:");
+    expect(wait).not.toContain("active:");
+    expect(wait).not.toContain("@click");
+  });
+});
+
+
+describe("the word a row wears", () => {
+  const badge = tagOf('<SearchText :text="stateLabel($t, item)"');
+  const badgeTag = template.slice(template.lastIndexOf("<UBadge", template.indexOf('<SearchText :text="stateLabel($t, item)"')), template.indexOf('<SearchText :text="stateLabel($t, item)"'));
+
+  test("takes its colour from the one place that decides it", () => {
+    expect(badge).toContain('<SearchText');
+    expect(badgeTag).toContain(':color="stateColour(item)"');
+  });
+
+  test("and none written into the template beside it", () => {
+    expect(badgeTag).not.toMatch(/\scolor="/);
+  });
+});
+
+// Whether the item's job fans out into branches. Off is what every row runs as unless he turns
+// it on, so only the ones turned on carry the mark, and the switch stands on the opened row
+// beside the worker it will be run on.
+describe("the co-work of a row", () => {
+  const mark = template.indexOf(`<SearchText :text="$t('todo.label.field_cowork')" :query="searched" /></UBadge>`);
+  const badge = template.slice(template.lastIndexOf("<UBadge", mark), mark);
+  const toggle = tagOf('todo.label.run_cowork', detailTemplate);
+
+  test("marks only the rows it is on for", () => {
+    expect(badge).toContain('v-if="item.cowork"');
+  });
+
+  test("is switched on the opened row, from the row's own value", () => {
+    expect(toggle).toContain("<USwitch");
+    expect(toggle).toContain(':model-value="openedItem.cowork"');
+    // The press reaches the same call it always did, in two steps rather than one: the switch
+    // hands back the value alone, and the row it is about is resolved where the dialog knows it.
+    expect(toggle).toContain('@update:model-value="setOpenCowork"');
+    expect(detailSource).toContain("setCowork(opened.value, on)");
+  });
+
+  test("and the switch stands with the worker it will be run on", () => {
+    expect(detailTemplate.indexOf('todo.aria.item_worker')).toBeLessThan(detailTemplate.indexOf('todo.label.run_cowork'));
+  });
+});
+
+describe("the queue's live refresh", () => {
+  test("uses TODO events and reopen catch-up without a polling fallback", () => {
+    expect(source).toContain('on: ["todo", "work-order"]');
+    expect(source).not.toContain("POLL_INTERVAL_MS");
+  });
+
+  // A running row says how far its work order has come, and an order moving a step on announces
+  // itself as a work order rather than as a TODO, so the board is re-read on that news too.
+  test("re-reads the board when a work order moves a step on", () => {
+    expect(source).toMatch(/on: \[[^\]]*"work-order"[^\]]*\]/);
+  });
+
+  // The board does not bring back what an open item shows beside its row — the words added to it,
+  // and an item a link opened from further back than the page — and a word that the queue moved
+  // is as often about one of those: the chat agent adding words to an item, a runner handing them to its job.
+  test("re-reads the open item's added words and a linked item on the same news, quietly", () => {
+    expect(source).toMatch(/void reload\(\);\s*rereadOpened\(\);\s*\},\s*\{\s*on: \["todo", "work-order"\]/);
+    expect(source).toContain("detail.value?.reread(opened.value);");
+    expect(detailSource).toContain("void loadNotes(id, true);");
+    expect(source).toContain("void readStray(stray.value.id);");
+  });
+});
+
+// Words added to an item that already stands. They go to the chat agent, which folds them into the item's
+// brief, so what they say on the screen is whose words they are and when they landed, and the box
+// that adds one stands with what was said about the item.
+describe("the words added to an open item", () => {
+  const box = tagOf(`:placeholder="$t('todo.placeholder.note')"`, detailTemplate);
+
+  test("stand on the row with who said each and when", () => {
+    expect(tagOf("{{ added.author }}", detailTemplate)).toContain("<span");
+    // The moment is drawn by the one function every stamp on this console is drawn by, so the
+    // hour reads the same here as it does on the row beside it.
+    expect(detailTemplate).toContain("{{ formatStamp(added.addedAt) }}");
+    expect(detailTemplate).toContain('<MarkdownText :text="added.text"');
+  });
+
+  test("say how many there are the way every count on this console is said", () => {
+    expect(detailTemplate).toContain('$t("todo.label.summary_queue", { n: countText(standingNotes.length) })');
+    expect(detailTemplate).not.toContain("notes.length }}");
+    // What still asks something of the work and what was taken back are counted apart, because
+    // only the first of them is what the work is told.
+    expect(detailTemplate).toContain('$t("todo.label.notes_count_removed", { n: countText(standingNotes.length), removed: countText(removedNotes.length) })');
+  });
+
+  // A word said an hour into the work is sometimes the wrong word, and this is where it is unsaid.
+  // The row is marked rather than struck off: the words stay readable as the record of what was
+  // asked, and the screen says when they were taken back.
+  test("each carries a way to take it back, and one already taken back carries none", () => {
+    const button = tagOf(`:aria-label="$t('common.action.delete')"`, detailTemplate);
+
+    expect(button).toContain("confirmingNote = added.id");
+    expect(tagOf(`:text="$t('common.action.delete')"`, detailTemplate)).toContain("<UTooltip");
+    expect(detailTemplate).toContain('v-if="added.removedAt === null && confirmingNote !== added.id"');
+    expect(detailTemplate).toContain('$t("todo.label.removed_at", { time: formatStamp(added.removedAt) })');
+    expect(detailTemplate).toContain("line-through");
+  });
+
+  // Words a change handed to a running job may carry are in that run's context, and nothing the
+  // console does reaches into it. Taking them back keeps them out of every later reading and is the
+  // whole of what it does, so the press that cannot be taken back says so before it is made.
+  test("the press says first that a word a change already handed to a job may carry stays in that run", () => {
+    expect(detailTemplate).toContain('<p v-if="added.carried" class="text-sm text-error">{{ $t("todo.message.note_delivered") }}</p>');
+    expect(tagOf(`:label="$t('todo.action.confirm_delete')"`, detailTemplate)).toContain("unappend(openedItem.id, added.id)");
+  });
+
+  test("are added from the same open row in the console's writing box, and nothing is added to a finished item", () => {
+    expect(box).toContain("<ChatInput");
+    expect(box).toContain(':maxlength="APPEND_LIMIT"');
+    expect(box).toContain("append(openedItem.id)");
+    // The box stands only on an item still open and not merged: an item nobody will pick up again
+    // is one the words would reach nobody through, and a merged one's words go to its target.
+    expect(box).toContain('v-if="!openedItem.done && openedItem.mergedInto === null"');
+  });
+
+  test("stand under the item's instruction, in the tab of what was said, apart from the chat agent's changes", () => {
+    const notesAt = detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<');
+
+    expect(notesAt).toBeGreaterThan(detailTemplate.indexOf('<TodoInstruction :item="openedItem" />'));
+    expect(notesAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
+    expect(detailTemplate).toContain('<div v-for="added in addedNotes"');
+    expect(detailSource).toContain('notes.value.filter((note) => note.kind !== "change")');
+  });
+
+  // The brief is the one text a job reads for the item, so the tab of what the work is told opens
+  // on it: its Korean rendering, its English on asking, and the chat agent's changes with whether each was
+  // handed to the job running then.
+  test("the tab of what the work is told stands the brief and the chat agent's changes above the work order", () => {
+    const briefAt = detailTemplate.indexOf('>{{ $t("todo.title.brief") }}<');
+
+    expect(briefAt).toBeGreaterThan(detailTemplate.indexOf('>{{ $t("todo.title.notes") }}<'));
+    expect(briefAt).toBeLessThan(detailTemplate.indexOf('<WorkOrderPanel part="order"'));
+    expect(detailTemplate).toContain('<MarkdownText v-else-if="briefEnglish" :text="openedItem.brief"');
+    expect(detailTemplate).toContain('<MarkdownText v-else-if="openedItem.briefKorean !== null" :text="openedItem.briefKorean"');
+    expect(detailTemplate).toContain('{{ $t("todo.status.brief_rendering") }}');
+    expect(detailTemplate).toContain("{{ formatStamp(change.addedAt) }} · {{ changeHanded(change) }}");
+    expect(detailSource).toContain('t("todo.status.change_handed", { time: formatStamp(change.deliveredAt) })');
+  });
+
+  // The chat agent answers when its session's turn comes, so the answer arrives as news of the talk moving,
+  // and only the open item's news is this panel's to read.
+  test("the talk beneath them is read again when the bot says the open item's talk moved", () => {
+    expect(detailSource).toContain('on: ["todo-talk"]');
+    expect(detailSource).toContain('event.type === "todo-talk" && event.todoId === opened.value');
+    expect(detailTemplate).toContain('common.status.bmo_answering');
+  });
+});
+
+// The edge this panel stands against, and how many lines are drawn down it. One boundary is one
+// line, and here it is this panel's own leading border, drawn open and folded alike. The page
+// stands in a box of its own beside the panel, so a page's panel never has the queue for a
+// sibling; it draws its trailing edge only while some element follows it in that box, and the
+// layout keeps the page last there so that it never does. A second line beside the queue's would
+// read as one line twice as thick, which nothing a test that counts elements would notice, and no
+// line at all is the boundary gone in both themes.
+
+const layout = await Bun.file(new URL("../../../apps/web/app/layouts/default.vue", import.meta.url)).text();
+
+// The class list of the aside in each of its two shapes: folded to a strip, and standing open.
+function asideClasses(mark: string): string[] {
+  return tagOf(mark)
+    .split(/class="/)
+    .slice(1)
+    .flatMap((part) => part.slice(0, part.indexOf('"')).split(/\s+/));
+}
+
+describe("the edge the queue stands against", () => {
+  test("there is a template to read, so nothing below passes on an empty string", () => {
+    expect(template).toContain('todo.aria.panel_width');
+    expect(template).toContain('todo.action.panel_expand');
+  });
+
+  test("the panel draws its own leading edge, open or folded", () => {
+    for (const shape of ["props.place === 'aside' && collapsed", "props.place === 'aside' ? 'hidden shrink-0"]) {
+      const classes = asideClasses(shape);
+
+      expect({ shape, drawn: classes.includes("border-s") && classes.includes("border-default") }).toEqual({ shape, drawn: true });
+    }
+  });
+
+  test("and the page beside it stays the last of its box, so it draws no second line", () => {
+    // Anything standing after the page in its box would make the page's panel a not-last child, which
+    // draws its trailing edge.
+    expect(layout).toMatch(/<div class="relative flex min-h-0 min-w-0 flex-1">\s*<slot \/>\s*<\/div>\s*<TodoPanel place="aside" \/>/);
+  });
+
+  test("the line inside the handle is nothing at all until a drag begins", () => {
+    // Painted at rest it would either double the boundary or, in the background's own colour,
+    // rub it out. Its whole job is to light the boundary while the edge is being carried.
+    const strip = tagOf('dragging ? \'bg-primary\'');
+
+    expect(strip).toContain("w-px");
+    expect(strip).not.toContain("bg-default");
+    expect(strip).toContain("dragging ? 'bg-primary' : ''");
+  });
+
+  test("and it lies on that boundary rather than beside it", () => {
+    // The handle straddles the edge, so a line whose far side is the handle's own midline covers
+    // the panel's border exactly. Centred in the handle instead, it would sit a pixel off it.
+    const strip = tagOf('dragging ? \'bg-primary\'');
+
+    expect(strip).toContain("end-1/2");
+    expect(strip).not.toContain("mx-auto");
+  });
+});
+
+// The owner's switch on the auto-progression. What it holds is the calling of the next item, so
+// the panel has to say it is off without being opened or scrolled: the button that throws it
+// stands in the header beside the refresh button, a strip stands under the header while it is off, and
+// even a panel folded away carries the word.
+describe("the auto-progression switch", () => {
+  const button = tagOf('@click="switchPause(!board.paused)"');
+
+  test("one button throws it, and reads as what pressing it would do", () => {
+    expect(button).toContain(":aria-label=\"board.paused ? $t('todo.action.auto_resume') : $t('todo.action.auto_pause')\"");
+    expect(template).toContain("<UTooltip :text=\"board.paused ? $t('todo.action.auto_resume') : $t('todo.action.auto_pause')\">");
+    expect(button).toContain(":icon=\"board.paused ? 'i-material-symbols-play-arrow' : 'i-material-symbols-pause'\"");
+    expect(button).toContain('@click="switchPause(!board.paused)"');
+  });
+
+  test("the strip stands only while it is off, and carries the resume in it", () => {
+    // The strip is the row the sentence and the resume both stand in, so it is read by a mark in
+    // its own opening tag rather than by the sentence, which sits in a child of it.
+    const strip = tagOf("bg-warning/10");
+
+    expect(strip).toContain('v-if="board.paused"');
+    expect(template).toContain('>{{ $t("todo.action.auto_pause") }}<');
+    expect(template).toContain('@click="switchPause(false)"');
+  });
+
+  test("a folded panel says it too, since a folded panel is where it would be missed", () => {
+    const folded = tagOf('TODO {{ loaded ? summary : $t("common.status.loading") }}');
+
+    expect(folded).toContain("[writing-mode:vertical-rl]");
+    expect(template).toContain('<template v-if="board.paused"> · {{ $t("todo.status.paused_suffix") }}</template>');
+  });
+
+  test("the press goes to the bot, and a refusal is said in the panel's own words", () => {
+    expect(source).toContain('$fetch<QueuePauseChanged>("/api/queue-pause", { method: "POST", body: { paused } })');
+    expect(source).toContain('failureText(error, t("todo.error.auto_change_failed"))');
+  });
+
+  test("nothing new is subscribed to for it: the queue's own news already re-reads the board", () => {
+    // The panel has the one subscription; its dialog's is the open item's talk, which is no news
+    // of the board.
+    expect(source.match(/useLiveRefresh\(/g)?.length).toBe(1);
+    expect(source.match(/on: \[[^\]]*"todo"[^\]]*\]/g)).toEqual(['on: ["todo", "work-order"]']);
+    expect(detailSource.match(/useLiveRefresh\(/g)?.length).toBe(1);
+    expect(detailSource).toContain('on: ["todo-talk"]');
+  });
+});
+
+// The deployment's hold is a state of its own beside his pause. Its band says which Jobs' end the
+// batch goes up after, and pressing it opens the title bar's deployment popover, the one place the
+// hold stands whole and is let go; the panel keeps no window of its own repeating it, and the resume
+// in the pause's band never reaches it. The popover is the deployment mark's, which stands with the ops screens.
+
+describe("the deployment's hold", () => {
+  test("stands in a band of its own while it holds, saying the mark's own words", () => {
+    const band = tagOf('v-if="board.deployHold !== null" class=');
+
+    expect(band).toContain("bg-warning/10");
+    expect(template).toContain('@click="openDeploy"');
+    expect(template).toContain("{{ holdSummary }}");
+    expect(source).toContain('`${t("deploy.status.hold")} · ${holdWaits(t, hold)}`');
+    expect(template).toContain('<template v-if="board.deployHold !== null"> · {{ $t("todo.status.deploy_hold_suffix") }}</template>');
+  });
+
+  test("opens the title bar's popover rather than a window of its own", () => {
+    expect(template).not.toContain("holdOpen");
+    expect(template).not.toContain("todo.label.deploy_hold_");
+    expect(source).toContain('const deployOpen = useState<boolean>("deploy-open", () => false);');
+  });
+
+  test("is never let go by the resume", () => {
+    expect(template).not.toContain("releaseHold");
+    expect(source).toContain('t("todo.message.auto_resumed_hold_stands", { hold: holdSummary.value })');
+  });
+});
+
+// A row's detail is read over the list rather than inside it. The panel is a column of fixed
+// width standing beside a page, and what one row carries — an instruction, an account, a talk,
+// and every button that acts on it — is longer than that column: opening it under the row
+// pushed the rest of the queue off the screen. So it is read the way every long thing in this
+// console is read, in the shape the other dialogs use, and the mechanisms that make a dialog
+// behave — the scroll inside a fixed shell, and the back gesture — are the ones they use too.
+const workOrder = await Bun.file(new URL("../../../apps/web/app/components/WorkOrderPanel.vue", import.meta.url)).text();
+
+describe("the detail of a row", () => {
+  const dialog = tagOf('v-if="shows"', detailTemplate);
+
+  test("stands in a dialog and no longer inside the list", () => {
+    expect(dialog).toContain("narrow ? UDrawer : UModal");
+    expect(detailTemplate).toContain("<template #content>");
+    // The row itself holds nothing but the row: the branch that drew the detail under it is
+    // gone, and what it drew now reads the one row the dialog is on.
+    expect(template).not.toContain('v-if="opened === item.id"');
+    expect(detailTemplate).toContain('v-if="openedItem !== null"');
+  });
+
+  test("is a sheet on a narrow screen and a modal on a wide one, at the heights the others use", () => {
+    expect(detailSource).toContain('ui: { content: "h-[92dvh]" }');
+    expect(detailSource).toContain('ui: { content: "max-w-3xl h-[80dvh] lg:max-w-[min(96vw,88rem)] lg:h-[90dvh]" }');
+    expect(detailSource).toContain('direction: "bottom" as const');
+  });
+
+  test("carries the row in its head and a way out of it", () => {
+    expect(detailTemplate).toContain("#{{ openedItem?.id }}");
+    expect(detailTemplate).toContain("{{ openedItem?.title }}");
+    expect(tagOf(`:aria-label="$t('common.action.close')"`, detailTemplate)).toContain("@click=\"detailOpen = false\"");
+  });
+
+  // A set-aside row opens like any other: its dialog is where it is thrown away or let back into
+  // the queue, and a stopped order held there says where it stands in that dialog's order panel.
+  test("reads the row it opens out of every list the board holds, the set-aside one included", () => {
+    const lookup = source.slice(source.indexOf("function boardItem"), source.indexOf("\n}", source.indexOf("function boardItem")));
+
+    for (const list of ["queue", "pending", "held", "done"]) {
+      expect(lookup).toContain(`board.value.${list}`);
+    }
+  });
+
+  test("scrolls inside itself, so no length of detail pushes it past the window", () => {
+    expect(detailTemplate).toContain("flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain");
+    expect(detailTemplate).toContain(`class="flex min-h-0 flex-1 flex-col gap-2 overscroll-contain px-4 py-3" :class="shownRight === 'talk' ? 'overflow-hidden' : 'overflow-y-auto'"`);
+  });
+
+  test("holds no scroll inside its scroll: a report, a note and the talk's column stand whole", () => {
+    expect(detailTemplate).not.toContain("max-h-96 overflow-auto");
+    expect(detailTemplate).not.toContain("max-h-64 overflow-auto");
+    expect(detailTemplate).toContain('ref="talkList" class="flex min-h-40 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain"');
+  });
+
+  // What is done about an outstanding note is written against the words themselves, so both boxes
+  // stand in the status tab beside them; the manage tab keeps nothing about the note, and a
+  // finished item's manage tab says so.
+  test("writes about an unfinished note where the note is read, and leaves management nothing of it", () => {
+    const result = detailTemplate.slice(detailTemplate.indexOf(`v-if="shownLeft === 'result'"`), detailTemplate.indexOf(`v-else-if="shownLeft === 'conversation'"`));
+    const manage = detailTemplate.slice(detailTemplate.lastIndexOf('v-else-if="openedItem !== null"'));
+
+    expect(result).toContain(`:aria-label="$t('todo.aria.resolve_reason')"`);
+    expect(result).toContain(`:label="$t('todo.action.create_item')"`);
+    for (const key of keysSaying(KO.line_437)) {
+      expect(manage).not.toContain(key);
+    }
+    expect(manage).toContain('todo.status.done_nothing_to_do');
+  });
+
+  // A dialog takes half a second to slide away, and one that empties itself the moment it is
+  // dismissed slides away as a blank frame.
+  test("keeps what it was reading until it is off the screen", () => {
+    expect(detailSource).toContain("const openedItem = useHeldWhileClosing(() => props.item)");
+  });
+
+  test("names itself TODO in its head and leaves the counts to the tabs", () => {
+    expect(template).toContain('<h2 class="shrink-0 text-base font-semibold text-highlighted">TODO</h2>');
+    expect(source).toContain("filterCount(board.value, choice, now.value)");
+  });
+
+  test("offers no other order than the queue's, and says nothing about a filter taking the handles away", () => {
+    expect(source).not.toContain("view.sort");
+    for (const key of keysSaying(KO.line_456)) {
+      expect(source).not.toContain(key);
+    }
+  });
+
+  // Both panels are mounted while a narrow screen is being read — the aside is hidden by a
+  // class rather than unmounted — and a dialog is teleported out of the layout it was written
+  // in. Two of them would stand on the screen at once, and each would push its own entry onto
+  // the back stack, so one press of back would close neither.
+  test("is drawn by the one panel a person is actually reading", () => {
+    expect(source).toContain('props.place === "aside" ? wideEnoughForAside.value : !wideEnoughForAside.value');
+    expect(template).toContain(':shows="showsDetail"');
+  });
+
+  // Closing goes through the one place that lets go of the row: whichever way it is dismissed,
+  // the address stops naming the row and the boxes are emptied exactly once.
+  test("lets go of the row the same way however it was dismissed", () => {
+    expect(detailSource).toContain('emit("close")');
+    expect(template).toContain('@close="dismiss"');
+    expect(source).toContain("toggle(opened.value)");
+  });
+
+  // The back gesture reaches both dialogs through the library's own layers, which the overlays
+  // watch registers on its own; neither registers itself a second time.
+  test("leaves the back gesture to the overlays watch, for its own dialog and the work order's", () => {
+    expect(source).not.toContain("useBackClose(");
+    expect(detailSource).not.toContain("useBackClose(");
+    expect(workOrder).not.toContain("useBackClose(");
+  });
+});
+
+// The owner's stop, beside the hold: offered while something of the item is in flight, pressed only
+// with a reason, and sent as the stop verb with that reason (docs/web.md).
+describe("stopping an opened item", () => {
+  test("stands only where the item can be stopped, and waits for a reason", () => {
+    expect(tagOf('v-if="canStop(openedItem)"', detailTemplate)).toContain("border-t");
+    const button = tagOf(`:label="$t('todo.action.stop')"`, detailTemplate);
+    expect(button).toContain(":disabled=\"stopWhy.trim() === ''\"");
+    expect(button).toContain('@click="stop(openedItem.id)"');
+    expect(tagOf(`:aria-label="$t('todo.label.stop_reason')"`, detailTemplate)).toContain(":maxlength=\"STOP_REASON_LIMIT\"");
+  });
+
+  test("posts the stop verb with the trimmed reason and clears the box once it lands", () => {
+    expect(detailSource).toContain('await act(id, "stop", { why: reason });');
+    expect(detailSource).toContain("const reason = stopWhy.value.trim();");
+    expect(detailSource).toContain('stopWhy.value = "";');
+  });
+
+  test("a held item says which kind of hold it is and why", () => {
+    expect(detailTemplate).toContain("heldLine($t, openedItem, formatStamp)");
+    for (const key of ["todo.label.held_since", "todo.label.held_since_reason"]) {
+      expect(detailTemplate).not.toContain(key);
+    }
+  });
+});
+
+// An item that has ended is opened to read how it ended, so what the closing job wrote stands on
+// the left row's first tab, which is there only where there is something to put on it, and is the
+// one opened with.
+describe("the result of an item", () => {
+  const result = detailTemplate.slice(detailTemplate.indexOf(`v-if="shownLeft === 'result'"`), detailTemplate.indexOf(`v-else-if="shownLeft === 'conversation'"`));
+  const status = detailTemplate.slice(detailTemplate.indexOf(`<template v-if="shownRight === 'status'">`), detailTemplate.indexOf(`v-else-if="shownRight === 'talk'"`));
+
+  test("stands the report and the unfinished note, with what is done about it, in the result tab and nowhere else", () => {
+    for (const mark of ['$t("todo.title.report")', "unfinishedLabel($t, openedItem)", "todo.label.resolved_at", "resolve(openedItem.id)", "raise(openedItem.id)"]) {
+      expect(result).toContain(mark);
+      expect(status).not.toContain(mark);
+      expect(detailTemplate.split(mark).length).toBe(2);
+    }
+  });
+
+  test("is the left row's first tab, on an item carrying a report or an unfinished note alone, and is the tab it opens on", () => {
+    expect(detailSource).toContain("const hasResult = (item: TodoItem | null): boolean => item !== null && (item.report !== null || item.unfinished !== null);");
+    expect(detailSource).toContain("hasResult(openedItem.value) ? [RESULT_TAB, ...BODY_TABS] : BODY_TABS");
+    expect(detailSource).toContain('const first = hasResult(props.item) ? "result" : "conversation";');
+    expect(tagOf(':items="leftTabs"', detailTemplate)).toContain('v-model="leftTab"');
+    expect(tagOf(':items="detailTabs"', detailTemplate)).toContain('v-model="singleTab"');
+  });
+
+  test("carries no box inside the unfinished note's box: the resolution stands under a line", () => {
+    expect(tagOf('v-if="openedItem.unfinishedResolvedAt !== null"', result)).toContain("border-t");
+    expect(tagOf('v-if="openedItem.unfinishedResolvedAt !== null"', result)).not.toContain("rounded");
+  });
+});
