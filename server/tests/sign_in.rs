@@ -16,7 +16,7 @@ use support::{Scratch, console_hash};
 use tower::ServiceExt;
 
 fn sign_in(name: &str, password: &str) -> Request<Body> {
-  Request::post("/auth/session")
+  Request::post("/sumida/auth/session")
     .header(header::CONTENT_TYPE, "application/json")
     .header("x-real-ip", "127.0.0.1")
     .body(Body::from(format!(
@@ -49,7 +49,7 @@ async fn the_moved_account_signs_in_with_its_own_password() {
   .await
   .unwrap();
 
-  let app = in_force(scratch.service.clone()).await.unwrap();
+  let app = in_force(scratch.service.clone(), "a token".into()).await.unwrap();
   let refused = app.clone().oneshot(sign_in("boss", "not the password")).await.unwrap();
 
   assert_eq!(refused.status(), StatusCode::UNAUTHORIZED);
@@ -71,7 +71,7 @@ async fn the_moved_account_signs_in_with_its_own_password() {
   let me = app
     .clone()
     .oneshot(
-      Request::get("/me")
+      Request::get("/sumida/me")
         .header(header::COOKIE, &cookie)
         .header("x-real-ip", "127.0.0.1")
         .body(Body::empty())
@@ -90,7 +90,7 @@ async fn the_moved_account_signs_in_with_its_own_password() {
   let out = app
     .clone()
     .oneshot(
-      Request::delete("/auth/session")
+      Request::delete("/sumida/auth/session")
         .header(header::COOKIE, &cookie)
         .header("x-real-ip", "127.0.0.1")
         .body(Body::empty())

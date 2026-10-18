@@ -13,7 +13,7 @@ use bmo_web_server::receiver::{NoReceiver, Receiver, ReceiverClient};
 use bmo_web_server::routes::{in_force, stand};
 use bmo_web_server::settings::Settings;
 use bmo_web_server::users::set_sign_in;
-use bmo_web_server::{migration, store};
+use bmo_web_server::{holdings, migration, store};
 use clap::{Parser, Subcommand};
 use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
@@ -111,8 +111,16 @@ async fn stopped() {
   }
 }
 
-/// The account service on its address, until the process is stopped; an error where it cannot stand.
+/// The account service on its address, until the process is stopped; an error where it cannot stand. Once
+/// it listens it declares itself a holder of rooms to the receiver; a declaration that does not land is said
+/// and the service stands, declaring again at its next start.
 async fn serve(settings: Settings) -> Result<(), String> {
+  let token = settings
+    .server
+    .token
+    .clone()
+    .filter(|token| !token.trim().is_empty())
+    .ok_or("the server does not stand without its token, `server.token`")?;
   let listen = settings.server.listen;
   let listener = TcpListener::bind(listen)
     .await
@@ -120,13 +128,21 @@ async fn serve(settings: Settings) -> Result<(), String> {
   let db = store::connect(&settings.database.url, store::pool(5).min_connections(1))
     .await
     .map_err(|why| format!("the service's database could not be reached: {why}"))?;
-  let service = stand(db, receiver(&settings)?)
+  let receiver = receiver(&settings)?;
+  let service = stand(db, receiver.clone())
     .await
     .map_err(|why| format!("the rules do not stand on the service's database: {why}"))?;
-  let app = in_force(service).await.map_err(|why| why.to_string())?;
+  let app = in_force(service, token).await.map_err(|why| why.to_string())?;
+  let address = settings.server.address();
 
-  println!("bmo-web-server {} on {listen}: in force", bmo_web_server::VERSION);
+  println!("bmo-web-server {} on {listen}", bmo_web_server::VERSION);
   let _ = io::stdout().flush();
+
+  tokio::spawn(async move {
+    if let Err(why) = receiver.declare_holder(holdings::UNIT, &address, &holdings::HOLDINGS).await {
+      eprintln!("bmo-web-server: {why}");
+    }
+  });
 
   axum::serve(listener, app)
     .with_graceful_shutdown(stopped())

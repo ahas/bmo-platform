@@ -25,7 +25,6 @@ const MOVER: &str = "data-move";
 
 /// One room rule, as the caller reads it out of the deployment's room rules.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RoomRule {
   pub room: i64,
   pub id: String,
@@ -35,7 +34,6 @@ pub struct RoomRule {
 
 /// What the caller hands the move.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct MoveAsk {
   pub owner_senders: Vec<i64>,
   pub rooms: Vec<i64>,
@@ -45,7 +43,6 @@ pub struct MoveAsk {
 
 /// What the move answered: whether it is done, whether this call wrote it, and the administrator's user.
 #[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
 pub struct Moved {
   pub done: bool,
   pub written: bool,

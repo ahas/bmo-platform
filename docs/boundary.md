@@ -32,10 +32,13 @@ that unit's document states them.
 - **An answer with no body is 204;** one with a body is 200, or 201 where the call creates something. A read
   of one thing by its id answers 404 where it does not exist.
 - **A refusal carries a body of exactly two keys:** `error`, one English sentence for a person, and `code`, a
-  stable snake_case code a caller decides on. The statuses are 400 for a request wrong as asked, 401 for a
-  missing or wrong token, 403 for one the asker may not make, 404 for what does not exist, 409 for a conflict
-  with the present state, 500 for a failure on the server's side (code `database` for its database), 502 for a
-  call on another unit that failed, and 503 while the account model is not in force.
+  stable snake_case code a caller decides on. Where a route names no closer code, the code is its status's:
+  400 `bad_request` for a request wrong as asked, a body that does not read as the route's shape among them;
+  401 `unauthorized` for a missing or wrong token; 403 `forbidden` for one the asker may not make; 404
+  `not_found` for what does not exist; 409 `conflict` for a conflict with the present state; 500 `database`
+  for the server's database, `failed` for any other failure on its side; 502 `unit_failed` for a call on
+  another unit that failed; and 503 `not_in_force` while the account model is not in force, `no_receiver`
+  where a message is asked after and no receiver is named.
 
 ## What the server serves
 
@@ -50,12 +53,12 @@ that unit's document states them.
 | Route | Request | Answer |
 |---|---|---|
 | `GET /accounts/model` | | `in_force`; `why?`, where it is not in force |
-| `POST /accounts/move` | `owner_senders` (each a sender), `rooms` (each a room the deployment answers), `rules` (each `room`, `subject`, `text`) | `moved`: true where this call wrote the move, false where it stood already |
+| `POST /accounts/move` | `owner_senders` (each a sender), `rooms` (each a room the deployment answers), `room_rules?` (each `room`, `id`, `subject`, the sender the rule is for, and `words`) | `done`, `written`: true where this call wrote the move, false where it stood already, and `administrator?`, the user the move made the platform administrator |
 
-- **The model is in force** once the server stands on its database, sumida's tables stand, its rules are
-  registered and the move has been written. Until then every route but `GET /health` and
-  `GET /accounts/model` answers 503 naming why, so no caller mistakes an absent model for a refusal; a caller
-  reads that no sender is linked to a user and no grant stands.
+- **The model is in force** once the move has been written; the server stands only on its database with
+  sumida's tables and its rules registered. Until then every route but `GET /health`, `GET /accounts/model` and
+  `POST /accounts/move` answers 503 `not_in_force` naming why, so no caller mistakes an absent model for a
+  refusal; a caller reads that no sender is linked to a user and no grant stands.
 - **The move** is written once, in one transaction, and a second call writes nothing (`docs/accounts.md`, 「The
   data move」).
 
@@ -65,11 +68,12 @@ that unit's document states them.
 |---|---|---|
 | `GET /senders/{sender}/user` | | `user`: the user the sender is linked to; 404 where none is |
 | `GET /users/{user}` | | `user`, `name`, `administrator` (boolean), `senders` |
-| `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user |
+| `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user; 404 where there is no such user |
 | `POST /users/{user}/password` | `current`, `next` | 204; 401 `wrong_password` where `current` does not match |
 | `POST /users/{user}/name` | `name` | 204; 409 `name_taken` where another user holds it |
 
-- **A user** is named by its id as the server gives it, a string a caller hands on as it stands.
+- **A user** is named by its id as the server gives it, a string a caller hands on as it stands; a body naming
+  a user may give it as that string or as the number it holds, and a path whose user is no id is refused 400.
 - **A sender** is a whole number, as the receiver names a message's sender.
 
 ### Checks
@@ -93,9 +97,9 @@ that unit's document states them.
 
 | Route | Request | Answer |
 |---|---|---|
-| `GET /grants?room=` | | `grants`: each `relation`, `subject_key` (`user:{user}` or another key), `expires_at?`, `words?` |
-| `POST /grants` | `room?`, or `kind` and `object`; `relation`; `to` (`sender?`, `user?`, `members`: true for every member of the room); `words?`; `expires_at?`; `message` (`room`, `id`) | `grant` |
-| `DELETE /grants` | as `POST /grants`, without `words` and `expires_at` | `grant` |
+| `GET /grants?room=` | | `grants`: each `relation`, `subject_key` (`user:{user}`, `bmo_member:{room}` or another key), `expires_at?`, `words?`, the grants made on the room in the order they were written, none past its expiry |
+| `POST /grants` | `room?`, or `kind` and `object`; `relation`; `to` (`sender?`, `user?`, `members`: true for every member of the room); `words?`; `expires_at?`; `message` (`room`, `id`) | `grant`, `subject` (the holder's subject key), `user?` (the holder's user) |
+| `DELETE /grants` | as `POST /grants`, without `words` and `expires_at` | `grant`, `revoked` (how many went) |
 
 - **The granter is the sender of the message a grant is made on,** and sumida checks that their user may grant
   what they give, so nobody gives what they do not hold.
@@ -108,14 +112,14 @@ that unit's document states them.
 |---|---|---|
 | `POST /phones` | `user` | `key`, once, and `hash`, the hash the key is kept by |
 | `POST /phones/adopt` | `token`, `user` | `hash`: the earlier token kept as a key of that user |
-| `POST /phones/who` | `key` | `user`; 401 where it is no live key of a user who may sign in |
+| `POST /phones/who` | `key` | `user`, `name`, `hash`; 401 where it is no live key of a user who may sign in |
 | `DELETE /phones/{hash}` | | 204 |
 
 ### A room's holdings
 
 | Route | Answer |
 |---|---|
-| `GET /rooms/{chat}/holdings` | `holdings`: each `code` and its fields — `room_grants` with `count`, the grants standing on the room, and `room_senders` with `count`, the senders whose link was made by a grant in the room |
+| `GET /rooms/{chat}/holdings` | `holdings`: each holding the room has at least one of, as `code` and `count` — `room_grants`, the grants made on the room or to its members, and `room_senders`, the senders whose user holds a grant on the room; none for a room holding nothing of the server's |
 
 - **The server declares itself a holder** to the receiver as it starts (「Calls the server makes」), with the
   holdings `room_grants` (`effect` `warns`) and `room_senders` (`effect` `kept`), so the receiver shows what a
@@ -141,14 +145,15 @@ key of the artifact's 「Wording」 table, rendered from the server's pack, and 
 
 ### sumida's own routes
 
-The server mounts sumida's router as sumida builds it. The console's server is their one caller, and hands
-on its own caller's address in `X-Real-IP`, which sumida's bans read.
+The server mounts sumida's router as sumida builds it, under `/sumida`, apart from the routes above, since
+sumida's own (its `/users` among them) would take paths other units name. The console's server is their one
+caller, and hands on its own caller's address in `X-Real-IP`, which sumida's bans read.
 
 | Route | What it is |
 |---|---|
-| `POST /auth/session` | sign-in, with the name and the password; answers the session cookie, `bmo.sid`, or 401 |
-| `DELETE /auth/session` | sign-out, with the cookie |
-| `GET /me` | who a session is, with the cookie; 401 where it is no live session |
+| `POST /sumida/auth/session` | sign-in, with the name and the password; answers the session cookie, `bmo.sid`, or 401 |
+| `DELETE /sumida/auth/session` | sign-out, with the cookie |
+| `GET /sumida/me` | who a session is, with the cookie; 401 where it is no live session |
 
 ## Calls the server makes
 
@@ -195,7 +200,7 @@ environment. No address, token or name is written into the code.
 | Process | Setting | What it names |
 |---|---|---|
 | server | `server.listen` | the socket address the server binds |
-| server | `server.token` | the bearer token every caller presents |
+| server | `server.token` | the bearer token every caller presents; the server does not stand without one |
 | server | `database.url` | the server's PostgreSQL database |
 | server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |

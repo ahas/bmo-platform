@@ -1,11 +1,13 @@
 //! The account service (docs/accounts.md): sumida's users, sessions, API keys and permission layers with
-//! the deployment's rules beside sumida's, and the routes the console and the other units ask it on. It
-//! stands on its own database and holds the decisions; what a screen or a room does with an answer is its
-//! caller's.
+//! the deployment's rules beside sumida's, and the routes the console and the other units ask it on
+//! (docs/boundary.md). It stands on its own database and holds the decisions; what a screen or a room does
+//! with an answer is its caller's.
 
 pub mod checks;
 pub mod data_move;
 pub mod grants;
+pub mod holdings;
+pub mod ids;
 pub mod marks;
 pub mod migration;
 pub mod phones;
@@ -17,6 +19,7 @@ pub mod store;
 pub mod users;
 
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 use axum::Json;
 use axum::http::StatusCode;
@@ -32,11 +35,13 @@ use crate::receiver::Receiver;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// What every handler stands on: the service's database, where sumida's tables stand beside the service's
-/// own, and the receiver a message's sender is asked of.
+/// own, the receiver a message's sender is asked of, and whether the model has been seen in force, which
+/// once seen stays.
 #[derive(Clone)]
 pub struct Service {
   pub db: DatabaseConnection,
   pub receiver: Arc<dyn Receiver>,
+  pub seen_in_force: Arc<AtomicBool>,
 }
 
 impl SumidaState for Service {
@@ -45,20 +50,43 @@ impl SumidaState for Service {
   }
 }
 
-/// A refusal, said with its status and a sentence naming why.
+/// A refusal: its status, a stable snake_case code a caller decides on, and an English sentence naming why
+/// (docs/boundary.md, 「Wire conventions」).
 #[derive(Debug, thiserror::Error)]
 #[error("{detail}")]
 pub struct Refusal {
   pub status: StatusCode,
+  pub code: &'static str,
   pub detail: String,
+}
+
+/// The code a status is refused with where nothing names a closer one.
+fn code_of(status: StatusCode) -> &'static str {
+  match status {
+    StatusCode::BAD_REQUEST => "bad_request",
+    StatusCode::UNAUTHORIZED => "unauthorized",
+    StatusCode::FORBIDDEN => "forbidden",
+    StatusCode::NOT_FOUND => "not_found",
+    StatusCode::CONFLICT => "conflict",
+    StatusCode::BAD_GATEWAY => "unit_failed",
+    StatusCode::SERVICE_UNAVAILABLE => "unavailable",
+    _ => "failed",
+  }
 }
 
 impl Refusal {
   pub fn new(status: StatusCode, detail: impl Into<String>) -> Self {
     Self {
       status,
+      code: code_of(status),
       detail: detail.into(),
     }
+  }
+
+  /// The same refusal under a closer code.
+  pub fn coded(mut self, code: &'static str) -> Self {
+    self.code = code;
+    self
   }
 
   pub fn bad(detail: impl Into<String>) -> Self {
@@ -77,6 +105,7 @@ impl Refusal {
 impl From<sea_orm::DbErr> for Refusal {
   fn from(error: sea_orm::DbErr) -> Self {
     Self::new(StatusCode::INTERNAL_SERVER_ERROR, format!("the service's database: {error}"))
+      .coded("database")
   }
 }
 
@@ -96,7 +125,7 @@ impl From<sumida::error::SumidaError> for Refusal {
 
 impl IntoResponse for Refusal {
   fn into_response(self) -> Response {
-    (self.status, Json(json!({ "detail": self.detail }))).into_response()
+    (self.status, Json(json!({ "error": self.detail, "code": self.code }))).into_response()
   }
 }
 

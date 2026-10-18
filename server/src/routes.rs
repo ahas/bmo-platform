@@ -1,37 +1,55 @@
-//! The service's routes (docs/accounts.md): sumida's own as sumida mounts them, and the deployment's own.
+//! The service's routes (docs/boundary.md, 「What the server serves」): sumida's own as sumida mounts them,
+//! and the deployment's own, every one of them but the health under the server's bearer token, and every one
+//! but the health, the model's state and the move refused while the model is not in force.
 
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
-use axum::routing::{delete, get, post};
+use std::sync::Arc;
+use std::sync::atomic::Ordering;
+
+use axum::extract::rejection::JsonRejection;
+use axum::extract::{FromRequest, Path, Query, Request, State};
+use axum::http::{StatusCode, header};
+use axum::middleware::{Next, from_fn, from_fn_with_state};
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
-use std::sync::Arc;
 use sumida::api::Sumida;
 use sumida::api::authz::Authz;
 
 use crate::checks::{check_message, check_object, check_room};
-use crate::data_move::{MoveAsk, run_move};
-use crate::grants::{GrantAsk, RevokeAsk, grant, revoke};
+use crate::data_move::{MoveAsk, moved, run_move};
+use crate::grants::{GrantAsk, RevokeAsk, grant, revoke, standing_in};
+use crate::ids::{parsed, shown};
 use crate::receiver::Receiver;
 use crate::rules::RULES;
-use crate::users::user_subject;
-use crate::{Refusal, Service, all, one, phones};
+use crate::users::{user_of_sender, user_subject};
+use crate::{Refusal, Service, VERSION, all, holdings, one, phones};
 
-/// sumida's rules and the deployment's, read and held to the database: every table a rule reads stands,
-/// and every relation they declare is written where a grant names it. A database the rules do not fit is
-/// refused before anything is answered.
+/// Where sumida's own router is mounted: apart from the deployment's routes, whose paths other units name
+/// and some of which sumida's own (its users among them) would take.
+pub const SUMIDA_ROOT: &str = "/sumida";
+
+/// sumida's rules and the deployment's, read and held to the database: every table a rule reads stands, and
+/// every relation they declare is written where a grant names it. A database the rules do not fit is refused
+/// before anything is answered.
 pub async fn stand(db: DatabaseConnection, receiver: Arc<dyn Receiver>) -> Result<Service, Refusal> {
   Authz::install_rules(RULES)?;
   Authz::boot_or_abort(&db).await?;
   Authz::sync_schema(&db).await?;
 
-  Ok(Service { db, receiver })
+  Ok(Service {
+    db,
+    receiver,
+    seen_in_force: Arc::default(),
+  })
 }
 
-/// Every route, with sumida's sessions on Valkey under them.
-pub async fn in_force(service: Service) -> Result<Router, Refusal> {
+/// Every route, with sumida's sessions on Valkey under them; the deployment's own take `token` as their
+/// bearer.
+pub async fn in_force(service: Service, token: String) -> Result<Router, Refusal> {
   let settings = sumida::infra::settings::get();
   let store = sumida::infra::session::new_store(&settings.session)
     .await
@@ -42,141 +60,193 @@ pub async fn in_force(service: Service) -> Result<Router, Refusal> {
     .await
     .map_err(|why| Refusal::new(StatusCode::SERVICE_UNAVAILABLE, format!("the session layer: {why}")))?
     .with_always_save(true);
+  let token: Arc<str> = token.into();
+  let guarded = own()
+    .route_layer(from_fn_with_state(service.clone(), model_gate))
+    .merge(model())
+    .route_layer(from_fn(move |request: Request, next: Next| {
+      let token = token.clone();
+
+      async move { bearer(&token, request, next).await }
+    }));
 
   Ok(
     Router::new()
-      .merge(Sumida::new(RULES).set_state(&service).router())
-      .merge(own())
+      .nest(SUMIDA_ROOT, Sumida::new(RULES).set_state(&service).router())
+      .merge(guarded)
+      .route("/health", get(health))
       .layer(sessions)
       .with_state(service)
       .layer(settings.session.ip_source.clone().into_extension()),
   )
 }
 
-/// The routes while the model is not in force: the state, saying why, and a refusal naming it for
-/// everything else.
-pub fn not_in_force(reason: String) -> Router {
-  let state = json!({ "inForce": false, "reason": reason });
-  let refusal = json!({ "detail": format!("the model is not in force: {reason}") });
+// The bearer token every route but the health takes.
+async fn bearer(token: &str, request: Request, next: Next) -> Response {
+  let presented = request
+    .headers()
+    .get(header::AUTHORIZATION)
+    .and_then(|value| value.to_str().ok())
+    .and_then(|value| value.strip_prefix("Bearer "));
 
-  Router::new()
-    .route("/bmo/state", get(move || async move { Json(state) }))
-    .fallback(move || async move { (StatusCode::SERVICE_UNAVAILABLE, Json(refusal)) })
+  if presented == Some(token) {
+    next.run(request).await
+  } else {
+    Refusal::new(StatusCode::UNAUTHORIZED, "the token is missing or wrong").into_response()
+  }
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct RoomAsk {
-  room: i64,
-  sender: Option<i64>,
-  relation: String,
+/// Whether the model is in force: the data move has been written, which once seen stays.
+async fn standing(service: &Service) -> Result<bool, Refusal> {
+  if service.seen_in_force.load(Ordering::Relaxed) {
+    return Ok(true);
+  }
+
+  let now = moved(&service.db).await?;
+
+  if now {
+    service.seen_in_force.store(true, Ordering::Relaxed);
+  }
+
+  Ok(now)
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct MessageAsk {
-  room: i64,
-  message: i64,
-  relation: String,
+// The routes that need the model in force are refused, naming why, until it is.
+async fn model_gate(State(service): State<Service>, request: Request, next: Next) -> Response {
+  match standing(&service).await {
+    Ok(true) => next.run(request).await,
+    Ok(false) => not_in_force().into_response(),
+    Err(refusal) => refusal.into_response(),
+  }
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ObjectAsk {
-  kind: String,
-  object: String,
-  relation: String,
-  user: i32,
+fn not_in_force() -> Refusal {
+  Refusal::new(
+    StatusCode::SERVICE_UNAVAILABLE,
+    "the model is not in force: the data move has not been written",
+  )
+  .coded("not_in_force")
 }
 
-#[derive(Deserialize)]
-struct UserAsk {
-  user: i32,
-}
+/// A JSON body, refused with 400 naming what is wrong where it does not read as the route's shape.
+pub struct Body<T>(pub T);
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct AdoptAsk {
-  token: String,
-  user: i32,
-}
+impl<S: Send + Sync, T: DeserializeOwned> FromRequest<S> for Body<T> {
+  type Rejection = Refusal;
 
-#[derive(Deserialize)]
-struct KeyAsk {
-  key: String,
+  async fn from_request(request: Request, state: &S) -> Result<Self, Refusal> {
+    Json::<T>::from_request(request, state)
+      .await
+      .map(|Json(value)| Body(value))
+      .map_err(|why: JsonRejection| Refusal::bad(format!("the body does not read: {}", why.body_text())))
+  }
 }
 
 type Answer = Result<Json<Value>, Refusal>;
+type Done = Result<StatusCode, Refusal>;
 
-fn answered(value: impl serde::Serialize) -> Answer {
-  serde_json::to_value(value)
-    .map(Json)
-    .map_err(|why| Refusal::new(StatusCode::INTERNAL_SERVER_ERROR, why.to_string()))
+fn user_in(path: &str) -> Result<i32, Refusal> {
+  parsed(path).ok_or_else(|| Refusal::bad(format!("`{path}` is no user's id")))
 }
 
+/// The routes that stand whether or not the model is in force: its state and the move that brings it.
+fn model() -> Router<Service> {
+  Router::new()
+    .route("/accounts/model", get(model_route))
+    .route("/accounts/move", post(move_route))
+}
+
+/// The routes that need the model in force.
 fn own() -> Router<Service> {
   Router::new()
-    .route("/bmo/state", get(|| async { Json(json!({ "inForce": true })) }))
-    .route("/bmo/check", post(room_check))
-    .route("/bmo/check-message", post(message_check))
-    .route("/bmo/check-object", post(object_check))
-    .route("/bmo/grants", post(grant_route).delete(revoke_route))
-    .route("/bmo/move", post(move_route))
-    .route("/bmo/users/{user}", get(user_route))
-    .route("/bmo/users/{user}/password", post(password_route))
-    .route("/bmo/users/{user}/name", post(name_route))
-    .route("/bmo/phones", post(phone_make))
-    .route("/bmo/phones/adopt", post(phone_adopt))
-    .route("/bmo/phones/who", post(phone_who))
-    .route("/bmo/phones/{hash}", delete(phone_delete))
+    .route("/senders/{sender}/user", get(sender_user))
+    .route("/users/{user}", get(user_route))
+    .route("/users/{user}/senders", get(user_senders))
+    .route("/users/{user}/password", post(password_route))
+    .route("/users/{user}/name", post(name_route))
+    .route("/checks/room", post(room_check))
+    .route("/checks/message", post(message_check))
+    .route("/checks/object", post(object_check))
+    .route("/grants", get(grants_route).post(grant_route).delete(revoke_route))
+    .route("/phones", post(phone_make))
+    .route("/phones/adopt", post(phone_adopt))
+    .route("/phones/who", post(phone_who))
+    .route("/phones/{hash}", axum::routing::delete(phone_delete))
+    .route("/rooms/{chat}/holdings", get(holdings_route))
 }
 
-async fn room_check(State(service): State<Service>, Json(ask): Json<RoomAsk>) -> Answer {
-  answered(check_room(&service.db, ask.room, ask.sender, &ask.relation).await?)
+async fn health(State(service): State<Service>) -> Json<Value> {
+  let in_force = standing(&service).await.unwrap_or(false);
+
+  Json(json!({ "ok": true, "version": VERSION, "in_force": in_force }))
 }
 
-async fn message_check(State(service): State<Service>, Json(ask): Json<MessageAsk>) -> Answer {
-  answered(
-    check_message(&service.db, service.receiver.as_ref(), ask.room, ask.message, &ask.relation).await?,
+async fn model_route(State(service): State<Service>) -> Answer {
+  if standing(&service).await? {
+    Ok(Json(json!({ "in_force": true })))
+  } else {
+    Ok(Json(json!({ "in_force": false, "why": not_in_force().detail })))
+  }
+}
+
+async fn move_route(State(service): State<Service>, Body(ask): Body<MoveAsk>) -> Answer {
+  let moved = run_move(&service.db, ask).await?;
+
+  Ok(Json(json!({
+    "done": moved.done,
+    "written": moved.written,
+    "administrator": moved.administrator.map(shown),
+  })))
+}
+
+async fn sender_user(State(service): State<Service>, Path(sender): Path<i64>) -> Answer {
+  let user = user_of_sender(&service.db, sender)
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("sender {sender} is linked to no user")))?;
+
+  Ok(Json(json!({ "user": shown(user) })))
+}
+
+async fn senders_of(service: &Service, user: i32) -> Result<Vec<i64>, Refusal> {
+  all(
+    &service.db,
+    r#"SELECT "sender_id" FROM "user_senders" WHERE "user_id" = $1 ORDER BY "sender_id""#,
+    vec![i64::from(user).into()],
   )
-}
-
-async fn object_check(State(service): State<Service>, Json(ask): Json<ObjectAsk>) -> Answer {
-  answered(check_object(&service.db, &ask.kind, &ask.object, &ask.relation, ask.user).await?)
-}
-
-async fn grant_route(State(service): State<Service>, Json(ask): Json<GrantAsk>) -> Answer {
-  answered(grant(&service.db, service.receiver.as_ref(), ask).await?)
-}
-
-async fn revoke_route(State(service): State<Service>, Json(ask): Json<RevokeAsk>) -> Answer {
-  answered(revoke(&service.db, service.receiver.as_ref(), ask).await?)
-}
-
-async fn move_route(State(service): State<Service>, Json(ask): Json<MoveAsk>) -> Answer {
-  answered(run_move(&service.db, ask).await?)
+  .await?
+  .iter()
+  .map(|row| Ok(row.try_get::<i64>("", "sender_id")?))
+  .collect()
 }
 
 /// A user as the console reads them: their name, whether they are the platform administrator, and the
 /// sender ids linked to them.
-async fn user_route(State(service): State<Service>, Path(user): Path<i32>) -> Answer {
+async fn user_route(State(service): State<Service>, Path(user): Path<String>) -> Answer {
+  let user = user_in(&user)?;
   let db = &service.db;
   let row = one(db, r#"SELECT "username" FROM "users" WHERE "id" = $1"#, vec![user.into()])
     .await?
     .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
   let name: String = row.try_get("", "username")?;
   let administrator = Authz::is_superuser(&user_subject(db, user).await?, db).await?;
-  let senders = all(
-    db,
-    r#"SELECT "sender_id" FROM "user_senders" WHERE "user_id" = $1 ORDER BY "sender_id""#,
-    vec![i64::from(user).into()],
-  )
-  .await?
-  .iter()
-  .map(|row| row.try_get::<i64>("", "sender_id"))
-  .collect::<Result<Vec<_>, _>>()?;
+  let senders = senders_of(&service, user).await?;
 
-  answered(json!({ "id": user, "name": name, "administrator": administrator, "senders": senders }))
+  Ok(Json(json!({
+    "user": shown(user),
+    "name": name,
+    "administrator": administrator,
+    "senders": senders,
+  })))
+}
+
+async fn user_senders(State(service): State<Service>, Path(user): Path<String>) -> Answer {
+  let user = user_in(&user)?;
+
+  one(&service.db, r#"SELECT "id" FROM "users" WHERE "id" = $1"#, vec![user.into()])
+    .await?
+    .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
+
+  Ok(Json(json!({ "senders": senders_of(&service, user).await? })))
 }
 
 #[derive(Deserialize)]
@@ -192,36 +262,140 @@ struct NameAsk {
 
 async fn password_route(
   State(service): State<Service>,
-  Path(user): Path<i32>,
-  Json(ask): Json<PasswordAsk>,
-) -> Answer {
-  crate::users::change_password(&service.db, user, &ask.current, &ask.next).await?;
+  Path(user): Path<String>,
+  Body(ask): Body<PasswordAsk>,
+) -> Done {
+  crate::users::change_password(&service.db, user_in(&user)?, &ask.current, &ask.next).await?;
 
-  answered(json!({}))
+  Ok(StatusCode::NO_CONTENT)
 }
 
 async fn name_route(
   State(service): State<Service>,
-  Path(user): Path<i32>,
-  Json(ask): Json<NameAsk>,
-) -> Answer {
-  crate::users::rename(&service.db, user, &ask.name).await?;
+  Path(user): Path<String>,
+  Body(ask): Body<NameAsk>,
+) -> Done {
+  crate::users::rename(&service.db, user_in(&user)?, &ask.name).await?;
 
-  answered(json!({}))
+  Ok(StatusCode::NO_CONTENT)
 }
 
-async fn phone_make(State(service): State<Service>, Json(ask): Json<UserAsk>) -> Answer {
-  answered(phones::make(&service.db, ask.user).await?)
+#[derive(Deserialize)]
+struct RoomAsk {
+  room: i64,
+  sender: Option<i64>,
+  relation: String,
 }
 
-async fn phone_adopt(State(service): State<Service>, Json(ask): Json<AdoptAsk>) -> Answer {
-  answered(json!({ "hash": phones::adopt(&service.db, &ask.token, ask.user).await? }))
+#[derive(Deserialize)]
+struct MessageAsk {
+  room: i64,
+  message: i64,
+  relation: String,
 }
 
-async fn phone_who(State(service): State<Service>, Json(ask): Json<KeyAsk>) -> Answer {
-  answered(phones::holder(&service.db, &ask.key).await?)
+#[derive(Deserialize)]
+struct ObjectAsk {
+  kind: String,
+  object: String,
+  relation: String,
+  #[serde(deserialize_with = "crate::ids::user")]
+  user: i32,
 }
 
-async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) -> Answer {
-  answered(json!({ "deleted": phones::delete(&service.db, &hash).await? }))
+async fn room_check(State(service): State<Service>, Body(ask): Body<RoomAsk>) -> Answer {
+  let answer = check_room(&service.db, ask.room, ask.sender, &ask.relation).await?;
+
+  Ok(Json(json!({
+    "allowed": answer.allowed,
+    "grant": answer.grant,
+    "user": answer.user.map(shown),
+  })))
+}
+
+async fn message_check(State(service): State<Service>, Body(ask): Body<MessageAsk>) -> Answer {
+  let answer =
+    check_message(&service.db, service.receiver.as_ref(), ask.room, ask.message, &ask.relation).await?;
+
+  Ok(Json(json!({
+    "allowed": answer.allowed,
+    "grant": answer.grant,
+    "user": answer.user.map(shown),
+    "sender": answer.sender,
+  })))
+}
+
+async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>) -> Answer {
+  let answer = check_object(&service.db, &ask.kind, &ask.object, &ask.relation, ask.user).await?;
+
+  Ok(Json(json!({ "allowed": answer.allowed, "grant": answer.grant })))
+}
+
+#[derive(Deserialize)]
+struct RoomQuery {
+  room: i64,
+}
+
+async fn grants_route(State(service): State<Service>, Query(query): Query<RoomQuery>) -> Answer {
+  Ok(Json(json!({ "grants": standing_in(&service.db, query.room).await? })))
+}
+
+async fn grant_route(State(service): State<Service>, Body(ask): Body<GrantAsk>) -> Answer {
+  let granted = grant(&service.db, service.receiver.as_ref(), ask).await?;
+
+  Ok(Json(json!({
+    "grant": granted.grant,
+    "subject": granted.subject,
+    "user": granted.user.map(shown),
+  })))
+}
+
+async fn revoke_route(State(service): State<Service>, Body(ask): Body<RevokeAsk>) -> Answer {
+  let revoked = revoke(&service.db, service.receiver.as_ref(), ask).await?;
+
+  Ok(Json(json!({ "grant": revoked.grant, "revoked": revoked.revoked })))
+}
+
+#[derive(Deserialize)]
+struct UserAsk {
+  #[serde(deserialize_with = "crate::ids::user")]
+  user: i32,
+}
+
+#[derive(Deserialize)]
+struct AdoptAsk {
+  token: String,
+  #[serde(deserialize_with = "crate::ids::user")]
+  user: i32,
+}
+
+#[derive(Deserialize)]
+struct KeyAsk {
+  key: String,
+}
+
+async fn phone_make(State(service): State<Service>, Body(ask): Body<UserAsk>) -> Answer {
+  let made = phones::make(&service.db, ask.user).await?;
+
+  Ok(Json(json!({ "key": made.key, "hash": made.hash })))
+}
+
+async fn phone_adopt(State(service): State<Service>, Body(ask): Body<AdoptAsk>) -> Answer {
+  Ok(Json(json!({ "hash": phones::adopt(&service.db, &ask.token, ask.user).await? })))
+}
+
+async fn phone_who(State(service): State<Service>, Body(ask): Body<KeyAsk>) -> Answer {
+  let holder = phones::holder(&service.db, &ask.key).await?;
+
+  Ok(Json(json!({ "user": shown(holder.user), "name": holder.name, "hash": holder.hash })))
+}
+
+async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) -> Done {
+  phones::delete(&service.db, &hash).await?;
+
+  Ok(StatusCode::NO_CONTENT)
+}
+
+async fn holdings_route(State(service): State<Service>, Path(chat): Path<i64>) -> Answer {
+  Ok(Json(json!({ "holdings": holdings::held(&service.db, chat).await? })))
 }

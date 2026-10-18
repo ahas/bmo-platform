@@ -15,7 +15,6 @@ use crate::{Refusal, now_ms, one, run};
 
 /// What a grant names: a room and a relation there, or a kind, an object and a relation.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Target {
   pub room: Option<i64>,
   pub kind: Option<String>,
@@ -25,9 +24,9 @@ pub struct Target {
 
 /// Whom a grant is to: a sender id, a user, or every member of the room.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Holder {
   pub sender: Option<i64>,
+  #[serde(default, deserialize_with = "crate::ids::user_or_none")]
   pub user: Option<i32>,
   #[serde(default)]
   pub members: bool,
@@ -41,7 +40,6 @@ pub struct On {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct GrantAsk {
   #[serde(flatten)]
   pub target: Target,
@@ -53,7 +51,6 @@ pub struct GrantAsk {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RevokeAsk {
   #[serde(flatten)]
   pub target: Target,
@@ -61,19 +58,59 @@ pub struct RevokeAsk {
   pub message: On,
 }
 
+/// What a grant wrote: the grant, its subject, and the holder's user where it is one.
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Granted {
   pub grant: String,
   pub subject: String,
   pub user: Option<i32>,
 }
 
+/// What a revoke took back: the grant, and how many tuples went.
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Revoked {
   pub grant: String,
   pub revoked: u64,
+}
+
+/// A grant standing on a room, as a room's readers list them.
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub struct Standing {
+  pub relation: String,
+  pub subject_key: String,
+  /// Epoch milliseconds.
+  pub expires_at: Option<i64>,
+  pub words: Option<String>,
+}
+
+/// The grants standing on a room: those made on the room itself, with the words beside each, in the order
+/// they were written; a grant past its expiry is gone.
+pub async fn standing_in<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<Standing>, Refusal> {
+  let rows = crate::all(
+    db,
+    r#"SELECT t."relation", t."subject_key",
+              CAST(EXTRACT(EPOCH FROM t."expires_at") * 1000 AS bigint) AS "expires_at", w."words"
+       FROM "relation_tuples" t
+       LEFT JOIN "grant_words" w ON w."resource_type" = t."resource_type" AND w."resource_id" = t."resource_id"
+         AND w."relation" = t."relation" AND w."subject_key" = t."subject_key"
+       WHERE t."resource_type" = $1 AND t."resource_id" = $2
+         AND (t."expires_at" IS NULL OR t."expires_at" > now())
+       ORDER BY t."id""#,
+    vec![ROOM.into(), room.to_string().into()],
+  )
+  .await?;
+
+  rows
+    .iter()
+    .map(|row| {
+      Ok(Standing {
+        relation: row.try_get("", "relation")?,
+        subject_key: row.try_get("", "subject_key")?,
+        expires_at: row.try_get("", "expires_at")?,
+        words: row.try_get("", "words")?,
+      })
+    })
+    .collect()
 }
 
 /// The kind and object a target names.

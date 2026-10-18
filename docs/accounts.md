@@ -37,27 +37,29 @@ flowchart TD
 
 ## When it is in force
 
-- **`GET /accounts/model`** answers whether the model is in force, and why not where it is not:
-  - in force: the server stands on its database, sumida's tables stand, the deployment's rules are registered,
-    and the data move has been written;
-  - not in force: the database is not reachable, or the move has not been written.
+- **The server stands only on its database,** with sumida's tables standing and the deployment's rules
+  registered; a database out of reach, or one the rules do not fit, stops it at its start, and its unit starts
+  it again.
+- **`GET /accounts/model`** answers whether the model is in force — whether the data move has been written —
+  and why not where it is not. Once seen in force it stays so for the life of the process.
 - **A reader asks this first.** Not in force, it reads as it does without the model: no sender is linked to a
   user and no grant stands.
-- **Every other route but `GET /health` answers 503 while the model is not in force,** naming why, so no caller
-  can mistake an absent model for a refusal.
+- **Every route but `GET /health`, `GET /accounts/model` and `POST /accounts/move` answers 503 `not_in_force`
+  while the model is not in force,** naming why, so no caller can mistake an absent model for a refusal.
 
 ## sumida's own routes
 
-The service mounts sumida's router as sumida builds it; these are the ones the console calls.
+The service mounts sumida's router as sumida builds it, under `/sumida`, so sumida's own paths (its users
+among them) never take one other units name; these are the ones the console calls.
 
 - **Every request carries the browser's address in `X-Real-IP`,** which sumida's bans read; the console hands
   on its own caller's.
-- **Sign-in:** `POST /auth/session` with the name and the password. The console always asks for the ordinary
+- **Sign-in:** `POST /sumida/auth/session` with the name and the password. The console always asks for the ordinary
   window, an idle one of seven days which the service extends at every request a session is read on, so
   staying signed in stays the console's own seal (`docs/web.md`, 「Access」). The answer carries the session
   cookie, `bmo.sid`; a refusal is 401.
-- **Sign-out:** `DELETE /auth/session` with that cookie.
-- **Who a session is:** `GET /me` with the cookie; 401 where it is no live session.
+- **Sign-out:** `DELETE /sumida/auth/session` with that cookie.
+- **Who a session is:** `GET /sumida/me` with the cookie; 401 where it is no live session.
 - **sumida's settings** are written beside the service at its start and named for sumida, with the database's
   address and Valkey's handed in their own variables; no token is issued here, so no secret is kept.
 
@@ -95,9 +97,10 @@ section states what each does.
 
 - **`POST /accounts/move`** — the caller hands the service what the move needs out of the deployment's
   configuration: the sender ids the configuration names as the owner's, the rooms the deployment answers, and
-  the room rules with their rooms, subjects and words. The service writes the whole move in one transaction
-  with sumida's own machinery and marks it done in its own `settings` table; a second call answers that it is
-  done and writes nothing.
+  the room rules with their rooms, subjects and words. The console's one account becomes the platform
+  administrator's user, its password carried as it stands; a console holding more than one account is refused
+  with 409. The service writes the whole move in one transaction with sumida's own machinery and marks it done
+  in its own `settings` table; a second call answers that it is done and writes nothing.
 - **What the move writes is the service's own:** the users, their links to senders, every room's member grant
   at the deployment's defaults, the rules' grants and their words, and a user's id on the console's own tables
   that are keyed by user. A table of another unit is that unit's to key.
@@ -121,11 +124,13 @@ section states what each does.
 
 ### A room's holdings
 
-- **`GET /rooms/{chat}/holdings`** — what the service keeps for a room: the grants standing on it, and the
-  senders a grant there linked to a user. The receiver asks it before it removes a room, and shows the answer
-  as what the removal would take.
-- **The service declares itself a holder** to the receiver as it starts, naming its address and these two
-  holdings.
+- **`GET /rooms/{chat}/holdings`** — what the service keeps for a room: the grants made on it or to its members,
+  and the senders whose user holds a grant on it. The receiver asks it before it removes a room, and shows the
+  answer as what the removal would take; the grants stay, and open nothing once the room is gone.
+- **The service declares itself a holder** to the receiver as it starts, under the unit name `web`, naming its
+  address — `http://` and its listen address, an unspecified host as the loopback one — and these two holdings:
+  `room_grants`, which the receiver warns of, and `room_senders`, which stay. A declaration that does not land
+  is said on the service's error stream, and the service declares again at its next start.
 
 ## The account command
 

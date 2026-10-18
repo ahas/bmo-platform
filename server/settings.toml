@@ -2,6 +2,7 @@
 # which git ignores, or in the environment: a variable named BMO_WEB_SERVER_, then the table, two
 # underscores and the key, sets that key, so BMO_WEB_SERVER_DATABASE__URL sets the database's address.
 
+# The server does not stand without `token`, the bearer every caller presents; a deployment sets it.
 [server]
 listen = "127.0.0.1:3240"
 

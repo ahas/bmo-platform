@@ -29,6 +29,23 @@ pub struct Settings {
 pub struct Server {
   /// The address the server listens on.
   pub listen: SocketAddr,
+  /// The bearer token every caller presents; the server does not stand without one.
+  pub token: Option<String>,
+}
+
+impl Server {
+  /// The address another unit on the machine reaches the server at: `http://` and the listen address, an
+  /// unspecified host answered as the loopback one.
+  pub fn address(&self) -> String {
+    let host = match self.listen.ip() {
+      ip if ip.is_unspecified() && ip.is_ipv6() => "[::1]".to_owned(),
+      ip if ip.is_unspecified() => "127.0.0.1".to_owned(),
+      std::net::IpAddr::V6(ip) => format!("[{ip}]"),
+      std::net::IpAddr::V4(ip) => ip.to_string(),
+    };
+
+    format!("http://{host}:{}", self.listen.port())
+  }
 }
 
 /// The service's own database.

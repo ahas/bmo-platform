@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 
 use bmo_web_server::migration::Migrator;
-use bmo_web_server::receiver::{Receiver, no_such_message};
+use bmo_web_server::receiver::{Holding, Receiver, no_such_message};
 use bmo_web_server::routes::stand;
 use bmo_web_server::{Refusal, Service, store};
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement, Value};
@@ -115,9 +115,9 @@ pub async fn connect(database: &str) -> DatabaseConnection {
     .expect("the database answers")
 }
 
-/// The messages standing in rooms, as the receiver would say who sent them.
+/// The messages standing in rooms, as the receiver would say who sent them, and the holders declared to it.
 #[derive(Clone, Default)]
-pub struct Messages(Arc<Mutex<HashMap<(i64, i64), i64>>>);
+pub struct Messages(Arc<Mutex<HashMap<(i64, i64), i64>>>, pub Arc<Mutex<Vec<(String, String)>>>);
 
 #[async_trait::async_trait]
 impl Receiver for Messages {
@@ -125,6 +125,16 @@ impl Receiver for Messages {
     let held = self.0.lock().expect("the messages are readable").get(&(room, message)).copied();
 
     held.map(Some).ok_or_else(|| no_such_message(room, message))
+  }
+
+  async fn declare_holder(&self, unit: &str, address: &str, _holdings: &[Holding]) -> Result<(), Refusal> {
+    self
+      .1
+      .lock()
+      .expect("the declarations are writable")
+      .push((unit.to_owned(), address.to_owned()));
+
+    Ok(())
   }
 }
 
