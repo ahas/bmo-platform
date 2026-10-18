@@ -9,6 +9,9 @@ export interface Screen {
   icon: string;
   // Whether the screen's own pages under its address light it as well.
   nested: boolean;
+  // Whether the screen's unit is not yet split, so its page is the placeholder saying the feature is not
+  // available in this console (docs/boundary.md, 「Screens of units not yet split」).
+  placeholder?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
   // The mark the screen's entry carries while something on it wants looking at, read from what the
@@ -44,9 +47,28 @@ export interface ScreenTab {
 // The screens that stand in this console now, in the order the sidebar shows them. A screen's group
 // puts its entry here as it brings the screen; a unit not yet split stands as its placeholder's entry.
 export const SCREENS: readonly Screen[] = [
+  // The mailboxes, bmo-mail's. Its screen had places below its address, so they light it too.
+  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, placeholder: true },
+  // A machine's drives walked as files, bmo-drive's.
+  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, placeholder: true },
   // The Archive: the documents kept for reading, each with its attachments. Its pages are the
   // bmo-artifact bundle's, and its pages below the address light it.
-  { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true }
+  { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true },
+  // A checkout's code as its graph, bmo-graph's.
+  { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
+  // A checkout read at a commit with reviews pinned to its lines, bmo-review's.
+  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, placeholder: true },
+  // Every machine's hardware, bmo-node's. This machine's own monitor stood below its address.
+  { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, placeholder: true },
+  // The cards and who holds them, bmo-arbiter's.
+  { label: "screens.label.cards", to: "/cards", icon: "i-material-symbols-developer-board-outline", nested: false, placeholder: true },
+  // The gates and their trials, bmo-gate's. Each gate's own page stood below its address.
+  { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, placeholder: true },
+  // The voice briefing, bmo-voice's.
+  { label: "screens.label.briefing", to: "/briefing", icon: "i-material-symbols-record-voice-over-outline", nested: false, placeholder: true },
+  // A machine's terminals and desktop, bmo-remote's. It stands last because it reaches the machine rather
+  // than reading anything kept; its full-screen pages stood below its address.
+  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, placeholder: true }
 ];
 
 export function isScreenActive(screen: Screen, path: string): boolean {

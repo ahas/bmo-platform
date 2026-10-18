@@ -31,16 +31,16 @@ bmo-artifact bundle already carries at the same path is not carried; a test goes
 | The console's user unit | 1 | build-14 (deployment) |
 | Already in bmo-ui | 165 | build-6 (console workspace) |
 | Already in the bmo-artifact console plugin bundle | 58 | build-6 (console workspace) |
-| A screen of bmo-mail, not yet split | 113 | build-8 (placeholders) |
-| A screen of bmo-remote, not yet split | 92 | build-8 (placeholders) |
-| A screen of bmo-node, not yet split | 44 | build-8 (placeholders) |
-| A screen of bmo-review, not yet split | 32 | build-8 (placeholders) |
-| A screen of bmo-drive, not yet split | 27 | build-8 (placeholders) |
-| A screen of bmo-voice, not yet split | 14 | build-8 (placeholders) |
-| A screen of bmo-graph, not yet split | 16 | build-8 (placeholders) |
-| A screen of bmo-arbiter, not yet split | 10 | build-8 (placeholders) |
-| A screen of bmo-gate, not yet split | 8 | build-8 (placeholders) |
-| The phone app, dropped with `android/` | 11 | build-8 (placeholders) |
+| A screen of bmo-mail, not yet split | 113 | not carried: placeholder (build-8) |
+| A screen of bmo-remote, not yet split | 92 | not carried: placeholder (build-8) |
+| A screen of bmo-node, not yet split | 44 | not carried: placeholder (build-8) |
+| A screen of bmo-review, not yet split | 32 | not carried: placeholder (build-8) |
+| A screen of bmo-drive, not yet split | 27 | not carried: placeholder (build-8) |
+| A screen of bmo-voice, not yet split | 14 | not carried: placeholder (build-8) |
+| A screen of bmo-graph, not yet split | 16 | not carried: placeholder (build-8) |
+| A screen of bmo-arbiter, not yet split | 10 | not carried: placeholder (build-8) |
+| A screen of bmo-gate, not yet split | 8 | not carried: placeholder (build-8) |
+| The phone app, dropped with `android/` | 11 | not carried: dropped (build-8) |
 | **Total** | **1238** | |
 
 The groups of kept files are copied in this order, each restoring the places in the shell that name it:
@@ -132,8 +132,10 @@ The places in the shell that name a later group's file are cut here, and that gr
 - **The ops screens (build-13):** the home page at `/`, `/api/deploy`, the deployment mark on the rooms page,
   and the cache-siren and database entries and choices.
 - **The brain screens (build-12):** the documents and memories entries.
-- **The placeholders (build-8):** the mail, files, graph, code, monitor and remote entries, the mail notices
-  and the briefing player.
+- **The placeholders (build-8):** the mail, files, graph, code, monitor and remote entries stand again, with
+  the cards, gates and briefing entries, as placeholders (below, 「Screens of units not yet split」). The
+  briefing player and the stream's mail and briefing-stop words are not carried. The mail notices' push kind
+  stays among the notification kinds a device may choose, and nothing in this console rings it.
 
 ### The agency screens (163 files)
 
@@ -195,8 +197,23 @@ Stands here as not carried: the bundle the console extends, its roads handed to 
 
 ### Screens of units not yet split (356 files)
 
-Not carried. Each unit's own phase-1 item carries them; until it does, the console shows a placeholder for
-the screen (build-8).
+Not carried, nor any part of them: each unit's own phase-1 item carries them. Until it does, the console shows
+a placeholder in the screen's place (build-8; `docs/boundary.md`, 「Screens of units not yet split」), from
+these files written for it:
+
+- `client/apps/web/app/components/ScreenPlaceholder.vue`, the one placeholder page body: the screen's name and
+  icon, and the pack's `screens.message.not_available`. Each unit's entry stands in `app/domain/screens.ts`,
+  marked as a placeholder, with its label in the pack under `screens.label`.
+- One page to a unit, holding the placeholder alone: `app/pages/mail/[...path].vue`, `app/pages/files.vue`,
+  `app/pages/code.vue`, `app/pages/remote/[...path].vue`, `app/pages/graph.vue`,
+  `app/pages/monitor/[...path].vue`, `app/pages/cards.vue`, `app/pages/gates/[...path].vue` and
+  `app/pages/briefing.vue`. Where one stands at an old member's path, it is this placeholder and not that
+  member.
+- `client/tests/app/pages/placeholders.test.ts`, rendering each placeholder page through Vue's own compiler
+  and server renderer with `client/tests/support/render-page.ts`.
+
+The old pages below the addresses that are not carried — a node's own page at `/nodes/{name}`, a shared
+folder's page at `/share/files/{token}` — stand as no page, and a link to one finds none.
 
 - **bmo-mail (113 files):** `app/components/MailAddressField.vue`; `app/components/MailAvatar.vue`; `app/components/MailBody.vue`; `app/components/MailComposeForm.vue`; `app/components/MailComposer.vue`; `app/components/MailEditor.vue`; `app/components/MailEditorSkeleton.vue`; `app/components/MailLabelChoice.vue`; `app/components/MailList.vue`; `app/components/MailMessageCard.vue`; `app/components/MailNav.vue`; `app/components/MailNavEntry.test.ts`; `app/components/MailNavEntry.vue`; `app/components/MailRow.vue`; `app/components/MailSettingsBody.vue`; `app/components/MailThread.vue`; `app/domain/mail-api.ts`; `app/domain/mail-body.ts`; `app/domain/mail-editor-load.test.ts`; `app/domain/mail-editor-load.ts`; `app/domain/mail-editor.test.ts`; `app/domain/mail-editor.ts`; `app/domain/mail-fit.ts`; `app/domain/mail-frame.test.ts`; `app/domain/mail-frame.ts`; `app/domain/mail-notice.test.ts`; `app/domain/mail-notice.ts`; `app/domain/mail-summary.test.ts`; `app/domain/mail-summary.ts`; `app/domain/mail.test.ts`; `app/domain/mail.ts`; `app/pages/mail/[...path].vue`; `browser/mail-body.test.ts`; `scripts/mail-bench.test.ts`; `scripts/mail-bench.ts`; `server/api/mail/` (37 files); `server/plugins/mail.ts`; `server/utils/mail/` (39 files); `shared/mail.ts`.
 - **bmo-remote (92 files):** `app/assets/fonts/CaskaydiaCoveNerdFontMono-Bold.woff2`; `app/assets/fonts/CaskaydiaCoveNerdFontMono-Regular.woff2` (the remote terminal's faces, which bmo-ui does not carry; the shell's stylesheet loses their faces with them); `app/components/RemoteDesktop.vue`; `app/components/RemoteDesktopLogin.vue`; `app/components/RemoteExtraKeys.vue`; `app/components/RemoteRenameModal.vue`; `app/components/RemoteTerminal.vue`; `app/components/RemoteTerminalPanel.vue`; `app/components/RemoteViewMenu.vue`; `app/components/RemoteWindowBar.vue`; `app/domain/remote/` (16 files); `app/pages/remote/` (3 files); `modules/dev-websocket.ts`; `remote/` (2 files); `scripts/bench-bot.test.ts`; `scripts/bench-bot.ts`; `scripts/bench-server.test.ts`; `scripts/bench-server.ts`; `scripts/bench.test.ts`; `scripts/bench.ts`; `scripts/build-ironrdp.ts`; `scripts/ironrdp-avc420.test.ts`; `scripts/ironrdp-bundle.test.ts`; `scripts/ironrdp-bundle.ts`; `server/api/remote/` (6 files); `server/plugins/dev-use.ts`; `server/plugins/websocket.ts`; `server/utils/rdcleanpath.test.ts`; `server/utils/rdcleanpath.ts`; `server/utils/rdp-client-info.test.ts`; `server/utils/rdp-client-info.ts`; `server/utils/rdp-framing.test.ts`; `server/utils/rdp-framing.ts`; `server/utils/rdp-hangul.test.ts`; `server/utils/rdp-hangul.ts`; `server/utils/rdp-input.ts`; `server/utils/rdp-negotiation.test.ts`; `server/utils/rdp-negotiation.ts`; `server/utils/rdp-nla.test.ts`; `server/utils/rdp-nla.ts`; `server/utils/rdp-pointers.test.ts`; `server/utils/rdp-pointers.ts`; `server/utils/rdp-redirection.test.ts`; `server/utils/rdp-redirection.ts`; `server/utils/rdp-typist.test.ts`; `server/utils/rdp-typist.ts`; `server/utils/remote-desktop-focus.test.ts`; `server/utils/remote-desktop-focus.ts`; `server/utils/remote-desktop-keys.test.ts`; `server/utils/remote-desktop-keys.ts`; `server/utils/remote-desktop-socket.test.ts`; `server/utils/remote-desktop-socket.ts`; `server/utils/remote-guard.test.ts`; `server/utils/remote-guard.ts`; `server/utils/remote-input-method.test.ts`; `server/utils/remote-input-method.ts`; `server/utils/remote-pty.test.ts`; `server/utils/remote-pty.ts`; `server/utils/remote-sockets.test.ts`; `server/utils/remote-sockets.ts`; `server/utils/remote-terminal-socket.test.ts`; `server/utils/remote-terminal-socket.ts`; `server/utils/remote-tmux.test.ts`; `server/utils/remote-tmux.ts`; `vendor/` (5 files).

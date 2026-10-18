@@ -262,11 +262,26 @@ for it, and no file or table of that unit is read meanwhile.
 ## Screens of units not yet split
 
 The screens of the mail, the drive, the code review, the remote access, the code graph, the nodes and the
-monitor, the card arbiter, the gates and the voice briefing's player belong to units whose own repositories
-are not yet split. Until each unit's own item carries its screen as a plugin bundle, the console shows a
-placeholder in that screen's place: its navigation entry and its route stand, and the page says, through the
-language pack, that the feature is not available in this console. The placeholder makes no call.
-`docs/inventory.md` lists every file of those screens.
+monitor, the card arbiter, the gates and the voice briefing belong to units whose own repositories are not yet
+split. Until each unit's own item carries its screen as a plugin bundle, the console shows a placeholder in
+that screen's place: its navigation entry and its route stand, and the page says, through the language pack,
+that the feature is not available in this console. The placeholder makes no call, and no file of the unit's
+screen is carried. `docs/inventory.md` lists every file of those screens.
+
+| Unit | Address | Below it |
+|---|---|---|
+| bmo-mail | `/mail` | every address, as the mail screen's places stood |
+| bmo-drive | `/files` | none |
+| bmo-review | `/code` | none |
+| bmo-remote | `/remote` | every address, as its terminal and desktop stood |
+| bmo-graph | `/graph` | none |
+| bmo-node | `/monitor` | every address, as this machine's own monitor stood |
+| bmo-arbiter | `/cards` | none |
+| bmo-gate | `/gates` | every address, as each gate's own page stood |
+| bmo-voice | `/briefing` | none |
+
+- **The voice briefing's player** stood in the layout, over every screen; it is not carried, and the layout
+  holds no player.
 
 ## The codes the packs render
 

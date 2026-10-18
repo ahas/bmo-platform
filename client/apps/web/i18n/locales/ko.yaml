@@ -317,13 +317,24 @@ room:
 screens:
   label:
     archive: 아카이브
+    briefing: 보이스브리핑
+    cards: 카드
+    code: 코드 리뷰
+    files: 파일
     find_description: 화면, 방, 에이전트로 이동
+    gates: 게이트
+    graph: 코드 그래프
+    mail: 메일
+    monitor: 모니터
+    remote: 원격
     search: 검색
   placeholder:
     find: 화면·방·에이전트 찾기
   status:
     disconnected: 연결 끊김
     restarting: 재시작 중
+  message:
+    not_available: 이 콘솔에서는 아직 쓸 수 없는 기능입니다.
   error:
     bad_screen_name: 화면 이름이 올바르지 않습니다.
     no_tab_state: 탭 상태가 없습니다.

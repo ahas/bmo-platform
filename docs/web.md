@@ -18,10 +18,15 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact con
   store of the unit that owns what is shown, and **the control API** is those routes. The console's own data
   is the server's (`docs/accounts.md`, 「The tables」).
 - **A screen of a unit not yet split stands as a placeholder.** The mail, files, code review, remote access,
-  code graph, node and monitor, card and gate screens, and the voice briefing's player, belong to units whose
-  own repositories are not yet split: their navigation entries and routes stand, and each page says, through
-  the language pack, that the feature is not available in this console (`docs/boundary.md`, 「Screens of units
-  not yet split」). Where this document names one of them, it names the screen as that unit carries it.
+  code graph, node and monitor, card and gate screens, and the voice briefing, belong to units whose own
+  repositories are not yet split: their navigation entries and routes stand, and each page says, through the
+  language pack, that the feature is not available in this console (`docs/boundary.md`, 「Screens of units not
+  yet split」). The layout holds no briefing player. Where this document names one of them, it names the
+  screen as that unit carries it.
+  - **A placeholder stands as a screen does:** the screen's own name and icon in its title bar, and under it
+    the one sentence that the feature is not available in this console, centred in the body in the quiet
+    colour. Its sidebar entry lights on its address and on the addresses below it where the unit's screen had
+    pages of its own, and the console search finds it as it finds any screen.
 - **The archive screen and the share page are the bmo-artifact bundle's** (bmo-artifact's `docs/layout.md`),
   which this app extends and whose roads it hands on.
 

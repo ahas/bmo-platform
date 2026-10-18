@@ -4,7 +4,8 @@
   // project configs carry the same alias for the app, the server and the shared code.
   "compilerOptions": {
     "paths": {
-      "#shared/*": ["./shared/*"]
+      "#shared/*": ["./shared/*"],
+      "~/*": ["./app/*"]
     }
   },
   "files": [],

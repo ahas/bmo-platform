@@ -35,13 +35,6 @@ export const STREAM_KEEPALIVE_MS = 5_000;
 // keepalives missed in a row is not a slow line; it is a connection that died without closing.
 export const STREAM_SILENCE_MS = STREAM_KEEPALIVE_MS * 4;
 
-// The console event that says a voice briefing was stopped on some listener, which every console
-// tab and phone playing it stops on (the voice unit's docs/voice-briefing.md, 「What a listener hears」).
-export const BRIEFING_STOPPED = "briefing-stopped";
-
-// How late a listener may hear of a briefing and still play it on its own. Past this it is news
-// that has already gone by, shown at most.
-export const BRIEFING_FRESH_MS = 2 * 60_000;
 
 // How many of the last runs the live status screen shows for each agent. It is a glance at
 // what has just happened, not a log.

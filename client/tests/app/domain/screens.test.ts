@@ -10,8 +10,12 @@ import type { Screen } from "../../../apps/web/app/domain/screens";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/archive"]);
-  expect(screenItems(wording, "/").map((item) => item.label)).toEqual([wording("screens.label.archive")]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/mail", "/files", "/archive", "/graph", "/code", "/monitor", "/cards", "/gates", "/briefing", "/remote"]);
+  expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
+});
+
+test("the archive alone stands whole; every other screen is its unit's placeholder", () => {
+  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/archive"]);
 });
 
 test("a nested screen is lit on its own address and on the pages below it, and nowhere else", () => {
@@ -20,7 +24,7 @@ test("a nested screen is lit on its own address and on the pages below it, and n
   expect(isScreenActive(archive, "/archive")).toBe(true);
   expect(isScreenActive(archive, "/archive/58")).toBe(true);
   expect(isScreenActive(archive, "/archived")).toBe(false);
-  expect(screenItems(wording, "/archive/58")[0]!.active).toBe(true);
+  expect(screenItems(wording, "/archive/58").find((item) => item.to === "/archive")!.active).toBe(true);
 });
 
 test("a screen's tab stands at the screen's own address when it is the first, and under its key otherwise", () => {
@@ -43,6 +47,6 @@ test("folded, a row is named by its label for a reader that cannot see its words
   const items = namedWhenFolded([{ label: "a heading", type: "label" }, ...screenItems(wording, "/")], true);
 
   expect(items[0]).toEqual({ label: "a heading", type: "label" });
-  expect(items[1]!["aria-label"]).toBe(wording("screens.label.archive"));
+  expect(items[1]!["aria-label"]).toBe(wording(SCREENS[0]!.label));
   expect(namedWhenFolded(screenItems(wording, "/"), false)[0]!["aria-label"]).toBeUndefined();
 });

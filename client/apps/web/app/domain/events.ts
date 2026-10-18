@@ -1,4 +1,4 @@
-import { BRIEFING_STOPPED, EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
+import { EVENT_FIRST_RETRY_MS, EVENT_RETRY_MS, RESTART_GRACE_MS, STREAM_KEEPALIVE_MS, STREAM_SILENCE_MS } from "#shared/config";
 import { TURN_ENDED } from "#shared/types";
 import { askWhetherLoginEnded } from "./login-end";
 import { toUnixSeconds } from "bmo-ui/app/domain/time";
@@ -102,23 +102,12 @@ interface StreamState {
 // of them goes. Every screen reads the same connection: a browser holds only a handful open to
 // one origin, and each of these is a second one held from this app to the bot besides.
 const listeners = new Set<(event: BotEvent) => void>();
-// What hears the console's own mail word: the account that changed, or null when the stream has
-// just opened and everything is to be read again.
-const mailListeners = new Set<(account: string | null) => void>();
-// What hears the console's word that a briefing was stopped on some listener.
-const stopListeners = new Set<(stopped: BriefingStopped) => void>();
 // What hears the console's word that the deployment moved, and that the stream opened.
 const deployListeners = new Set<() => void>();
 
-// Which briefing a stop names.
-export interface BriefingStopped {
-  chatId: number;
-  messageId: number;
-}
-
-// How many screens hold the stream, bot news, mail, briefing stops and the deployment alike.
+// How many screens hold the stream, bot news and the deployment alike.
 function holders(): number {
-  return listeners.size + mailListeners.size + stopListeners.size + deployListeners.size;
+  return listeners.size + deployListeners.size;
 }
 
 let source: EventSource | null = null;
@@ -303,15 +292,10 @@ function open(): void {
     hand(event);
   });
 
-  // The stream has opened. What mail came while it was closed was never said on it, so everyone
-  // listening for mail reads the whole summary again (the mail unit's docs/mail.md, 「Reaching the open tabs」).
+  // The stream has opened. What the deployment did while it was closed was never said on it, and the
+  // stream that opens after bmo-web's own restart is the first to hear of it (docs/web.md, 「Deployment in the
+  // title bar」).
   source.addEventListener("open", () => {
-    for (const listener of mailListeners) {
-      listener(null);
-    }
-
-    // Nor was what the deployment did while it was closed, which the stream that opens after
-    // bmo-web's own restart is the first to hear of (docs/web.md, 「Deployment in the title bar」).
     for (const listener of deployListeners) {
       listener();
     }
@@ -326,43 +310,6 @@ function open(): void {
     }
   });
 
-  // The console's own word that a mail account changed. It carries no id and never moves the
-  // cursor, which counts the bot's numbered events alone.
-  source.addEventListener("mail", (message) => {
-    heard = true;
-
-    let said: { account?: unknown };
-
-    try {
-      said = JSON.parse((message as MessageEvent<string>).data) as { account?: unknown };
-    } catch {
-      return;
-    }
-
-    if (typeof said.account !== "string") {
-      return;
-    }
-
-    for (const listener of mailListeners) {
-      listener(said.account);
-    }
-  });
-
-  // A briefing stopped on some listener. Like the mail word it carries no id and never moves the
-  // cursor.
-  source.addEventListener(BRIEFING_STOPPED, (message) => {
-    heard = true;
-
-    const stopped = briefingStoppedOf((message as MessageEvent<string>).data);
-
-    if (stopped === null) {
-      return;
-    }
-
-    for (const listener of stopListeners) {
-      listener(stopped);
-    }
-  });
 
   // The bot is stopping on purpose and the stream is about to end. Nothing changes on the screen
   // yet: what this decides is how the end reads when it comes.
@@ -1035,29 +982,6 @@ export function useChatTurns(): Readonly<Ref<ChatTurnProgress[]>> {
   return computed(() => [...own.value].map(([chatId, run]) => ({ chatId, progress: run.progress })));
 }
 
-// The console's mail word, on the tab's one stream: called with the account that changed, and with
-// null each time the stream opens or opens again, when every account is to be read afresh.
-export function useMailEvents(onChange: (account: string | null) => void): void {
-  if (import.meta.server) {
-    return;
-  }
-
-  onMounted(() => {
-    mailListeners.add(onChange);
-
-    if (holders() === 1) {
-      open();
-    }
-  });
-
-  onScopeDispose(() => {
-    mailListeners.delete(onChange);
-
-    if (holders() === 0) {
-      close();
-    }
-  });
-}
 
 // The console's word that the deployment moved, on the tab's one stream: called on that word and each
 // time the stream opens or opens again.
@@ -1083,41 +1007,3 @@ export function useDeployEvents(onChange: () => void): void {
   });
 }
 
-// The console's word that a briefing was stopped by a listener somewhere, on the tab's one stream
-// (the voice unit's docs/voice-briefing.md, 「What a listener hears」).
-export function useBriefingStops(onStop: (stopped: BriefingStopped) => void): void {
-  if (import.meta.server) {
-    return;
-  }
-
-  onMounted(() => {
-    stopListeners.add(onStop);
-
-    if (holders() === 1) {
-      open();
-    }
-  });
-
-  onScopeDispose(() => {
-    stopListeners.delete(onStop);
-
-    if (holders() === 0) {
-      close();
-    }
-  });
-}
-
-// The stop word's own fields, read off a frame that may say anything.
-export function briefingStoppedOf(data: string): BriefingStopped | null {
-  let said: { chatId?: unknown; messageId?: unknown };
-
-  try {
-    said = JSON.parse(data) as { chatId?: unknown; messageId?: unknown };
-  } catch {
-    return null;
-  }
-
-  return Number.isSafeInteger(said?.chatId) && Number.isSafeInteger(said?.messageId)
-    ? { chatId: said.chatId as number, messageId: said.messageId as number }
-    : null;
-}
