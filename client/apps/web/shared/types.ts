@@ -2022,6 +2022,19 @@ export interface TodoTalk {
   failure: string | null;
 }
 
+// One turn of the talk about a document, kept in the console's own table: for the owner's words, the passage,
+// heading and version selected as they were said, and whether the document was read translated then.
+export interface DocumentTalkTurn {
+  id: number;
+  speaker: TalkSpeaker;
+  text: string;
+  saidAt: number;
+  passage: string | null;
+  heading: string | null;
+  version: string | null;
+  translated: boolean;
+}
+
 // What the bot answers a launch with. The unit is up; the run itself is watched in the log.
 export interface LaunchResult {
   ok: true;

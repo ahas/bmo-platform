@@ -298,6 +298,11 @@ Stands here as `client/apps/web/` at the same path, calling the brain over HTTP;
 
 `app/components/DocumentPane.vue`; `app/components/DocumentReader.vue`; `app/components/DocumentSeek.vue`; `app/components/DocumentSide.vue`; `app/components/DocumentTalk.vue`; `app/components/DocumentToc.vue`; `app/components/DocumentTree.vue`; `app/components/MemoryActiveSwitch.vue`; `app/components/MemoryCondition.vue`; `app/components/MemoryDetail.vue`; `app/components/MemoryWatch.vue`; `app/domain/documents.test.ts`; `app/domain/documents.ts`; `app/domain/memories.ts`; `app/pages/documents.test.ts`; `app/pages/documents.vue`; `app/pages/memories.test.ts`; `app/pages/memories.vue`; `server/api/documents/` (9 files); `server/api/memories.get.ts`; `server/api/memories.post.ts`; `server/utils/document-fragments.test.ts`; `server/utils/document-fragments.ts`; `server/utils/document-records.ts`; `server/utils/document-request.ts`; `server/utils/documents.test.ts`; `server/utils/documents.ts`; `server/utils/memories.test.ts`; `server/utils/memories.ts`; `shared/translation.test.ts`; `shared/translation.ts`.
 
+The talk about a document that `server/utils/document-records.ts` read stands already as
+`server/utils/document-talk.ts`, on the console's own `document_talk` (「The tables」 below), with its test under
+`client/tests/server/utils/`; the console writes the talk there itself, the owner's words as they are sent and the
+chat agent's answer as the receiver's talk answers. Carried by build-18 (document talk).
+
 ### The home, cache-siren, deployment and database screens (33 files)
 
 Stands here as `client/apps/web/` at the same path; a test under `client/tests/`. Carried by build-13 (ops screens).
@@ -397,7 +402,7 @@ The account service stands in `server/`, one Rust project on sumida (build-2, bu
 Web's own migrations make these 10 tables beside sumida's own, which sumida's migrations make:
 `user_senders`, `grant_words`, `settings` (web's keys only: the users-moved mark and the administrator),
 `web_users`, `web_push_devices`, `web_tab_states`, `web_palettes`, `web_themes`, `web_room_reads` (build-2),
-and `document_talk` (the document talk step). They come from `archive/bmo-archive/src/migration/archive.sql`,
+and `document_talk` (build-18, a migration of its own). They come from `archive/bmo-archive/src/migration/archive.sql`,
 `m20261006_000000_extensions`, `m20261006_000001_users`, `m20261007_000002_room_reads`,
 `m20261009_000001_palettes` and `m20261009_000002_themes`. `document_talk` is the console's own because the
 receiver's talk takes the earlier turns from its caller.
