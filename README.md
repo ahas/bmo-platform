@@ -21,6 +21,12 @@ any). No manifest stands at the root: the server's and the client's each stand i
 
 | Document | States |
 |---|---|
+| `docs/boundary.md` | The boundary: every route the server serves, every call the server and the console make on another unit, the settings that name those units, and the codes the packs render |
+| `docs/accounts.md` | The account service: what it holds, where it answers, when the model is in force, its routes, its command and its tables |
+| `docs/language-pack.md` | The language packs: the server's and the console's, how each is read, and what other units read of them |
+| `docs/web.md` | The console: its layout, motion, access, wording, every screen, notifications, how it talks to the units, its settings and how it runs |
+| `docs/documents-viewer.md` | The document viewer: its roots, names and versions, path boundaries, fragments, the contents, and asking about a passage |
+| `docs/skeleton-loading.md` | How the console keeps the place of content it is still fetching |
 | `docs/inventory.md` | Every member of the single repository this one was separated from: where it stands here, the task that carried it, and the unit that owns the ones that did not come |
 
 ## Version
