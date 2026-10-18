@@ -1,0 +1,3 @@
+[test]
+# The console's tests stand under tests/ alone, beside the workspace's members rather than inside them.
+root = "./tests"

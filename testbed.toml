@@ -4,7 +4,10 @@ testbed = 0
 name = "web"
 
 [test]
-languages = ["cargo"]
+# The server's crate, and the client workspace, a project of its own found by its manifest and lockfile, whose
+# `check` script is the console's typecheck and its tests.
+languages = ["cargo", "bun"]
+setup = ["cd client && bun install --frozen-lockfile"]
 
 # The server's tests make their own scratch databases on the server, so no template is named.
 [test.database]

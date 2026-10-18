@@ -1,0 +1,7 @@
+node_modules
+.output
+.releases
+.nuxt
+.env
+.nuxt-bench
+.check-build

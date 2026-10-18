@@ -5402,6 +5402,13 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_VAPID_SUBJECT` | Where to contact about this server's push. A `mailto:` or `https:` address, and the default points at no person |
 | `BMO_PUSH_IN_DEV` | Makes the dev server send notifications too (`1`, `true`, `yes`). A built server always sends regardless |
 | `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by. Inside no checkout |
+| `BMO_WEB_BASE_URL` | The base path every page and road stands under; `/bmo/` where none is named |
+| `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory |
+| `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, so a typecheck in the same checkout leaves what it serves alone |
+| `BMO_WEB_DEV_HOSTS` | The hosts a dev server answers beyond its own, comma-separated |
+
+A unit's address and token are read by name on the console's server, `<NAME>_ADDRESS` and `<NAME>_TOKEN`; a unit
+whose address is not set is a unit the console does not reach.
 
 Make a key like this:
 

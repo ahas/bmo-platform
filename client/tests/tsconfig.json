@@ -1,0 +1,13 @@
+{
+  // The console's tests, and the test support they stand on, as a project of their own.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["bun"]
+  },
+  "include": ["."]
+}

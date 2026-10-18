@@ -41,7 +41,8 @@ bundle; a screen of a unit not yet split is a placeholder.
 A change moves through three stages in order:
 
 1. Writing: the static check of the half the change touches. The server:
-   `bmo-testbed cargo check --workspace --all-targets`. The client: `bun run typecheck` in `client/apps/web`.
+   `bmo-testbed cargo check --workspace --all-targets`. The client: `bun run typecheck` in `client/`, which
+   checks the app in `apps/web` (its own `bun run typecheck`), the account service's client and the tests.
 2. Review: read the whole diff against what the change is for and the document governing it, then the linter
    and the formatter: `bmo-testbed cargo clippy --workspace --all-targets -- -D warnings` and
    `cargo fmt --all --check` (108 columns, 2-space indentation, as `rustfmt.toml` sets) for the server;

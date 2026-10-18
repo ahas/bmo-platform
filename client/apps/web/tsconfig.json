@@ -1,0 +1,17 @@
+{
+  // The console's tests run under `bun test` from the client workspace, and Bun maps an import through
+  // the tsconfig nearest the file doing the importing: this one, for the app's own files. Nuxt's own
+  // project configs carry the same alias for the app, the server and the shared code.
+  "compilerOptions": {
+    "paths": {
+      "#shared/*": ["./shared/*"]
+    }
+  },
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
+  ]
+}
