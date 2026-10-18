@@ -1,0 +1,38 @@
+# web
+
+The web console, `bmo-web`: the server, which is the account service on sumida with the language packs,
+and the client, the Nuxt console a person signs in to. The console's screens call each unit's HTTP API;
+the account model, the grants and the words a room is told in a fixed line are this repository's own,
+served to the other units over HTTP. It is the one repository that holds language packs: every other unit
+answers in English messages and codes, which these packs render.
+
+## Layout
+
+| Folder | Holds |
+|---|---|
+| `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
+
+At the root stand the version in `VERSION`, `testbed.toml` (the testbed's declaration of how this repository
+is tested, checked, built and deployed), `rustfmt.toml`, `CLAUDE.md` and `korean-ledger.json` (the Korean left
+in a code file, which the testbed's Korean sweep holds every file to; no code file of this repository holds
+any). No manifest stands at the root: the server's and the client's each stand in their own folder.
+
+## Documents
+
+| Document | States |
+|---|---|
+| `docs/inventory.md` | Every member of the single repository this one was separated from: where it stands here, the task that carried it, and the unit that owns the ones that did not come |
+
+## Version
+
+- **One version for the whole repository,** in semver. `VERSION` holds it, and the server's and the client's
+  manifests equal it.
+- **A major change is a change to a contract a consumer reads;** an addition no existing consumer reads is
+  a minor change, anything else a patch.
+
+## Checks
+
+`bmo-testbed check quick` runs the three sweeps that read the tree before anything runs: Korean in the code,
+the README's folder table and the dependencies the manifests name. The only dependencies from another
+repository are the base libraries `bmo-chat`, `bmo-chat-client` and `bmo-ui`, and the console plugin bundle
+`bmo-artifact-client`, as `testbed.toml` declares.
