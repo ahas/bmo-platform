@@ -1,0 +1,88 @@
+# What a search leaves for a person to read (docs/archive.md, 「A search's document」, 「A page imported
+# whole」): the document `bmo runner search` writes under the runtime data root, and the result a page brought
+# in whole is written as. Each `{name}` is filled in with what it names.
+
+# What the console's collection of documents is called, which the chat's session is told a page brought in whole
+# was kept in.
+archive_name: "아카이브"
+
+# The question a page brought in whole stands under, by the {source} address it was asked from.
+import_query: "원문 가져오기: {source}"
+
+# The document's head: its title where the result gave none, by the {query}; and its lines, each with the
+# {value} it states, an option by its {name}.
+head:
+  untitled: "검색 · {query}"
+  query: "- 질문: {value}"
+  topic: "- 주제: {value}"
+  keywords: "- 키워드: {value}"
+  rule: "- 적용 룰: {value}"
+  option: "- 옵션 {name}: {value}"
+  depth: "- 깊이: {value}"
+  status: "- 상태: {value}"
+  started: "- 시작: {value}"
+  finished: "- 끝: {value}"
+  runs: "- 실행: {value}"
+
+# The result the room was given: its heading, what stands under it while nothing is written, the branch a
+# finding came out of by its {branch} label, and the heading of the pages it cites.
+result:
+  heading: "결과"
+  empty: "아직 아무것도 적히지 않았다."
+  branch: "브랜치: {branch}"
+  sources: "출처"
+
+# The trail folded under the result: its heading and the line that opens it, the run's own section, the mark
+# of the {run} a branch was opened in where the search took several, and the headings of what one branch
+# asked, opened and found.
+trail:
+  heading: "조사 과정"
+  summary: "브랜치마다 물어본 것과 열어 본 페이지"
+  own: "이 실행이 직접"
+  run: " · 실행 {run}"
+  asked: "물어본 것"
+  opened: "열어 본 페이지"
+  found: "여기에서 나온 것"
+
+# What each fixed part of a result's body is called.
+parts:
+  VERDICT: "핵심 답"
+  SUMMARY: "요약"
+  INTRO: "서론"
+  BODY: "본론"
+  CONCLUSION: "결론"
+  UNCONFIRMED: "확인하지 못한 것"
+  MORE: "자세히"
+
+# What each line of an entry is written as, with the {value} the line carries; a stock line's {value} is its
+# state, when it was read and where, joined; a deal's {now} price, its {usual} one where given and the {real}
+# word on it; a review's {rating} in bold where given, its {words} and the {page} it stands on; a picture
+# kept as the chat agent's own copy says the {address} it came from. The rating a result writes where there is none is
+# `no_rating`.
+fields:
+  ADDRESS: "주소: {value}"
+  MAP: "지도: {value}"
+  ROADVIEW: "거리뷰: {value}"
+  MENU: "메뉴: {value}"
+  menu_alone: "메뉴:"
+  RELEASED: "출시: {value}"
+  NEWER: "최신 모델: {value}"
+  STOCK: "판매 상태: {value}"
+  deal: "할인: {now}{usual}{real}"
+  deal_usual: " (평소 {usual})"
+  deal_real: " · {real}"
+  review_link: " ([리뷰]({page}))"
+  no_rating: "없음"
+  original: "원본: {address}"
+
+# A page brought in whole, as its result: the line that says it was answered, its topic by the page's
+# {host}, the figure {n} with its {caption} that could not be captured, and what each source line says of the
+# page kept, of the address asked that moved to it, and of a work the page cites with its {text} where any.
+import:
+  answered: "원문을 그대로 가져옴"
+  topic: "{host} 원문 가져오기"
+  missing: "그림 {n}({caption})을 캡처하지 못해 원래 주소만 남았다."
+  kept: "가져온 원문 페이지"
+  moved: "가져오기를 요청한 주소, 위 페이지로 넘어감"
+  cited: "원문이 인용한 자료"
+  cited_text: "원문이 인용한 자료: {text}"

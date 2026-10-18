@@ -1,0 +1,5 @@
+# What a verb of the `bmo` binary that puts a file into a room says where a person reads it
+# (docs/upload.md). Each `{name}` is filled in with what it names.
+
+# The title an mp3 conversion's own run stands under where a person watches it, {room} the room's name.
+mp3_title: "{room} mp3 변환"

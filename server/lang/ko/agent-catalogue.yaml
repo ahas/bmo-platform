@@ -1,0 +1,72 @@
+# What each built-in agent is called and the lines the roster the owner's own chat is given opens the chat
+# agent and each kind with (docs/agent-control.md, 「Execution transport contract」). The agents table
+# is seeded with the names where a row says nothing yet; the table is the original once seeded.
+
+# The roster's lines: the one shared chat agent with the rooms it is connected to ({rooms}, the owner's
+# own chat first), and what each kind of agent is, in the order the roster names the kinds.
+roster:
+  chat: "{chat_agent}: one shared chat agent. {owner_chat_agent} is the chat agent in the owner’s private chat, not another agent. Connected rooms: {rooms}."
+  owner_room: "{owner_chat}, {owner_chat_agent} or {owner_chat_agent} (you, the owner's private chat)"
+  kinds:
+    companion: "지정된 에이전트, or designated agents: you and the companions below, each answering in the rooms that name it, in a persona of its own. A room that names a companion alone is never yours to speak in; in a room you share with one, the receiver wakes each of you by the same rule."
+    gate: "게이트 에이전트, or 게이트: the judgement runs with no tools of their own."
+    runner: "러너: the research runs you launch and that hand their result back to you."
+    recollector: "리콜렉터, or Recollector: the runs that decide what of a conversation becomes an agent's long-term memory and write it from that agent's own view: the room digest and the person-book writer with Read, Write, Edit, Glob and Grep only, the session summariser with no tools."
+    worker: "worker: the jobs you launch with the task tool. Each has a name of its own and a checkout of its own."
+
+# Each built-in agent by its internal name: what the owner calls it, and the other names they call it by.
+agents:
+  worker:
+    label: "워커"
+    aliases: ["Job 워커", "잡 워커", "워커", "워커잡"]
+  session-summary:
+    label: "세션 요약기"
+    aliases: ["세션 요약기", "인계 요약기"]
+  system-documents:
+    label: "시스템 문서 분류기"
+    aliases: ["참조 분류기", "시스템 문서 분류기", "시스템 참조 게이트", "로어 판단 게이트"]
+  room-rules:
+    label: "방 규칙 분류기"
+    aliases: ["참조 분류기", "방 규칙 분류기", "방 규칙 게이트", "룰북 분류기"]
+  library-knowledge:
+    label: "서고 지식 분류기"
+    aliases: ["참조 분류기", "서고 지식 분류기", "서고 게이트", "지식 문서 분류기"]
+  people-search:
+    label: "인물북 서칭"
+    aliases: ["인물북 서칭", "인물북 검색", "인물 조각 분류기", "인물북 분류기"]
+  situation-rules:
+    label: "상황 규칙 매칭기"
+    aliases: ["상황 규칙", "상황 규칙 매칭기", "규칙 매칭기", "조건 맞으면 붙는 규칙"]
+  sanitizer:
+    label: "무해화 게이트"
+    aliases: ["문맥 위생 게이트", "해킹 게이트", "입력 새니타이즈"]
+  output-format:
+    label: "출력 서식 게이트"
+    aliases: ["출력 서식 게이트", "포맷 여부 판정 게이트"]
+  people-standing:
+    label: "인물북 요약기"
+    aliases: ["인물북 요약기", "인물 요약본 작성기", "상시층 작성기", "요약본 작성기"]
+  document-seek:
+    label: "문서 찾기 게이트"
+    aliases: ["문서 찾기 게이트", "문서 검색 게이트", "목차 찾기"]
+  translator:
+    label: "번역기"
+    aliases: ["번역기", "번역 에이전트", "문서 번역기"]
+  voice-polish:
+    label: "대본 다듬기 게이트"
+    aliases: ["대본 다듬기 게이트", "듣기용 다듬기", "전체 읽기 다듬기"]
+  voice-reading:
+    label: "음차 게이트"
+    aliases: ["음차 게이트", "읽는 법 게이트", "발음 게이트"]
+  search:
+    label: "서쳐"
+    aliases: ["서쳐", "웹서쳐", "검색기", "웹검색기"]
+  browse:
+    label: "브라우저 서쳐"
+    aliases: ["브라우저 검색기", "브라우저 서쳐", "상위 웹 검색기", "실 검색기"]
+  digest:
+    label: "다이제스트"
+    aliases: ["다이제스트", "방 요약기", "대화 요약기", "대화 정리기"]
+  people-digest:
+    label: "인물북 작성기"
+    aliases: ["인물북 작성기", "인물북 에디터", "인물북 정리기", "인간관계 정리기"]

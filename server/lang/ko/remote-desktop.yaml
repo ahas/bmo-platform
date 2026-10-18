@@ -1,0 +1,11 @@
+# Which port the console's remote desktop relay dials on this PC (docs/remote.md, 「Where the desktop
+# is」), as `bmo node remote-desktop` tells it. Each `{name}` is filled in with what it names.
+
+# The port the relay dials, {port}.
+dials: "원격 데스크톱은 {port} 포트로 붙습니다."
+# No row is set, so the relay dials this PC's usual port, {port}.
+unset: "원격 데스크톱은 {port} 포트로 붙습니다 (설정 없음)."
+# The row holds {kept}, which is no port, so the relay dials the usual {port}.
+not_a_port: "설정된 값 '{kept}'은 포트가 아니라서 무시되고, {port} 포트로 붙습니다."
+# The port asked for, {value}, is no port, and nothing is written.
+refused: "포트가 아닙니다: {value}"

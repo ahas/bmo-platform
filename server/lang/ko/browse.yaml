@@ -1,0 +1,6 @@
+# A browse run as a person watching herdr reads it (docs/research-runs.md, 「The browse tool」): the launch
+# titles the run it starts by the room it was asked from, never by the task, which may carry somebody's
+# credentials. Each `{name}` is filled in with what it names.
+
+# The run's title: {room} the room it reports to.
+run_title: "{room} 요청"

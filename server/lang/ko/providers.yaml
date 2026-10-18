@@ -1,0 +1,11 @@
+# What a run is refused with about the provider and the job model it goes out on
+# (docs/cache-fallback.md).
+
+# Why a run is refused where the owner switched its provider off.
+off: "공급자가 꺼져 있습니다."
+# Why a co-worker is refused a provider that serves one model alone and lends none.
+single_model: "단일 모델 공급자라 코워커를 빌려주지 않습니다."
+# Why a run is refused a job model {selection} that names no tier, no provider and no model.
+model_wrong: "올바르지 않은 작업 모델: {selection}"
+# Why an automatic job is refused where no provider that is on offers a job model.
+no_model: "켜진 공급자에 등록된 작업 모델이 없습니다."

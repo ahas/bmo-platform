@@ -1,0 +1,14 @@
+# Why a value is not one a generation setting takes (docs/companions.md, 「Its generation settings」),
+# said alike by the bun bot and bmo-server.
+
+# Why a value is not one a setting takes, as the owner is told it: a switch given anything but on or
+# off, a value that is no number or no whole number, and one outside its range, said from its lowest
+# {min} (above it or at least it) and, where there is one, its highest {max}. {name} is the setting.
+refusals:
+  switch: "{name} 값은 켬 또는 끔이어야 합니다."
+  number: "{name} 값은 숫자여야 합니다."
+  whole: "{name} 값은 정수여야 합니다."
+  range: "{name} 값은 {span} 범위여야 합니다."
+  above: "{min} 초과"
+  least: "{min} 이상"
+  most: "{least} {max} 이하"

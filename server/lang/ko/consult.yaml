@@ -1,0 +1,31 @@
+# What the consult tool answers where an agent reads it (docs/consult.md, 「The consult tool」). Each `{name}` is
+# filled in with what it names.
+
+# The line refused: its words empty, no consult room set, or an {agent} that does not answer in the {room}.
+empty: "상의용 방에 할 말이 비어 있어요."
+no_room: "상의용 방이 정해져 있지 않아요 (bmo consult room <방>)."
+not_answerer: "{agent}은(는) 상의용 방 {room}에서 답하는 에이전트가 아니에요."
+
+# The line said in the {room} under the agent's {name}, with the message {id} it went out as where its road gave
+# one, then each agent's window there.
+said: "{room}에 {name}의 이름으로 말했어요{number}."
+number: " (메시지 {id})"
+windows: "Windows there now:"
+
+# What `bmo consult` prints (docs/consult.md, 「The consult room」): the room set, shown as its {title} — its
+# number where it has none — and its {chat} number, or none set.
+room_unset: "상의용 방이 정해져 있지 않아요."
+room_shown: "상의용 방: {title} ({chat})"
+room_chosen: "상의용 방을 {title} ({chat})(으)로 정했어요."
+# A {room} named that is not a room an agent's row answers in, or one fewer than two agents answer.
+not_answered: "'{room}'은(는) 에이전트가 답하는 방으로 기록된 방이 아니에요."
+not_shared: "'{room}'은(는) 둘 이상의 에이전트가 답하는 방이 아니라 상의용 방으로 둘 수 없어요."
+# The block the {agent} would be shown, where there is none.
+nothing_shown: "{agent}에게 보일 상의 정보가 없어요: 상의용 방이 없거나 그 방에서 답하지 않아요."
+# A line said through the bot that did not land: nothing answered, for {why}, or it answered {status}.
+unanswered: "봇이 답하지 않습니다 ({why})"
+untaken: "봇이 받지 않았습니다 (HTTP {status})."
+usage: |-
+  usage: bmo consult room [<방 번호 | 방 이름>] [--db <아카이브>]
+         bmo consult say '<말>' [--reply <메시지 번호>] [--agent <에이전트>]
+         bmo consult state [--agent <에이전트>] [--db <아카이브>]

@@ -1,0 +1,69 @@
+# What the reference benches print (docs/reference-selection.md, 「What it picks and what it costs, measured」
+# and 「Replaying a stored turn's inputs」): each bench's usage, and what `bmo reference compare` says of its
+# corpus and its figures. Each `{name}` is filled in with what it names.
+
+usage:
+  compare: |-
+    usage: bmo reference compare [--per-cell <수>] [--db <주소>] [--route-db <주소>] [--json] [--out <경로>]
+
+    저장된 참조 분류기 실행을 표본으로 뽑아, 같은 대화를 쪼갠 세 게이트에 다시 물어 전후를 견준다.
+    붙는 조각 수, 두 답의 집합 관계, 아무것도 고르지 않은 횟수, 답을 읽지 못한 비율, 그리고 앞단에
+    걸린 시간을 낸다. 시간은 세 게이트를 나란히 실행한 벽시계다.
+    --per-cell 은 방과 후보 수 구간마다 몇 개를 뽑을지다(기본 8).
+    --db 없이는 이 기계의 데이터 루트가 가리키는 아카이브를 읽는다.
+    --route-db 는 게이트 경로와 조각 표를 읽을 아카이브다(기본은 --db 와 같은 것).
+    --json 은 수치를 JSON으로 내놓고, --out <경로> 는 그 JSON을 파일에 쓴다: 게이트가 제 길을
+    말하는 줄이 같은 출구로 나오므로, 기계가 읽을 답은 파일로 받는 편이 확실하다.
+  inputs: |-
+    usage: bmo reference inputs [--db <주소>] < turns.jsonl > inputs.jsonl
+
+    표준 입력의 줄마다 턴 하나({"chatId": <방>, "messageIds": [<메시지>...], "instructions": "<조용한 지시>", "bodies": {"<게이트>": ["<슬러그>"]}})를 받아, 게이트마다 지금의 조각 표와 좁히기로 조립한 Laya 입력(state와 후보마다의 질문)과 후보의
+    목차 설명을 한 줄 JSON 으로 낸다. instructions 는 그 턴 프롬프트의 조용한 지시 블록에 적힌 그대로 주고, 읽은 것을
+    그대로 되돌려 준다. 사람 말 없이 지시만 있는 턴은 게이트마다 선언한 대로만 묻는다.
+    A line may carry work ({"kind": "job", "title", "instruction", "requester", "requesterId"} or {"kind": "search", "query"}) in place of
+    messageIds: it is answered with the knowledge gate's input alone, its lines and narrowing those of the work's own run.
+    bodies 에 적은 조각은 목차 설명과 본문을 pieces 로 싣는다.
+    아무 모델에도 묻지 않고 아무것도 쓰지 않는다. --db 없이는 이 기계의 데이터 루트가 가리키는 아카이브를 연다.
+  narrowing: |-
+    usage: bmo reference narrowing [--db <주소>] [--chat <방>] [--turns <수>] [--json]
+
+    {chat_agent_subject} 실제로 답한 턴(참조 판정이 남은 메시지)을 지금의 조각 표로 다시 좁혀, 게이트마다 몇 개가
+    남는지 방별로 잰다. --chat 없이는 판정이 남은 모든 방을, --turns 없이는 방마다 최근 20턴을 본다.
+    --db 없이는 이 기계의 데이터 루트가 가리키는 아카이브를 연다. --json 은 턴마다의 수치를 JSON 으로 낸다.
+  replay: |-
+    usage: bmo reference replay [--db <주소>] [--use <turns.jsonl>] [--turns <수>] [--out <경로>]
+
+    사용 판정이 난 실제 턴을 지금의 참조 길에 다시 넣어, 게이트마다 붙은 문서 수와 그중 답이 실제로 쓴
+    수를 기록 당시와 나란히 낸다. 게이트는 --db 아카이브가 정한 길로 실제로 물어진다.
+    --turns 는 고르게 뽑을 턴 수(기본 60), --out 은 턴마다의 결과를 JSON 으로 쓸 파일이다.
+  roads: |-
+    usage: bmo reference roads [--db <주소>] [--json]
+
+    조각 표를 읽는 길과 목차 파일을 읽던 길이 같은 후보를 같은 순서로 내놓는지 방마다 견준다.
+    --db 없이는 이 기계의 데이터 루트가 가리키는 아카이브를 연다. --json 은 수치를 JSON 으로 낸다.
+  waste: |-
+    usage: bmo reference waste [--db <주소>] [--use <turns.jsonl>] [--since <YYYY-MM-DD>] [--top <수>] [--json]
+
+    참조 게이트가 붙인 문서마다 붙은 턴 수, 사용 판정이 난 턴 가운데 답이 실제로 쓴 수와 헛붙은 비율,
+    헛붙어 들어간 토큰 합계를 표로 낸다. 게이트 단계에 든 시간과, 헛붙은 문서가 턴 입력에 더한 몫도 낸다.
+    --use 없이는 데이터 폴더 reference-use/use-1/turns.jsonl 의 판정을 읽는다.
+
+compare:
+  # A --per-cell that is no whole number of one or more.
+  per_cell: "reference-compare: --per-cell 은 1 이상의 정수예요."
+  # What the corpus came to before the gates are asked: the {runs} read, the {unreadable} of another shape,
+  # the {dropped} that could not be cut, and the {sample} taken out of the {cut} left.
+  corpus: "reference-compare: {runs}개 실행 가운데 {unreadable}개는 모양이 아니고 {dropped}개는 나눌 수 없어, {cut}개에서 {sample}개를 뽑았습니다."
+  # One sampled turn asked: the {at}th of {sample}, its {chat}, the {gates} asked and the {ms} they took.
+  asked: "  {at}/{sample} · {chat} · {gates}게이트 · {ms}ms"
+  # The figures written to the file {out} names.
+  written: "reference-compare: {out}에 썼습니다."
+  # The figures as lines, each filled in with what its marks name.
+  sample: "표본 {runs}개 · 방 {rooms}개 · 후보 {least}~{most}개(중앙 {middle})"
+  sifted: "가려낸 실행 {runs}개 중 모양이 아닌 것 {unreadable}개, 나눌 수 없어 버린 것 {dropped}개, 남은 것 {cut}개"
+  pieces: "붙은 조각: 전 {before}개/턴 · 후 {after}개/턴"
+  none: "아무것도 안 고름: 전 {before} · 후 {after}"
+  unread: "답을 못 읽음: 전 {before} · 후 게이트 {after}"
+  shapes: "집합 관계: {shapes}"
+  wanting: "  한쪽이라도 고른 턴({runs}개): {shapes}"
+  front: "앞단 시간: 전 중앙 {before_middle}ms/90% {before_ninth}ms (짝지은 {timed}개) · 후 중앙 {after_middle}ms/90% {after_ninth}ms"

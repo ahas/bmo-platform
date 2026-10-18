@@ -1,0 +1,58 @@
+# What `bmo run stop` says (docs/agent-control.md, 「Stopping」): its usage, its refusals, the listing of what
+# can be stopped, and what a stop came to. Each `{name}` is filled in with what it names; a run's kind and
+# a length of time are the running report's own words.
+
+# The whole usage, printed for `--help` alone.
+usage: |-
+  usage: bmo run stop [--list]
+         bmo run stop <종류>:<id> [--why '<사유>']
+         bmo run stop --all
+
+  인자 없이 부르면 지금 실행 중인 것을 대상과 함께 내놓는다.
+  대상은 bmo run list 가 줄마다 찍는 그 말이다: unit:bmo-search-9, execution:bmo-execution-…, item:623.
+  채팅 턴과 게이트는 execution, 러너·에디터·Job 워커는 unit, 작업 지시서는 item 으로 가리킨다.
+  코워커는 따로 중지하지 못하고, 띄운 실행을 대신 가리키라고 답한다.
+  item 에는 --why '<사유>' 이 필요하다. 항목이 중지로 보류되며 그 사유를 달고 선다. 사유는 한국어로 적는다.
+  --all 은 지금 실행 중인 대상 전부를 한 번에 멈춘다.
+  중지는 요청과 확인을 갈라 말한다: 요청은 끝나 달라고 한 것이고, 확인은 실제로 끝난 것이다.
+
+# The refusal of a {target} that is no target.
+refusals:
+  target: "'{target}'는 대상이 아닙니다. <종류>:<id> 로 가리키고, 종류는 execution, unit, item 중 하나입니다. 지금 실행 중인 것은 bmo run stop --list 로 봅니다."
+
+# A stop's reason is shown as written, so outside a job one written in English words is refused.
+reason:
+  english: "사유는 한국어로 적어 주세요. 보류 사유는 콘솔과 목록에 적은 그대로 보입니다."
+
+# Why the bot could not be asked: no token, no answer ({why} what the call met), a refusal with no words
+# of its own ({status} its HTTP status), and an answer that did not read.
+bot:
+  token: "봇의 control API 토큰(BMO_CONTROL_TOKEN)이 없어 봇에 묻지 못했습니다."
+  silent: "봇이 답하지 않습니다. 봇이 떠 있을 때 다시 부릅니다. ({why})"
+  refused: "봇이 받지 않았습니다 (HTTP {status})."
+  unread: "봇의 답을 읽지 못했습니다."
+
+# The listing: nothing running, rows with nothing to aim at ({count} of them), the head over {count} rows
+# with {left} the rows left out for naming nothing, a conversation's row in room {chat} at {span}, a run's
+# room, and the row's age.
+list:
+  empty: "실행 중인 것이 없습니다."
+  unnamed: "중지할 수 있는 실행이 없습니다. 그릴 것은 {count}개 있지만 아직 가리킬 대상이 없습니다."
+  head: "실행 {count}개"
+  left_out: " (가리킬 대상이 없는 것 {left}개는 빠졌습니다)"
+  turn: "대화 · 방 {chat}"
+  room: "방 {chat}"
+
+# What one stop came to, {what} its target and {runs} the runs it reached: confirmed ended, or only asked.
+done:
+  confirmed: "중지했습니다: {what}. 실행 {runs}개, 끝난 것을 확인했습니다."
+  asked: "중지를 요청했습니다: {what}. 실행 {runs}개. 끝나는 것은 확인하지 못했으니 bmo run list 로 봅니다."
+
+# What stopping everything came to: nothing to stop, or {asked} asked of which {confirmed} confirmed ended;
+# then each target ended, still stopping, or refused for {why}.
+all:
+  none: "실행 중인 것이 없어 아무것도 중지하지 않았습니다."
+  head: "실행 {asked}개에 멈춤을 요청했고, 그중 {confirmed}개는 끝난 것을 확인했습니다."
+  ended: "끝남"
+  stopping: "중지 중"
+  refused: "중지 못 함: {why}"

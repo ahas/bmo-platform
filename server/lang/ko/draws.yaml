@@ -1,0 +1,28 @@
+# What a fair draw says in a room (docs/random-draw.md): what was asked and what came out, in the room's
+# words, and the line the draw posts, from which a person can check it. Each `{name}` is filled in with what
+# it names.
+
+# What was asked, by its shape: {count} dice of {sides} sides with a {modifier} already written with its sign,
+# one whole number from {min} to {max}, {take} of {items} items picked, {items} items put in an order.
+spec:
+  dice: "{sides}면 주사위 {count}개{modifier}"
+  range: "{min}부터 {max}까지 정수 하나"
+  pick: "{items}개 중 {take}개 뽑기"
+  shuffle: "{items}개 순서 섞기"
+
+# Several dice, or one with a modifier: each of the {faces} and their {total}.
+dice_total: "{faces} → 합계 {total}"
+
+# The line the draw posts: its head, with what it decides where it carries a {label}; what was {asked}; the
+# {result}; the draw's {number} and {seed}; the {method} and how its stream is read; the commitment this
+# seed answers, or that it is the room's first draw; and the {next} commitment the room is held to.
+line:
+  head: "뽑기"
+  labelled: "뽑기 · {label}"
+  asked: "{head} ({asked})"
+  result: "결과: {result}"
+  draw: "번호 {number} · 시드 {seed}"
+  method: "방법 {method}: SHA-256(시드:번호:블록)을 4바이트씩 읽어 치우침 없이 고름"
+  first: "이 방의 첫 뽑기라 앞서 공개한 약속값은 없어."
+  answered: "이 시드의 SHA-256은 앞서 공개한 약속값 {commitment}"
+  next: "다음 약속값: {next}"

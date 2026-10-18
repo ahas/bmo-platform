@@ -1,0 +1,18 @@
+# The account a daily whole run that did not pass hands the chat agent (docs/test-suite.md, 「The daily whole run」).
+# Each `{name}` is filled in with what it names.
+
+# The whole account: {where} where it ran, {engine} the engine where a pass of the suite failed, {verdict}
+# what failed, {files} the failing files where any are named, {log} the run's log.
+account: "하루 한 번 실행되는 전체 스위트가 {where}{engine} 통과하지 못했다: {verdict}.{files} 선택 실행이 따라가지 못한 의존이 드러난 것일 수 있다. 로그: {log}"
+# Where it ran: main's {head}, or main unread.
+at_head: "main({head})에서"
+no_head: "main을 읽지 못해"
+# The engine a pass ran the archive's tests on.
+engine: " 아카이브 테스트를 {engine}로 돌려"
+# The failing files, each {file} with its {package}, joined by `joiner`.
+files: " 깨진 파일: {files}."
+file: "{file} ({package})"
+joiner: ", "
+# The package of a file standing in none: as a file names it, and among the packages.
+outside: "패키지 밖"
+outside_listed: "(패키지 밖)"

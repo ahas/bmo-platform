@@ -168,9 +168,18 @@ receiver's talk takes the earlier turns from its caller.
 
 ## The language pack: 140 files
 
-`lang/bmo-lang/` moves whole into `server/` as web's own language pack (build-4): its 69 Korean yaml
-files under `lang/ko`, its 68 Rust modules under `src` and its 3 manifests (`Cargo.toml`, `bunfig.toml`,
-`package.json`). The console's own pack, `client/i18n/locales/ko.yaml`, travels with the shell.
+`lang/bmo-lang/` is the server's language pack (build-4):
+
+| Old member | Stands here as |
+|---|---|
+| the 69 parts under `lang/bmo-lang/lang/ko/` | `server/lang/ko/` of the same names; a name of the chat agent, the owner or a room in a value is a mark (`{chat_agent}`, `{chat_agent_subject}`, `{owner}`, `{owner_subject}`, `{owner_chat}`, `{owner_chat_agent}`, `{companion}`), and in a comment a role |
+| `lang/bmo-lang/src/lib.rs` | `server/src/lang/mod.rs`, the reader and the `part!` macro |
+| its 67 other modules | `server/src/lang/` of the same names |
+| its test module, `every_part_reads_as_its_type` | `server/tests/language_pack.rs`, beside the private-chat warning's mark |
+| `lang/bmo-lang/Cargo.toml` | the server's own dependencies (`indexmap`, `serde-saphyr`) |
+| `lang/bmo-lang/package.json`, `bunfig.toml` | not carried: the console's tests import a part by its path under `server/lang/` |
+
+The console's own pack, `client/i18n/locales/ko.yaml`, travels with the shell.
 
 ## The documents: 5
 

@@ -1,0 +1,51 @@
+# The agents and their settings as `bmo agent` tells them (docs/agent-control.md, docs/worker-slots.md,
+# docs/work-nodes.md, 「A checkout on a node」). Each `{name}` is filled in with what it names.
+
+# An order that does not name every provider once, each provider this build carries listed in {names}.
+provider_order: "공급자를 한 번씩 모두 적어 주세요: {names}"
+# A provider switched that this build does not carry.
+provider_unknown: "알 수 없는 공급자입니다: {names} 중 하나를 적어 주세요."
+# An address's key in one word, the key itself never shown.
+key_usable: "키 있음"
+key_none: "키 없음"
+key_unusable: "키 확인 필요"
+# A switch given as something other than on or off, the flag {flag} as it was typed.
+on_off: "{flag} 는 on 이나 off 입니다."
+heal_on_off: "--downgrade-heal 은 on 이나 off 입니다."
+# An account named by an id or a name {named} that no account has.
+no_account: "{named}이라는 계정이 없습니다."
+credential_kind: "자격 증명은 설정 디렉터리(directory)이거나 토큰 파일(token)입니다."
+# A worker {worker} the owner did not add, set to rest or woken.
+not_restable: "{worker}는 쉬게 하거나 깨울 수 있는 워커가 아닙니다: 직접 더한 워커만 쉬고, Built-in 워커와 추가지원 워커는 쉬지 않습니다."
+no_worker: "{worker}라는 워커가 없습니다."
+# A worker brought back from a node with no path of this machine to work in.
+back_here_path: "이 기기로 돌아올 때는 이 기기의 경로를 --path로 입력해 주세요."
+nothing_to_change: "변경할 내용이 없습니다."
+# The two parts of a turn a gate stands in.
+pre_gate: "프리게이트"
+post_gate: "포스트게이트"
+
+# Why a base {base} cannot have its checkout on a node {node}, or lose it.
+node_checkout:
+  not_base: "{base}는 기본 워커가 아닙니다."
+  base_on_node: "{base}는 그 자체가 노드 {node}에 있어 노드 체크아웃을 둘 수 없습니다."
+  already: "{base}의 체크아웃이 이미 {node}에 있습니다."
+  # The checkout's name {name} the worker rule refuses.
+  name_long: "{base}는 이름이 길어 노드 체크아웃의 이름({name})을 지을 수 없습니다."
+  name_taken: "이미 {name}이라는 에이전트가 있습니다."
+  path: "노드의 경로는 /나 ~/로 시작해야 합니다."
+  missing: "{base}의 체크아웃이 {node}에 없습니다."
+  # The checkout's worker {worker} a job holds, or whose row could not be taken away.
+  busy: "{worker}에서 Job이 실행 중이라 지금은 뺄 수 없습니다."
+  not_removed: "{worker}를 지우지 못했습니다."
+
+# Why a worker {worker} cannot stand on a node {node}.
+node_placing:
+  no_node: "{node}라는 노드가 없습니다."
+  # The node's own reason {why} it takes no job.
+  no_jobs: "{node}에는 Job을 둘 수 없습니다: {why}"
+  builtin: "기본 내장 워커는 배포 트리가 만들어지는 체크아웃이라 이 기기를 떠날 수 없습니다."
+  # A support worker of {base}.
+  support: "{worker}는 {base}의 추가지원 워커라 기본 워커의 설정으로만 놓입니다."
+  has_support: "{worker}에는 추가지원 워커나 노드 체크아웃이 있어 기본 체크아웃은 이 기기에 둡니다."
+  path: "노드에 둘 때는 그 노드의 경로를 /나 ~/로 시작해 함께 적어야 합니다."

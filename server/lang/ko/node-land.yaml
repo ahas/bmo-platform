@@ -1,0 +1,11 @@
+# A commit a node's landing wrote down as waiting to go live, as `bmo node land` tells it (docs/deploy.md,
+# docs/work-nodes.md, 「Ending a job on a node」). Each `{name}` is filled in with what it names.
+
+# The commit's first twelve characters {commit}, its item {item}, its worker {worker} after a dot where
+# there is one, the urgency {urgent} where the commit cannot wait, and the job's line of why {reason}.
+pending: "{commit} · {item}{worker}{urgent}: {reason}"
+# The item the commit was closed for, {item}, or none.
+item: "항목 #{item}"
+no_item: "항목 없음"
+# A commit whose schema is ahead of the running one goes at once.
+urgent: " · 즉시 (스키마가 앞섬)"

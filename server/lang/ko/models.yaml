@@ -1,0 +1,50 @@
+# The model catalogue as `bmo model` tells it (docs/model-catalogue.md, 「Where it is set」). Each
+# `{name}` is filled in with what it names.
+
+# How the verb is run, said where it was run otherwise.
+usage: |-
+  usage: bmo model [--db <아카이브>]
+         bmo model add <이름> --file <파일.gguf> --bytes <바이트> --sha256 <해시> [필드…]
+         bmo model set <이름> [필드…]
+         bmo model remove <이름>
+         bmo model use <이름>
+         bmo model --entry <이름> --json
+         bmo model --placed <이름> <노드>
+
+  필드: --label <이름> --source <https 주소 | 데이터 루트 아래 경로> --engine <엔진> --registration <등록 모델>
+        --note <메모> --thinking on|off --temperature <수> --top-p <수> --presence-penalty <수> --max-tokens <수>
+  set 에서 필드 값을 default 나 none 으로 주면 그 칸을 비운다.
+
+  인자 없이는 카탈로그의 모든 항목과 엔진마다 마지막 모델 교체를 보인다.
+  use 는 그 항목을 제 엔진의 모델로 바꾼다: 엔진의 설치기가 내려받기·검증·설치를 하는 사용자 유닛을 세우고 바로 끝난다.
+  --entry 와 --placed 는 엔진의 설치기가 쓰는 것이다.
+
+# The entry {name} the verb was asked about is not in the catalogue, or already is.
+not_held: "카탈로그에 없는 모델이에요: {name}"
+already_held: "이미 있는 이름이에요: {name}"
+# The node {node} the file of entry {name} lies on was written down.
+placed: "{name} 파일이 {node}에 있다고 적었어요."
+# The node an installer named is no node's name.
+node_unreadable: "노드 이름을 읽을 수 없습니다."
+removed: "{name}을(를) 카탈로그에서 지웠어요."
+# A choice of entry {entry} for engine {engine} began, its unit's log at {log}.
+choosing: "{engine} 엔진을 {entry}(으)로 바꾸기 시작했어요 (사용자 유닛 bmo-model-use-{engine}, 로그 {log})."
+
+# The listing: the latest choice for each engine, then each entry over five lines.
+listing:
+  # The engine, the entry chosen, who chose it, when, how it stands, and its step and reason where it has them.
+  use: "모델 교체 · {engine} ← {entry} · {chosen_by} · {at} · {state}{step}{reason}"
+  serving: " [서빙 중]"
+  file: "  파일 {file} · {bytes} B · sha256 {sha256}"
+  where: "  출처 {source} · 엔진 {engine} · 등록 모델 {registration} · 노드 {nodes}"
+  defaults: "  기본 생성 설정 · 생각 {thinking} · temperature {temperature} · top_p {top_p} · presence_penalty {presence_penalty} · max_tokens {max_tokens}"
+  thinking_on: "켬"
+  thinking_off: "끔"
+  note: "  메모 {note}"
+
+# A choice carried out by its unit: the step it is at while the engine's installer runs, a choice that is
+# not running, {id}, and an installer that failed saying nothing.
+run:
+  installing: "설치기 실행 중"
+  not_running: "진행 중인 모델 교체가 아닙니다: {id}"
+  failed: "설치기가 실패했어요."

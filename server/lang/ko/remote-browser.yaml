@@ -1,0 +1,5 @@
+# A remote browser run as a person watching herdr reads it (docs/remote-browser.md): `bmo remote-browser`
+# titles the run it launches. Each `{name}` is filled in with what it names.
+
+# The run's title: {room} the room it reports to, {node} the node's label.
+run_title: "{room} 원격 브라우저 · {node}"

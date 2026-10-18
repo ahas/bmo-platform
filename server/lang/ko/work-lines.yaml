@@ -1,0 +1,28 @@
+# The words a running job's line is said in wherever a person reads it (docs/jobs.md, 「The item is the only
+# number」): the item it is a run of, and the step a work order is at (docs/work-orders.md, 「What a step is
+# called」). Each `{name}` is filled in with what it names.
+
+# A job's line names its item as {id}.
+item: "항목 #{id}"
+# A run of an item past its first: {item} is the item's line above, {attempt} which run of it this is.
+attempt: "{item} · {attempt}번째 실행"
+# A job with no item behind it, where its launcher wrote no line for why it was launched.
+itemless: "항목 없는 작업"
+
+# A work order's round past the first, {round}, ahead of the step's name.
+round: "{round}차"
+
+# Each step of a work order by its name. Only a build step is followed by which of how many it is.
+steps:
+  # The plan turn.
+  plan: "계획"
+  # A stage that finds things out.
+  investigate: "조사"
+  # A stage that checks a finding or the plan.
+  review: "검토"
+  # The synthesis turn, which writes the build list.
+  synthesis: "설계 종합"
+  # A build step.
+  build: "구현"
+  # The final turn.
+  final: "최종 검증"

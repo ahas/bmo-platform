@@ -1,0 +1,62 @@
+# A worker's dev server as `bmo dev-server`, `bmo dev-server list` and the dev-server pane tell it
+# (docs/worker-bench.md, 「Dev server」). Each `{name}` is filled in with what it names.
+
+# `bmo dev-server start|restart|stop <worker>`: {worker} the worker, {group} the server's process group,
+# {log} its log, {seconds} how long was waited.
+server:
+  no_worker: "{worker}라는 워커가 없습니다."
+  not_up: "{worker} 개발서버는 떠 있지 않습니다."
+  not_down: "{seconds}초 안에 {worker} 개발서버(프로세스 그룹 {group})가 내려가지 않았습니다. 로그: {log}"
+  down: "{worker} 개발서버를 내렸습니다."
+  no_command: "{worker} 워커에는 개발서버 명령이 없습니다."
+  no_job: "{worker} 워커에 실행 중인 Job이 없어 개발서버를 띄우지 않습니다. 개발서버는 Job이 실행되는 동안만 뜹니다."
+  already_up: "{worker} 개발서버가 이미 떠 있습니다 (프로세스 그룹 {group}). 출력은 {log}에서 읽으세요."
+  not_up_in_time: "{seconds}초 안에 새 개발서버가 뜨지 않았습니다. 로그: {log}"
+  # The server came up, started anew or again: {done} is `started` or `restarted`.
+  up: "{worker} 개발서버를 {done} (프로세스 그룹 {group}). 준비됐는지는 서버에 직접 물어보고, 출력은 {log}에서 읽으세요."
+  started: "띄웠습니다"
+  restarted: "다시 띄웠습니다"
+
+# `bmo dev-server list [--sweep]`: every worker's dev server and every server a job left, with the memory each
+# holds.
+listing:
+  # {minutes} is a dev server's lifetime.
+  head: "워커 개발서버 (수명 {minutes}분)"
+  # One worker's server: its process group {group}, how long it has stood {minutes}, its memory {megabytes},
+  # whether a job of it runs {job}, and {expired} where it outlived its lifetime.
+  worker: "- {worker}: 그룹 {group}, {minutes}분째, {megabytes} MB, {job}{expired}"
+  job_running: "Job 실행 중"
+  no_job: "실행 중인 Job 없음"
+  expired: ", 수명 넘김"
+  left_head: "Job이 남긴 서버"
+  none: "- 없음"
+  # How many servers stand, {count}, and the memory they hold together, {megabytes}.
+  total: "합계: {count}개, {megabytes} MB"
+  nothing_to_end: "끝낼 서버가 없습니다."
+
+# The dev-server pane, line by line as it writes to its screen and its log.
+pane:
+  # Its heading: the worker, the workbench and the log.
+  head: "개발서버 · {worker}\n작업대: {workbench}\n로그: {log}"
+  leftover: "이전 개발서버(프로세스 그룹 {group})가 남아 있어 끝냅니다."
+  # A server started: its command and the directory it runs in.
+  start: "시작: {command}  ({cwd})"
+  # A server ended by itself with its code {code}, started again after {seconds}, and how many quick endings
+  # in a row it has had where more than one, {count}.
+  ended: "개발서버가 끝났습니다(코드 {code}). {seconds}초 뒤 다시 띄웁니다{quick}."
+  quick: " (곧바로 끝난 것이 {count}번째입니다)"
+  # Why the server is no longer wanted, put before what follows.
+  job_over: "Job이 끝나"
+  not_asked: "Job이 개발서버를 내려 달라고 해"
+  no_command: "개발서버 명령이 없거나 워커가 쉬고 있어"
+  # {why} is one of the three above.
+  closing: "{why} 이 팬을 닫습니다."
+  stopping: "{why} 개발서버를 내립니다."
+  expired: "개발서버가 수명({minutes}분)을 넘겨 내리고 이 팬을 닫습니다. Job이 다시 쓰려면 다시 띄웁니다."
+  # A server unused for {minutes}, with {short} where the machine is short of memory.
+  idle: "{short}개발서버를 {minutes}분 동안 쓰지 않아 내리고 이 팬을 닫습니다. Job이 다시 쓰려면 다시 띄웁니다."
+  short: "메모리가 부족한데 "
+  restarting: "요청을 받아 개발서버를 다시 띄웁니다."
+  moved: "개발서버 명령이나 작업 경로가 바뀌어 다시 띄웁니다."
+  starting_now: "요청을 받아 개발서버를 바로 띄웁니다."
+  pane_closed: "팬이 닫혀 개발서버를 내립니다."

@@ -1,0 +1,18 @@
+# One case of the formatting gate's casebook as a person reads it (docs/output-gate.md, 「The case
+# collection」): `bmo gate format-cases` heads each case with its room and message, which candidate it was, and
+# then the gate's reason, the message and the markup. Each `{name}` is filled in with what it names.
+
+# The room the case was judged in, {chat} its number, or none where the send path judged before a room.
+room: "방 {chat}"
+no_room: "방 없음"
+# The message the case was judged for, {message} its number, or none where it did not exist yet.
+message: "메시지 {message}"
+no_message: "메시지 없음"
+# Which candidate failed: the markup the code built and had verified once, or the {attempt}th the gate made.
+code_made: "코드가 만든 서식, 한 번만 검증"
+attempt: "{attempt}번째 시도"
+# Why the structure check refused it, {reason} the check's own words.
+reason: "사유: {reason}"
+# The heads over the message the gate read and the markup it made.
+text: "대상 메시지:"
+markup: "관문이 만든 서식:"

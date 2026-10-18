@@ -1,0 +1,30 @@
+# The node list as `bmo node list` prints it (docs/nodes.md, 「Registering and changing a node」). Each
+# `{name}` is filled in with what it names.
+
+# A moment a node was checked or last connected, in Korean time as the list has always written it: the
+# date, the half of the day and the time on a twelve-hour clock.
+clock: "{year}. {month}. {day}. {half} {hour}:{minute}:{second}"
+morning: "오전"
+afternoon: "오후"
+
+# What a node's pane in herdr shows (docs/nodes.md, 「In herdr」): the node as its row holds it, and what
+# Enter does there. It names where a credential is kept and never the credential.
+pane:
+  # The connection type, {kind}: SSH or Jake.
+  kind: "연결 타입    {kind}"
+  address: "주소         {address}"
+  credential: "자격 위치    {credential}"
+  # The state word {state}, with the check's detail {detail} in brackets where there is one.
+  state: "상태         {state}{detail}"
+  detail: " ({detail})"
+  checked: "확인한 때    {clock}"
+  connected: "마지막 연결  {clock}"
+  # A moment the node never reached.
+  never: "없음"
+  # Where an ssh node logs in with the account's own setup, and a jake node whose hub is not listed.
+  own_ssh_setup: "계정의 SSH 설정"
+  hub_not_listed: "허브가 목록에 없음"
+  ssh_enter: "Enter를 누르면 접속합니다."
+  jake_only: "Jake 노드는 대화형 셸이 없어 상태만 보입니다."
+  # The node, {name}, left the list, so its pane closes.
+  gone: "{name} 노드가 목록에 없어 이 팬을 닫습니다."
