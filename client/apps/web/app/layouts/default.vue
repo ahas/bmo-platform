@@ -39,6 +39,14 @@
              wear the mark that way, which is why the fold is read out here. Folded, every row names
              itself in a tooltip; spread, its name stands and no tooltip repeats it. -->
         <UNavigationMenu :items="namedWhenFolded(screenEntries, collapsed)" :collapsed="collapsed" tooltip orientation="vertical" />
+        <ContentSkeleton v-if="roomsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.rooms_loading')">
+          <div class="flex h-8 items-center gap-1.5 px-2.5">
+            <SkeletonBar class="size-5 shrink-0 rounded-sm" />
+            <SkeletonBar v-if="!collapsed" class="h-4 w-28" />
+          </div>
+        </ContentSkeleton>
+        <p v-if="roomsError" class="text-sm text-error">{{ $t("screens.error.rooms_failed") }}</p>
+        <SidebarRooms :rooms="namedWhenFolded(roomEntries, collapsed)" :collapsed="collapsed" />
         <ContentSkeleton v-if="agentsInitial" :rows="3" listClass="flex flex-col" :label="$t('screens.status.agents_loading')">
           <div class="flex h-8 items-center gap-1.5 px-2.5">
             <SkeletonBar class="size-5 shrink-0 rounded-sm" />
@@ -127,9 +135,10 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { useBotEvents } from "~/domain/events";
 import { jumpGroups, screenGroup } from "~/domain/jump";
 import { SCREEN_FRAME, useNarrow, useVisibleScreen } from "bmo-ui/app/domain/screen";
-import { namedWhenFolded, screenItems } from "~/domain/screens";
+import { useRoomList, useRoomReading } from "~/domain/room-list";
+import { namedWhenFolded, roomItems, screenItems } from "~/domain/screens";
 
-import type { LiveRun, RoomSummary, StatusView } from "#shared/types";
+import type { LiveRun, StatusView } from "#shared/types";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AgentGroup, AgentMeta, AgentSession } from "~/domain/agents";
 import type { JumpGroup } from "~/domain/jump";
@@ -173,9 +182,12 @@ const avatars = useAvatars();
 // The agents are the agency's to report; a catalogue it does not answer leaves the block saying so.
 const { agents, initial: agentsInitial, failed: agentsFailed } = useAgentCatalogue();
 
-// The rooms a room's session is titled and ranked by are the receiver's room list, which this console does not
-// read yet, so every session stands under its room's number.
-const rooms = ref<RoomSummary[]>([]);
+// The rooms, each with how many of its messages the reader has not read, read again whenever a message lands in one
+// of them (docs/web.md, 「Sidebar」). A room's session is titled and ranked by the same list.
+const { data: rooms, status: roomsStatus, error: roomsError } = useRoomList();
+const reading = useRoomReading();
+const roomsInitial = useInitialRead(roomsStatus);
+const roomEntries = computed<NavigationMenuItem[]>(() => roomItems(t, rooms.value, avatars.value, route.path, sidebarFolded.value, reading.value));
 
 // Which agents are at work right now. The picture is asked for once and replaced by the one the live events
 // carry, so a mark comes and goes without the sidebar asking again.
@@ -245,6 +257,17 @@ function sessionEntry(agent: AgentMeta, session: AgentSession): NavigationMenuIt
 const searchTerm = ref("");
 const jumpSources = computed<JumpGroup[]>(() => [
   screenGroup(t),
+  {
+    id: "rooms",
+    label: t("common.label.room"),
+    entries: rooms.value.map((room) => ({
+      id: `room-${room.chatId}`,
+      label: room.title,
+      to: `/rooms/${room.chatId}`,
+      avatar: avatarFor(avatars.value, "room", room.chatId, room.title),
+      hidden: [{ label: t("screens.label.chat_id"), text: String(room.chatId) }]
+    }))
+  },
   ...groups.value.map((group) => ({
     id: `agents-${group.key}`,
     label: t("screens.label.agents_group", { name: group.label }),

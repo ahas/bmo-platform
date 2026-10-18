@@ -1,0 +1,434 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { chromium } from "playwright-core";
+
+import { BROWSER_HOOK_MS, touchReady } from "./touch";
+
+import type { Browser, BrowserContext, Page, Route } from "playwright-core";
+import type { ArchivedMessage, Judgement, MessageAttachment } from "../../apps/web/shared/types";
+import KO from "../fixtures/browser/bubble-wrap.test.ko.json";
+
+// What a bubble holds keeps inside it, at a phone's widths and a desktop's (docs/web.md, 「Every message
+// is a bubble」, the room screen's meta line section, the room screen's listening section):
+// - a kept sound stands as a player 320 px wide or the bubble's room where that is narrower, and every
+//   other file line keeps inside the bubble the same way;
+// - the words break between words, a Korean one included, and the blank they keep for a meta line at
+//   their end takes no letter of theirs onto a line of its own: where it has no room on the last line,
+//   it alone drops.
+// The room is a fixture this test serves itself through the page's own routes, its words of every
+// length from a few words to several lines, so at every width some last line leaves the meta line
+// room and some just does not. The console around it is a dev console given in BMO_CONSOLE_TEST_URL, on
+// a copy of the archive (docs/worker-bench.md), with its fixture account made in that copy alone; the
+// ordinary run has no console of its own and skips it.
+
+const origin = process.env.BMO_CONSOLE_TEST_URL;
+const ACCOUNT = { name: "bubble-wrap", password: "fixture-password-1477" };
+const WIDTHS = [
+  { width: 360, height: 780, phone: true },
+  { width: 390, height: 844, phone: true },
+  { width: 1280, height: 800, phone: false }
+];
+const CHAT = -100_000_001_477;
+const PLAYER = 320;
+const TEST_MS = 90_000;
+
+let browser: Browser | null = null;
+let cookie = "";
+let owner = 0;
+
+beforeAll(async () => {
+  if (!origin || !touchReady()) {
+    return;
+  }
+
+  const login = await fetch(`${origin}/api/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(ACCOUNT)
+  });
+
+  expect(login.ok).toBe(true);
+  cookie = login.headers.get("set-cookie")!.split(";")[0]!;
+
+  const asked = await fetch(`${origin}/api/owner`, { headers: { cookie } });
+
+  owner = ((await asked.json()) as { chatId: number | null }).chatId ?? 1;
+  browser = await chromium.launch();
+}, BROWSER_HOOK_MS);
+
+afterAll(async () => {
+  await browser?.close();
+}, BROWSER_HOOK_MS);
+
+// Twelve seconds of silence, so the player measures a length and stands its bar and clock.
+function silence(seconds: number): Uint8Array {
+  const rate = 8_000;
+  const samples = rate * seconds;
+  const bytes = new Uint8Array(44 + samples).fill(128);
+  const view = new DataView(bytes.buffer);
+  const text = (at: number, word: string) => [...word].forEach((letter, index) => view.setUint8(at + index, letter.charCodeAt(0)));
+
+  text(0, "RIFF");
+  view.setUint32(4, 36 + samples, true);
+  text(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, rate, true);
+  view.setUint32(28, rate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true);
+  text(36, "data");
+  view.setUint32(40, samples, true);
+
+  return bytes;
+}
+
+const SOUND = silence(12);
+const PICTURE = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#4a7"/></svg>`;
+
+let clock = 1_791_500_000;
+let next = 7_000;
+
+function row(text: string, mine: boolean, extra: Partial<ArchivedMessage> = {}): ArchivedMessage {
+  clock += 60;
+
+  return {
+    chatId: CHAT,
+    messageId: next++,
+    // The owner's number is known only once the console is asked; the room is served with it.
+    senderId: mine ? -1 : 0,
+    senderName: mine ? ACCOUNT.name : "agent-a",
+    sentAt: clock,
+    text,
+    imagePath: null,
+    replyToMessageId: null,
+    agent: !mine,
+    ...extra
+  };
+}
+
+function file(id: number, kind: MessageAttachment["kind"], name: string, type: string, bytes: number): MessageAttachment {
+  return { id, kind, name, bytes, type, available: true };
+}
+
+const FILES: ArchivedMessage[] = [
+  row(KO.line_114, false, {
+    attachments: [file(1, "audio", "12424-voice.ogg", "audio/ogg", 92_160)]
+  }),
+  row("", false, { attachments: [file(2, "audio", "12430-voice.ogg", "audio/ogg", 92_160)] }),
+  row(KO.line_118, false, {
+    attachments: [file(3, "audio", "2026-10-09-weekly-briefing-voice-recording-final-master-version-02.ogg", "audio/ogg", 4_718_592)]
+  }),
+  row(KO.line_121, true, { attachments: [file(4, "audio", "memo.m4a", "audio/mp4", 20_480)] }),
+  row(KO.line_122, false, {
+    attachments: [file(5, "document", "2026-10-09-infrastructure-review-meeting-notes-and-follow-up-actions.pdf", "application/pdf", 1_258_291)]
+  }),
+  row(KO.line_125, false, { imagePath: "fixture.svg" })
+];
+
+// Words of every length, on both sides, so at each width some last line just holds the meta line
+// and some just does not; and a web address longer than any bubble.
+const POOL = KO.line_130.split(" ");
+const LONG = "https://example.com/bmo/console/rooms/-100000001477/messages/7000/attachments/12424-voice.ogg?item=1&as=download";
+
+const WORDS: ArchivedMessage[] = [
+  row(KO.line_134, true),
+  ...Array.from({ length: 34 }, (_, at) => row(Array.from({ length: at + 2 }, (_, word) => POOL[word % POOL.length]).join(" "), at % 2 === 0)),
+  row(`${KO.line_136}${LONG}`, true),
+  row(`${KO.line_137}${LONG}`, false)
+];
+
+const ROWS = [...FILES, ...WORDS];
+// A verdict on each of the owner's words, so their meta line carries its mark as the owner's does.
+const JUDGEMENTS: Judgement[] = WORDS.filter((each) => each.agent === false).map((each, at) => ({
+  id: 90_000 + at,
+  chatId: CHAT,
+  messageId: each.messageId,
+  stage: "content-judge",
+  verdict: "PASS",
+  detail: null,
+  createdAt: each.sentAt
+}));
+
+async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> {
+  const context = await browser!.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
+    isMobile: viewport.phone,
+    hasTouch: viewport.phone,
+    serviceWorkers: "block",
+    reducedMotion: "reduce"
+  });
+  const at = cookie.indexOf("=");
+
+  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+  await context.route(/\/api\/control$/, (route) => route.fulfill({ json: { reachable: true, ownerChatId: owner } }));
+  await context.route(/\/api\/events(\?|$)/, (route) => route.abort());
+  await context.route(/\/api\/rooms$/, (route) =>
+    route.fulfill({
+      json: [{ chatId: CHAT, title: KO.line_167, messageCount: ROWS.length, lastMessageAt: ROWS.at(-1)!.sentAt, unread: 0, firstUnread: null, readTo: null }]
+    })
+  );
+  await context.route(new RegExp(`/api/rooms/${CHAT}/`), answerRoom);
+  await context.route(new RegExp(`/api/media/audio/${CHAT}/`), (route) => route.fulfill({ contentType: "audio/wav", body: Buffer.from(SOUND) }));
+  await context.route(new RegExp(`/api/images/${CHAT}/`), (route) => route.fulfill({ contentType: "image/svg+xml", body: PICTURE }));
+
+  return context;
+}
+
+async function answerRoom(route: Route): Promise<void> {
+  const url = new URL(route.request().url());
+
+  if (url.pathname.endsWith("/messages")) {
+    const whole = !url.searchParams.has("before") && !url.searchParams.has("after");
+
+    const messages = ROWS.map((each) => (each.senderId === -1 ? { ...each, senderId: owner } : each));
+
+    await route.fulfill({ json: { messages: whole ? messages : [], judgements: whole ? JUDGEMENTS : [], hasMore: false } });
+  } else if (url.pathname.endsWith("/read")) {
+    await route.fulfill({ json: { unread: 0, firstUnread: null, readTo: null } });
+  } else {
+    await route.fulfill({ status: 404, json: { message: "no such fixture" } });
+  }
+}
+
+// The room entered from inside the console, as a person goes to it, its rows all standing, their
+// players measured and their bubbles fitted.
+async function visit(page: Page): Promise<void> {
+  const listed = page.waitForResponse(/\/api\/rooms$/);
+
+  await page.goto(`${origin}/`, { waitUntil: "load" });
+  await page.waitForFunction(() => (document.querySelector("#__nuxt") as unknown as { __vue_app__?: { $nuxt?: { isHydrating?: boolean } } })?.__vue_app__?.$nuxt?.isHydrating === false);
+  await listed;
+  await page.evaluate(async (path) => {
+    const app = (document.querySelector("#__nuxt") as unknown as { __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => Promise<unknown> } } } } }).__vue_app__;
+
+    await app.config.globalProperties.$router.push(path);
+  }, `/rooms/${CHAT}`);
+
+  for (const each of ROWS) {
+    await page.locator(`[data-message="m${each.messageId}"]`).waitFor({ state: "attached", timeout: 20_000 });
+  }
+
+  await page.locator(`[data-message="m${FILES.at(-1)!.messageId}"] img`).waitFor({ state: "attached", timeout: 20_000 });
+  await page.waitForFunction(
+    (count) => [...document.querySelectorAll("[data-attachment]")].filter((block) => /\d+:\d+ \/ \d+:\d+/.test(block.textContent ?? "")).length === count,
+    FILES.filter((each) => each.attachments?.[0]?.kind === "audio").length,
+    { timeout: 20_000 }
+  );
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+}
+
+interface Placed {
+  message: number;
+  width: number;
+  // How far the block, and the last button in it, reach past the room the bubble keeps inside its
+  // padding, on either side; nought or less is inside.
+  pastStart: number;
+  pastEnd: number;
+  buttonPastEnd: number;
+  // How much the bubble's cut hides of what it holds, sideways.
+  hidden: number;
+  // How much room the bubble keeps inside its padding.
+  room: number;
+}
+
+// Every file block the room stands, against the bubble it stands in.
+async function placed(page: Page): Promise<Placed[]> {
+  return await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-message] [data-attachment]")].map((block) => {
+      const message = Number(/^m(-?\d+)$/.exec(block.closest<HTMLElement>("[data-message]")!.dataset.message ?? "")?.[1]);
+      const cut = block.closest<HTMLElement>("[data-bubble]")!.firstElementChild as HTMLElement;
+      // The body the block's line stands in keeps the bubble's padding.
+      const body = block.parentElement!.parentElement!;
+      const look = getComputedStyle(body);
+      const frame = body.getBoundingClientRect();
+      const start = frame.left + Number.parseFloat(look.paddingLeft);
+      const end = frame.right - Number.parseFloat(look.paddingRight);
+      const box = block.getBoundingClientRect();
+      const buttons = block.querySelectorAll("button, a");
+      const last = buttons[buttons.length - 1]!.getBoundingClientRect();
+
+      return {
+        message,
+        width: box.width,
+        pastStart: start - box.left,
+        pastEnd: box.right - end,
+        buttonPastEnd: last.right - end,
+        hidden: cut.scrollWidth - cut.clientWidth,
+        room: end - start
+      };
+    })
+  );
+}
+
+interface Worded {
+  message: number;
+  // The lines the letters stand on, as each one's foot and reach, with the blank at their end and
+  // again with it taken away at the same bubble width.
+  lines: string[];
+  bare: string[];
+  // Where the words break between two letters with no space between them, as the two letters.
+  midWord: string[];
+  // Whether the meta line is one that may stand at the words' end, whether it stands at the end of their
+  // last line of letters, and whether it covers any.
+  inline: boolean;
+  besideLast: boolean;
+  covers: boolean;
+  hidden: number;
+}
+
+// Every bubble of words: its letters' lines with the blank kept for a meta line at their end and
+// without it, read in one pass so the bubble's width is the same for both.
+async function worded(page: Page): Promise<Worded[]> {
+  return await page.evaluate(() => {
+    const bubbles = [...document.querySelectorAll<HTMLElement>("[data-message]")].filter((each) => each.querySelector("[data-words]:not([data-name])") !== null);
+    const letters = (words: HTMLElement): DOMRect[] => {
+      const boxes: DOMRect[] = [];
+      const walker = document.createTreeWalker(words, NodeFilter.SHOW_TEXT);
+
+      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+        const range = document.createRange();
+
+        range.selectNodeContents(node);
+        boxes.push(...[...range.getClientRects()].filter((box) => box.width > 0));
+      }
+
+      return boxes;
+    };
+    // Read from the words' own corner, since a blank taken away above moves every bubble under it.
+    const lines = (words: HTMLElement): string[] => {
+      const feet = new Map<number, number>();
+      const corner = words.getBoundingClientRect();
+
+      for (const box of letters(words)) {
+        const foot = Math.round(box.bottom - corner.top);
+
+        feet.set(foot, Math.max(feet.get(foot) ?? 0, Math.round(box.right - corner.left)));
+      }
+
+      return [...feet].sort(([one], [other]) => one - other).map(([foot, reach]) => `${foot}:${reach}`);
+    };
+    const midWord = (words: HTMLElement): string[] => {
+      const breaks: string[] = [];
+      const walker = document.createTreeWalker(words, NodeFilter.SHOW_TEXT);
+
+      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+        // A web address folds anywhere, as it must.
+        if (node.parentElement?.closest("a") !== null) {
+          continue;
+        }
+
+        const text = node.textContent ?? "";
+        const range = document.createRange();
+        const foot = (at: number) => {
+          range.setStart(node!, at);
+          range.setEnd(node!, at + 1);
+
+          return Math.round(range.getBoundingClientRect().bottom);
+        };
+
+        for (let at = 0; at + 1 < text.length; at++) {
+          if (text[at]!.trim() !== "" && text[at + 1]!.trim() !== "" && foot(at) !== foot(at + 1)) {
+            breaks.push(text.slice(at, at + 2));
+          }
+        }
+      }
+
+      return breaks;
+    };
+    const blanks = document.createElement("style");
+
+    blanks.textContent = "[data-meta-room] [data-words] *::after { content: none !important; }";
+
+    const withBlank = bubbles.map((bubble) => lines(bubble.querySelector<HTMLElement>("[data-words]:not([data-name])")!));
+    // Each bubble held at the width it stands at, since one that fits its contents would narrow
+    // with its blank gone and wrap its words elsewhere.
+    const held = bubbles.map((bubble) => {
+      const frame = bubble.querySelector<HTMLElement>("[data-bubble]")!;
+      const width = frame.style.width;
+
+      frame.style.width = `${frame.getBoundingClientRect().width}px`;
+
+      return () => (frame.style.width = width);
+    });
+
+    document.head.append(blanks);
+
+    const bare = bubbles.map((bubble) => lines(bubble.querySelector<HTMLElement>("[data-words]:not([data-name])")!));
+
+    blanks.remove();
+    held.forEach((release) => release());
+
+    return bubbles.map((bubble, at) => {
+      const words = bubble.querySelector<HTMLElement>("[data-words]:not([data-name])")!;
+      const meta = bubble.querySelector<HTMLElement>("[data-meta]")!.getBoundingClientRect();
+      const boxes = letters(words);
+      const foot = Math.max(...boxes.map((box) => box.bottom));
+      const cut = bubble.querySelector<HTMLElement>("[data-bubble]")!.firstElementChild as HTMLElement;
+
+      return {
+        message: Number(/^m(-?\d+)$/.exec(bubble.dataset.message ?? "")?.[1]),
+        lines: withBlank[at]!,
+        bare: bare[at]!,
+        midWord: midWord(words),
+        inline: bubble.querySelector("[data-meta-inline]") !== null,
+        besideLast: meta.top < foot - 1,
+        covers: boxes.some((box) => box.bottom > meta.top && box.top < meta.bottom && box.right > meta.left && box.left < meta.right),
+        hidden: cut.scrollWidth - cut.clientWidth
+      };
+    });
+  });
+}
+
+describe.skipIf(!origin || !touchReady())("what a bubble holds keeps inside it", () => {
+  for (const viewport of WIDTHS) {
+    test(`every player and file line stands inside its bubble, and the words keep their lines, at ${viewport.width}px`, async () => {
+      const context = await open(viewport);
+
+      try {
+        const page = await context.newPage();
+
+        await visit(page);
+
+        const blocks = await placed(page);
+
+        expect(blocks.map((block) => block.message)).toEqual(FILES.filter((each) => each.attachments !== undefined).map((each) => each.messageId));
+
+        for (const block of blocks) {
+          expect(block.pastStart).toBeLessThanOrEqual(0.5);
+          expect(block.pastEnd).toBeLessThanOrEqual(0.5);
+          expect(block.buttonPastEnd).toBeLessThanOrEqual(0.5);
+          expect(block.hidden).toBe(0);
+        }
+
+        // A player is 320 px wide, or the bubble's room where that is narrower.
+        for (const player of blocks.slice(0, 4)) {
+          expect(Math.abs(player.width - Math.min(PLAYER, player.room))).toBeLessThanOrEqual(0.5);
+        }
+
+        const bubbles = await worded(page);
+
+        expect(bubbles.map((bubble) => bubble.message)).toEqual(expect.arrayContaining(WORDS.map((each) => each.messageId)));
+
+        // Each failing bubble is named with what it did, so a failure says which words and how.
+        // The words stand on as many lines with the blank as without it; which words end which line may
+        // differ, since the room balances its lines and the blank on the last one is part of it.
+        expect(bubbles.filter((bubble) => bubble.lines.length !== bubble.bare.length).map(({ message, lines, bare }) => ({ message, lines, bare }))).toEqual([]);
+        expect(bubbles.filter((bubble) => bubble.midWord.length > 0).map(({ message, midWord }) => ({ message, midWord }))).toEqual([]);
+        expect(bubbles.filter((bubble) => bubble.covers || bubble.hidden !== 0).map(({ message, covers, hidden }) => ({ message, covers, hidden }))).toEqual([]);
+
+        // Some last lines left the meta line room and some did not, so both ways were read.
+        const inline = bubbles.filter((bubble) => bubble.inline);
+
+        expect(inline.some((bubble) => bubble.besideLast)).toBe(true);
+        expect(inline.some((bubble) => !bubble.besideLast)).toBe(true);
+
+        // The owner's sentence that brought this about stands on one line at a phone's width too.
+        expect(bubbles.find((bubble) => bubble.message === WORDS[0]!.messageId)!.lines).toHaveLength(1);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+  }
+});

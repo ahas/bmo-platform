@@ -2251,3 +2251,191 @@ export interface WorktreeState {
 export type ParkedWork =
   | { kind: "main"; at: number; commit: string; paths: string[] }
   | { kind: "branch"; at: number; branch: string; commit: string; paths: string[] };
+
+// The receiver screens' shapes: a room's messages and pages, its removal, its sends and the voice briefing's switch, as the console answers them
+
+// One table's rows a room's removal takes or leaves, as bmo-server counts them (docs/control-port.md,
+// `/rooms/remove`): the columns named are cleared on rows that stay.
+export interface RoomRemovalRows {
+  table: string;
+  rows: number;
+  cleared?: string[];
+}
+
+// A folder the removal takes: how many files stand under it, and each one by name where the
+// confirmation names them — the brain's documents of the room.
+export interface RoomRemovalFolder {
+  path: string;
+  files: number;
+  documents?: string[];
+}
+
+// An archive copy holding the room, with the rows it holds, or why it could not be read.
+export interface RoomRemovalCopy {
+  path: string;
+  rows: number | null;
+  failure: string | null;
+}
+
+// What removing a room's registration would take and leave, nothing written yet: the refusal where
+// one applies, the warnings, and the settings naming the room that no declaration matches.
+export interface RoomRemovalPreview {
+  chat: number;
+  refused: string | null;
+  warnings: string[];
+  goes: RoomRemovalRows[];
+  stays: RoomRemovalRows[];
+  pictures: string[];
+  settings: { taken: string[]; undeclared: string[] };
+  folders: RoomRemovalFolder[];
+  copies: RoomRemovalCopy[];
+}
+
+// What the removal took, and anything it could not remove.
+export interface RoomRemovalAnswer {
+  chat: number;
+  taken: RoomRemovalRows[];
+  cleared: RoomRemovalRows[];
+  pictures: string[];
+  settings: string[];
+  folders: { path: string }[];
+  copies: RoomRemovalCopy[];
+  left: string[];
+}
+
+export interface MessagePage {
+  messages: ArchivedMessage[];
+  judgements: Judgement[];
+  hasMore: boolean;
+}
+
+// One picture a room holds, as the picture viewer walks the room's pictures.
+export interface RoomPicture {
+  messageId: number;
+  // The album it went out in, by the number of the album's first picture; null for a picture sent alone.
+  album: number | null;
+  senderName: string;
+  sentAt: number;
+  // The message's words as the archive holds them, its picture mark included.
+  text: string;
+  // What the kept file is, or null where the file is no longer kept.
+  file: { name: string; bytes: number; type: string } | null;
+}
+
+// A stretch of a room's pictures in the room's order, with where it stands among all of them.
+export interface RoomPicturePage {
+  pictures: RoomPicture[];
+  // Whether the room holds more past the stretch, on the side it was asked for.
+  hasMore: boolean;
+  // How many of the room's pictures stand before the first of the stretch, and how many it holds.
+  before: number;
+  total: number;
+}
+
+// What one web address in a room's message shows of itself. The page's picture is fetched by the
+// console's own server and named here only by whether there is one.
+export interface LinkPreview {
+  // The address's place among the message's previewed addresses, which is how its picture is asked for.
+  index: number;
+  url: string;
+  host: string;
+  title: string | null;
+  description: string | null;
+  siteName: string | null;
+  image: boolean;
+}
+
+// Where a day of a room begins: the first message said that day or after it. Null where nothing
+// was said from that day on.
+export interface RoomDayStart {
+  start: { messageId: number } | null;
+}
+
+export interface JudgementPage {
+  judgements: Judgement[];
+  hasMore: boolean;
+}
+
+// What the receiver did with what the owner typed: it said it in the room under their name, and
+// the room's record now holds it under this number.
+export interface SentMessage {
+  messageId: number;
+}
+
+// What a send's key came to, as the screen asks for it while it checks a send that ran late: the
+// answer it went out with, the refusal that came instead, a send still going, or no record of it.
+export type SendOutcomeRecord<T> =
+  | { state: "answered"; answer: T }
+  | { state: "failed"; reason: string }
+  | { state: "going" }
+  | { state: "unknown" };
+
+// How long the window the chat agent keeps in one room has left to run, in whole seconds from the moment the
+// console answered; nought where none is open (the receiver's docs/wake.md).
+export interface RoomWindow {
+  openFor: number;
+}
+
+// One room, counted: the messages kept for it, the session kept for the room, and the runs made for it.
+export interface RoomSpeaker {
+  name: string;
+  messages: number;
+}
+
+export interface RoomStats {
+  chatId: number;
+  messages: number;
+  // What the room is made of: the people's messages, and each agent's under its own block.
+  fromPeople: number;
+  speakers: number;
+  firstAt: number | null;
+  lastAt: number | null;
+  // When an agent last said something in the room, which is not the same as the last message.
+  lastAnswerAt: number | null;
+  // Who talks most, biggest first. No agent is among them: an agent answers, it does not talk.
+  top: RoomSpeaker[];
+  // Messages by the hour of the day, Seoul time, twenty-four of them starting at midnight.
+  byHour: number[];
+  // The room's own agents (docs/web.md, the room's session section), its designated ones first.
+  agents: RoomAgentStats[];
+}
+
+// One agent of a room: what it said there and the session it answers the room from.
+export interface RoomAgentStats {
+  agent: string;
+  // How the room calls it; null for an agent row that carries no label.
+  label: string | null;
+  messages: number;
+  lastAnswerAt: number | null;
+  // The session it keeps for this room, when it holds one.
+  sessionMode: AgentMode | null;
+  model: string | null;
+  // What actually answered most recently. This may name another mode even when the Claude
+  // session fields above describe the primary line; Codex threads live in fallback_sessions.
+  lastMode: AgentMode | null;
+  lastModel: string | null;
+  lastEffort: string | null;
+  runs: number;
+  contextTokens: number | null;
+  lastRunAt: number | null;
+  // What its runs for this room have cost, from the same rows the title bar's figures come from.
+  weekTokens: number;
+  totalTokens: number;
+}
+
+// What the console is answered with when it sends attachments: what each file became, and what
+// stopped the ones that did not go. A send that stopped halfway is never retried whole, so what
+// landed has to come back named.
+export interface SentAttachments {
+  sent: { name: string; messageId: number }[];
+  failed: { name: string; reason: string }[];
+  // The files the receiver took but did not answer for in time: they may well have gone, so they are
+  // watched for in the room rather than called failed.
+  checking: { name: string }[];
+}
+
+export interface VoiceBriefingChanged {
+  ok: true;
+  on: boolean;
+  autoplay: boolean;
+}

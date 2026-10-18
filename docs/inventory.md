@@ -108,7 +108,7 @@ Of the 210, these are not carried here:
 |---|---|
 | `app/domain/settings.ts` | split: each settings section goes with the group whose screen it sets, and the cells' classes stand in `app/domain/settings-cells.ts` |
 | `app/domain/finding-blocks.ts` | not carried: the bmo-artifact bundle draws a finding, and the shell's markdown reads none |
-| `app/components/PalettePreview.vue` | the receiver screens, build-11: it draws a room's bubbles |
+| `app/components/PalettePreview.vue` | with the receiver screens, build-11, at the same path: it draws a room's bubbles |
 | `app/components/ItemTip.vue`, `app/domain/item-tips.ts`, `app/domain/item-tips.test.ts` | with the job screens, build-10, at the same path |
 | `server/utils/todosearch.test.ts` | not carried: it searched the old archive's rows; the board's search over bmo-job's readings is held by `server/utils/todos.test.ts` |
 | `app/domain/copy.test.ts` | the receiver screens, build-11, with the room copy `app/domain/copy.ts` loses; the shell keeps `copyText` alone |
@@ -126,9 +126,11 @@ The places in the shell that name a later group's file are cut here, and that gr
   query, the item tips and the TODO choices of the settings (`app/domain/todo-settings.ts`, out of the old
   settings module). The push plugin's ringing of a question stays cut: it read every open question with its
   words, which no route serves (`docs/boundary.md`, 「Gaps the console meets」).
-- **The receiver screens (build-11):** the rooms list in both layouts, the room jump group and `roomItems` of
-  the screens, the palette preview, the opened room, image, link and picture routes, a sent attachment, the
-  turn actions' fold, the report copy, and `shared/briefings.ts`, whose voice mark now reads the data file.
+- **The receiver screens (build-11):** stand again — the rooms list in both layouts, the room jump group and
+  `roomItems` of the screens, the palette preview, the opened room, image, link and picture routes, a sent
+  attachment in the launch box, the turn actions' fold (`app/domain/turn-actions-fold.ts`, out of the old settings
+  module) and the report copy (`app/domain/room-copy.ts`, out of the old copy module). `shared/briefings.ts` stays
+  out: the voice briefings it read are the voice unit's, and the voice mark is the data file's.
 - **The agency screens (build-9):** stand again — the sidebar's agent groups with their folds
   (`app/domain/agent-folds.ts`) and their live marks read from `/api/status`, the agents in the console search,
   the stream notice's link to the live screen, the agents and live screen entries, and the configuration's
@@ -194,10 +196,10 @@ Of these, not carried here:
 
 The places in the agency screens that name a later group's file are cut here, and that group restores them:
 
-- **The receiver screens (build-11):** the rooms an agent's sessions are titled and ranked by, in the sidebar and
-  on the agents screen; the voice briefing's switch, whose section stands unavailable while its route is not
-  carried; where the read-now mark stands in a room's turn actions; and the room module's own use of
-  `app/domain/polling.ts`.
+- **The receiver screens (build-11):** stand again — the rooms an agent's sessions are titled and ranked by, in the
+  sidebar and on the agents screen; the read-now mark in a room's turn actions; and the room module and its page
+  take the polling and the feed's edges from `app/domain/polling.ts`. The voice briefing's switch is set through the
+  receiver, and its section still stands unavailable, since the receiver reads the switch by no route.
 - **The job screens (build-10):** stand again — the TODO module and its panel take the row drag's pointer rules
   from `app/domain/row-drag.ts`.
 
@@ -254,6 +256,41 @@ Of these, not carried here:
 Stands here as `client/apps/web/` at the same path, calling the receiver over HTTP; a test under `client/tests/`. Carried by build-11 (receiver screens).
 
 `app/components/AlbumMosaic.vue`; `app/components/BubbleTail.vue`; `app/components/ChatComposer.vue`; `app/components/ContextChip.vue`; `app/components/JudgementChips.test.ts`; `app/components/JudgementChips.vue`; `app/components/LineChip.test.ts`; `app/components/LineChip.vue`; `app/components/LinkPreviews.vue`; `app/components/ListeningLine.vue`; `app/components/MessageImage.vue`; `app/components/MessageVideo.vue`; `app/components/RoomDayPicker.vue`; `app/components/RoomMessage.test.ts`; `app/components/RoomMessage.vue`; `app/components/RoomMessageSkeleton.vue`; `app/components/RoomPictureViewer.vue`; `app/components/RoomQuote.vue`; `app/components/RoomRemovalDialog.vue`; `app/components/RoomSenderRun.vue`; `app/components/RoomStats.vue`; `app/components/RoomWork.test.ts`; `app/components/RoomWork.vue`; `app/components/RunProgress.test.ts`; `app/components/RunProgress.vue`; `app/components/SettingsBriefing.vue`; `app/components/SidebarRooms.vue`; `app/components/TelegramAsset.vue`; `app/components/TelegramText.vue`; `app/components/TurnActions.vue`; `app/components/TurnOpening.test.ts`; `app/components/TurnOpening.vue`; `app/components/TurnRecords.vue`; `app/domain/album.test.ts`; `app/domain/album.ts`; `app/domain/attachments.test.ts`; `app/domain/attachments.ts`; `app/domain/bottom.ts`; `app/domain/bubble-fit.ts`; `app/domain/drafts.test.ts`; `app/domain/drafts.ts`; `app/domain/expressions.test.ts`; `app/domain/expressions.ts`; `app/domain/first-line.ts`; `app/domain/flight.test.ts`; `app/domain/flight.ts`; `app/domain/gallery.test.ts`; `app/domain/gallery.ts`; `app/domain/messagemenu.test.ts`; `app/domain/messagemenu.ts`; `app/domain/outbox-store.ts`; `app/domain/outbox.test.ts`; `app/domain/outbox.ts`; `app/domain/pasted.test.ts`; `app/domain/pasted.ts`; `app/domain/picture-shapes.ts`; `app/domain/read-marks.test.ts`; `app/domain/read-marks.ts`; `app/domain/room-feed.test.ts`; `app/domain/room-list.test.ts`; `app/domain/room-list.ts`; `app/domain/room-removal.test.ts`; `app/domain/room-removal.ts`; `app/domain/room-window.test.ts`; `app/domain/room-window.ts`; `app/domain/room.test.ts`; `app/domain/room.ts`; `app/domain/roomstats.test.ts`; `app/domain/roomstats.ts`; `app/domain/tapfocus.ts`; `app/domain/working.test.ts`; `app/domain/working.ts`; `app/pages/rooms/[chatId].vue`; `browser/bottom.test.ts`; `browser/bubble-fit.test.ts`; `browser/bubble-wrap.test.ts`; `browser/flight-layer.test.ts`; `browser/flight-meta.test.ts`; `browser/meta-inline.test.ts`; `browser/outbox-store.test.ts`; `browser/prompt-wrap.test.ts`; `browser/room-feed-gap.test.ts`; `browser/tapfocus-touch.test.ts`; `server/api/briefing/read.post.ts`; `server/api/images/[chatId]/[messageId].get.ts`; `server/api/owner.get.ts`; `server/api/rooms.get.ts`; `server/api/rooms/` (15 files); `server/api/tool-icons.get.ts`; `server/api/voice-briefing.get.ts`; `server/api/voice-briefing.post.test.ts`; `server/api/voice-briefing.post.ts`; `server/utils/actions.test.ts`; `server/utils/actions.ts`; `server/utils/archive.test.ts`; `server/utils/archive.ts`; `server/utils/chat-tool-facts.ts`; `server/utils/images.ts`; `server/utils/message-media.ts`; `server/utils/openings.test.ts`; `server/utils/openings.ts`; `server/utils/roads.test.ts`; `server/utils/roads.ts`; `server/utils/room-links.ts`; `server/utils/room-pictures.ts`; `server/utils/room-reads.test.ts`; `server/utils/room-reads.ts`; `server/utils/room-window.ts`; `server/utils/roomstats.test.ts`; `server/utils/roomstats.ts`; `server/utils/send-keys.test.ts`; `server/utils/send-keys.ts`; `server/utils/spends.test.ts`; `server/utils/spends.ts`; `shared/briefings.test.ts`; `shared/briefings.ts`; `shared/gate-roads.test.ts`; `shared/gate-roads.ts`; `shared/links.test.ts`; `shared/links.ts`; `shared/read-place.ts`; `shared/spoken.ts`.
+
+How the receiver screens stand here:
+
+- **They call the receiver** (`docs/boundary.md`, 「Calls the console makes」) through `server/utils/receiver.ts`,
+  written new, with its refusal codes, each said by the pack's sentence for it. `server/utils/archive.ts` reads the
+  rooms and a room's line from the receiver's console routes into the shapes the room screen draws, asking once a
+  sender on a page whether it is an agent's; `server/utils/room-reads.ts` keeps the read marks in the console's own
+  `web_room_reads` and counts on the receiver's line past them; the sends, a room's removal, what opened a turn and
+  the voice briefing go to the receiver's own routes. No statement of theirs reads another unit's table.
+- **What no unit serves stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a message's files and
+  photos, a room's pictures, figures and window, a link's preview, the judgements beside a page, a round's figures
+  and actions, a line's voice briefing, and how the voice briefing's switch stands. The console offers no way to pin
+  a room, as the old one did not; the receiver's list stands the pinned rooms first.
+- **Written new:** `server/utils/receiver.ts`; `app/domain/room-copy.ts` and `app/domain/turn-actions-fold.ts`, the
+  parts of the old copy and settings modules the room screen reads; `shared/particles.ts`, the subject particle a
+  name from another unit takes, its two forms in the data file. `app/components/PalettePreview.vue` comes from the
+  shell's list. The marks a message's text opens with for what it carried, the service's notice mark and the paste
+  mark stand in the data file beside the pack, read in `shared/text-marks.ts`.
+- **The chat agent is named by its role** in code, tests and comments, and by the deployment's settings where a room
+  falls back to it; the old fixed sender name is not carried. The tests stand the receiver in on a loopback port,
+  and their Korean stands in `client/tests/fixtures/` at each test's own path.
+
+Of these, not carried here:
+
+| Old member | Where it stands |
+|---|---|
+| `server/utils/actions.ts`, `server/utils/actions.test.ts`, `server/utils/chat-tool-facts.ts` | not carried: they read a turn's records and the tool host's facts, which no route serves |
+| `server/utils/spends.ts`, `server/utils/spends.test.ts` | not carried: they read a round's usage rows, which no route serves |
+| `server/utils/roads.ts`, `server/utils/roads.test.ts`, `shared/gate-roads.ts`, `shared/gate-roads.test.ts` | not carried: the roads a judgement's run walked are the gate's |
+| `server/utils/roomstats.ts`, `server/utils/roomstats.test.ts`, `server/utils/room-window.ts`, `server/utils/room-pictures.ts` | not carried: a room's figures, its window and its pictures are served by no route |
+| `server/utils/images.ts`, `server/utils/message-media.ts` | not carried: a message's files and the metadata it arrived with are served by no route; `server/utils/archive.ts` names the files the receiver's page carries |
+| `shared/briefings.ts`, `shared/briefings.test.ts` | not carried: a line's voice briefing is the voice unit's |
+| `shared/spoken.ts` | not carried: the receiver's pages leave out what no person said |
+| `app/components/SettingsBriefing.vue` | not carried: it placed the voice briefing player, which the console does not carry |
+| `server/utils/archive.test.ts`, `server/utils/room-reads.test.ts`, `server/utils/openings.test.ts`, `server/api/voice-briefing.post.test.ts` | rewritten onto a stood-in receiver, each refusal said by the pack's sentence for its code |
 
 ### The brain screens (39 files)
 

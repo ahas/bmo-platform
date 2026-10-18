@@ -1,0 +1,18 @@
+{
+  "line_7": "봐줘 https://a.example/x?y=1, 그리고 (https://b.example/p_(q)) 끝.",
+  "line_8": "봐줘 ",
+  "line_10": ", 그리고 (",
+  "line_12": ") 끝.",
+  "line_17": "결과는 [아카이브 83번](https://bmo.example.com/bmo/archive/83)에 표와 도표로 올려 뒀어.",
+  "line_20": "결과는 [아카이브 83번](",
+  "line_22": ")에 표와 도표로 올려 뒀어.",
+  "line_28": "그냥 말",
+  "line_29": "https:// 는 주소가 아님",
+  "line_38": "ftp://x.example 와 javascript:alert(1)",
+  "line_43": "확인은 이렇게.",
+  "line_49": "- 주소는 `https://inline.example/v1` 로 바꿔도 되고, 설명은 https://words.example/docs_(a) 에.",
+  "line_51": "| 이름 | 주소 |",
+  "line_53": "| 코드 | `https://cell.example` |",
+  "line_54": "| [`문서`](https://linked.example/p) | https://cell-words.example. |",
+  "line_58": "    https://indented.example\n\n봐 https://a.example"
+}

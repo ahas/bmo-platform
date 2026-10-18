@@ -38,6 +38,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 import { depthLabel } from "~/domain/status";
 
 import type { LaunchAgent, SearchDepth } from "#shared/config";
+import type { ComposedMessage } from "~/domain/attachments";
 import type { LaunchResult, WorkerWordSent } from "#shared/types";
 
 import type { ControlLink } from "~/domain/control";
@@ -78,12 +79,6 @@ const depthItems = SEARCH_DEPTHS.map((value) => ({ value, label: depthLabel(t, v
 // Where what is written here goes. A runner is launched; a worker is handed the words for its own
 // session, which is not a launch at all and takes no job place.
 const road = computed(() => (props.agent === "worker" ? "/api/worker-word" : "/api/launch"));
-
-// What the room's box hands over on a send: the words, and the files in the order they were attached.
-interface ComposedMessage {
-  text: string;
-  files: { file: File }[];
-}
 
 // The words and the files go in one request; the files only where a worker is spoken to.
 function launchBody(message: ComposedMessage): FormData | Record<string, unknown> {

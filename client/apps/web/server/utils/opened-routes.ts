@@ -29,8 +29,16 @@ export const openedRoutes: readonly OpenedRoute[] = [
 
   { method: "GET", path: /^\/api\/tab-states\/[^/]+$/, scope: "user" },
   { method: "PUT", path: /^\/api\/tab-states\/[^/]+$/, scope: "user" },
-  // A message's files, in the rooms the user reads.
+  { method: "GET", path: /^\/api\/rooms$/, scope: "room" },
+  { method: "GET", path: /^\/api\/rooms\/-?\d+\/messages$/, scope: "room" },
+  // How far the user has read a room, kept for them alone.
+  { method: "POST", path: /^\/api\/rooms\/-?\d+\/read$/, scope: "room" },
+  // What a room's messages carry and how its reader walks it: its photos and files, the previews of its links, its
+  // pictures and where a day of it begins.
+  { method: "GET", path: /^\/api\/images\/-?\d+\/-?\d+$/, scope: "room" },
   { method: "GET", path: /^\/api\/media\/[^/]+\/-?\d+\/-?\d+$/, scope: "room" },
+  { method: "GET", path: /^\/api\/rooms\/-?\d+\/links\/-?\d+(\/\d+\/image)?$/, scope: "room" },
+  { method: "GET", path: /^\/api\/rooms\/-?\d+\/(pictures|day)$/, scope: "room" },
   // The receiver's stream, cut to the news of the rooms the user reads.
   { method: "GET", path: /^\/api\/events$/, scope: "room" },
 ];

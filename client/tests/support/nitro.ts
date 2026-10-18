@@ -35,7 +35,14 @@ for (const module of [
   await import("../../apps/web/server/utils/job"),
   await import("../../apps/web/server/utils/job-runs"),
   await import("../../apps/web/server/utils/todos"),
-  await import("../../apps/web/server/utils/work-order-view")
+  await import("../../apps/web/server/utils/work-order-view"),
+  await import("../../apps/web/server/utils/receiver"),
+  await import("../../apps/web/server/utils/owner"),
+  await import("../../apps/web/server/utils/archive"),
+  await import("../../apps/web/server/utils/openings"),
+  await import("../../apps/web/server/utils/room-links"),
+  await import("../../apps/web/server/utils/room-reads"),
+  await import("../../apps/web/server/utils/send-keys")
 ]) {
   Object.assign(globals, module);
 }

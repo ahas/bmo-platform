@@ -2,9 +2,29 @@
 # unit writes into a text in this language, read by name in `shared/text-marks.ts`. A code file holds none.
 
 # The marks a message's text opens with where it stands for something other than words. A voice message's
-# text is its mark, with the recording's length where one is known, then the words it says.
+# text is its mark, with the recording's length where one is known, then the words it says; a line an agent sends
+# as the service rather than in its own voice opens with the notice mark and a space.
 marks:
   voice: "음성"
+  notice: "[봇 알림]"
+  # What a message carried, as the receiver marks it at the head of its text: a kept file with its name, a kept
+  # picture, a kept video or round video note, and a kept sound with its name.
+  file: "파일"
+  picture: "사진"
+  video: "동영상"
+  video_note: "동영상 메모"
+  audio: "오디오"
+  # A long paste held beside the console's box stands in the typed text as its mark, which is found there again by
+  # what it says: the paste word, its number, and its length in characters with the character word after it.
+  paste: "붙여넣기"
+  characters: "자"
+
+# The subject particle a name from another unit is joined to, by the sound it ends on: after a closed syllable and
+# after an open one. The console reads which one a name asks for and joins it.
+particles:
+  subject:
+    closed: "이"
+    open: "가"
 
 # The word bmo-job files a co-work branch's span under in the name it stores, ahead of the branch's number.
 filed:

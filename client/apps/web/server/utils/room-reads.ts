@@ -1,0 +1,157 @@
+import { userOf } from "@web/accounts/account-service";
+
+import { useWebSql } from "./db";
+import { receiverRead } from "./receiver";
+
+import type { SignedIn } from "./accounts";
+import type { ReadPlace } from "#shared/types";
+
+// How far each account has read each room on the console, and how many messages stand past it (docs/web.md,
+// 「Sidebar」). The marks are the console's own table, `web_room_reads`; the messages are the receiver's, walked
+// past the marked message with its `messages/after` route, which walks a room's line by when each message was
+// sent and the order it was taken in, so the two numberings a room carries never have to be compared. A mark
+// only ever moves forward.
+//
+// What counts as read is the later of two places: the console's own mark, and the account's own last message in
+// the room from any sender linked to it. A provider does not tell the receiver what a person has read, so reading
+// a room elsewhere is unknown here; writing in it is known, and whoever wrote has read the room up to there.
+//
+// A place is when its message was sent; the receiver hands no order of its own between messages sent in one
+// second, so a place's order is nought and the marked message itself says where in that second it stands.
+
+// How many messages past a mark are walked to count them; a room further behind than this counts this many.
+const COUNTED = 500;
+
+/** A room as the count reads it: its number and when its last message was sent. */
+export interface RoomLast {
+  chatId: number;
+  lastMessageAt: number | null;
+}
+
+interface Mark {
+  messageId: number | null;
+  sentAt: number;
+}
+
+interface Received {
+  messageId: number;
+  senderId: number | null;
+  sentAt: number;
+}
+
+/** The senders that are the account's own: the owner's own identity for the administrator, and every identity linked to the user. */
+export async function ownSenders(signed: SignedIn, owner: number | null): Promise<number[]> {
+  const own = new Set<number>();
+
+  if (signed.administrator && owner !== null) own.add(owner);
+
+  if (signed.id !== null) {
+    for (const sender of (await userOf(signed.id))?.senders ?? []) own.add(Number(sender));
+  }
+
+  return [...own];
+}
+
+/**
+ * What a room holds unread for an account: how many, the first of them, and the place read to that they are
+ * counted from, by which a screen tells an older count from a newer one.
+ */
+export interface Unread {
+  count: number;
+  first: number | null;
+  from: ReadPlace | null;
+}
+
+function placeOf(sentAt: number): ReadPlace {
+  return { sentAt, order: 0 };
+}
+
+// The room's newest message, the place a room is read up to when the account first meets it.
+async function newest(chatId: number): Promise<Received | null> {
+  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages?limit=1`);
+
+  return messages.at(-1) ?? null;
+}
+
+async function marksOf(signed: SignedIn): Promise<Map<number, Mark>> {
+  const rows = (await useWebSql().all(
+    'SELECT chat_id AS "chatId", message_id AS "messageId", sent_at AS "sentAt" FROM web_room_reads WHERE user_name = $1',
+    signed.name
+  )) as { chatId: number; messageId: number | null; sentAt: number }[];
+
+  return new Map(rows.map((row) => [Number(row.chatId), { messageId: row.messageId === null ? null : Number(row.messageId), sentAt: Number(row.sentAt) }]));
+}
+
+async function writeMark(signed: SignedIn, chatId: number, mark: Mark, now: number): Promise<void> {
+  await useWebSql().run(
+    `INSERT INTO web_room_reads (user_name, chat_id, message_id, sent_at, row_order, created_at, read_at, user_id) VALUES ($1, $2, $3, $4, 0, $5, $5, $6)
+     ON CONFLICT (user_name, chat_id) DO UPDATE SET message_id = excluded.message_id, sent_at = excluded.sent_at, read_at = excluded.read_at,
+       user_id = excluded.user_id
+     WHERE excluded.sent_at >= web_room_reads.sent_at`,
+    signed.name,
+    chatId,
+    mark.messageId,
+    mark.sentAt,
+    now,
+    signed.id
+  );
+}
+
+// What stands past a mark: every message after the marked one, from after the account's own last word among them.
+async function unreadAfter(chatId: number, mark: Mark, own: ReadonlySet<number>): Promise<Unread> {
+  if (mark.messageId === null) return { count: 0, first: null, from: placeOf(mark.sentAt) };
+
+  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages/after?after=${mark.messageId}&limit=${COUNTED}`);
+  const lastOwn = messages.findLastIndex((message) => message.senderId !== null && own.has(message.senderId));
+  const past = messages.slice(lastOwn + 1);
+  const from = lastOwn === -1 ? placeOf(mark.sentAt) : placeOf(messages[lastOwn]!.sentAt);
+
+  return { count: past.length, first: past[0]?.messageId ?? null, from };
+}
+
+/**
+ * How many messages of each room the account has not read, and the first of them. A room the account meets for
+ * the first time is read as it stands, so its count starts from nothing rather than from the room's whole
+ * history.
+ */
+export async function unreadCounts(signed: SignedIn, own: readonly number[], rooms: readonly RoomLast[], now: number): Promise<Map<number, Unread>> {
+  const marks = await marksOf(signed);
+  const ours = new Set(own);
+  const counts = new Map<number, Unread>();
+
+  for (const { chatId, lastMessageAt } of rooms) {
+    let mark = marks.get(chatId);
+
+    if (mark === undefined) {
+      const last = await newest(chatId).catch(() => null);
+
+      mark = { messageId: last?.messageId ?? null, sentAt: last?.sentAt ?? now };
+      await writeMark(signed, chatId, mark, now);
+    }
+
+    // A room whose last word is older than the place read to has nothing past it, and is not walked.
+    counts.set(
+      chatId,
+      lastMessageAt === null || lastMessageAt < mark.sentAt
+        ? { count: 0, first: null, from: placeOf(mark.sentAt) }
+        : await unreadAfter(chatId, mark, ours).catch(() => ({ count: 0, first: null, from: placeOf(mark.sentAt) }))
+    );
+  }
+
+  return counts;
+}
+
+/**
+ * The room read up to one of its messages, and what stands unread past the account's place now. A message the
+ * room does not hold moves nothing; a place behind the mark leaves the mark where it is.
+ */
+export async function markRead(signed: SignedIn, own: readonly number[], chatId: number, messageId: number, now: number): Promise<Unread> {
+  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages/${messageId}`);
+  const read = messages[0];
+
+  if (read !== undefined) await writeMark(signed, chatId, { messageId, sentAt: read.sentAt }, now);
+
+  const last = await newest(chatId);
+
+  return (await unreadCounts(signed, own, [{ chatId, lastMessageAt: last?.sentAt ?? null }], now)).get(chatId) ?? { count: 0, first: null, from: null };
+}

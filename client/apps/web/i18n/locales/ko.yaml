@@ -140,12 +140,14 @@ common:
     decrease: 감소
     document_menu: 문서 메뉴
     download_named: "{name} 내려받기"
+    enlarge_named: "{name} 크게 보기"
     image_zoom: "{title}, 휠이나 두 손가락으로 확대"
     increase: 증가
     menu_of: "{name} 메뉴"
     more_notices: "알림 {n}건 더 있음"
     move_down_named: "{name} 아래로"
     move_up_named: "{name} 위로"
+    opens_new_tab: (새 탭에서 열림)
     pinned_named: "{name} 고정됨"
     refresh_standing: "{standing} · 새로고침"
     share_address: 공유 링크 주소
@@ -174,8 +176,10 @@ common:
     bad_action: 요청한 동작이 올바르지 않습니다.
     bad_cursor: 커서 값이 올바르지 않습니다.
     bad_limit: 개수 값이 올바르지 않습니다.
+    copy_failed: 복사하지 못했습니다.
     editor_failed: 코드 편집기를 불러오지 못했습니다.
     file_too_large: 한 파일에 50MB까지 보낼 수 있습니다.
+    image_unavailable: 이미지를 불러올 수 없습니다.
     link_copy_failed: 링크를 복사하지 못했습니다.
     not_saved_named: "{name} 저장 안 됨"
     not_sent: 보내지 못했습니다.
@@ -372,22 +376,117 @@ question:
 
 room:
   status:
+    agent_listening: "{subject} 듣는 중"
+    agent_thinking: "{subject} 생각하는 중"
+    agent_tool: "{subject} 툴 사용 중"
+    agent_tool_named: "{subject} {tool} 사용 중"
+    agent_waiting_engine: "{subject} 같은 모델을 쓰는 Job이 끝나기를 기다리는 중"
+    agent_waiting_engine_item: "{subject} 같은 모델을 쓰는 #{item} Job이 끝나기를 기다리는 중"
+    agent_writing: "{subject} 답을 쓰는 중"
+    chat_enabled: 채팅 활성화
+    checking: 보냈는지 확인하는 중
+    earlier_loading: 이전 대화를 불러오는 중…
+    failed: 실패
+    later_loading: 다음 대화를 불러오는 중…
+    listening_left: "앞으로 {time} 동안"
+    more_records: "{n}개 더 있음"
+    no_messages: 기록된 메시지 없음
+    no_records_left: 남은 기록 없음
+    not_sent: 보내지 못함
+    nothing_after: 그날 이후 대화 없음
     outcome_run_failed: "{name}의 실행이 실패했습니다."
     outcome_run_stopped: "{name}의 실행을 중지했습니다."
     outcome_skipped: "{subject} 이번에는 답하지 않았습니다."
+    outcome_skipped_times: "{subject} {n}번 답하지 않았습니다."
     outcome_waited: "{subject} 메시지가 더 이어질 것 같아 기다렸습니다."
+    received_both: "메시지 {messages}개 · 조용한 지시 {instructions}개 받음"
+    received_instructions: "조용한 지시 {instructions}개 받음"
+    received_messages: "메시지 {messages}개 받음"
+    records_loading: 기록 불러오는 중…
+    removal_loading: 삭제할 기록을 불러오는 중…
+    room_loading: 방 불러오는 중…
+    selected_count: "{n}개 선택됨"
+    sending: 보내는 중
+    sent: 보냄
+    session_loading: 세션 정보 불러오는 중…
+    start_of_talk: 대화의 처음입니다.
+    talk_loading: 대화 불러오는 중…
+    waiting: 연결되면 보냄
   error:
+    actions_read_failed: 실행 기록을 불러오지 못했습니다.
+    attachment_empty: "{name}: 빈 파일이라 첨부하지 않았습니다."
+    attachment_too_large: "{name}: {size}는 너무 큽니다. 한 파일에 50MB까지 보낼 수 있습니다."
+    attachment_too_many: "한 번에 {max}개까지 첨부할 수 있습니다. {name}은 제외하고 보냅니다."
     avatar_not_found: 프로필 사진을 찾을 수 없습니다.
     bad_avatar_id: 프로필 사진 번호가 올바르지 않습니다.
     bad_avatar_kind: 프로필 사진 종류가 올바르지 않습니다.
     bad_chat_id: 방 번호가 올바르지 않습니다.
+    bad_instruction_id: 지시 번호가 올바르지 않습니다.
     bad_message_id: 메시지 번호가 올바르지 않습니다.
     bad_reply_id: 답장할 메시지 번호가 올바르지 않습니다.
+    bad_send_key: 전송 키가 올바르지 않습니다.
+    briefing_not_up: 브리핑을 만들 유닛이 뜨지 않았습니다.
+    briefing_one_switch: 바꿀 스위치 하나와 그 값을 정해 주세요.
+    briefing_switched_off: 음성 브리핑이 꺼져 있습니다.
+    briefing_unsigned: 누가 띄운 브리핑인지 알 수 없습니다.
+    briefing_voiceless: 이 에이전트에는 목소리가 없습니다.
+    briefing_wordless: 브리핑할 말이 없습니다.
+    file_empty_named: "{name} 파일이 비어 있어 보내지 않았습니다."
     file_not_found: 파일을 찾을 수 없습니다.
+    file_too_large_named: "{name}: 한 파일에 50MB까지 보낼 수 있습니다."
+    instruction_read_failed: 지시 원문을 읽지 못했습니다.
+    jump_failed: 날짜로 이동하지 못했습니다.
+    message_not_found: 메시지를 찾지 못했습니다.
+    no_file: 보낼 파일이 없습니다.
+    none_sent: 보낸 파일이 하나도 없습니다.
+    photo_not_found: 사진을 찾을 수 없습니다.
+    pictures_failed: 방의 다른 사진을 불러오지 못했습니다.
+    read_failed: 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.
+    receiver_bad_request: 수신 유닛이 요청을 읽지 못했습니다.
+    receiver_conflict: 지금 상태와 맞지 않아 수신 유닛이 거절했습니다.
+    receiver_failed: 수신 유닛이 답하다가 실패했습니다.
+    receiver_forbidden: 이 일은 할 수 없는 계정입니다.
+    receiver_not_found: 찾는 방이나 메시지가 없습니다.
+    receiver_not_ready: 수신 유닛이 아직 답할 준비가 되지 않았습니다.
+    receiver_unauthorized: 수신 유닛과 맞춘 토큰이 맞지 않습니다.
+    receiver_unit_failed: 수신 유닛이 다른 유닛을 부르다 실패했습니다.
+    receiver_unreachable: 이 방의 채팅 서비스가 답하지 않습니다.
+    removal_chat: 방 번호가 아닙니다.
+    removal_infrastructure: 설정에 적힌 운영 방이라 지울 수 없습니다.
+    removal_not_administrator: 관리자만 방 등록을 지울 수 있습니다.
+    removal_owners_chat: 관리자 자신의 개인 채팅이라 지울 수 없습니다.
+    removal_read_failed: 삭제할 기록을 불러오지 못했습니다.
+    removal_seeded_room: 대화 상대 설정이 정해 둔 방이라 지울 수 없습니다.
+    reply_missing: 답장할 메시지가 기록에 없습니다.
+    say_empty: 보낼 메시지를 입력해 주세요.
+    send_not_taken: 10분 동안 수신 유닛에 연결되지 않아 보내지 못했습니다.
+    send_unconfirmed: 전송 여부를 확인하지 못했습니다. 방에 메시지가 올라갔는지 먼저 확인해 주세요.
+    session_failed: 세션 정보를 불러오지 못했습니다.
+    words_only: 이 방은 글만 받습니다.
   action:
+    attach_document: 파일
+    attach_file: 파일 첨부
+    attach_media: 사진·동영상
+    cancel_reply: 답장 취소
+    choose_messages: 메시지 선택
+    companion_reset: 초기화
+    companion_settings: 모델 설정
+    copy_all: 전체 복사
+    copy_ref: 대화번호 복사
+    copy_text: 텍스트만 복사
+    of_companion: "{action} · {name}"
+    remove_paste: 붙여넣은 텍스트 삭제
+    remove_registration: 방 등록 삭제
+    reply: 답장
+    resend: 다시 보내기
     reset_run: 초기화
+    select: 선택
     session_only: 새 세션 시작
+    show_in_message: 메시지에서 보기
+    to_latest: 최신 메시지로
   label:
+    answer_took: "{time} 소요"
+    avatar_of: "{name} 프로필 사진"
     chip_briefing: 보이스브리핑
     chip_briefing_failed: 보이스브리핑 실패
     chip_briefing_making: 보이스브리핑 만드는 중
@@ -400,7 +499,40 @@ room:
     chip_verdicts_failed: 판정 실패
     chip_verdicts_judging: 판정 중
     chip_verdicts_passed: 판정 통과
+    context: 컨텍스트
+    earlier_count: "이전 {n}개"
+    elapsed: "{time} 경과"
+    empty_message: (빈 메시지)
+    hour: "{n}시"
+    hour_count: "{hour}시 · {n}개"
+    hour_of_day: 시간대
+    last_answer: 마지막 응답
+    last_talk: 마지막 대화
+    launched_by: "{name} 실행"
+    me: 나
+    messages: 메시지
+    no_speakers: 아직 메시지를 보낸 사람 없음
+    not_yet: 아직 없음
+    offer_counts: "필터 전 {held} · 필터 후 {left}"
+    offer_item_rule: 봇 줄만 받은 턴이라 그 줄이 언급한 항목 번호와 연결된 조각만 후보로 받았습니다.
+    open_sessions: 열린 세션
+    opening_title: 턴을 시작한 지시
+    paste_name: "붙여넣기 {n}"
+    paste_size: "{n}자"
+    peak_hour: "{hour}시대"
+    peak_hours: 이용 피크
+    picture_file: 파일 이름
+    picture_format: 형식
+    picture_message: 메시지 번호
+    picture_not_kept: 보관된 파일 없음
+    picture_sender: 보낸 사람
+    picture_sent_at: 보낸 시각
+    picture_size: 파일 크기
     quiet_instruction: 조용한 지시
+    quote_picture: 사진
+    quote_sticker: 스티커
+    quote_video: 동영상
+    recent_answer: 최근 응답
     record_memory: 기억
     record_memory_numbered: "기억 #{id}"
     record_note: 메모
@@ -413,6 +545,16 @@ room:
     record_todo_append_numbered: "항목 #{id} 덧붙임"
     record_watch: 워치
     record_watch_numbered: "워치 #{id}"
+    removal_copies: 아카이브 사본
+    removal_documents: brain 문서
+    removal_failures: 삭제하지 못함
+    removal_folders: 폴더
+    removal_pictures: 방 프로필 사진
+    removal_rows: 행
+    removal_settings: 설정
+    removal_stays: 남는 행
+    removal_undeclared: 선언되지 않은 설정 (남음)
+    removal_warnings: 확인할 점
     reset_conversation: 대화 기록
     reset_conversation_note: 단독으로 답하는 방의 메시지·세션·실행 기록, 함께 답하는 방의 자기 기록
     reset_copies: 아카이브 사본
@@ -431,6 +573,11 @@ room:
     road_timeout: 시간 초과
     road_too_large: 크기 초과로 거부
     road_unavailable: 없음
+    runs: 실행
+    runs_count: "{n}회"
+    runs_last: "{n}회 · 마지막 {time}"
+    session_of: "{name} 세션"
+    share_people: 사람
     sort_browse: 브라우징
     sort_companion_cut: 대화 상대 중단
     sort_console_talk: 콘솔 대화
@@ -451,6 +598,9 @@ room:
     sort_song: 노래
     sort_unfinished: 미결
     sort_watch: 워치
+    span_days: "{n}일째"
+    span_months: "{n}개월째"
+    span_speakers: "{span} · 참여자 {n}명"
     stage_chat: 채팅
     stage_companion: 대화 상대
     stage_content_append: 덧붙이기
@@ -466,13 +616,44 @@ room:
     stage_skipped: 답하지 않음
     stage_wake_again: 깨우기 조건 재작성
     stage_wording_again: 금지어 재작성
+    sticker_preview: 스티커 미리보기
+    summary_jobs: "Job {n}"
+    summary_others: "기타 {n}"
+    summary_searches: "검색 {n}"
+    summary_watches: "워치 {n}"
+    tokens: 토큰
+    tokens_week_total: "이번 주 {week} · 전체 {total}"
+    top_speakers: 메시지가 가장 많은 사람
+    unknown_message: 기록에 없는 메시지
+    unreceivable: 받을 수 없음
+    voice_message: 음성 메시지
   message:
+    id_copied: 대화번호를 복사했습니다.
+    message_ref: "방 {room} (chatId {chatId}) · 메시지 #{messageId}"
+    messages_copied: "메시지 {n}개를 복사했습니다."
     no_session: 이 방에는 아직 이 대화 상대의 세션이 없어 다음 턴에 새 세션으로 시작합니다.
+    removal_done: 방 등록과 그 기록을 삭제했습니다.
+    removal_goes: 삭제하면 아래 기록과 파일이 함께 삭제되며 복원할 수 없습니다.
+    removal_refused: 이 방은 등록을 삭제할 수 없습니다.
+    removal_stays: 이 방에서 만든 항목, Job, Job의 질문, 검색, 사용량은 남습니다.
     reset_done: 초기화했습니다.
+    room_removed: 이 방의 등록이 삭제되어 홈으로 이동했습니다.
     session_only: 아무것도 삭제하지 않습니다.
     session_started: 다음 턴부터 새 세션으로 시작합니다.
+    text_copied: 텍스트를 복사했습니다.
   title:
     companion_reset: "{name} 초기화"
+    remove_registration: 방 등록 삭제
+    session_info: 세션 정보
+  aria:
+    avatar_enlarge: "{name} 프로필 사진 크게 보기"
+    go_to_quote: "{name}의 메시지로 이동"
+    jump_to_date: "{name}, 날짜로 이동"
+    open_details: "{name} 자세히 열기"
+    open_log: "{name} 로그 열기"
+    remove_named: "{name} 삭제"
+  placeholder:
+    drop_here: 여기에 놓으면 첨부됩니다
 
 screens:
   label:
@@ -481,6 +662,7 @@ screens:
     archive: 아카이브
     briefing: 보이스브리핑
     cards: 카드
+    chat_id: 채팅 번호
     code: 코드 리뷰
     files: 파일
     find_description: 화면, 방, 에이전트로 이동
@@ -501,13 +683,17 @@ screens:
     disconnected: 연결 끊김
     no_settings_found: 찾은 설정 없음
     restarting: 재시작 중
+    rooms_loading: 방 목록 불러오는 중…
   message:
     not_available: 이 콘솔에서는 아직 쓸 수 없는 기능입니다.
   error:
     agents_failed: 에이전트 목록 조회 실패
     bad_screen_name: 화면 이름이 올바르지 않습니다.
     no_tab_state: 탭 상태가 없습니다.
+    rooms_failed: 방 목록 조회 실패
     tab_state_too_large: 탭 상태가 너무 큽니다.
+  aria:
+    room_unread: "안읽은 메시지 {count}개"
 
 siren:
   error:
@@ -929,12 +1115,20 @@ account:
     not_subscribed: 이 기기는 아직 알림을 받지 않습니다.
     notifications_loading: 알림 설정 불러오는 중…
   message:
+    preview_answer: "7시예요. 회의록은 https://example.com/notes 에 있어요."
+    preview_ask: 오늘 회의 몇 시였지?
+    preview_code: |-
+      이렇게 바꾸면 돼요.
+      ```ts
+      pick("teal");
+      ```
+    preview_thanks: 고마워. 설정도 다시 보여 줘
     saved: 계정 정보를 변경했습니다.
-    user_usage: "사용법: bun scripts/user.ts set <아이디> <비밀번호> [--administrator]"
     user_saved: "{name} 계정을 저장했습니다."
     user_service_saved: "{name} 사용자를 계정 서비스에 저장했습니다."
     user_service_saved_administrator: "{name} 사용자를 계정 서비스에 플랫폼 관리자로 저장했습니다."
     user_service_unset: "계정 모델이 쓰이고 있지만 서버의 실행 파일과 설정 폴더가 지정되지 않아 계정 서비스의 사용자는 저장하지 않았습니다. 서버의 user 명령으로 저장해 주세요."
+    user_usage: "사용법: bun scripts/user.ts set <아이디> <비밀번호> [--administrator]"
   error:
     bad_new_password: 새 비밀번호가 너무 짧거나 깁니다.
     user_name_shape: "아이디는 {min}~{max}자의 영문, 숫자, 점, 밑줄, 하이픈이어야 합니다."
@@ -1095,6 +1289,8 @@ agents:
     settings_read_failed: 설정을 불러오지 못했습니다.
     tier_not_saved: 등급 저장 안 됨
     tiers_read_failed: 등급 설정을 불러오지 못했습니다.
+    voice_briefing_direction: 보이스브리핑이나 자동 재생 중 하나를 켤지 끌지 정해 주세요.
+    voice_briefing_unavailable: 음성 브리핑 설정은 아직 이 콘솔에서 읽을 수 없습니다.
     word_empty: 메시지를 입력해 주세요.
     worker_name_empty: 워커 이름을 입력해 주세요.
   label:
@@ -2131,3 +2327,9 @@ documents:
     translation_of: "{language} 번역"
   status:
     translation_failed_parts: "번역 실패 {n}건"
+briefing:
+  error:
+    not_made: 보이스브리핑을 만들지 못했습니다.
+    which_line: 읽을 텍스트가 지정되지 않았습니다.
+  status:
+    making: 보이스브리핑을 만드는 중입니다.

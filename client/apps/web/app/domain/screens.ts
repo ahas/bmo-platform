@@ -1,6 +1,13 @@
 import { AGENT_TABS } from "./agent-settings";
 import { LIVE_TABS } from "./status";
 
+import { avatarFor } from "./avatars";
+import { COUNT_BADGE, countText } from "./numbers";
+import { unreadLabel, unreadShown } from "./room-list";
+
+import type { AvatarIndex } from "./avatars";
+import type { RoomReading } from "./room-list";
+import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { NavigationMenuItem } from "@nuxt/ui";
 
@@ -119,4 +126,37 @@ export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET
 // accessible name as well as its tooltip.
 export function namedWhenFolded(items: NavigationMenuItem[], folded: boolean): NavigationMenuItem[] {
   return folded ? items.map((item) => (item.type === "label" ? item : { ...item, "aria-label": item.label })) : items;
+}
+
+// A room of the sidebar: its name and picture, and how many of its messages the reader has not read, as a badge
+// spread and a dot folded (docs/web.md, 「Sidebar」).
+export function roomItems(
+  t: Translate,
+  rooms: readonly ListedRoom[],
+  avatars: AvatarIndex,
+  path: string,
+  folded = false,
+  reading: RoomReading | null = null
+): NavigationMenuItem[] {
+  return rooms.map((room) => {
+    const entry = {
+      label: room.title,
+      to: `/rooms/${room.chatId}`,
+      avatar: avatarFor(avatars, "room", room.chatId, room.title),
+      active: path === `/rooms/${room.chatId}`
+    };
+    const count = unreadShown(room, reading);
+    const label = unreadLabel(count);
+
+    if (label === null) {
+      return entry;
+    }
+
+    const said = t("screens.aria.room_unread", { count: countText(count) });
+
+    // Folded, the row is its picture alone, and the count stands as a dot on its corner.
+    return folded
+      ? { ...entry, ui: { link: `${FOLDED_MARK} after:bg-primary` }, "aria-description": said }
+      : { ...entry, unread: count, badge: { ...COUNT_BADGE, label, color: "primary" as const }, "aria-description": said };
+  });
 }

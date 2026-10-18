@@ -1061,7 +1061,7 @@ Four groups.
   **remote** together. The mail entry carries the unread mark while any account's inbox holds unread mail
   (the mail unit's documents). This group does not fold — it is a flat list of screens with no branch to fold, and the fold
   the sidebar remembers is only the agent group's below.
-- **Rooms** — the rooms in the archive stand newest-last-message first. A room with no name comes up as a chat
+- **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. A room with no name comes up as a chat
   number. A room the console made itself — one made for companions — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
   conversation.
@@ -1075,7 +1075,7 @@ Four groups.
     moving list, keyed by the room, and the rooms stand under one navigation landmark.
   - **A room whose registration is removed leaves the list at once,** at the `room-removed` event
     (「방 등록 삭제」), as the moving list takes a row away; a pinned number it leaves behind is passed
-    over as any number the archive no longer has.
+    over as any number the receiver no longer has.
   - **Pinned rooms stand above the rest, in the order they were pinned.** Which rooms are pinned and in what
     order is one setting the receiver keeps, a list of room numbers (the receiver's `docs/store.md`,
     `console_pinned_rooms`), so a room renamed keeps its place and a number the receiver no longer has is passed
@@ -1147,12 +1147,13 @@ Four groups.
     client sends, which no screen shows.
   - **The place read to is the later of two:** the mark the console keeps for the account, and the
     account's own last message in the room, from whichever provider it wrote. A provider does not
-    tell the bot what a person has read, so reading a room elsewhere cannot be known; writing in it
+    tell the receiver what a person has read, so reading a room elsewhere cannot be known; writing in it
     can, and whoever wrote has read the room up to there.
   - **The mark is kept on the server,** so every browser and phone the account signs in on reads one
     count. It only ever moves forward.
-  - **An account counted for the first time has read every room as it stands,** so nothing old is
-    called new; a room it meets later counts what was said there since it began to be counted.
+  - **A room an account meets for the first time is read as it stands,** so nothing old is called new; what
+    lands in it after counts. The messages past a mark are walked on the receiver's line from the marked
+    message, five hundred at most, and a room further behind counts that many.
   - **A message is read once the foot of its row has stood in the room's view, in a tab on the screen.**
     Opening a room marks what is in view; a reader scrolled up into older messages marks nothing
     newer until it comes into view; a tab in the background marks nothing. The room's last row in
@@ -1161,7 +1162,7 @@ Four groups.
   - **A room with unread messages opens at the first of them** (「Room screen」), so entering a room
     reads only what comes into view.
   - **The count moves as the room does.** A message landing in any room the reader reads reads the
-    list again over the bot's stream, whichever screen is open; a mark the room makes lowers its
+    list again over the stream, whichever screen is open; a mark the room makes lowers its
     count at once.
   - **A count never moves back behind what the screen already knows.** The list and a mark's answer
     each say the place their count runs from, and a count from a place behind the one the screen
@@ -2897,15 +2898,20 @@ Four bounds keep it from growing forever.
 
 ### Room screen
 
+- **The room is the receiver's.** Its list, its name and its line, page by page, past a message, one message and
+  where a day begins, are read from the receiver's console routes, and the owner's words and files go out through
+  its sends (`docs/boundary.md`, 「Calls the console makes」). What its pages do not carry stands empty — the
+  verdicts, a round's figures and actions, a line's voice briefing, a message's files and photos, the room's
+  pictures, figures and window, and a link's preview — and the sections below that draw them stand empty with
+  them (`docs/boundary.md`, 「Gaps the console meets」).
 - Conversation piles up as a chat screen. The right is the owner's own side and nobody else's: what they
   themselves sent stands there, and every other voice — the chat agent, another person in a group, a notice — stands on
   the left, the same rule in their own chat as in a group. The side says whose message it is and nothing
   about how it reads: an agent's answer, the chat agent's or a companion's, is markdown, and what
   a person wrote is still the characters it is. Which messages an agent sent is the
-  server's answer, carried on each message, and never a name the screen compares: a message is an agent's
-  when it is filed under the sender name every road files the bot's own words under, or under a number the
-  room's road gave an agent of the agents table. So a row standing for a turn and the answer that takes its
-  place wear one look, whichever agent answers. Where this app is not told the owner's own number
+  server's answer, carried on each message, and never a name the screen compares: the server asks the receiver,
+  once for each sender on a page, whether a message of that sender's is one an agent filed. So a row standing for a
+  turn and the answer that takes its place wear one look, whichever agent answers. Where this app is not told the owner's own number
   there is nobody to stand on the right and the room reads down the left.
   Times are all Seoul time. A date mark goes
   where the date changes, holding to the top while its day is read. Pressing it opens a calendar centred under
@@ -4829,21 +4835,21 @@ dialog open at 계정.
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 테마, 대화방, 알림, 보이스브리핑 and 앱. A member is shown 계정, 테마, 대화방
-    and 앱; 알림 and 보이스브리핑 are the administrator's.
+  - The sections are 계정, 테마, 대화방 and 알림. A member is shown 계정, 테마 and 대화방; 알림 is the
+    administrator's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
     list, an on-off a switch, an action a button. A row whose control does not fit beside its name
     puts the control under it, at the right.
-  - Everything in it takes effect as it is changed: a choice, a switch, the player's place. Nothing
+  - Everything in it takes effect as it is changed: a choice, a switch. Nothing
     waits for a save, and the dialog closes at once. The one form, the name and the password, is a
     dialog of its own opened from 계정, with its own 저장 at its foot.
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
 - **An address opens it at one section:** `?settings=` and a section's key — `account`, `theme`,
-  `palette`, `notifications`, `briefing`, `app` — on any address of the console opens the dialog at that
+  `palette`, `notifications` — on any address of the console opens the dialog at that
   section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. The key is taken off the address as the dialog opens: what is open over a screen
   is not a place (「Floating things」), so the back gesture closes the dialog, or leaves the section on a
@@ -4892,14 +4898,6 @@ dialog open at 계정.
   says so with 알림 받기. Once it is, each kind is a row with its name, its note and a switch, taking
   effect as it is switched, and 테스트 발송 and 알림 끄기 stand under them. The account's other devices
   follow, each a row with when it subscribed and what it hears, and 알림 끄기 for that device.
-
-#### 보이스브리핑
-
-- The console's voice briefing player, tried and placed (the voice unit's documents, 「The console's
-  player」). 위치 chooses 왼쪽 or 오른쪽, and 높이 the height in pixels from the top of the page's panel,
-  a number box with px after it; both are kept in this browser and take effect as they are changed.
-  테스트 재생 plays the trial voice through the player and reads 정지 while it plays. 초기화 puts the player
-  back to the left at the top.
 
 ### Messages
 
@@ -5429,7 +5427,7 @@ The console reads its settings from its environment: the units' addresses and to
 | `BMO_VAPID_PRIVATE_KEY` | Its secret side. Never leaves the machine. Without either, notifications cannot be sent |
 | `BMO_VAPID_SUBJECT` | Where to contact about this server's push. A `mailto:` or `https:` address, and the default points at no person |
 | `BMO_PUSH_IN_DEV` | Makes the dev server send notifications too (`1`, `true`, `yes`). A built server always sends regardless |
-| `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by. Inside no checkout |
+| `WEB_DATA_DIR` | The console's own data folder: the keys a send is held once by. Inside no checkout; `~/.local/share/bmo-web/data` where it is not set |
 | `BMO_WEB_BASE_URL` | The base path every page and road stands under; `/bmo/` where none is named |
 | `BMO_WEB_OUTPUT_DIR` | Where a build writes its release; `.output` where none is named. The deployment names a release's own directory |
 | `BMO_WEB_BUILD_DIR` | Where Nuxt writes its generated project; `.nuxt` where none is named. A standing dev console names its own, so a typecheck in the same checkout leaves what it serves alone |
