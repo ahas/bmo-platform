@@ -36,6 +36,8 @@ flowchart TD
 - **Its user unit** is the server's own, `deploy/bmo-web-server.service`, linked and restarted by the deployment
   (`testbed.toml`), running `serve` in the release's `server/`, where the deployment's settings stand as
   `settings.local.toml`.
+- **Whether it can stand** is `bmo-web-server settings`: it reads the settings and refuses, saying why, where they
+  name no `server.token` or no `names.chat_agent`, as `serve` would.
 - **Whether it answers** is `bmo-web-server health`: it asks `GET /health` at the address the settings name, an
   unspecified host asked at the loopback one, waiting at most five seconds, and ends 0 where the service answers
   and 1 otherwise, saying why. The deployment waits on it.

@@ -68,6 +68,8 @@
     holds bmo-artifact's keys under the same names, so a key added to either is a key added to the file.
   - `bmo-web-server wording <file>` writes it; the server's tests hold its keys and each line's marks to
     bmo-artifact's table, kept beside them as a fixture.
+  - Each deployment writes it into the release as `documents.ko.yaml`, the path bmo-artifact's `[wording] file`
+    names through the deploy tree (`docs/boundary.md`, 「The document wording file」).
 
 ## How it is held
 

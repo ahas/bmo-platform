@@ -153,6 +153,9 @@ that unit's document states them.
 - **`language` names the pack's language,** `ko`; another language is refused 404 `unknown_language`. A code
   the pack does not hold is refused 404 `unknown_code`, and a line whose fields do not read as its code's
   shape 400 `bad_request`. The caller then sends the line as its code and fields, so a room is never silent.
+- **The receiver must send `language` = `ko`.** The language it sends is its own setting, and its example
+  settings name `en`; a receiver deployed so has every fixed line refused 404 `unknown_language` and posts each
+  unrendered, as its code and fields. Its deployment sets `ko`, the one language the pack holds.
 - **The route answers whether or not the account model is in force,** since it reads no account.
 
 ### The document wording file
@@ -160,7 +163,10 @@ that unit's document states them.
 The server's release carries the document wording file bmo-artifact's `[wording] file` setting names: every
 key of the artifact's 「Wording」 table, rendered from the server's pack, and no other key (`docs/language-pack.md`,
 「What other units read」). The server's binary writes it, `bmo-web-server wording <file>`, from the pack alone
-and with no settings, and the release ships the file it writes.
+and with no settings, and the release ships the file it writes: each deployment writes it before the flip as
+`documents.ko.yaml` at the top of the release, so it stands at `~/.local/share/bmo-web/deploy/documents.ko.yaml`
+through the deploy tree, the path bmo-artifact's deployment sets as its `[wording] file`. bmo-artifact reads the
+file as it starts, so a release that changes the pack reaches it at bmo-artifact's next start.
 
 ### sumida's own routes
 
@@ -224,6 +230,10 @@ and then by the environment, where a variable named `BMO_WEB_SERVER_`, the table
 sets that key (`BMO_WEB_SERVER_DATABASE__URL`); the console reads its runtime configuration from the
 environment. No address, token or name is written into the code.
 
+- **What a deployment must set:** the server's `server.token` and `names.chat_agent`, without either of which
+  `serve` does not stand. `bmo-web-server settings` reads the settings and refuses, saying which is missing, where
+  `serve` would; the deployment asks it before the flip, so no release is put live on settings it cannot stand on.
+
 Deployed, the server's `settings.local.toml` is the data root's `env/web.toml`, and the console's environment is the
 data root's `env/web-console.env`, which its unit reads and its build reads for the base path (docs/web.md,
 「Running as a service」).
@@ -235,7 +245,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | server | `database.url` | the server's PostgreSQL database |
 | server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
-| server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one |
+| server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one, and a deployment must set it |
 | console | `PORT` | the port the console listens on |
 | console | `BMO_WEB_BASE_URL` | the base path every road of the console stands under, fixed as the console is built |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |

@@ -1,4 +1,5 @@
 /target
+/documents.ko.yaml
 node_modules/
 .nuxt/
 .output/

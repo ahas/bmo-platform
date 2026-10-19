@@ -1,6 +1,7 @@
 //! The server's binary (docs/accounts.md): `serve` stands the account service on the address its settings
-//! name, `migrate` brings its database up to date, `health` asks the service standing there whether it answers,
-//! `user` is the account command, and `wording` writes the document wording file from the language pack.
+//! name, `migrate` brings its database up to date, `settings` refuses settings `serve` would not stand on,
+//! `health` asks the service standing there whether it answers, `user` is the account command, and `wording` writes
+//! the document wording file from the language pack.
 
 use std::fs;
 use std::io::{self, Write};
@@ -42,6 +43,9 @@ enum Verb {
   Serve,
   /// Brings the database the settings name up to date with every migration.
   Migrate,
+  /// Reads the settings and refuses, saying why, where `serve` would not stand on them: a deployment asks it before
+  /// it puts a release live (docs/boundary.md, 「Settings」).
+  Settings,
   /// Asks the service on the address the settings name whether it answers, waiting at most a few seconds:
   /// ends 0 where it does, and 1 otherwise, saying why (docs/accounts.md, 「Where it answers」).
   Health,
@@ -122,10 +126,9 @@ async fn stopped() {
   }
 }
 
-/// The account service on its address, until the process is stopped; an error where it cannot stand. Once
-/// it listens it declares itself a holder of rooms to the receiver; a declaration that does not land is said
-/// and the service stands, declaring again at its next start.
-async fn serve(settings: Settings) -> Result<(), String> {
+/// The settings a deployment must set, without which the service does not stand: the token every caller presents,
+/// and the chat agent's name a fixed line says it as. The token answers where both stand.
+fn standing(settings: &Settings) -> Result<String, String> {
   let token = settings
     .server
     .token
@@ -136,6 +139,15 @@ async fn serve(settings: Settings) -> Result<(), String> {
   if settings.names.chat_agent.trim().is_empty() {
     return Err("the server does not stand without the chat agent's name, `names.chat_agent`".to_owned());
   }
+
+  Ok(token)
+}
+
+/// The account service on its address, until the process is stopped; an error where it cannot stand. Once
+/// it listens it declares itself a holder of rooms to the receiver; a declaration that does not land is said
+/// and the service stands, declaring again at its next start.
+async fn serve(settings: Settings) -> Result<(), String> {
+  let token = standing(&settings)?;
 
   let listen = settings.server.listen;
   let listener = TcpListener::bind(listen)
@@ -244,6 +256,14 @@ fn main() -> ExitCode {
     Err(why) => return refused(why),
   };
 
+  // The settings are read and held to what the service stands on, which settles nothing.
+  if let Verb::Settings = &cli.verb {
+    return match standing(&settings) {
+      Ok(_) => ExitCode::SUCCESS,
+      Err(why) => refused(why),
+    };
+  }
+
   // The health asks the service standing over HTTP and reads nothing sumida keeps, so it settles nothing.
   if let Verb::Health = &cli.verb {
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build();
@@ -285,7 +305,7 @@ fn main() -> ExitCode {
         name,
         administrator,
       } => user(settings, name, administrator).await,
-      Verb::Wording { .. } | Verb::Health => ExitCode::SUCCESS,
+      Verb::Wording { .. } | Verb::Health | Verb::Settings => ExitCode::SUCCESS,
     }
   })
 }

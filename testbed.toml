@@ -76,6 +76,21 @@ units = ["deploy/*.service"]
 # answers」).
 health = "cd ~/.local/share/bmo-web/deploy/server && ../bin/bmo-web-server health"
 
+# The server's settings held to what it stands on before the flip: a release is never put live on settings that
+# name no token or no chat agent (docs/boundary.md, 「Settings」), since `serve` refuses to stand without either.
+[[deploy.step]]
+id = "settings"
+phase = "before-flip"
+command = "cd server && ../bin/bmo-web-server settings"
+
+# The document wording file, written from the release's own pack into the release, where bmo-artifact's `[wording]
+# file` names it through the deploy tree: ~/.local/share/bmo-web/deploy/documents.ko.yaml (docs/boundary.md, 「The
+# document wording file」).
+[[deploy.step]]
+id = "wording"
+phase = "before-flip"
+command = "bin/bmo-web-server wording documents.ko.yaml"
+
 # The server's database brought up to date before the flip; every migration only adds, so the release still serving
 # reads on through it.
 [[deploy.step]]

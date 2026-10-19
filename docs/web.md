@@ -5515,8 +5515,11 @@ The console stands as the systemd user unit this repository's `deploy/` holds, `
   health` run in the release's `server/`, and watches it stay up. The console is marked `restart`, restarted by
   every deployment just before the server.
 - **What a deployment does for this repository,** beyond the testbed's own steps: the server's release build; the
-  console's install and build in the build tree, written into the release being built; the server's migrations,
-  run before the flip, every one of which only adds, so the release still serving reads on through them.
+  console's install and build in the build tree, written into the release being built; and before the flip, the
+  server's settings held to what it stands on (`bmo-web-server settings`: `server.token` and `names.chat_agent`
+  must be set), the document wording file written into the release as `documents.ko.yaml` for bmo-artifact
+  (`docs/boundary.md`, 「The document wording file」), and the server's migrations, every one of which only adds, so
+  the release still serving reads on through them.
 - **The settings stand under the data root,** never in the repository and never in a release: the server's as
   `env/web.toml`, which each release links to as `server/settings.local.toml` (`docs/boundary.md`, 「Settings」), and
   the console's environment as `env/web-console.env`, which each release links to as `client/apps/web/console.env`
