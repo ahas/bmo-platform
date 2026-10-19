@@ -5,11 +5,11 @@ app:
   label:
     account: 계정
     color_mode: 화면 모드
-    manifest_name: BMO Chat
+    manifest_name: "{agent}챗"
     mode_dark: 어둡게
     mode_light: 밝게
     mode_system: 시스템
-    name: 비모챗
+    name: "{agent}챗"
     password: 비밀번호
     remember: 로그인 유지
     search_group: 그룹

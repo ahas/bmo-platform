@@ -125,15 +125,3 @@ impl Laya {
 }
 
 crate::part!(pub CONTROL_ANSWERS: ControlAnswers = "control-answers");
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn every_laya_mode_has_its_word() {
-    for mode in ["off", "shadow", "filter", "asymmetric"] {
-      assert_ne!(CONTROL_ANSWERS.laya.mode_word(mode), mode);
-    }
-  }
-}

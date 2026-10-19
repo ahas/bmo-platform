@@ -60,15 +60,3 @@ pub struct Pane {
 }
 
 crate::part!(pub JOB_QUESTIONS: JobQuestions = "job-questions");
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn every_line_to_the_owner_names_him_by_the_mark() {
-    for line in [&JOB_QUESTIONS.asked.lead, &JOB_QUESTIONS.asked.lapsed, &JOB_QUESTIONS.pane.lead] {
-      assert!(line.contains("{owner}"), "{line}");
-    }
-  }
-}

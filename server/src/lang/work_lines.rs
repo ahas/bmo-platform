@@ -37,16 +37,3 @@ impl Steps {
 }
 
 crate::part!(pub WORK_LINES: WorkLines = "work-lines");
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn a_stage_is_named_by_its_kind_and_one_of_no_known_kind_finds_things_out() {
-    assert_eq!(WORK_LINES.steps.stage(Some("review")), WORK_LINES.steps.review);
-    assert_eq!(WORK_LINES.steps.stage(Some("investigate")), WORK_LINES.steps.investigate);
-    assert_eq!(WORK_LINES.steps.stage(None), WORK_LINES.steps.investigate);
-    assert_eq!(WORK_LINES.steps.stage(Some("anything")), WORK_LINES.steps.investigate);
-  }
-}

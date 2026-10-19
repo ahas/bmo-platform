@@ -10,7 +10,7 @@
   >
     <UCard class="m-auto w-full max-w-sm">
       <template #header>
-        <h1 class="text-xl font-semibold text-highlighted">{{ $t("app.label.name") }}</h1>
+        <h1 class="text-xl font-semibold text-highlighted">{{ consoleName($t) }}</h1>
       </template>
 
       <UForm id="login-form" :state="form" @submit="submit">
@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
+import { consoleName } from "#shared/agent-names";
 import { returnPath } from "~/domain/login-end";
 import { useVisibleScreen } from "bmo-ui/app/domain/screen";
 

@@ -126,14 +126,3 @@ pub struct Script {
 }
 
 crate::part!(pub WORK_ORDER_EDITS: WorkOrderEdits = "work-order-edits");
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn a_step_of_a_past_round_is_refused_by_what_was_asked_of_it() {
-    assert_ne!(WORK_ORDER_EDITS.steps.history_rerun, WORK_ORDER_EDITS.steps.history_restore);
-    assert!(WORK_ORDER_EDITS.orders.paused.contains("{item}"));
-  }
-}

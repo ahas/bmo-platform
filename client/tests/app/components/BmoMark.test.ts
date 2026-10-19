@@ -50,7 +50,7 @@ describe("the mark the console wears", () => {
 });
 
 // A shape rendered with smoothing turned off comes out in steps at an icon's size.
-describe("every picture of BMO is smoothed", () => {
+describe("every picture of the mascot is smoothed", () => {
   const unsmoothed = /crispEdges|optimizeSpeed/;
 
   test("the mark", () => {

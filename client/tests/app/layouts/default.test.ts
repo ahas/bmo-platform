@@ -76,7 +76,7 @@ describe("the mark at the top of the sidebar", () => {
     expect(header).not.toContain("i-material-symbols-smart-toy-outline");
   });
 
-  test("keeps BMO's own colours, the tab's icon's, with no theme colour laid over them", () => {
+  test("keeps the mascot's own colours, the tab's icon's, with no theme colour laid over them", () => {
     const header = layout.slice(layout.indexOf("#header="), layout.indexOf("#default="));
     const mark = header.slice(header.indexOf("<BmoMark"), header.indexOf(">", header.indexOf("<BmoMark")));
 

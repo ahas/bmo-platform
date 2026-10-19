@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { ko } from "@nuxt/ui/locale";
+import { consoleName } from "#shared/agent-names";
 
 import type { Messages } from "@nuxt/ui";
 
@@ -41,8 +42,8 @@ const INTERFACE_FACES = Object.values(
 
 // The console's name stands in the browser tab and under an installed copy's icon.
 useHead({
-  title: t("app.label.name"),
-  meta: [{ name: "apple-mobile-web-app-title", content: t("app.label.name") }],
+  title: consoleName(t),
+  meta: [{ name: "apple-mobile-web-app-title", content: consoleName(t) }],
   link: INTERFACE_FACES.map((href) => ({ rel: "preload", as: "font", type: "font/woff2", crossorigin: "anonymous", href }))
 });
 

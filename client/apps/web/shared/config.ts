@@ -42,10 +42,6 @@ export const STREAM_SILENCE_MS = STREAM_KEEPALIVE_MS * 4;
 // what has just happened, not a log.
 export const STATUS_HISTORY_LIMIT = 10;
 
-// What this console is called in the web manifest an installed copy carries. The name a reader
-// sees on a tab and on the screens is the language pack's `app.label.name`.
-export const APP_NAME = "BMO Chat";
-
 // Whether a room's name already names that room's chat agent. The owner's own room does, since it is
 // the session itself rather than a room the session sits in, and so does a title that carries the
 // agent's label of its own. Every other room's session is that room's name with the label after it.

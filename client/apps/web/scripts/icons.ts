@@ -1,15 +1,15 @@
-// Draws every picture of BMO the console, the Android app and the machine they run on carry: the
+// Draws every picture of the mascot the console, the Android app and the machine they run on carry: the
 // installed app's icons, the tab's icons, the account picture and the Android app's launcher icon
-// out of BMO's controls, the yellow cross pad, the blue triangle, the small green button and the
-// large red one, on BMO's body mint; the notification's small picture out of the same controls as a
-// silhouette; and the login screen's logo out of one drawing of BMO's whole front (docs/web.md, 「The
+// out of the mascot's controls, the yellow cross pad, the blue triangle, the small green button and the
+// large red one, on the mascot's body mint; the notification's small picture out of the same controls as a
+// silhouette; and the login screen's logo out of one drawing of the mascot's whole front (docs/web.md, 「The
 // console's pictures」).
 //
 //   bun client/scripts/icons.ts
 //
-// The front is held in units of BMO's own front, 266 wide and 350 tall, laid out after BMO's profile
+// The front is held in units of the mascot's own front, 266 wide and 350 tall, laid out after the mascot's profile
 // picture with its perspective flattened: the parts at the photo's sizes, one unit to a pixel of it,
-// and the body at the proportion BMO reads at there with its side and top. The controls an icon
+// and the body at the proportion the mascot reads at there with its side and top. The controls an icon
 // carries are the front's own (client/shared/bmo-controls.ts), and each picture places them in a
 // frame of its own and is written as an SVG and as the PNGs of the sizes it ships in, each PNG
 // rendered from the vector at its own pixel size so every edge is smoothed there.
@@ -48,13 +48,13 @@ const COLOUR = {
   bars: "#1a163f"
 };
 
-// BMO's front, straight on: the body and everything the profile picture shows on it.
+// The mascot's front, straight on: the body and everything the profile picture shows on it.
 function front(): string {
   return `
   <rect x="2.5" y="2.5" width="261" height="345" rx="24" fill="${COLOUR.body}" stroke="${COLOUR.ink}" stroke-width="5"/>${parts()}`;
 }
 
-// What stands on BMO's body: the screen and the face in it, the slot under the screen, the small
+// What stands on the mascot's body: the screen and the face in it, the slot under the screen, the small
 // blue dot, the cross pad, the three buttons and the two bars, every button flat, since a front view
 // shows no side of one. The smile is the photo's wide, flat-bottomed curve, its ends rising steeply
 // and its middle level.
@@ -70,7 +70,7 @@ function parts(): string {
   <rect x="86" y="308" width="26" height="11" rx="5.5" fill="${COLOUR.bars}"/>`;
 }
 
-// BMO's controls, each in its own colour and the darker shade of it its outline is drawn in. On the
+// The mascot's controls, each in its own colour and the darker shade of it its outline is drawn in. On the
 // front the buttons stand higher than the photo's, the red button's bottom edge level with the bottom
 // edge of the bars.
 function controls(shapes: readonly ControlShape[]): string {
@@ -104,7 +104,7 @@ function svg(width: number, height: number, body: string, comment = ""): Picture
 // circle of 32% of the side they stand in, well inside the 40% every such shape leaves whole.
 const CUT_FILL = 0.32;
 
-// BMO's front set into a frame at a height of the frame's own choosing, centred on (cx, top).
+// The mascot's front set into a frame at a height of the frame's own choosing, centred on (cx, top).
 function placed(drawing: string, unitHeight: number, cx: number, top: number, height: number): string {
   const scale = height / unitHeight;
   const width = (FRONT.width / FRONT.height) * unitHeight * scale;
@@ -112,7 +112,7 @@ function placed(drawing: string, unitHeight: number, cx: number, top: number, he
   return `\n  <g transform="translate(${cx - width / 2} ${top}) scale(${scale})">${drawing}\n  </g>`;
 }
 
-// The app's icon, shown uncut, and the tab's: a rounded square of BMO's mint, transparent outside
+// The app's icon, shown uncut, and the tab's: a rounded square of the mascot's mint, transparent outside
 // its corners, with the controls filling the given share of its width.
 function roundedIcon(side: number, fill: number): Picture {
   const frame = roundedFrame(side, fill);
@@ -120,7 +120,7 @@ function roundedIcon(side: number, fill: number): Picture {
   return svg(side, side, `\n  <rect width="${side}" height="${side}" rx="${frame.corner}" fill="${COLOUR.body}"/>\n  <g transform="${frame.transform}">${controls(ICON_CONTROLS)}\n  </g>`);
 }
 
-// A picture a platform rounds itself has no ground of its own: the whole square is BMO's mint, so
+// A picture a platform rounds itself has no ground of its own: the whole square is the mascot's mint, so
 // whatever shape it is cut to is the mint and nothing else shows around it. The controls fill the
 // given share of its width, or, cut to a shape of the platform's own, stand in the circle that
 // shape leaves whole.
@@ -139,16 +139,16 @@ const silhouette = (colour: string) => controlElements(ICON_CONTROLS, () => `fil
 function badge(): Picture {
   const side = BADGE.side;
   const comment = `
-  <!-- The small icon Android draws in the status bar, 24dp square: BMO's controls as a
+  <!-- The small icon Android draws in the status bar, 24dp square: the mascot's controls as a
        silhouette. Drawn by client/scripts/icons.ts. -->`;
 
   return svg(side, side, `\n  <g transform="${fitted(side, (side - 2 * BADGE.margin) / side)}">\n  ${silhouette("#ffffff")}\n  </g>`, comment);
 }
 
-// The login screen's logo: BMO beside its name, on no ground, drawn at a small height. The letters
+// The login screen's logo: the mascot beside its name, on no ground, drawn at a small height. The letters
 // are strokes, so the logo reads the same on every machine whatever fonts it has; the O is a little
 // narrower than the M and wider than the B, and the gaps between the letters are even. Each letter
-// is black in the ink of BMO's outline, laid over a wider stroke of BMO's body mint, so it reads by
+// is black in the ink of the mascot's outline, laid over a wider stroke of the mascot's body mint, so it reads by
 // its black on a light login screen and by its mint edge on a dark one.
 function loginLogo(): Picture {
   const figure = placed(front(), FRONT.height, 78, 0, LOGO.height);
@@ -176,7 +176,7 @@ async function png(picture: Picture, size: { width: number; height: number }, na
   writeFileSync(join(OUT, name), image);
 }
 
-// The Android app's launcher icon is an adaptive icon: a background layer of BMO's mint and a
+// The Android app's launcher icon is an adaptive icon: a background layer of the mascot's mint and a
 // foreground of the controls, each layer 108dp square of which the launcher shows the middle 72dp
 // cut to its own shape. The controls stand in the same share of what the launcher shows as the
 // maskable icon's controls do of its square; the monochrome layer, which a launcher theming its icons
@@ -226,7 +226,7 @@ function adaptiveLayer(what: string, paint: (name: ControlShape["name"]) => { fi
 }
 
 const ANDROID_LAUNCHER = {
-  "drawable/ic_launcher_foreground.xml": adaptiveLayer("The launcher icon's foreground: BMO's controls, each in its own colour and a darker shade of it as its outline.", (name) => ({
+  "drawable/ic_launcher_foreground.xml": adaptiveLayer("The launcher icon's foreground: the mascot's controls, each in its own colour and a darker shade of it as its outline.", (name) => ({
     fill: androidColour(CONTROL_PAINT[name].fill),
     stroke: androidColour(CONTROL_PAINT[name].outline)
   })),
@@ -235,13 +235,13 @@ const ANDROID_LAUNCHER = {
     stroke: "#FFFFFFFF"
   })),
   "values/ic_launcher.xml": `<?xml version="1.0" encoding="utf-8"?>
-<!-- The launcher icon's background layer: BMO's body mint. Drawn by client/scripts/icons.ts. -->
+<!-- The launcher icon's background layer: the mascot's body mint. Drawn by client/scripts/icons.ts. -->
 <resources>
     <color name="ic_launcher_background">${androidColour(COLOUR.body)}</color>
 </resources>
 `,
   "mipmap-anydpi-v26/ic_launcher.xml": `<?xml version="1.0" encoding="utf-8"?>
-<!-- The app's launcher icon: BMO's controls on BMO's mint, cut by the launcher to its own
+<!-- The app's launcher icon: the mascot's controls on the mascot's mint, cut by the launcher to its own
      shape. Drawn by client/scripts/icons.ts. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background" />

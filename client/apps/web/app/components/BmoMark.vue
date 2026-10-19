@@ -1,8 +1,8 @@
 <template>
-  <!-- BMO's own mark, for a screen. It is the tab's icon: BMO's controls, the yellow cross pad and the
+  <!-- The mascot's own mark, for a screen. It is the tab's icon: the mascot's controls, the yellow cross pad and the
        three buttons, each in its own colour and a darker shade of it as its outline, on a rounded
-       square of BMO's mint, so the picture on a tab, on a home screen and at the top of the sidebar is
-       read as one. Its colours are BMO's own rather than the theme's, so it stands the same in either
+       square of the mascot's mint, so the picture on a tab, on a home screen and at the top of the sidebar is
+       read as one. Its colours are the mascot's own rather than the theme's, so it stands the same in either
        theme. The mark is 20 CSS pixels square, one vector drawing the browser smooths at whatever
        density the screen has. -->
   <svg

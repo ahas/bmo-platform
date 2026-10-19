@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { createError, isError } from "h3";
 
+import { registerChatAgent } from "../../../apps/web/shared/agent-names";
 import { wording } from "../../../apps/web/shared/wording";
 import { appManifest } from "../../../apps/web/server/utils/app-manifest";
 import { fail } from "../../../apps/web/server/utils/fail";
@@ -34,11 +35,16 @@ test("a question's notification rings with the pack's title", () => {
 });
 
 
-test("the manifest takes its name and its line from the pack and keeps the rest of its shape", () => {
+test("the manifest takes its name and its line from the pack, the name filled with the chat agent's label, and keeps the rest of its shape", () => {
+  registerChatAgent({ name: "agent-a", label: "Agent A" });
+
   const manifest = appManifest("0123456789ab");
 
-  expect(manifest.name).toBe("BMO Chat");
-  expect(manifest.short_name).toBe("BMO Chat");
+  registerChatAgent({ name: "", label: "" });
+
+  expect(manifest.name).toBe(wording("app.label.manifest_name", { agent: "Agent A" }));
+  expect(manifest.short_name).toBe(manifest.name);
+  expect(manifest.name).toContain("Agent A");
   expect(manifest.description).toBe(wording("app.message.manifest_description"));
   expect(manifest).toMatchObject({ lang: "ko", start_url: "/bmo/", scope: "/bmo/", display: "standalone", theme_color: "#18181b", background_color: "#18181b" });
   expect(manifest.icons).toHaveLength(4);

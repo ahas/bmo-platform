@@ -1,8 +1,8 @@
 # The web console
 
-The app's name is a word of the language pack like every other the console shows (`app.label.name`):
-the browser tab and the login screen stand as it. Under the icon installed on a phone stands the English
-name `shared/config.ts` holds. No screen header carries the app's name: a screen's header names that
+The app's name is a word of the language pack like every other the console shows (`app.label.name`), filled
+with the chat agent's label the deployment's settings give: the browser tab and the login screen stand as it, and
+so does the name under the icon installed on a phone (`app.label.manifest_name`). No screen header carries the app's name: a screen's header names that
 screen, and the front door names nothing at all, since the mark at the top of the sidebar already says
 which console this is.
 
@@ -2675,8 +2675,8 @@ Two ways, split because the running places differ.
   as all added lines, a deleted file as all removed lines, and a moved file under its new path. A file
   Codex changed through a shell command is not recorded by Codex at all, so its command keeps the
   ordinary result view, and a run that keeps no thread — a co-work branch's, which Codex runs without
-  persisting its session — leaves no record, so its changes have no diff. OpenRouter and J3090 record no
-  tool events, so they have no diff.
+  persisting its session — leaves no record, so its changes have no diff. OpenRouter and the deployment's own
+  registered engines record no tool events, so they have no diff.
 - **Every run carries what it spent.** Under the line a run ended on stands the same token chip the
   room screen puts beside an answer (「Room screen」): the tokens that one run wrote. Pressing it spreads
   its lines, each with its four kinds as a bar, and a run that went unmeasured says so on its own line; a
@@ -3568,8 +3568,8 @@ Four bounds keep it from growing forever.
     reference gates, the person-book search), every gate that read the answer on the way out
     (the output gate's decision and verification), and every addition or
     second asking of the session. The figure is the written tokens of every run of the round added up.
-  - **A run that reported nothing adds nothing.** A road that timed out, and a J3090 gate on its MCP
-    road, carry no reading, and neither does a run that failed — a turn or a rewrite whose call threw.
+  - **A run that reported nothing adds nothing.** A road that timed out, and a gate on a registered
+    engine's MCP road, carry no reading, and neither does a run that failed — a turn or a rewrite whose call threw.
     Such a run's line in the spread says it went unmeasured rather than letting its share read as
     nought. A round none of whose runs was measured reads one dash.
   - **An answer sent as several messages carries the chip once**, on its last message. A part that was

@@ -1,6 +1,6 @@
-// BMO's controls, the shapes every icon of BMO is drawn from (docs/web.md, 「The console's
+// The mascot's controls, the shapes every icon of the mascot is drawn from (docs/web.md, 「The console's
 // pictures」): the yellow cross pad at the left, and at the right the blue triangle, the small green
-// button at its lower right and the large red one under both, as they stand on BMO's front, in units
+// button at its lower right and the large red one under both, as they stand on the mascot's front, in units
 // of the front's own drawing, 266 wide and 350 tall. They are vector shapes and nothing else, so
 // whatever draws them smooths their edges at the size it shows them.
 
@@ -22,7 +22,7 @@ export const CONTROL_PAINT: Readonly<Record<ControlName, { fill: string; outline
   red: { fill: "#ef3538", outline: "#a50d10" }
 };
 
-// BMO's body mint, the colour the face project samples off the official design's pictures
+// The mascot's body mint, the colour the face project samples off the official design's pictures
 // (the face tool's docs/expressions.md, 「The colours」), which the controls stand on.
 export const BMO_MINT = "#5fbb9c";
 
@@ -37,7 +37,7 @@ function cross(cx: number, cy: number, extent: number, arm: number): Array<reado
   ];
 }
 
-// The controls where they stand on BMO's front.
+// The controls where they stand on the mascot's front.
 export const FRONT_CONTROLS: readonly ControlShape[] = [
   { name: "cross", kind: "polygon", points: cross(70, 247.25, 54, 18) },
   { name: "triangle", kind: "polygon", points: [[181, 240.25], [164, 266.25], [198, 266.25]] },
@@ -114,7 +114,7 @@ export function fitted(side: number, fill: number): string {
   return centredOn(side, (fill * side) / Math.max(ICON_BOX.width, ICON_BOX.height), ICON_CENTRE);
 }
 
-// The rounded square of BMO's mint the app's icon, the tab's icon and the console's mark are: its
+// The rounded square of the mascot's mint the app's icon, the tab's icon and the console's mark are: its
 // corners rounded by 22.5% of its side, and the controls filling the given share of its width. A
 // picture shown as small as a tab's sets them at 88%, since there every pixel of them counts.
 export const SMALL_ICON_FILL = 0.88;

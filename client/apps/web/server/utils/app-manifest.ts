@@ -1,4 +1,5 @@
 import { versioned } from "#shared/shell-version";
+import { consoleName } from "#shared/agent-names";
 import { wording } from "#shared/wording";
 
 // The installed app's manifest. Its name and the line that says what it is are words, so they come
@@ -16,8 +17,8 @@ export const MANIFEST_TYPE = "application/manifest+json; charset=utf-8";
 // redrawn icon as an icon at another address and takes it again.
 export function appManifest(shellVersion: string): Record<string, unknown> {
   return {
-    name: wording("app.label.manifest_name"),
-    short_name: wording("app.label.manifest_name"),
+    name: consoleName(wording, "app.label.manifest_name"),
+    short_name: consoleName(wording, "app.label.manifest_name"),
     description: wording("app.message.manifest_description"),
     lang: "ko",
     dir: "ltr",

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-  <!-- The small icon Android draws in the status bar, 24dp square: BMO's controls as a
+  <!-- The small icon Android draws in the status bar, 24dp square: the mascot's controls as a
        silhouette. Drawn by client/scripts/icons.ts. -->
   <g transform="translate(-10.692307692307693 -25.587412587412594) scale(0.13986013986013987)">
   <polygon points="110.5,220.25 128.5,220.25 128.5,238.25 146.5,238.25 146.5,256.25 128.5,256.25 128.5,274.25 110.5,274.25 110.5,256.25 92.5,256.25 92.5,238.25 110.5,238.25" fill="#ffffff" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/><polygon points="181,240.25 164,266.25 198,266.25" fill="#ffffff" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/><circle cx="222" cy="268.25" r="10" fill="#ffffff" stroke="#ffffff" stroke-width="3.5"/><circle cx="187" cy="298.25" r="19" fill="#ffffff" stroke="#ffffff" stroke-width="3.5"/>

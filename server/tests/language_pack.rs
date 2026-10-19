@@ -104,3 +104,55 @@ fn every_part_reads_as_its_type() {
   assert!(work_order_lines::WORK_ORDER_LINES.owner_stop.contains("{owner}"));
   assert!(work_lines::WORK_LINES.item.contains("{id}") && work_lines::WORK_LINES.round.contains("{round}"));
 }
+
+// A gate's Laya mode is said by its own word, never by its name.
+#[test]
+fn every_laya_mode_has_its_word() {
+  for mode in ["off", "shadow", "filter", "asymmetric"] {
+    assert_ne!(control_answers::CONTROL_ANSWERS.laya.mode_word(mode), mode);
+  }
+}
+
+// Every line a job's question says to the owner names them by the mark the line is filled with.
+#[test]
+fn every_line_to_the_owner_names_them_by_the_mark() {
+  let questions = &job_questions::JOB_QUESTIONS;
+
+  for line in [&questions.asked.lead, &questions.asked.lapsed, &questions.pane.lead] {
+    assert!(line.contains("{owner}"), "{line}");
+  }
+}
+
+// A stage is named by its kind, and one of no known kind as finding things out.
+#[test]
+fn a_stage_is_named_by_its_kind_and_one_of_no_known_kind_finds_things_out() {
+  let steps = &work_lines::WORK_LINES.steps;
+
+  assert_eq!(steps.stage(Some("review")), steps.review);
+  assert_eq!(steps.stage(Some("investigate")), steps.investigate);
+  assert_eq!(steps.stage(None), steps.investigate);
+  assert_eq!(steps.stage(Some("anything")), steps.investigate);
+}
+
+// The voice script's tables the figures are read by line up with the places they stand for.
+#[test]
+fn the_voice_scripts_figures_line_up_with_their_places() {
+  let script = &voice_script::VOICE_SCRIPT;
+  let figures = &script.figures;
+
+  assert_eq!(figures.digits.len(), 10);
+  assert_eq!(figures.places.len(), 4);
+  assert_eq!(figures.native_ones.len(), 10);
+  assert_eq!(figures.native_tens.len(), 10);
+  assert_eq!(script.spoken.ordinals.len(), 20);
+  assert!(!script.particles.pairs.is_empty());
+}
+
+// A step of a past round is refused by what was asked of it, and a paused order names its item.
+#[test]
+fn a_step_of_a_past_round_is_refused_by_what_was_asked_of_it() {
+  let edits = &work_order_edits::WORK_ORDER_EDITS;
+
+  assert_ne!(edits.steps.history_rerun, edits.steps.history_restore);
+  assert!(edits.orders.paused.contains("{item}"));
+}

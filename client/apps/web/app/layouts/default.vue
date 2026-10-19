@@ -23,7 +23,7 @@
           class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
         >
           <BmoMark class="size-5 shrink-0" />
-          <span class="font-bold text-highlighted">{{ $t("app.label.name") }}</span>
+          <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
         </NuxtLink>
 
         <!-- Collapsing is a desktop affair; the drawer below lg is closed by tapping away. -->
@@ -128,6 +128,7 @@
 
 <script setup lang="ts">
 import { useInitialRead } from "bmo-ui/app/domain/loading";
+import { consoleName } from "#shared/agent-names";
 import { useAgentFolds } from "~/domain/agent-folds";
 import { agentGroups, groupIcon, isAgentRunning, isGroupOpen, sessionLink, withGroupFolds } from "~/domain/agents";
 import { avatarFor, useAvatars } from "~/domain/avatars";

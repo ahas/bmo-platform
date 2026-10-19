@@ -18,7 +18,7 @@
           class="flex items-center gap-2 rounded-md px-2.5 py-1 transition-colors hover:bg-elevated active:bg-accented"
         >
           <BmoMark class="size-5 shrink-0" />
-          <span class="font-bold text-highlighted">{{ $t("app.label.name") }}</span>
+          <span class="font-bold text-highlighted">{{ consoleName($t) }}</span>
         </NuxtLink>
 
         <UTooltip :text="collapsed ? $t('common.action.expand') : $t('common.action.collapse')" :content="{ side: 'right' }">
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { MEMBER_HOME } from "~/domain/access";
+import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME, useVisibleScreen } from "bmo-ui/app/domain/screen";
 import { useRoomList, useRoomReading } from "~/domain/room-list";

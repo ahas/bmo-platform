@@ -1,5 +1,6 @@
 import { PUSH_UNCONFIGURED } from "#shared/config";
 import { ownerRoomPath } from "#shared/paths";
+import { consoleName } from "#shared/agent-names";
 import { wording } from "#shared/wording";
 
 // Rings this account's devices once, so that a notification arriving on this device can be seen
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event): Promise<{ sent: number; gone: n
 
   return await ringAccount(session.user.name, {
     kind: "test",
-    title: wording("app.label.name"),
+    title: consoleName(wording),
     body: wording("push.message.test_body"),
     url: ownerRoomPath(await ownerChat()),
     tag: "push-test"

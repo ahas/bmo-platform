@@ -28,7 +28,7 @@ bundle; a screen of a unit not yet split is a placeholder.
 - **No agent names, owner names, host names, home paths, private network addresses or personal domains** in
   code, documents or commits. An agent is named by its registration; tests use neutral names such as `agent-a`
   and `agent-b`. No list of forbidden names is kept in the repository; the names check reads one from outside
-  it.
+  it, the file `BMO_NAMES_LIST` names (`docs/checks.md`).
 - **Tests live in `tests/`:** the server's in `server/tests/`, the client's in `client/tests/`, and the checks
   that span the repository in the root `tests/`. No test sits beside the code it tests.
 - **No directory named after its parent** (no `x/x`), and **one manifest at the root**: the Cargo workspace's,

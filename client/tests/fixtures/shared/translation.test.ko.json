@@ -1,5 +1,5 @@
 {
-  "line_18": "# Working here\n\nThis repository holds 비모.",
+  "line_18": "# Working here\n\nThis repository holds 한국어.",
   "line_19": "# 문서 뷰어\n\n콘솔의 `documentRoots`와 `resolveDocument`가 뿌리를 가둔다.",
   "line_20": "```ts\nconst englishOnly = true;\n```\n\n한국어 설명.",
   "line_31": "문장 ",

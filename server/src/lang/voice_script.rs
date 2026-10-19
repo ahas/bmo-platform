@@ -109,21 +109,3 @@ pub struct PolishWords {
 }
 
 crate::part!(pub VOICE_SCRIPT: VoiceScript = "voice-script");
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  // The tables the figures are read by line up with the places they stand for.
-  #[test]
-  fn the_part_reads_as_its_type() {
-    let figures = &VOICE_SCRIPT.figures;
-
-    assert_eq!(figures.digits.len(), 10);
-    assert_eq!(figures.places.len(), 4);
-    assert_eq!(figures.native_ones.len(), 10);
-    assert_eq!(figures.native_tens.len(), 10);
-    assert_eq!(VOICE_SCRIPT.spoken.ordinals.len(), 20);
-    assert!(!VOICE_SCRIPT.particles.pairs.is_empty());
-  }
-}
