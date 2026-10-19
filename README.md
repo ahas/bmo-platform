@@ -33,7 +33,7 @@ testbed's Korean sweep holds every file to; no code file of this repository hold
 | `docs/web.md` | The console: its layout, motion, access, wording, every screen, notifications, how it talks to the units, its settings and how it runs |
 | `docs/documents-viewer.md` | The document viewer: its roots, names and versions, path boundaries, fragments, the contents, and asking about a passage |
 | `docs/skeleton-loading.md` | How the console keeps the place of content it is still fetching |
-| `docs/checks.md` | The checks that span the repository: what its packages and code may depend on, no Korean in code or tests, its layout, and the names no tracked file may hold |
+| `docs/checks.md` | How the suite runs the tests, the browser tests among them; the checks that span the repository: what its packages and code may depend on, no Korean in code or tests, its layout, and the names no tracked file may hold |
 | `docs/inventory.md` | Every member of the single repository this one was separated from: where it stands here, the task that carried it, and the unit that owns the ones that did not come |
 
 ## Version

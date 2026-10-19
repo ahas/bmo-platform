@@ -1127,8 +1127,9 @@ Four groups.
     every screen the sidebar lists and one room, agent and node to that at a desktop width and at a
     phone's with the drawer open, and holds each branch's button, its chevron and the keyboard to
     opening and closing the list it names.
-  - It drives a dev console given in `BMO_CONSOLE_TEST_URL`, with its fixture account made in that
-    console's copy of the archive. The ordinary run has no console of its own and skips it.
+  - It drives a console given in `BMO_CONSOLE_TEST_URL`, with its fixture account made in that
+    console's own database. The suite stands up no console, so it skips it there (`docs/checks.md`,
+    「How the suite runs the tests」).
 - **노드** — the machines the chat agent reaches beyond this one, the same list herdr shows on its left
   (the node unit's documents). It stands under the agents, in the list's own order, and not at all while the list
   is empty. Each node stands as its own letter on a colour drawn from its name, since each is an identity

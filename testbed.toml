@@ -5,7 +5,9 @@ name = "web"
 
 [test]
 # The server's crate, and the client workspace, a project of its own found by its manifest and lockfile, whose
-# `check` script is the console's typecheck and its tests.
+# `check` script is the console's typecheck and its tests, the browser tests among them, one file after another.
+# The testbed gathers no test file inside a project, so none is declared for the browser lane (docs/checks.md,
+# 「How the suite runs the tests」).
 languages = ["cargo", "bun"]
 setup = ["cd client && bun install --frozen-lockfile"]
 
