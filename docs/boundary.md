@@ -203,7 +203,7 @@ states them.
 | the server (this repository) | sign-in, the session, users, phone keys, grants, checks, the model | every route above |
 | the agency (`docs/api.md`) | the agents and their gates, reasoning, roles and sampling; base prompts; companions' settings and a companion's reset; sessions and a session's reset; the co-worker pool; a run's log; the models, the registry, the tiers, the roads and the Claude accounts; a worker's node; its turns going out and ending, relayed to each tab | `GET /agents`, `POST /agent-gate`, `POST /agent-reasoning`, `POST /agent-role`, `GET`/`POST /agent-sampling`, `GET`/`POST /base-prompts`, `GET`/`POST /companions`, `POST /companions/reset`, `GET /sessions`, `POST /session-reset`, `GET /coworker-pool`, `GET /run-log`, `GET`/`POST /models`, `GET`/`POST /registry`, `GET`/`POST /model-tiers`, `GET /model-tiers/models`, `GET`/`POST /fallback`, `GET /fallback/codex-models`, `GET /fallback/openrouter-models`, `POST /worker/node`, `GET /events?kinds=turn-started,turn-ended` |
 | bmo-job (`docs/api.md`) | the TODO panel: every item's line, each item opened, the verbs on an item, its talk and its work order; the items at work, from the pool board; answering a question and stopping its clock; the queue's holds, its pause and the deployment's hold let go; a runner's launch; the workers and a word to one; a run's stop; a worker's job line and its prompt; the jobs that have just run, on the live board | `GET /todos?all`, `GET /todos?all&held`, `GET /todos?all&merged` (each with `&chat=` where the panel stands in a room), `GET /todos/{item}`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `POST /work-order`, `GET /coworker-pool`, `POST /question`, `POST /question-pause`, `GET /queue/holds` (the deployment mark reads the deployment's hold from it too), `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /worker`, `POST /worker-word`, `POST /run/stop`, `GET /events?after=&run=` (relayed to each tab from that tab's cursor), `GET /workers/{name}/job` and `GET /workers/{name}/job/prompt` (each with `?run=` where the screen was opened at a run), `GET /jobs/recent?limit=` |
-| the receiver (`docs/boundary-api.md`) | the room list, a room's title and its line, page by page, past a message, one message and where a day begins; whether a message is an agent's; the senders each room has, for which rooms a user reads; the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; what opened a turn; the voice briefing's switch and a line's reading; companions with a room; the names people last spoke under, for the memories screen; a turn of the talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /people/names`, `POST /talks` (with a `document` topic, the earlier turns and the words just said), `GET /health` |
+| the receiver (`docs/boundary-api.md`) | the room list, a room's title and its line, page by page, past a message, one message and where a day begins; whether a message is an agent's; the senders each room has, for which rooms a user reads; the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; the rooms' pinned order, a room pinned and let go; what opened a turn; the voice briefing's switch read and moved, and a line's reading; companions with a room; the names people last spoke under, for the memories screen; a turn of the talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `POST /console/pinned-rooms/add`, `POST /console/pinned-rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `GET`/`POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /people/names`, `POST /talks` (with a `document` topic, the earlier turns and the words just said), `GET /health` |
 | the brain (`docs/boundary-api.md`) | the memories screen; the fragments behind the document viewer's documents, the word each kind is called by, and a fragment's standing | `GET /memories` (with `?chat=` where the screen names a room), `POST /memories/active`, `GET /fragments?down=true`, `GET /fragments/kinds`, `POST /fragments/active`, `GET /health` |
 | bmo-artifact (`docs/api.md`, `docs/layout.md`) | the archive screen of its console plugin bundle, the share page, the research settings | every road under `/api/archive` and `/api/share/`, and `/searches` and `/collected` as moved screens, handed on whole behind the console's sign-in (the share page's roads take none, and only read) — the method, the query, the body and the headers that say what is asked, to `ARTIFACT_ADDRESS` with `ARTIFACT_TOKEN`, and the answer handed back as it came, a file as its bytes; `POST /api/archive/{id}/share` names the signed-in user as `by`, whatever the browser sent; `GET`/`POST /research-settings` |
 | the cache siren (`docs/api.md`) | the cache siren screen | `GET /stats`, `GET /events?limit=` |
@@ -276,24 +276,23 @@ for it, and no file or table of that unit is read meanwhile.
 - **The list of profile pictures.** The Telegram service serves one picture by its kind and id, but no unit
   serves the list of the pictures it keeps with the moment each was taken, so the console lists none and every
   face stands as its letter.
-- **A message's files.** No unit serves the file a message points at, a photo among them, so a room's line names
-  its file and its kind, neither plays nor opens it, and a photo's frame stands empty; nor the list of a room's
-  pictures, so the picture viewer walks none.
+- **A message's files.** The receiver serves a message's files, its picture and a room's pictures (its
+  `docs/boundary-api.md`, 「A message's files and picture」 and 「A room's pictures」), and the console does not
+  read them yet, so a room's line names its file and its kind, neither plays nor opens it, a photo's frame stands
+  empty, and the picture viewer walks none.
 - **What a room's page does not carry.** The receiver's pages carry a message's words, its sender, its round and
   its files' names. The judgements beside a page are the gate's, which serves the console none, so a room shows no
   verdict and the openings that ride on them stand unread; what a round cost and what its turn did are the
   agency's turn records, read by no route, so an answer wears no figures and no actions; a line's voice briefing
   and its reading are the voice unit's, so no line carries the briefing chip; and the metadata a message arrived
-  with, so no custom emoji stands in its words.
+  with, which the receiver serves by the message and the console does not read yet, so no custom emoji stands in
+  its words.
 - **A room's figures and window.** What a room is made of — its speakers, its hours, its agents and their sessions
-  — and how long the chat agent's window in a room has left are kept by the receiver and the agency and served by no
-  route, so the room's figures stand empty and no listening row stands.
+  — and how long the chat agent's window in a room has left are served by the receiver (its
+  `docs/boundary-api.md`, 「A room's figures」 and 「Reading a room」), and the console does not read them yet, so
+  the room's figures stand empty and no listening row stands.
 - **A link's preview.** Reading a page for its title, description and picture is no unit's to serve the console, so
   a link in a message stands as a plain card naming where it goes.
-- **The voice briefing's switch.** The receiver sets it and answers how it stands when it is moved, but reads it by
-  no route, so the agents screen's section for it says it cannot be read.
-- **The rooms' pinned order.** The room list stands the pinned rooms first in the receiver's order, and no route
-  lets the console write that order; the console offers no way to pin a room.
 - **An order within one second.** The receiver walks a room's line by when each message was sent and the order it
   took them in, and hands no such order with a message, so a read mark's place is when its message was sent and
   the marked message itself.
@@ -369,7 +368,7 @@ screen is carried. `docs/inventory.md` lists every file of those screens.
 
 - **The voice briefing's player** stood in the layout, over every screen; it is not carried, and the layout
   holds no player, nor the settings section that placed it. The voice briefing's switch on the agents screen is
-  the receiver's route, which the receiver reads by none (「Gaps the console meets」).
+  read and moved through the receiver's `GET` and `POST /voice-briefing` (「Calls the console makes」).
 - **What the document viewer shows of the gate unit** stands without it and makes no call: the seek gate, so the
   question box answers from the documents' own text; and the translator, so the translation toggle stands
   unavailable and both translation routes answer so.
@@ -387,7 +386,7 @@ shown as.
 | the receiver | its refusals, each by the table beside its calls — every route's, the owner's sends, the voice briefing, removing a room and the companions'; a file a send did not take, by its kind; the fixed lines through `POST /words/render`. Its facts are an agent's to say, and no screen shows them | the receiver's `docs/codes.md` |
 | bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
 | the brain | its refusals, by the table beside its calls: its error shape's codes, the refusals a row's state answers with, and every code of its memory, fragment, document, digest and agent refusals, a code it carries in `refusal` said before the answer's own | the brain's `docs/boundary-api.md`, 「The error shape」, 「Memory rows」 and 「Codes the brain answers with」 |
-| bmo-artifact | the document wording file's keys; its refusals on the archive's and the share page's roads, by the table beside its calls, a refusal with any other code handed on as it came | bmo-artifact's `docs/api.md`, 「Wording」, 「Documents (HTTP)」 and 「Share links (HTTP)」 |
+| bmo-artifact | the document wording file's keys; the label of each kind its catalogue names by `labelKey`, `archive.kind.<id>`, kept beside the console's tests as a fixture; its refusals on the archive's and the share page's roads, by the table beside its calls, a refusal with any other code handed on as it came | bmo-artifact's `docs/api.md`, 「Wording」, 「Documents (HTTP)」 and 「Share links (HTTP)」; its kind catalogue, `GET /api/archive/kinds` |
 | bmo-ui | the 76 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
 
 ## The public address

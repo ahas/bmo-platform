@@ -64,6 +64,7 @@ export async function listRooms(): Promise<RoomSummary[]> {
     title: roomLabel(room.chatId, room.title, owner),
     messageCount: room.messageCount,
     lastMessageAt: room.lastMessageAt,
+    pinned: room.pinned,
     ...(room.companions !== undefined ? { madeForCompanions: true as const, companions: room.companions } : {})
   }));
 }

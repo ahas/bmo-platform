@@ -15,6 +15,10 @@
   - **The console's pack** is what its screens show: `client/apps/web/i18n/locales/ko.yaml`
     (`docs/web.md`, 「Wording and the language pack」). It also answers every key the bmo-ui layer and the
     bmo-artifact bundle read, and those keys count as asked for, so none of them is pruned as unread.
+  - **A key another unit names in an answer stands under that unit's name for it.** bmo-artifact's kind catalogue
+    names each kind's label `archive.kind.<id>`, a key no code here spells out; the console's tests hold the
+    catalogue's keys as a fixture, count them as asked for, and take their name as bmo-artifact gives it rather
+    than in the pack's own `<part>.<group>.<key>` roles.
   - **Korean the console's code matches on is data, not wording:** a string compared against what a unit
     answers stands in `client/apps/web/i18n/data/ko.yaml`, beside the pack, and is read by name.
   - **They stay apart because their readers read a value differently.** The console's pack is compiled by

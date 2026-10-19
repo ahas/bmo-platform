@@ -1086,8 +1086,8 @@ Four groups.
     order is one setting the receiver keeps, a list of room numbers (the receiver's `docs/store.md`,
     `console_pinned_rooms`), so a room renamed keeps its place and a number the receiver no longer has is passed
     over. The console reads it through the receiver's room list, each room's `pinned`, and every room not on the
-    list stands under them in the order above. The receiver serves no route that writes the setting, so the
-    console sets no pin; the list is set where the receiver's configuration is.
+    list stands under them in the order above. A room is pinned and let go from its own screen's menu
+    (「고정」), and the receiver writes the order.
 - **Agents** — every one of the chat agent's agents stands. Choosing one shows that agent's log. The list is not held by
   this app but comes from the archive's `agents` table. Name and mark are as written there, so if the owner makes
   one more worker, that worker stands in this list under its own name. Grouped in branches, one per group of
@@ -2900,10 +2900,11 @@ Four bounds keep it from growing forever.
 
 - **The room is the receiver's.** Its list, its name and its line, page by page, past a message, one message and
   where a day begins, are read from the receiver's console routes, and the owner's words and files go out through
-  its sends (`docs/boundary.md`, 「Calls the console makes」). What its pages do not carry stands empty — the
-  verdicts, a round's figures and actions, a line's voice briefing, a message's files and photos, the room's
-  pictures, figures and window, and a link's preview — and the sections below that draw them stand empty with
-  them (`docs/boundary.md`, 「Gaps the console meets」).
+  its sends (`docs/boundary.md`, 「Calls the console makes」). What its pages do not carry, and what of the
+  receiver's room routes the console does not read yet, stands empty — the verdicts, a round's figures and
+  actions, a line's voice briefing, a message's files and photos, the room's pictures, figures and window, and a
+  link's preview — and the sections below that draw them stand empty with them (`docs/boundary.md`, 「Gaps the
+  console meets」).
 - Conversation piles up as a chat screen. The right is the owner's own side and nobody else's: what they
   themselves sent stands there, and every other voice — the chat agent, another person in a group, a notice — stands on
   the left, the same rule in their own chat as in a group. The side says whose message it is and nothing
@@ -4047,7 +4048,7 @@ Four bounds keep it from growing forever.
 #### 대화 상대 초기화와 모델 설정
 
 - **A room a companion answers in carries two more entries in its top bar's menu, for the owner alone:**
-  모델 설정 and 초기화, in a group of their own under 세션 정보, 메시지 고르기 and 전체 복사. A room with more than one companion
+  모델 설정 and 초기화, in a group of their own under 세션 정보, 메시지 고르기, 전체 복사 and 고정. A room with more than one companion
   carries the pair for each, named by the companion's label. Nobody else signed in sees them, and the
   console's server refuses either for anyone but the administrator.
 - **모델 설정 opens the companion's settings dialog** — the very component the agent list opens, its
@@ -4071,6 +4072,17 @@ Four bounds keep it from growing forever.
     checkboxes go, and the foot carries 닫기 alone;
   - a refused reset keeps the dialog as it was, with the reason; one that went through is shown only
     there, and the session list says when each room session it ended was cleared.
+
+#### 고정
+
+- **Every room's top bar menu carries 고정, or 고정 해제 for a pinned room, for the owner alone,** in its first
+  group after 전체 복사. The pinned order is one list for every reader, so nobody else signed in sees it, and the
+  console's server refuses its route for anyone but the administrator.
+- **고정 stands the room last among the pinned, and 고정 해제 takes it out;** the receiver writes the order
+  (`docs/boundary.md`, 「Calls the console makes」), and every room list re-reads the receiver's once it has
+  answered, so the sidebar moves the room to its new place.
+- **A refused pin is said by the pack's sentence for the receiver's code,** as a notice, and the list stands as
+  it was.
 
 #### 방 등록 삭제
 

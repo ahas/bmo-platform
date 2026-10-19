@@ -56,8 +56,8 @@ beforeEach(() =>
 
 
 const rooms: RoomSummary[] = [
-  { chatId: -1003, title: "Alpha Room", messageCount: 12, lastMessageAt: null },
-  { chatId: 10000001, title: OWNER_ROOM_TITLE, messageCount: 3, lastMessageAt: null }
+  { chatId: -1003, title: "Alpha Room", messageCount: 12, lastMessageAt: null, pinned: false },
+  { chatId: 10000001, title: OWNER_ROOM_TITLE, messageCount: 3, lastMessageAt: null, pinned: false }
 ];
 
 function progress(over: Partial<RunProgress> = {}): RunProgress {

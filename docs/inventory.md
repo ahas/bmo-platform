@@ -267,11 +267,12 @@ How the receiver screens stand here:
   sender on a page whether it is an agent's; `server/utils/room-reads.ts` keeps the read marks in the console's own
   `web_room_reads` and counts on the receiver's line past them; the sends, a room's removal, what opened a turn and
   the voice briefing go to the receiver's own routes. No statement of theirs reads another unit's table.
-- **What no unit serves stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a message's files and
-  photos, a room's pictures, figures and window, a link's preview, the judgements beside a page, a round's figures
-  and actions, a line's voice briefing, and how the voice briefing's switch stands. The console offers no way to pin
-  a room, as the old one did not; the receiver's list stands the pinned rooms first.
-- **Written new:** `server/utils/receiver.ts`; `app/domain/room-copy.ts` and `app/domain/turn-actions-fold.ts`, the
+- **What no unit serves, or the console does not read yet, stands empty** (`docs/boundary.md`, 「Gaps the console
+  meets」): a message's files and photos, a room's pictures, figures and window, a link's preview, the judgements
+  beside a page, a round's figures and actions, and a line's voice briefing. A room is pinned and let go from its
+  screen's menu, which the old console did not offer, through the receiver's routes for the pinned order.
+- **Written new:** `server/utils/receiver.ts`; `server/api/rooms/[chatId]/pin.post.ts`, the pin;
+  `app/domain/room-copy.ts` and `app/domain/turn-actions-fold.ts`, the
   parts of the old copy and settings modules the room screen reads; `shared/particles.ts`, the subject particle a
   name from another unit takes, its two forms in the data file. `app/components/PalettePreview.vue` comes from the
   shell's list. The marks a message's text opens with for what it carried, the service's notice mark and the paste

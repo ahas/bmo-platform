@@ -682,13 +682,31 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(administrator.value ? [{ label: t("room.title.session_info"), icon: "i-material-symbols-bar-chart", onSelect: openStats }] : []),
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
-    { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() }
+    { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
+    // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
+    // screen's pin).
+    ...(administrator.value ? [pinned.value
+      ? { label: t("room.action.unpin"), icon: "i-material-symbols-keep-off-outline", onSelect: () => void pin(false) }
+      : { label: t("room.action.pin"), icon: "i-material-symbols-keep-outline", onSelect: () => void pin(true) }] : [])
   ],
   ...(companionsHere.value.length === 0 ? [] : [companionItems()]),
   // Removing the room's registration stands last, in a group of its own (docs/web.md, the room
   // screen's registration removal).
   ...(administrator.value ? [[{ label: t("room.action.remove_registration"), icon: "i-material-symbols-delete-outline", color: "error" as const, onSelect: () => { removalOpen.value = true; } }]] : [])
 ]);
+// Whether the room stands in the pinned order, as the room list read it.
+const pinned = computed(() => listedRooms.value.some((room) => room.chatId === chatId && room.pinned));
+
+// The room pinned or let go; the receiver writes the order, and every room list reads it again from there.
+async function pin(on: boolean): Promise<void> {
+  try {
+    await $fetch(`/api/rooms/${chatId}/pin`, { method: "POST", body: { pinned: on } });
+    await refreshNuxtData("rooms");
+  } catch (error) {
+    island.fail(error, t(on ? "room.error.pin_failed" : "room.error.unpin_failed"));
+  }
+}
+
 const removalOpen = ref(false);
 // The room's registration was removed while this screen's own removal dialog stood open.
 const removed = ref(false);

@@ -43,7 +43,7 @@ import type { AgentMeta } from "../../../apps/web/app/domain/agents";
 import KO from "../../fixtures/app/domain/agents.test.ko.json";
 
 function room(chatId: number, title: string): RoomSummary {
-  return { chatId, title, messageCount: 0, lastMessageAt: null };
+  return { chatId, title, messageCount: 0, lastMessageAt: null, pinned: false };
 }
 
 function reported(name: string, kind: string, chatId: number | null, label?: string): AgentSummary {

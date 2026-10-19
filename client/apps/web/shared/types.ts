@@ -195,6 +195,8 @@ export interface RoomSummary {
   title: string;
   messageCount: number;
   lastMessageAt: number | null;
+  // Whether the room stands in the pinned order the receiver keeps.
+  pinned: boolean;
   // Whether the room was made for companions and names who answers in it (the agency's docs/companions.md): it
   // takes words alone, and its TODO panel shows the items filed in it. Absent on every other room.
   madeForCompanions?: true;
@@ -2503,6 +2505,11 @@ export interface RoomRemovalPreview {
   settings: { taken: string[]; undeclared: string[] };
   folders: RoomRemovalFolder[];
   copies: RoomRemovalCopy[];
+}
+
+// The pinned order as it stands once a room was pinned or let go: the room numbers, first to last.
+export interface PinnedRooms {
+  rooms: number[];
 }
 
 // What the removal took, and anything it could not remove.

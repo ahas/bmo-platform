@@ -156,7 +156,7 @@ function summary(queue: number, pending = 0): string {
 }
 
 const rooms: RoomSummary[] = [
-  { chatId: -1002, title: "Charlie Room", messageCount: 3, lastMessageAt: null }
+  { chatId: -1002, title: "Charlie Room", messageCount: 3, lastMessageAt: null, pinned: false }
 ];
 
 describe("the panel's sections", () => {

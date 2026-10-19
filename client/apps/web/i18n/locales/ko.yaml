@@ -254,6 +254,13 @@ archive:
     open_new_tab: 새 탭에서 열기
     open_page: 페이지 열기
     original: 원본
+  # Each kind's label, under the key bmo-artifact's kind catalogue names it by (`labelKey`).
+  kind:
+    import: 원문
+    learning: 학습자료
+    page: 페이지
+    record: 기록
+    search: 검색
   aria:
     kind: 종류
     opens_new_tab: (새 탭에서 열림)
@@ -505,6 +512,8 @@ room:
     none_sent: 보낸 파일이 하나도 없습니다.
     photo_not_found: 사진을 찾을 수 없습니다.
     pictures_failed: 방의 다른 사진을 불러오지 못했습니다.
+    pin_direction: 방을 고정할지 고정 해제할지 정해 주세요.
+    pin_failed: 방을 고정하지 못했습니다.
     read_failed: 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     receiver_bad_request: 수신 유닛이 요청을 읽지 못했습니다.
     receiver_conflict: 지금 상태와 맞지 않아 수신 유닛이 거절했습니다.
@@ -526,6 +535,7 @@ room:
     send_not_taken: 10분 동안 수신 유닛에 연결되지 않아 보내지 못했습니다.
     send_unconfirmed: 전송 여부를 확인하지 못했습니다. 방에 메시지가 올라갔는지 먼저 확인해 주세요.
     session_failed: 세션 정보를 불러오지 못했습니다.
+    unpin_failed: 방의 고정을 해제하지 못했습니다.
     words_only: 이 방은 글만 받습니다.
   action:
     attach_document: 파일
@@ -539,6 +549,7 @@ room:
     copy_ref: 대화번호 복사
     copy_text: 텍스트만 복사
     of_companion: "{action} · {name}"
+    pin: 고정
     remove_paste: 붙여넣은 텍스트 삭제
     remove_registration: 방 등록 삭제
     reply: 답장
@@ -548,6 +559,7 @@ room:
     session_only: 새 세션 시작
     show_in_message: 메시지에서 보기
     to_latest: 최신 메시지로
+    unpin: 고정 해제
   label:
     answer_took: "{time} 소요"
     avatar_of: "{name} 프로필 사진"
@@ -1432,7 +1444,6 @@ agents:
     tier_not_saved: 등급 저장 안 됨
     tiers_read_failed: 등급 설정을 불러오지 못했습니다.
     voice_briefing_direction: 보이스브리핑이나 자동 재생 중 하나를 켤지 끌지 정해 주세요.
-    voice_briefing_unavailable: 음성 브리핑 설정은 아직 이 콘솔에서 읽을 수 없습니다.
     word_empty: 메시지를 입력해 주세요.
     worker_name_empty: 워커 이름을 입력해 주세요.
   label:

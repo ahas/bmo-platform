@@ -89,7 +89,8 @@
       "client/apps/web/shared/agency.ts",
       "client/apps/web/shared/research.ts",
       "client/apps/web/server/utils/research.ts",
-      "client/apps/web/app/domain/model-face.ts"
+      "client/apps/web/app/domain/model-face.ts",
+      "client/tests/server/api/voice-briefing.get.test.ts"
     ],
     "symbols": [
       "AgentMeta",
@@ -168,7 +169,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/agent-logs",
@@ -613,7 +614,7 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "8c0aac9c51b3f5141cf07e9affd675b976d7b2ef"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/cache-siren",
@@ -756,7 +757,7 @@
       "console/language-pack",
       "console/shared-config"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/data-table",
@@ -1071,7 +1072,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/job-launcher",
@@ -1224,7 +1225,8 @@
       "client/apps/web/shared/yaml.d.ts",
       "client/tests/i18n/wording.test.ts",
       "client/tests/server/utils/resolved-words.test.ts",
-      "docs/language-pack.md"
+      "docs/language-pack.md",
+      "client/tests/fixtures/artifact-kinds.json"
     ],
     "symbols": [
       "wording",
@@ -1239,7 +1241,7 @@
       "콘솔 문구"
     ],
     "needs": [],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/list-place",
@@ -1340,7 +1342,7 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/loading",
@@ -1405,7 +1407,7 @@
       "console/member-console",
       "server/account-service"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/long-press",
@@ -1539,7 +1541,7 @@
   {
     "id": "console/message-attachments",
     "title": "Message attachments",
-    "what": "Images and files in a room: a send's attachment handed to the receiver's POST /say-file once under a send key, the picture viewer and the names of files the receiver's pages carry; their bytes are served by no unit yet.",
+    "what": "Images and files in a room: a send's attachment handed to the receiver's POST /say-file once under a send key, the picture viewer and the names of files the receiver's pages carry; the receiver serves their bytes, which the console does not read yet.",
     "files": [
       "client/apps/web/app/components/MessageImage.vue",
       "client/apps/web/app/domain/attachments.ts",
@@ -1578,7 +1580,7 @@
       "console/loading",
       "console/motion"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/message-island",
@@ -1900,7 +1902,7 @@
       "console/language-pack",
       "console/sidebar-nav"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/prompt-box",
@@ -2110,7 +2112,9 @@
       "client/apps/web/server/utils/owner.ts",
       "client/apps/web/shared/text-marks.ts",
       "client/apps/web/shared/particles.ts",
-      "client/apps/web/shared/web-address.ts"
+      "client/apps/web/shared/web-address.ts",
+      "client/apps/web/server/api/rooms/[chatId]/pin.post.ts",
+      "client/tests/server/api/room-pin.post.test.ts"
     ],
     "symbols": [
       "MessageLook",
@@ -2305,7 +2309,7 @@
       "console/unread-messages",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/room-stats",
@@ -2370,7 +2374,7 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/screen-fit",
@@ -2603,7 +2607,7 @@
       "console/language-pack",
       "console/screen-fit"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/themes",
@@ -2790,7 +2794,7 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/todo-talk",
@@ -2840,7 +2844,7 @@
       "console/motion",
       "console/todo-queue"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/translation",
@@ -2899,7 +2903,7 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/unread-messages",
@@ -2950,7 +2954,7 @@
       "console/motion",
       "console/number-format"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/usage-display",
@@ -2999,7 +3003,7 @@
       "console/language-pack",
       "console/loading"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
   },
   {
     "id": "console/user-account",

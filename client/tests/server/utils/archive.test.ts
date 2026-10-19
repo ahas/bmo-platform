@@ -73,10 +73,10 @@ const { registerChatAgent } = await import("../../../apps/web/shared/agent-names
 registerChatAgent({ name: "agent-a", label: "Agent A" });
 
 describe("the rooms", () => {
-  test("stand in the receiver's order, the owner's own named by the chat agent and a room made for companions so marked", async () => {
+  test("stand in the receiver's order, the owner's own named by the chat agent, each pinned or not, and a room made for companions so marked", async () => {
     expect(await listRooms()).toEqual([
-      { chatId: 5, title: "Agent A", messageCount: 3, lastMessageAt: 100 },
-      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, madeForCompanions: true, companions: ["companion-a"] }
+      { chatId: 5, title: "Agent A", messageCount: 3, lastMessageAt: 100, pinned: true },
+      { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, madeForCompanions: true, companions: ["companion-a"] }
     ]);
     expect(await roomTitleOf(-7)).toBe("Room A");
   });
