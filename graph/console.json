@@ -1,0 +1,3142 @@
+[
+  {
+    "id": "console/account-scope",
+    "title": "User scope and account service login",
+    "what": "The console's user scope on the account service: the session sealed in the console's cookie and checked per request, sumida's session asked through the server, and which rooms and routes a member may reach.",
+    "files": [
+      "client/apps/web/server/utils/accounts.ts",
+      "client/apps/web/server/utils/opened-routes.ts",
+      "client/apps/web/server/utils/room-reach.ts",
+      "client/apps/web/server/middleware/account-session.ts",
+      "client/apps/web/server/middleware/route-scope.ts",
+      "client/tests/server/route-scope.test.ts",
+      "client/tests/server/utils/room-reach.test.ts",
+      "client/apps/web/server/utils/session-cookie.ts",
+      "client/packages/accounts/account-service.ts"
+    ],
+    "symbols": [
+      "consoleModel",
+      "signedInUser",
+      "sessionState",
+      "SessionState",
+      "forgetSession",
+      "browserAddress",
+      "userNamed",
+      "openedRoutes",
+      "openedRoute",
+      "readableRooms",
+      "requireReadableRoom",
+      "carriesSession",
+      "endSession"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/login",
+      "server/account-service"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/agent-list",
+    "title": "Agent management",
+    "what": "The agents screen: the agency's catalogue in tabs (general, workers, models, roads, gates, research), the provider by tier model mapping, workers and their settings, read and changed through the agency's routes; the gate order and the nodes stand unavailable.",
+    "files": [
+      "client/apps/web/app/pages/agents/index.vue",
+      "client/tests/app/pages/agents/index.test.ts",
+      "client/apps/web/app/domain/agents.ts",
+      "client/tests/app/domain/agents.test.ts",
+      "client/apps/web/server/api/agents.get.ts",
+      "client/tests/server/api/agents.get.test.ts",
+      "client/apps/web/app/domain/catalogue.ts",
+      "client/apps/web/app/domain/gate-order.ts",
+      "client/tests/app/domain/gate-order.test.ts",
+      "client/apps/web/app/components/ExecutionModelSelect.vue",
+      "client/apps/web/app/components/ResearchSettings.vue",
+      "client/tests/app/components/ResearchSettings.test.ts",
+      "client/apps/web/app/components/EngineHealthList.vue",
+      "client/apps/web/app/domain/research.ts",
+      "client/tests/app/domain/research.test.ts",
+      "client/apps/web/app/domain/research-settings.ts",
+      "client/apps/web/server/api/research-settings.get.ts",
+      "client/apps/web/server/api/research-settings.post.ts",
+      "client/tests/server/api/research-settings.post.test.ts",
+      "client/apps/web/app/components/AgentsGeneral.vue",
+      "client/apps/web/app/components/AgentsWorkers.vue",
+      "client/apps/web/app/components/AgentsTierTable.vue",
+      "client/apps/web/app/components/AgentsRouteTable.vue",
+      "client/apps/web/app/components/SettingsResults.vue",
+      "client/apps/web/app/domain/agent-settings.ts",
+      "client/tests/app/domain/agent-settings.test.ts",
+      "client/apps/web/app/components/AgentsCoworkerLimits.vue",
+      "client/apps/web/app/components/AgentsAccounts.vue",
+      "client/apps/web/app/domain/accounts.ts",
+      "client/tests/app/domain/accounts.test.ts",
+      "client/apps/web/app/domain/row-drag.ts",
+      "client/apps/web/app/components/WorkerSettingsDialog.vue",
+      "client/apps/web/app/components/GateSettingsDialog.vue",
+      "client/apps/web/app/components/LayaStatusLine.vue",
+      "client/apps/web/app/domain/laya.ts",
+      "client/tests/app/domain/laya.test.ts",
+      "client/apps/web/server/api/voice-briefing.get.ts",
+      "client/apps/web/server/api/voice-briefing.post.ts",
+      "client/tests/server/api/voice-briefing.post.test.ts",
+      "client/apps/web/app/components/AgentsReasoning.vue",
+      "client/apps/web/server/api/agent-reasoning.post.ts",
+      "client/apps/web/app/components/AgentsGates.vue",
+      "client/apps/web/app/components/AgentGatesDialog.vue",
+      "client/apps/web/app/components/GenerationFields.vue",
+      "docs/web.md",
+      "client/apps/web/shared/agency.ts",
+      "client/apps/web/shared/research.ts",
+      "client/apps/web/server/utils/research.ts",
+      "client/apps/web/app/domain/model-face.ts"
+    ],
+    "symbols": [
+      "AgentMeta",
+      "AgentGroup",
+      "AgentGroupKey",
+      "agentGroups",
+      "gateBlocks",
+      "AgentBlock",
+      "gatePlacements",
+      "gateOrderKeys",
+      "GATE_PART_LABELS",
+      "GATE_CONDITION_NOTES",
+      "launchableAgent",
+      "agentLabel",
+      "bmoLabel",
+      "workUnitLabel",
+      "movedOrder",
+      "useResearchSettings",
+      "researchWindowText",
+      "engineStateLabel",
+      "AGENT_TABS",
+      "isAgentTab",
+      "searchSettings",
+      "routeModeChoices",
+      "mappingText",
+      "emptyFallbackView",
+      "keepaliveMarkOf",
+      "NOT_CHECKOUT_LABEL",
+      "KEEPALIVE_OFF_LABEL",
+      "CELL_BUTTON",
+      "usePolledResearchSettings",
+      "fieldFault",
+      "tierRunText",
+      "accountChoices",
+      "accountCellText",
+      "accountLoginText",
+      "accountMark",
+      "accountChoiceNote",
+      "ACCOUNT_KINDS",
+      "useRowDrag",
+      "groupIcon"
+    ],
+    "aliases": [
+      "에이전트 관리 창 하단에 여백이 없음. 컨텐츠 페이지 디자인은 항상 하단에 여백을 넣어야함",
+      "실행 하네스",
+      "에이전트 모델 및 폴백 섹션",
+      "에이전트 공급자",
+      "어떤 모델을 얼마만큼 생성 가능한지",
+      "활성 공급자 및 우선순위",
+      "설정 검색",
+      "서쳐 설정",
+      "등급별 한도",
+      "에이전트 관리 페이지",
+      "모델 탭",
+      "코워커 역할 섹션",
+      "워커 탭이랑 서쳐 탭에 있는 타이틀",
+      "추상모델 등급",
+      "특정워커는 주기적 keepalive 를 완전히 끄는 스위치",
+      "워커나 게이트 설정",
+      "프리게이트",
+      "포스트게이트",
+      "게이트 목록 실제 순서",
+      "에이전트별 Thinking 활성 옵션",
+      "에이전트 설정 모달"
+    ],
+    "needs": [
+      "console/bot-events",
+      "console/control-api",
+      "console/data-table",
+      "console/forms",
+      "console/language-pack",
+      "console/list-place",
+      "console/loading",
+      "console/message-island",
+      "console/screen-fit",
+      "console/todo-queue",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/agent-logs",
+    "title": "Agent logs",
+    "what": "An agent's screen: its run log read by run from the agency's GET /run-log with token chips, what a turn received tagged by kind, file diffs of a job's tool results, and a worker's job line and prompt read from bmo-job.",
+    "files": [
+      "client/apps/web/app/pages/agents/[name].vue",
+      "client/apps/web/app/components/AgentLogView.vue",
+      "client/tests/app/components/AgentLogView.test.ts",
+      "client/apps/web/app/components/AgentLogRow.vue",
+      "client/tests/app/components/AgentLogRow.test.ts",
+      "client/apps/web/app/components/AgentLogDialog.vue",
+      "client/apps/web/app/components/AgentLogDiff.vue",
+      "client/apps/web/app/components/AgentTurnFigures.vue",
+      "client/tests/app/components/AgentTurnFigures.test.ts",
+      "client/apps/web/app/components/TokenChip.vue",
+      "client/apps/web/app/components/RunSpend.vue",
+      "client/apps/web/app/domain/log.ts",
+      "client/tests/app/domain/log.test.ts",
+      "client/apps/web/app/domain/patch.ts",
+      "client/tests/app/domain/patch.test.ts",
+      "client/apps/web/app/domain/turns.ts",
+      "client/tests/app/domain/turns.test.ts",
+      "client/apps/web/server/api/agents/[name]/log.get.ts",
+      "client/apps/web/server/api/agents/[name]/turns.get.ts",
+      "client/apps/web/server/utils/agentlog.ts",
+      "client/tests/server/utils/agentlog.test.ts",
+      "client/apps/web/app/domain/spans.ts",
+      "client/apps/web/app/components/AgentLogRowSkeleton.vue",
+      "client/tests/app/pages/agents/[name].test.ts",
+      "client/apps/web/app/components/ContextStateMark.vue",
+      "client/tests/app/components/ContextStateMark.test.ts",
+      "client/apps/web/app/components/JobStatusLine.vue",
+      "client/apps/web/app/domain/job-line.ts",
+      "client/tests/app/domain/job-line.test.ts",
+      "client/apps/web/server/api/agents/[name]/job.get.ts",
+      "client/tests/browser/agent-topbar.test.ts",
+      "client/apps/web/server/api/agents/[name]/job-prompt.get.ts",
+      "client/apps/web/server/utils/job-runs.ts"
+    ],
+    "symbols": [
+      "LogRow",
+      "LogPlace",
+      "AgentLogFeed",
+      "KindLook",
+      "LogTone",
+      "buildLog",
+      "lineLook",
+      "toolChip",
+      "readRunLines",
+      "diffView",
+      "DiffView",
+      "diffSummary",
+      "shownPath",
+      "runEnds",
+      "turnLines",
+      "SpendChip",
+      "spendChip",
+      "spendText",
+      "roundChip",
+      "liveChip",
+      "useRunChips",
+      "changesView",
+      "ChangesView",
+      "contextStateLook",
+      "ContextStateLook",
+      "jobLineView",
+      "JobLineView",
+      "useJobLine"
+    ],
+    "aliases": [
+      "에이전트 챗 페이지 상단에는 사용량 버튼과 별도로 컨텍스트 258K",
+      "채팅방이랑 에이전트 세부 내용 말인데 거기에 토큰 사용한거 표시해. 읽기 쓰기 캐시읽기 캐시쓰기말야. Rn Wn CRn CWn 이런식으로.",
+      "워커 에이전트 페이지",
+      "프롬프트 전문",
+      "게이트 주입",
+      "에이전트 페이지나 채팅페이지별로 에이전트가 대답하는 각 항목 항목마다 '판정' 표시처럼 옆에 붙이라는거",
+      "에이전트 로그 diff",
+      "하단 토큰 사용량",
+      "워커페이지에서도 툴콜링이나 토큰 사용량 같은것좀 보여줬으면 하는데 CLI 처럼",
+      "모바일 에이전트 페이지"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/control-api",
+      "console/judgements",
+      "console/language-pack",
+      "console/list-place",
+      "console/live-board",
+      "console/loading",
+      "console/long-press",
+      "console/markdown",
+      "console/number-format",
+      "console/tab-bar",
+      "console/todo-queue",
+      "console/tooltips",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/agent-roles-and-gates",
+    "title": "Agent roles, gates and sampling",
+    "what": "An agent's role, its gates and its sampling, set from the agents screen and sent to the agency's POST /agent-role, POST /agent-gate and /agent-sampling.",
+    "files": [
+      "client/apps/web/app/components/AgentsRoles.vue",
+      "client/apps/web/server/api/agent-gate.post.ts",
+      "client/apps/web/server/api/agent-role.post.ts",
+      "client/apps/web/server/api/agent-sampling.get.ts",
+      "client/apps/web/server/api/agent-sampling.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "게이트 설정은 에이전트마다 할 수 있게 해놔"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/archive-screen",
+    "title": "Archive screen (bmo-artifact's bundle)",
+    "what": "The archive screen is bmo-artifact's console plugin bundle, which the console extends in nuxt.config.ts; the console keeps the document design the bundle's pages and the share page read, and hands their roads on to bmo-artifact.",
+    "files": [
+      "client/apps/web/shared/document-design.ts",
+      "client/tests/shared/document-design.test.ts"
+    ],
+    "symbols": [
+      "DOCUMENT_PALETTE",
+      "LIGHT_PALETTE",
+      "DARK_PALETTE",
+      "pageSheet",
+      "DocumentScheme",
+      "SCHEME_COOKIE"
+    ],
+    "aliases": [
+      "검색 결과를 열람할 수 있는 페이지",
+      "검색 문서 페이지",
+      "공유 링크",
+      "그리고 목차도 넣어줘. 하위 섹션까지.",
+      "검색기 페이지",
+      "문서 디자인",
+      "아카이브",
+      "검색 문서",
+      "그냥 스태틱 호스팅 느낌으로도 쓸 수 있어야되는데",
+      "아카이브 공유 문서",
+      "opengraph seo",
+      "그냥 이런건 배경 밝게 둬도 될듯",
+      "HTML 반환 문서도 다크모드좀",
+      "아카이브 타이틀",
+      "아카이브에서 키워드 검색",
+      "opengraph"
+    ],
+    "needs": [
+      "console/audio-player",
+      "console/documents-viewer",
+      "console/language-pack",
+      "console/list-place",
+      "console/loading",
+      "console/login",
+      "console/markdown",
+      "console/message-attachments",
+      "console/message-island",
+      "console/screen-fit"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/audio-player",
+    "title": "Audio playback",
+    "what": "The console's audio player for sounds in rooms, laid out as a voice message with its waveform as the seek bar; the media route answers ranges for files the console keeps.",
+    "files": [
+      "client/apps/web/app/domain/player.ts",
+      "client/apps/web/server/api/media/[kind]/[chatId]/[messageId].get.ts",
+      "client/apps/web/server/utils/media.ts"
+    ],
+    "symbols": [
+      "mediaUrl",
+      "playAlone",
+      "playClock",
+      "knownLength",
+      "loudnessOf",
+      "easedLoudness",
+      "auraOf",
+      "buttonAfter",
+      "PlayerButton",
+      "playedKind",
+      "sendKeptFile"
+    ],
+    "aliases": [
+      "오디오 재생바",
+      "음성 파일",
+      "오디오 재생기",
+      "재생버튼",
+      "다시듣기",
+      "음성 재생컴포넌트",
+      "재생기",
+      "아카이브 문서에 첨부되는 오디오",
+      "오디오 재생 컴포넌트",
+      "비주얼라이저",
+      "오디오 재생기 비주얼라이저",
+      "오디오 비주얼라이저",
+      "오디오재생기 버튼"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/loading"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/avatars",
+    "title": "Profile pictures",
+    "what": "Profile pictures on the console: one room's or person's picture read through the Telegram service, the first-letter mark with a colour from identity where none is kept, refreshed on the receiver's change events.",
+    "files": [
+      "client/apps/web/app/domain/avatars.ts",
+      "client/apps/web/server/api/avatars.get.ts",
+      "client/apps/web/server/api/avatars/[kind]/[id].get.ts",
+      "client/apps/web/server/utils/avatars.ts",
+      "client/tests/server/utils/avatars.test.ts"
+    ],
+    "symbols": [
+      "AvatarIndex",
+      "avatarIndex",
+      "avatarKey",
+      "initialOf",
+      "AVATAR_TONES",
+      "avatarTone",
+      "identityMark",
+      "avatarFor",
+      "useAvatars",
+      "avatarRefs",
+      "FACE_TONES",
+      "hueOf"
+    ],
+    "aliases": [
+      "프로필 이미지",
+      "이름이 없으면 구분이 안가는 중복된 아이콘 항목들"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/shared-config"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/back-gesture",
+    "title": "Closing with back",
+    "what": "Closing what floats over the screen with back, one layer at a time from the top, is bmo-ui's; the console keeps the browser harness its tests check it with.",
+    "files": [
+      "client/tests/browser/openings-harness.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "뒤로가기",
+      "오버레이되는 컨트롤 컴포넌트",
+      "컨텍스트메뉴",
+      "선택모드 전환후 뒤로가기 시 모드취소가 아니라 이전페이지로 가버림",
+      "오버레이 닫기 기능처럼 뒤로가기의 구현으로 묶는게"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/base-prompts",
+    "title": "Base prompts",
+    "what": "The base prompts an agent's system prompt is built on, read and changed from the agents screen through the agency's GET and POST /base-prompts.",
+    "files": [
+      "client/apps/web/app/components/AgentsBasePrompts.vue",
+      "client/apps/web/app/domain/base-prompts.ts",
+      "client/apps/web/server/api/base-prompts.get.ts",
+      "client/apps/web/server/api/base-prompts.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "다른 하네스 프롬프트로 바꿀 수 있게",
+      "딥시크 하네스 프롬프트로 바꾸고 싶을 수도 있잖아"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/bmo-mark",
+    "title": "Console mark and icons",
+    "what": "The console's mark and icons: the mascot's controls drawn by scripts/icons.ts from shared/bmo-controls.ts, the yellow cross pad and three buttons on a rounded mint square; the badge is their silhouette, the login logo the front.",
+    "files": [
+      "client/apps/web/app/components/BmoMark.vue",
+      "client/tests/app/components/BmoMark.test.ts",
+      "client/apps/web/shared/bmo-controls.ts",
+      "client/tests/shared/bmo-controls.test.ts",
+      "client/apps/web/public/icons/badge.svg",
+      "client/apps/web/public/icons/favicon.svg",
+      "client/apps/web/public/icons/icon.svg",
+      "client/apps/web/public/icons/icon-maskable.svg",
+      "client/apps/web/scripts/icons.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "pwa 푸시아이콘",
+      "알림뱃지",
+      "배지 사이드바",
+      "버튼 세개",
+      "앱 아이콘",
+      "아이콘 계단현상심함",
+      "십자키"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/bot-events",
+    "title": "Event stream",
+    "what": "The console's event stream: one relay per tab of the receiver's, bmo-job's and the agency's streams with keep frames and the console's own words, reopened from its cursors, which drives screen refreshes and reconnects.",
+    "files": [
+      "client/apps/web/app/domain/events.ts",
+      "client/tests/app/domain/events.test.ts",
+      "client/apps/web/server/api/events.get.ts",
+      "client/apps/web/server/utils/relays.ts",
+      "client/tests/server/utils/relays.test.ts",
+      "client/apps/web/server/plugins/relays.ts",
+      "client/apps/web/server/utils/console-events.ts",
+      "client/apps/web/server/utils/sse-frames.ts",
+      "client/tests/server/utils/sse-frames.test.ts",
+      "client/apps/web/server/utils/bot-relay.ts",
+      "client/apps/web/server/utils/room-stream.ts",
+      "client/tests/server/utils/room-stream.test.ts",
+      "client/apps/web/app/components/ReadFailure.vue",
+      "client/apps/web/app/domain/unit-events.ts"
+    ],
+    "symbols": [
+      "RunState",
+      "RoomRun",
+      "RoomOutcome",
+      "RoomRunHandlers",
+      "RefreshCause",
+      "useLiveRefresh",
+      "useBotEvents",
+      "shouldRefresh",
+      "TURN_ENDED",
+      "retryDelay",
+      "holdRelay",
+      "stopRelays",
+      "STOPPING_FRAME",
+      "KEEPALIVE_FRAME",
+      "publishConsoleEvent",
+      "onConsoleEvent",
+      "SseFramer",
+      "RelayOutput",
+      "consoleFrame",
+      "relayBotStream",
+      "RelayFilter",
+      "frameEvent",
+      "stepRoomTurns",
+      "useRoomRun",
+      "useBmoTurns",
+      "useChatTurns",
+      "useLivePicture",
+      "roomStreamFilter",
+      "roomFrame",
+      "useDeployEvents",
+      "useReadFailure",
+      "ReadFailure",
+      "ReadFailureOptions"
+    ],
+    "aliases": [
+      "sse"
+    ],
+    "needs": [
+      "console/account-scope",
+      "console/language-pack",
+      "console/login"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/bot-progress",
+    "title": "Turn progress display",
+    "what": "Shows live, on the row where the answer will stand, the current turn of the chat agent or a companion: what it received and is doing now, read off the event stream and the receiver's live picture.",
+    "files": [
+      "client/apps/web/app/components/RunProgress.vue",
+      "client/tests/app/components/RunProgress.test.ts",
+      "client/apps/web/app/components/ListeningLine.vue",
+      "client/apps/web/app/components/TurnActions.vue",
+      "client/apps/web/app/components/LineChip.vue",
+      "client/tests/app/components/LineChip.test.ts",
+      "client/apps/web/app/components/RoomMessage.vue",
+      "client/apps/web/app/domain/working.ts",
+      "client/tests/app/domain/working.test.ts",
+      "client/apps/web/app/domain/events.ts",
+      "client/apps/web/app/domain/room-window.ts",
+      "client/tests/app/domain/room-window.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/window.get.ts",
+      "client/apps/web/app/domain/turn-actions-fold.ts"
+    ],
+    "symbols": [
+      "phaseLook",
+      "turnName",
+      "subjectOf",
+      "outcomeLine",
+      "receivedLine",
+      "actionLook",
+      "ActionLook",
+      "LiveTurn",
+      "useTurnActionsFold",
+      "pictureProgress",
+      "listeningLines",
+      "ListeningLines",
+      "listeningRuns",
+      "useRoomWindow",
+      "OpenWindow",
+      "groupRoom",
+      "shownOutcome"
+    ],
+    "aliases": [
+      "진행 줄",
+      "~쓰는중 할때 스피너",
+      "생각하는중 표시",
+      "채팅 활성화",
+      "쓴도구 사용토큰 읽은문서",
+      "콘솔 진행 줄"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/agent-logs",
+      "console/bot-events",
+      "console/language-pack",
+      "console/number-format",
+      "console/tooltips"
+    ],
+    "base": "8c0aac9c51b3f5141cf07e9affd675b976d7b2ef"
+  },
+  {
+    "id": "console/cache-siren",
+    "title": "Cache siren",
+    "what": "The cache siren screen: the siren's GET /stats and GET /events at CACHE_SIREN_ADDRESS shown per mode and model, with the five-hour and weekly limits; a request is named only by its row or a runner's directory.",
+    "files": [
+      "client/apps/web/app/pages/siren.vue",
+      "client/apps/web/app/domain/siren.ts",
+      "client/apps/web/server/api/siren.get.ts",
+      "client/apps/web/server/utils/siren.ts",
+      "client/tests/app/pages/siren.test.ts",
+      "client/apps/web/app/components/SirenRowSkeleton.vue",
+      "client/apps/web/app/domain/siren-settings.ts"
+    ],
+    "symbols": [
+      "SirenKindLook",
+      "kindLook",
+      "isLoud",
+      "barHeight",
+      "noteLabel",
+      "causeLabel",
+      "causeText",
+      "readSiren",
+      "watchQuota",
+      "quotaOwner",
+      "emptyWatch",
+      "filterSiren",
+      "sirenAgentChoices",
+      "sirenKindChoices",
+      "sirenModelChoices",
+      "Standing",
+      "StandingFact",
+      "standingOf"
+    ],
+    "aliases": [
+      "캐시사이렌",
+      "prefix_changed의 원인",
+      "캐시사이렌도 스크롤하면 더 불러오게 해",
+      "업타임 1783분 · 마지막 요청 00:46:58",
+      "새 토큰 504K · 캐시 0 · 119 req in 60",
+      "재프리필",
+      "차트를 나머지 영역이랑 5:5로 쓰게 해",
+      "나머지는 marquee 되는 모델명 표시가 꽉채우게",
+      "현재 캐시사이렌에서 사용량 표기가 현재 공급되고 있는 계정 또는 공급자로 읽지 않는듯 함.",
+      "캐시사이렌 페이지는 왜 768에서 전체폭으로 늘어난거지",
+      "항목의 사유 폭이 왤케좁지"
+    ],
+    "needs": [
+      "console/bot-events",
+      "console/language-pack",
+      "console/loading",
+      "console/number-format",
+      "console/shared-config",
+      "console/todo-queue",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/chat-agent-names",
+    "title": "The chat agent's names",
+    "what": "The chat agent's name and label the deployment's settings give, registered once by the app and its server, which the console's name, a room's speaker and the agent's labels are read from.",
+    "files": [
+      "client/apps/web/shared/agent-names.ts",
+      "client/apps/web/app/plugins/names.ts",
+      "client/apps/web/server/plugins/names.ts",
+      "client/apps/web/app/plugins/date-locale.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/companions",
+    "title": "Companions",
+    "what": "Companions on the console: their settings and reset through the agency, and a companion added to or removed from a room through the receiver, from the agents screen and a room's tools.",
+    "files": [
+      "client/apps/web/app/components/AgentsCompanions.vue",
+      "client/apps/web/app/components/CompanionResetDialog.vue",
+      "client/apps/web/app/components/CompanionSettingsBlock.vue",
+      "client/apps/web/app/components/CompanionSettingsDialog.vue",
+      "client/apps/web/app/components/RoomCompanionTools.vue",
+      "client/apps/web/app/domain/companions.ts",
+      "client/apps/web/server/api/companions.get.ts",
+      "client/apps/web/server/api/companions.post.ts",
+      "client/apps/web/server/api/companions/add.post.ts",
+      "client/apps/web/server/api/companions/remove.post.ts",
+      "client/apps/web/server/api/companions/reset.post.ts",
+      "client/apps/web/server/utils/companions.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "이녀석 페르소나는 짖궂은 고양이로 새로만들어줘",
+      "토큰표시도없고 게이트도 안찍혔잖아",
+      "읽은문서도없고",
+      "그리고 반복 패널티나 온도 top_p 같은 조작 가능한 파라미터는 설정할 수 있는 UI 로 넣어줘. 저장하면 새 세션으로 하고",
+      "각 파라미터 마다 무슨 용도인지 아주 간결하게 적어줘.",
+      "preserve thinking",
+      "자체모델엔 채팅방에 초기화 버튼 넣어줘 상단메뉴에",
+      "모델 설정은 에이전트 관리와 채팅방에 동일하게넣을것",
+      "대화기록날릴지 인물기록 날릴지 체크박스 가능하게",
+      "삭제범위지정",
+      "초기화 하면 그때 지우게"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/control-api",
+    "title": "Calling a unit",
+    "what": "How the console's server calls a unit and fails: one call per unit at its configured address and token, its refusal said by the pack's sentence for its code, and the four states a screen shows of a unit (checking, slow, failed, connected).",
+    "files": [
+      "client/apps/web/server/utils/request.ts",
+      "client/apps/web/server/utils/fail.ts",
+      "client/apps/web/server/api/control.get.ts",
+      "client/apps/web/app/domain/control.ts",
+      "client/tests/app/domain/control.test.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [
+      "readCursor",
+      "readLimit",
+      "controlLink",
+      "controlLine",
+      "controlTone",
+      "useControlStatus",
+      "ControlLink",
+      "Later"
+    ],
+    "aliases": [
+      "봇 API에 연결되지 않았습니다",
+      "API 로드 중",
+      "API 로드 실패"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/shared-config"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/data-table",
+    "title": "Shared settings table",
+    "what": "The shared settings table the agents screen and the DB screen use: sideways scrolling inside its box, sticky column names, draggable column widths and sections.",
+    "files": [
+      "client/apps/web/app/components/SettingsChoiceCell.vue",
+      "client/apps/web/app/components/SettingsPopoverCell.vue",
+      "client/apps/web/app/components/SettingsInputCell.vue"
+    ],
+    "symbols": [],
+    "aliases": [
+      "컬럼 너비 조정 가능하게",
+      "그 셀 설정값 바꿀 수 있는 드롭다운"
+    ],
+    "needs": [
+      "console/forms",
+      "console/language-pack",
+      "console/message-island"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/database",
+    "title": "Database viewer",
+    "what": "The console's DB screen: the server's own PostgreSQL database read by table or typed query in read-only transactions of a process of its own, killed at its deadline, with row dialogs and credentials withheld.",
+    "files": [
+      "client/apps/web/app/pages/db.vue",
+      "client/apps/web/app/components/DbRows.vue",
+      "client/apps/web/app/components/DbRowDialog.vue",
+      "client/apps/web/app/domain/dbview.ts",
+      "client/apps/web/server/api/db/query.post.ts",
+      "client/apps/web/server/api/db/rows.get.ts",
+      "client/apps/web/server/api/db/tables.get.ts",
+      "client/apps/web/server/api/db/row.get.ts",
+      "client/apps/web/server/utils/db.ts",
+      "client/apps/web/server/utils/dbview.ts",
+      "client/tests/app/components/DbRows.test.ts",
+      "client/apps/web/app/domain/db-settings.ts"
+    ],
+    "symbols": [
+      "cellPreview",
+      "isNull",
+      "tableChoices"
+    ],
+    "aliases": [
+      "DB",
+      "디비",
+      "DB 페이지"
+    ],
+    "needs": [
+      "console/data-table",
+      "console/language-pack",
+      "console/loading",
+      "console/number-format",
+      "console/todo-queue",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/deploy-mark",
+    "title": "Deployment in the title bar",
+    "what": "The deployment mark in every title bar: the testbed's progress record read at DEPLOY_PROGRESS_FILE as a running, ended or cut run with its stages and steps, and the deployment's hold read from bmo-job; its popover lists them.",
+    "files": [
+      "client/apps/web/app/components/DeployMark.vue",
+      "client/tests/app/components/DeployMark.test.ts",
+      "client/apps/web/app/domain/deploy.ts",
+      "client/tests/app/domain/deploy.test.ts",
+      "client/apps/web/server/api/deploy.get.ts",
+      "client/apps/web/server/api/deploy/log.get.ts",
+      "client/apps/web/server/plugins/deploy.ts",
+      "client/apps/web/server/utils/deploy.ts",
+      "client/tests/server/utils/deploy.test.ts",
+      "client/tests/browser/topbar-square.test.ts",
+      "client/apps/web/shared/deploy-progress.ts"
+    ],
+    "symbols": [
+      "deployMarkOf",
+      "DeployMark",
+      "ENDING_SHOWN_MS",
+      "stageSpans",
+      "stageLabel",
+      "stepLabel",
+      "currentStage",
+      "deployViewFor",
+      "deployRunView",
+      "readDeployReading",
+      "readDeployHoldRow",
+      "deployJournal",
+      "holdWaits",
+      "holdLimit",
+      "stageRows",
+      "stagesAhead",
+      "StageRow",
+      "StepRow"
+    ],
+    "aliases": [
+      "배포중이라는 표시",
+      "배포 새로고침 버튼",
+      "배포 팝오버",
+      "진행단계"
+    ],
+    "needs": [
+      "console/account-scope",
+      "console/bot-events",
+      "console/tooltips"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/documents-viewer",
+    "title": "Document viewer",
+    "what": "The document viewer: the docs and top documents of the checkouts DOCUMENT_ROOTS names, read, searched and asked about, fragments switched on the brain, the talk kept in document_talk and answered through the receiver's POST /talks.",
+    "files": [
+      "client/apps/web/app/pages/documents.vue",
+      "client/tests/app/pages/documents.test.ts",
+      "client/apps/web/app/components/DocumentTree.vue",
+      "client/apps/web/app/components/DocumentPane.vue",
+      "client/apps/web/app/components/DocumentReader.vue",
+      "client/apps/web/app/components/DocumentSide.vue",
+      "client/apps/web/app/components/DocumentSeek.vue",
+      "client/apps/web/app/components/DocumentTalk.vue",
+      "client/apps/web/app/components/DocumentToc.vue",
+      "client/apps/web/app/domain/documents.ts",
+      "client/tests/app/domain/documents.test.ts",
+      "client/apps/web/server/utils/documents.ts",
+      "client/tests/server/utils/documents.test.ts",
+      "client/apps/web/server/utils/document-fragments.ts",
+      "client/tests/server/utils/document-fragments.test.ts",
+      "client/apps/web/server/utils/document-request.ts",
+      "client/apps/web/server/api/documents/index.get.ts",
+      "client/apps/web/server/api/documents/file.get.ts",
+      "client/apps/web/server/api/documents/fragment.post.ts",
+      "client/apps/web/server/api/documents/search.get.ts",
+      "client/apps/web/server/api/documents/seek.post.ts",
+      "client/apps/web/server/api/documents/talk.get.ts",
+      "client/apps/web/server/api/documents/talk.post.ts",
+      "client/apps/web/server/api/documents/translation.get.ts",
+      "client/apps/web/server/api/documents/translation.post.ts",
+      "docs/documents-viewer.md",
+      "client/apps/web/shared/markdown-structure.ts",
+      "client/apps/web/server/utils/document-talk.ts"
+    ],
+    "symbols": [
+      "documentRoots",
+      "listDocuments",
+      "readDocument",
+      "resolveDocument",
+      "isDocumentPath",
+      "searchDocuments",
+      "requireDocument",
+      "openDocument",
+      "readDocumentTalk",
+      "documentTree",
+      "mapScroll",
+      "scrollAnchors",
+      "currentHeading",
+      "composeTranslation",
+      "indexLinks",
+      "linkedDocument",
+      "leafLabel",
+      "apartLabels",
+      "readKeptDocumentTabs",
+      "documentFragments",
+      "fragmentView",
+      "FragmentStanding"
+    ],
+    "aliases": [
+      "마크다운 문서 뷰어",
+      "문서 뷰어 페이지",
+      "후보 갈래 고르기",
+      "문서뷰어",
+      "문서 뷰어 툴바",
+      "번역 토글"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/login",
+      "console/markdown",
+      "console/number-format",
+      "console/prompt-box",
+      "console/screen-fit",
+      "console/shared-config",
+      "console/tab-bar",
+      "console/tooltips",
+      "console/translation"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/drag-select",
+    "title": "Choosing several by dragging",
+    "what": "Choosing several items in a list by a long press and a drag is bmo-ui's; the console keeps the browser harness its tests check it with.",
+    "files": [
+      "client/tests/browser/dragselect-harness.ts"
+    ],
+    "symbols": [
+      "mountDragList"
+    ],
+    "aliases": [
+      "드래그시 그 항목까지 선택",
+      "다중선택 모드",
+      "메세지 롱터치",
+      "롱클릭 선택후 드래그해서 다중선택",
+      "스와이프선택",
+      "키네틱 스크롤"
+    ],
+    "needs": [
+      "console/long-press"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/fallback",
+    "title": "Fallback and provider order",
+    "what": "The provider order and fallback the agency answers on, its Claude accounts, and the models Codex and OpenRouter offer, read and changed through the agency's /fallback routes.",
+    "files": [
+      "client/apps/web/server/api/fallback.get.ts",
+      "client/apps/web/server/api/fallback.post.ts",
+      "client/apps/web/server/api/fallback/codex-models.get.ts",
+      "client/apps/web/server/api/fallback/models.get.ts",
+      "client/apps/web/server/api/fallback/openrouter-models.get.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "각 모델별 OpenRouter 모델 Fallback 설정할 수 있게 하고 등록된 OpenRouter 로 대신 기동하는 모드",
+      "무료 모델도 쓸 수 있어야함",
+      "코덱스 yolo never ask로 실행",
+      "공급자 fallback 순서",
+      "캐시 깨짐",
+      "현재 활성 공급자및 계정과 사용량 읽는 경로를 리팩토링 필요"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/focus",
+    "title": "Focus ring",
+    "what": "How keyboard focus is shown across the console: one accent focus ring, no ring for a press, fields showing focus on their own edge, and the message bar's focus treatment.",
+    "files": [
+      "client/apps/web/app/assets/css/main.css",
+      "client/apps/web/app/app.config.ts",
+      "client/apps/web/app/components/TodoPanel.vue",
+      "client/apps/web/app/components/ChatInput.vue"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/forms",
+    "title": "One save per form",
+    "what": "One save per form, fixed at the bottom and off while nothing changed, is bmo-ui's; the console keeps the test that holds its forms to it.",
+    "files": [
+      "client/tests/app/forms.test.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "모달폼 디자인",
+      "저장 여러개",
+      "에이전트설정 저장시 저장확인창 넣지말것",
+      "디자인스킬에 더티체크룰이 없는듯",
+      "2중스크롤",
+      "보이스 브리핑 number field",
+      "number field stacked style"
+    ],
+    "needs": [
+      "console/back-gesture",
+      "console/language-pack",
+      "console/message-island"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/home-page",
+    "title": "Home page",
+    "what": "The console home page: the receiver's rooms, and the agency's catalogue in groups, the gates among them in the catalogue's order, each with what it is doing and its figures.",
+    "files": [
+      "client/apps/web/app/pages/index.vue",
+      "client/apps/web/server/api/rooms.get.ts",
+      "client/apps/web/server/utils/archive.ts",
+      "client/apps/web/app/components/AgentVitals.vue",
+      "client/apps/web/app/domain/vitals.ts"
+    ],
+    "symbols": [
+      "listRooms",
+      "readMessagePage",
+      "readMessagesAfter",
+      "readOneMessage",
+      "readDayStart",
+      "roomTitleOf"
+    ],
+    "aliases": [
+      "하이드레이션 경고",
+      "ProgressGroup 을 홈 화면 항목에도 적용"
+    ],
+    "needs": [
+      "console/agent-logs",
+      "console/bot-events",
+      "console/control-api",
+      "console/language-pack",
+      "console/live-board",
+      "console/loading",
+      "console/motion",
+      "console/number-format",
+      "console/sidebar-nav",
+      "console/todo-queue",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/job-launcher",
+    "title": "Agent prompt box",
+    "what": "The agent prompt box: launches a runner's work through bmo-job's POST /launch, and on a worker's screen sends words to that worker's session without launching a job.",
+    "files": [
+      "client/apps/web/app/components/LaunchPrompt.vue",
+      "client/apps/web/server/api/workers.post.ts",
+      "client/apps/web/server/api/launch.post.ts",
+      "client/apps/web/server/api/worker-word.post.ts",
+      "client/tests/server/api/worker-word.post.test.ts",
+      "client/tests/app/components/LaunchPrompt.test.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "마더 워커 외에 다른 잡 워커들은 개별 채팅 입력창 없음",
+      "파일전송",
+      "워커한테 말거는건 봇경우가 아니라 워커한테 프롬프트로 넘겨",
+      "게이트 에이전트에 보낸걸 왜 네가 응답하지"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/agent-logs",
+      "console/control-api",
+      "console/language-pack",
+      "console/message-island",
+      "console/prompt-box"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/judgements",
+    "title": "Judgement display",
+    "what": "A room line's chips and openings: the gate's judgements and a turn's figures where a unit serves them, what opened a turn read from the receiver's GET /rounds/openings, and the context and token chips.",
+    "files": [
+      "client/apps/web/app/components/JudgementChips.vue",
+      "client/tests/app/components/JudgementChips.test.ts",
+      "client/apps/web/app/components/LineChip.vue",
+      "client/tests/app/components/LineChip.test.ts",
+      "client/apps/web/app/components/TokenChip.vue",
+      "client/apps/web/app/components/ContextChip.vue",
+      "client/apps/web/app/components/TurnRecords.vue",
+      "client/apps/web/app/domain/chips.ts",
+      "client/tests/app/domain/chips.test.ts",
+      "client/apps/web/app/domain/judgements.ts",
+      "client/tests/app/domain/judgements.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/judgements.get.ts",
+      "client/apps/web/app/components/RunProgress.vue",
+      "client/apps/web/app/domain/working.ts",
+      "client/apps/web/server/api/briefing/read.post.ts",
+      "client/apps/web/app/components/TurnOpening.vue",
+      "client/tests/app/components/TurnOpening.test.ts",
+      "client/apps/web/server/utils/openings.ts",
+      "client/tests/server/utils/openings.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/instructions/[id].get.ts",
+      "client/apps/web/shared/mcp-names.ts",
+      "client/apps/web/server/api/tool-icons.get.ts"
+    ],
+    "symbols": [
+      "VerdictState",
+      "VerdictTone",
+      "StageMeta",
+      "verdictTone",
+      "verdictState",
+      "judgedNow",
+      "stageLabel",
+      "roadName",
+      "roadOutcome",
+      "turnActions",
+      "openedCards",
+      "phaseLook",
+      "chipLook",
+      "CHIP_ICONS",
+      "CHIP_LABELS",
+      "recordLook",
+      "LiveTurn",
+      "briefingChip",
+      "BriefingChip",
+      "verdictChip",
+      "VerdictChip",
+      "openedTurns",
+      "OpenedTurn",
+      "narrowedOffer",
+      "NarrowedOffer",
+      "withOpenings",
+      "readInstructionText",
+      "sortLabel",
+      "instructionParts",
+      "InstructionPart",
+      "FactRow",
+      "contextChipText",
+      "STILL_CHIP_LOOK"
+    ],
+    "aliases": [
+      "생각 과정 표시",
+      "채팅 상단바에 설정메뉴 버튼",
+      "해당 메세지 응답에 대해 소진된 토큰 표시",
+      "기록함",
+      "R2 W6 Wc3.5 Rc2.5 이거 있잖아",
+      "이번에 읽는건지 아니면 읽었던건지",
+      "판정에 빨간색",
+      "턴에 브리핑 붙은건 아이콘으로 하단에 칩 표시했으면 함",
+      "매턴 마다 음성브리핑 듣는건 칩 누르면 생성되게 해줘",
+      "게이트도 안돌았음",
+      "후보없음",
+      "뿅뿅",
+      "턴 판정 칩",
+      "시간이랑 판정이 바닥에 붙으면 좋겠는데",
+      "근데 왜 시간이랑 체크 표시가 메세지랑 한줄로 있던건 분리한거?",
+      "판정표시의 초록점",
+      "망치 아이콘",
+      "판정표시 방식",
+      "망치 하트비트",
+      "보낸 직후 방 대기(5초) 동안에도 판정 망치가 뛰게",
+      "컨텍스트 칩"
+    ],
+    "needs": [
+      "console/agent-logs",
+      "console/bot-progress",
+      "console/language-pack",
+      "console/markdown",
+      "console/number-format",
+      "console/tooltips"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/keepalive",
+    "title": "Keepalive",
+    "what": "Keeping agents' caches warm: the cache warmer's round and each agent's switch and pause under the consumer KEEPALIVE_CONSUMER names, read and set from the agents screen.",
+    "files": [
+      "client/apps/web/server/api/keepalive.get.ts",
+      "client/apps/web/server/api/keepalive.post.ts",
+      "client/apps/web/server/utils/keepalive.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "console/agent-list"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/language-pack",
+    "title": "Console language pack",
+    "what": "The console's language pack, client/apps/web/i18n/locales/ko.yaml, and its data file: every phrase the console shows, read by @nuxtjs/i18n on screens and by the shared wording module on the server and in tests.",
+    "files": [
+      "client/apps/web/i18n/locales/ko.yaml",
+      "client/apps/web/shared/wording.ts",
+      "client/apps/web/shared/yaml.d.ts",
+      "client/tests/i18n/wording.test.ts",
+      "client/tests/server/utils/resolved-words.test.ts",
+      "docs/language-pack.md"
+    ],
+    "symbols": [
+      "wording",
+      "Translate",
+      "WordingParams",
+      "packEntries",
+      "keysFor"
+    ],
+    "aliases": [
+      "언어팩",
+      "ui text",
+      "콘솔 문구"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/list-place",
+    "title": "Keeping a list's state",
+    "what": "Keeps a list's state when going to a detail and back: scroll, choices and the screen kept by its screen key so another region's address changes never rebuild it.",
+    "files": [
+      "client/apps/web/app/domain/route-key.ts",
+      "client/tests/app/domain/route-key.test.ts"
+    ],
+    "symbols": [
+      "screenKey",
+      "KeyedRoute"
+    ],
+    "aliases": [
+      "목록 상태",
+      "keepalive",
+      "뒤로가면 내 마지막 메일리스트 상태가 유지되어야하는데"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/live-board",
+    "title": "Live status board",
+    "what": "The live status board: the receiver's live picture of chat turns and folding rooms, bmo-job's recent jobs and the co-worker pool, with stops sent to bmo-job; runs no unit serves stand empty.",
+    "files": [
+      "client/apps/web/app/pages/live.vue",
+      "client/tests/app/pages/live.test.ts",
+      "client/apps/web/app/domain/status.ts",
+      "client/tests/app/domain/status.test.ts",
+      "client/apps/web/app/domain/stopping.ts",
+      "client/tests/app/domain/stopping.test.ts",
+      "client/apps/web/app/components/StopConfirm.vue",
+      "client/apps/web/server/api/status.get.ts",
+      "client/apps/web/server/api/run-stop.post.ts",
+      "client/tests/server/api/run-stop.post.test.ts",
+      "client/apps/web/app/domain/watches.ts",
+      "client/tests/app/domain/watches.test.ts",
+      "client/apps/web/app/components/WatchDetail.vue",
+      "client/apps/web/app/components/WatchFacts.vue",
+      "client/apps/web/app/components/CoworkerPoolBoard.vue",
+      "client/apps/web/app/components/PoolTile.vue",
+      "client/apps/web/app/domain/pool-board.ts",
+      "client/tests/app/domain/pool-board.test.ts",
+      "client/apps/web/server/api/coworker-pool.get.ts",
+      "client/apps/web/app/components/LiveRunSkeleton.vue",
+      "client/apps/web/app/components/MachineRoom.vue",
+      "client/apps/web/app/domain/machine.ts",
+      "client/tests/app/domain/machine.test.ts"
+    ],
+    "symbols": [
+      "StatusGroup",
+      "LiveTab",
+      "LiveTabItem",
+      "LIVE_TABS",
+      "isLiveTab",
+      "liveTabLabel",
+      "RecentRow",
+      "OutcomeTone",
+      "modelLabel",
+      "modeLabel",
+      "runningWorkLabel",
+      "liveRunLink",
+      "stopTargetOf",
+      "stoppable",
+      "watchStopTarget",
+      "useStops",
+      "stopKey",
+      "Stops",
+      "STOP_WAIT_MS",
+      "jobRows",
+      "watchOfRun",
+      "unheldWatches",
+      "bucketHead",
+      "tileLines",
+      "tileStop",
+      "agentStartText",
+      "testbedRows",
+      "TestbedRow"
+    ],
+    "aliases": [
+      "업타임",
+      "코워커풀 라이브 타일뷰",
+      "실시간 상태 섹션",
+      "UI에도 기능 만들어",
+      "워쳐 표시"
+    ],
+    "needs": [
+      "console/agent-logs",
+      "console/bot-events",
+      "console/control-api",
+      "console/language-pack",
+      "console/loading",
+      "console/number-format",
+      "console/sidebar-nav",
+      "console/tab-bar",
+      "console/todo-queue",
+      "console/tooltips",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/loading",
+    "title": "Async content loading display",
+    "what": "Skeletons shaped like what will come, only for a first lookup, are bmo-ui's; the console keeps the browser test that checks its screens hold to them (docs/skeleton-loading.md).",
+    "files": [
+      "client/tests/browser/skeleton.test.ts",
+      "docs/skeleton-loading.md"
+    ],
+    "symbols": [],
+    "aliases": [
+      "lazy loading되는 ui 요소들",
+      "skeleton loader",
+      "스켈레톤 로더",
+      "스켈레톤"
+    ],
+    "needs": [
+      "console/data-table",
+      "console/language-pack"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/login",
+    "title": "Login",
+    "what": "Console login: the console's session and its remember choice, the name and password checked by the account service's sumida session, and the console's own accounts before the account model is in force.",
+    "files": [
+      "client/apps/web/app/pages/login.vue",
+      "client/apps/web/app/middleware/auth.global.ts",
+      "client/apps/web/server/api/auth/login.post.ts",
+      "client/apps/web/server/api/auth/logout.post.ts",
+      "client/apps/web/server/api/auth/me.get.ts",
+      "client/apps/web/server/utils/session-life.ts",
+      "client/tests/server/utils/session-life.test.ts",
+      "client/apps/web/server/middleware/session-slide.ts",
+      "client/tests/server/api/auth/login-remember.test.ts",
+      "client/apps/web/shared/auth.d.ts",
+      "client/apps/web/scripts/user.ts",
+      "client/apps/web/app/domain/login-end.ts",
+      "client/tests/app/domain/login-end.test.ts",
+      "client/apps/web/app/plugins/login-end.client.ts",
+      "docs/web.md",
+      "docs/accounts.md"
+    ],
+    "symbols": [
+      "sessionLife",
+      "sessionRemembers",
+      "sessionWantsSlide",
+      "SESSION_SLIDE_SECONDS",
+      "loginRoute",
+      "returnPath",
+      "askWhetherLoginEnded",
+      "holdLoginTab"
+    ],
+    "aliases": [
+      "로그인 유지",
+      "7일후 만료",
+      "로그인 만료"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/member-console",
+      "server/account-service"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/long-press",
+    "title": "Long press",
+    "what": "The long press read as a right press, cancelled by sliding, scrolling or a second finger, is bmo-ui's; the console keeps the browser harness its tests check it with.",
+    "files": [
+      "client/tests/browser/holdmenu-harness.ts"
+    ],
+    "symbols": [
+      "mountHoldMenu"
+    ],
+    "aliases": [
+      "롱터치",
+      "컨텍스트 메뉴"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/markdown",
+    "title": "Text written in markdown",
+    "what": "Renders the markdown the console shows (agents' words, logs, items, judgements) with one renderer cleaned by DOMPurify, tables in their own box and centred pictures.",
+    "files": [
+      "client/apps/web/app/domain/markdown.ts",
+      "client/tests/app/domain/markdown.test.ts",
+      "client/apps/web/app/domain/markdown-load.ts",
+      "client/apps/web/app/components/MarkdownText.vue",
+      "client/tests/app/components/MarkdownText.test.ts",
+      "client/apps/web/app/assets/css/main.css",
+      "client/tests/browser/markdown.test.ts"
+    ],
+    "symbols": [
+      "renderMarkdown",
+      "markdownHtml",
+      "MarkdownKind",
+      "loadMarkdownRenderer",
+      "markdownRenderer"
+    ],
+    "aliases": [
+      "마크다운 출력",
+      "검색 문서에 있는 표들",
+      "커맨드 문서 서식으로 넘기는거 복사버튼",
+      "&amp; 이스케이프됨",
+      "다이어그램",
+      "문서에 사용하는 차트",
+      "아카이브 이미지 첨부는 슬라이드 갤러리로 임베딩해",
+      "메뉴는 접기항목으로 첨부해",
+      "지도 링크도 마찬가지야. 임베딩해서 붙여",
+      "오른다 내린다 색깔표시도 좀 하고 아이콘도 좀 넣고",
+      "코드 블록 문법 하이라이팅",
+      "하이라이트"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/palettes"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/member-console",
+    "title": "Member's console",
+    "what": "What the console shows a signed-in user other than the platform administrator: pages declare whether a member may open them, and a member gets their own shell with the room list as home.",
+    "files": [
+      "client/apps/web/app/domain/access.ts",
+      "client/apps/web/app/layouts/member.vue",
+      "client/apps/web/app/pages/rooms/index.vue"
+    ],
+    "symbols": [
+      "useAdministrator",
+      "isAdministrator",
+      "MEMBER_HOME",
+      "MEMBER_LAYOUT"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/account-scope",
+      "console/avatars",
+      "console/bmo-mark",
+      "console/language-pack",
+      "console/loading",
+      "console/login",
+      "console/motion",
+      "console/number-format",
+      "console/screen-fit",
+      "console/sidebar-nav",
+      "console/unread-messages",
+      "console/user-menu"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/memories",
+    "title": "Memories screen",
+    "what": "The memories screen: the brain's memory rows as a table with agent, kind, task, room or person, condition, times and outcome, names read from the agency and the receiver, and a switch to take one down or put it back.",
+    "files": [
+      "client/apps/web/app/pages/memories.vue",
+      "client/tests/app/pages/memories.test.ts",
+      "client/apps/web/app/components/MemoryActiveSwitch.vue",
+      "client/apps/web/app/components/MemoryCondition.vue",
+      "client/apps/web/app/components/MemoryWatch.vue",
+      "client/apps/web/app/components/MemoryDetail.vue",
+      "client/apps/web/app/domain/memories.ts",
+      "client/apps/web/server/api/memories.get.ts",
+      "client/apps/web/server/api/memories.post.ts",
+      "client/apps/web/server/utils/memories.ts",
+      "client/tests/server/utils/memories.test.ts",
+      "client/apps/web/server/utils/brain.ts"
+    ],
+    "symbols": [
+      "memoryViews",
+      "whomOf",
+      "eventText",
+      "memoryState"
+    ],
+    "aliases": [
+      "상황 규칙 표",
+      "규칙 목록 화면",
+      "콘솔 화면을 하나로",
+      "기억 페이지",
+      "메모리 페이지",
+      "활성 기억"
+    ],
+    "needs": [
+      "console/control-api",
+      "console/data-table",
+      "console/language-pack",
+      "console/tooltips"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/message-attachments",
+    "title": "Message attachments",
+    "what": "Images and files in a room: a send's attachment handed to the receiver's POST /say-file once under a send key, the picture viewer and the names of files the receiver's pages carry; their bytes are served by no unit yet.",
+    "files": [
+      "client/apps/web/app/components/MessageImage.vue",
+      "client/apps/web/app/domain/attachments.ts",
+      "client/apps/web/server/api/rooms/[chatId]/attach.post.ts",
+      "client/apps/web/server/api/images/[chatId]/[messageId].get.ts",
+      "client/apps/web/app/components/RoomPictureViewer.vue",
+      "client/apps/web/app/domain/gallery.ts",
+      "client/tests/app/domain/gallery.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/pictures.get.ts",
+      "client/apps/web/shared/types.ts"
+    ],
+    "symbols": [
+      "PickedFile",
+      "Picked",
+      "isPreviewable",
+      "fileSizeText",
+      "refusalFor",
+      "RoomPicture",
+      "RoomPicturePage",
+      "ROOM_PICTURES",
+      "useRoomPictures",
+      "stretchAround",
+      "widened",
+      "sideToRead",
+      "pictureProperties"
+    ],
+    "aliases": [
+      "웹콘솔에서는 파일 안보이는거",
+      "wheel zoom",
+      "메세지에서 보기",
+      "속성버튼",
+      "해당 톡방 이미지들간 슬라이드"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/loading",
+      "console/motion"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/message-island",
+    "title": "Message island",
+    "what": "The message island, the one place the console tells or asks a person something: a pill at the top centre of the screen showing one notice at a time.",
+    "files": [
+      "client/apps/web/app/app.vue"
+    ],
+    "symbols": [],
+    "aliases": [
+      "토스트",
+      "스낵바",
+      "다이나믹 아일랜드",
+      "메세지알림"
+    ],
+    "needs": [
+      "console/back-gesture",
+      "console/control-api",
+      "console/language-pack",
+      "console/motion",
+      "console/number-format",
+      "console/screen-fit"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/message-media",
+    "title": "Chat attachments and Telegram representations",
+    "what": "Shows chat attachments: names, sizes and downloads, the video and sound players, and Telegram's static pictures, WEBM stickers and custom emoji where a unit serves them.",
+    "files": [
+      "client/apps/web/app/components/TelegramAsset.vue",
+      "client/apps/web/app/components/TelegramText.vue",
+      "client/apps/web/app/components/MessageVideo.vue",
+      "client/apps/web/app/domain/expressions.ts",
+      "client/tests/app/domain/expressions.test.ts"
+    ],
+    "symbols": [
+      "expressionParts"
+    ],
+    "aliases": [
+      "비디오"
+    ],
+    "needs": [
+      "console/audio-player",
+      "console/language-pack",
+      "console/markdown"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/model-catalogue",
+    "title": "Model catalogue",
+    "what": "The model files the deployment's own engines serve, listed and changed from the agents screen through the agency's GET and POST /models.",
+    "files": [
+      "client/apps/web/app/components/AgentsCatalogue.vue",
+      "client/apps/web/app/domain/catalogue-models.ts",
+      "client/apps/web/server/api/models.get.ts",
+      "client/apps/web/server/api/models.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "무슨 모델들이 있는지도 설정으로 관리할 수 있게",
+      "모델 선언 자체를 설정으로 하는거지"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/model-tiers",
+    "title": "Provider model tiers",
+    "what": "The abstract model tiers and each provider's model for a tier, read and changed through the agency's /model-tiers and the models a provider offers.",
+    "files": [
+      "client/apps/web/server/api/model-tiers.get.ts",
+      "client/apps/web/server/api/model-tiers.post.ts",
+      "client/apps/web/server/api/model-tiers/models.get.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "추상적인 모델 등급",
+      "추상 모델 설정",
+      "모델 목록",
+      "공급자에게 물어 읽기",
+      "공급자 목록 매번 빌드 안해도 되게 고칠 수 있어?",
+      "모델 바뀔때마다 빌드해야되는거냐구",
+      "Effort Level 조절"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/motion",
+    "title": "Motion",
+    "what": "How things come and go on the console: one set of durations and easings, fades only for what comes and goes on its own, dialogs growing from the control pressed.",
+    "files": [
+      "client/apps/web/app/assets/css/main.css",
+      "client/apps/web/app/app.config.ts",
+      "client/tests/browser/motion-harness.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "트랜지션",
+      "페이드"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/number-format",
+    "title": "Number notation",
+    "what": "Number notation is bmo-ui's; the console keeps the one locale its usage figures count in.",
+    "files": [
+      "client/apps/web/app/domain/numbers.ts"
+    ],
+    "symbols": [
+      "COUNT_LOCALE",
+      "countText",
+      "progressText",
+      "FigureLine",
+      "figurePlaces",
+      "turnOf",
+      "COUNT_BADGE"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/language-pack",
+      "console/motion"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/palettes",
+    "title": "Bubble palettes",
+    "what": "Bubble palettes each account chooses for a room's bubbles apart from its theme, kept in the console's web_palettes table, with the preview drawn in a room's bubbles.",
+    "files": [
+      "client/apps/web/app/domain/palette.ts",
+      "client/apps/web/app/domain/kept-choice.ts",
+      "client/apps/web/app/plugins/appearance.ts",
+      "client/apps/web/app/components/PalettePreview.vue",
+      "client/apps/web/app/components/SettingsPalette.vue",
+      "client/apps/web/server/api/account/palette.get.ts",
+      "client/apps/web/server/api/account/palette.put.ts",
+      "client/tests/server/api/account/palette.test.ts",
+      "client/apps/web/server/utils/palettes.ts",
+      "client/tests/browser/bubble-contrast.test.ts",
+      "server/src/migration/m20261019_000001_tables.rs"
+    ],
+    "symbols": [
+      "usePalette",
+      "readPalette",
+      "choosePalette",
+      "savePalette",
+      "KeptChoice",
+      "useKeptChoice",
+      "readKeptChoice",
+      "keepChoice"
+    ],
+    "aliases": [
+      "말풍선 미리보는 뷰",
+      "메세지 팔레트",
+      "말풍선 설정"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/room-screen",
+      "console/themes"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/placeholders",
+    "title": "Screens of units not yet split",
+    "what": "The placeholder standing in each screen of a unit not yet split (mail, files, code review, remote, code graph, monitor, cards, gates, voice briefing): its entry and route stand, and the page says the feature is not available here.",
+    "files": [
+      "client/apps/web/app/components/ScreenPlaceholder.vue",
+      "client/apps/web/app/pages/mail/[...path].vue",
+      "client/apps/web/app/pages/files.vue",
+      "client/apps/web/app/pages/code.vue",
+      "client/apps/web/app/pages/remote/[...path].vue",
+      "client/apps/web/app/pages/graph.vue",
+      "client/apps/web/app/pages/monitor/[...path].vue",
+      "client/apps/web/app/pages/cards.vue",
+      "client/apps/web/app/pages/gates/[...path].vue",
+      "client/apps/web/app/pages/briefing.vue",
+      "client/tests/app/pages/placeholders.test.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [
+      "페이지 가로스크롤 발생중",
+      "중재기 페이지 상단에 모든블럭과 서비스 한번에 표시하는 패널",
+      "echart",
+      "규칙 294분 4초 전 읽음",
+      "기왕이면 청크 단위로 묶으면 좋겠는데",
+      "각 노드에 기타로 잡혀있는 약 500mb 정도의 서비스들은 뭐지",
+      "상주랑 올라감/안올라감도 좀 부자연스러운데",
+      "코드 의존성 그래프 뷰어",
+      "3분할 페이지",
+      "중첩 splitters",
+      "모바일에서는 탭전환",
+      "각 레이아웃 컨텐츠는 꽉차게",
+      "코드 그래프의 splitter",
+      "코드 뷰어를 monaco editor readonly 로 넣어서 하이라이팅",
+      "md 파일등의 읽기 서식이면 렌더링과 코드 중 선택해서 보게해",
+      "코드그래프",
+      "마우스 panning",
+      "wheel zoom",
+      "전체 구조",
+      "노드 렌더링",
+      "코드 그래프 뷰",
+      "코드 그래프 뷰어",
+      "뒤로가기",
+      "코드 그래프 페이지",
+      "범례버튼",
+      "코드 그래피",
+      "코드 뷰어",
+      "탐색기",
+      "탭&독 레이아웃",
+      "코드 리뷰",
+      "검색 기능이나 탭&독 레이아웃",
+      "코드리뷰",
+      "코드 리뷰 페이지",
+      "Go to definition",
+      "파일 탐색기 스타일",
+      "드롭다운 업로드",
+      "파일탐색기",
+      "웹매일",
+      "메일",
+      "메일작성뷰",
+      "메일뷰",
+      "메일 페이지",
+      "메일 서명",
+      "모두 읽음",
+      "메일리스트",
+      "컬럼 리사이징",
+      "읽지않음 필터",
+      "발신자 프로필사진",
+      "컬럼별 정렬",
+      "메일 컨텐츠가 바깥으로 잘림",
+      "메일 배경색은 흰색 강제인데 글자가 기본색",
+      "메일 파비콘",
+      "메일 좌측 사이드바 접었을 때 계정 별 항목",
+      "메일의 marquee 는 없애줘",
+      "메일 리스트 영역",
+      "tiptap 작성기",
+      "메일 화면 청크",
+      "현재기기 포함 노드들 모니터링 하는거",
+      "각 노드 페이지에도 모니터 달아줘",
+      "피지컬하고 똑같이 chip안에 구조 보고",
+      "모니터 페이지",
+      "하드웨어 카드",
+      "CPU GPU 다 읽을 수 있게 처리해",
+      "프로그레스 그룹",
+      "하드웨어로 구분을 해라",
+      "24시간 그래프",
+      "VRAM 표시",
+      "OS 표시",
+      "모니터 그래프",
+      "실시간 업데이트 차트",
+      "24h/1w/1m 차트는 최저/최고 단위로",
+      "실제 용량 단위로 표기",
+      "연결상태 카드",
+      "시스템 카드",
+      "cpu 명 gpu 명",
+      "gpu 실시간차트",
+      "CPU 코어 블록",
+      "오른쪽 회색 표기",
+      "카드 목록",
+      "씨피유 코어 블럭",
+      "캐시 띠",
+      "모니터 카드",
+      "카드 차트 갱신 주기",
+      "모니터 카드 1초갱신",
+      "카드폭만큼만 남기면 돼 실시간은",
+      "모니터 실시간 상태 추적 끌 수 있게 해줘",
+      "이 기계라는 표현은 좀 부자연스러움.",
+      "모니터랑 중재기랑 한페이지로 합치고 탭나눠. 기기 랑 서비스로",
+      "집컴 실시간 모니터링",
+      "모니터 상세페이지",
+      "모니터의 메모리 부분",
+      "메모리 카드",
+      "원격",
+      "원격 접속",
+      "RDP",
+      "터미널",
+      "SSH",
+      "원격 접속 페이지",
+      "원격 페이지",
+      "터미널 페이지의 툴바",
+      "RDP 연결 및 렌더링 품질 설정",
+      "새창으로 여는 버튼",
+      "원격 세션",
+      "원격 데스크톱",
+      "가상키보드",
+      "원격 페이지 툴바",
+      "연결 설정 팝오버",
+      "원격 데스크톱 뷰",
+      "터미널 뷰",
+      "wayland",
+      "원격 데스크탑",
+      "한글 IME",
+      "천지인",
+      "핀치줌",
+      "원격 데스크탑 중계기",
+      "키보드 버튼",
+      "보이스브리핑 다이나믹 아일렌드 팝업",
+      "자동재생도 안되는듯",
+      "보이스 브리핑 듣고 있을 때 끊기는것좀 어떻게 해야할듯",
+      "보이스 재생 바",
+      "보이스 pip",
+      "보이스브리핑 사이즈 떨림"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/sidebar-nav"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/prompt-box",
+    "title": "Prompt input box",
+    "what": "The prompt input box rooms and jobs share (ChatComposer): drafts per screen, the long paste mark, the attachment tray, the reply bar, sending files alone, and words keeping each written line.",
+    "files": [
+      "client/apps/web/app/domain/drafts.ts",
+      "client/apps/web/app/domain/pasted.ts",
+      "client/tests/app/domain/pasted.test.ts",
+      "client/apps/web/app/components/ChatInput.vue",
+      "client/apps/web/app/components/ChatComposer.vue",
+      "client/tests/browser/prompt-wrap.test.ts"
+    ],
+    "symbols": [
+      "DraftKind",
+      "draftKey",
+      "draftText",
+      "useDraft",
+      "useDraftPastes",
+      "pastedOf",
+      "composedText",
+      "standingPastes"
+    ],
+    "aliases": [
+      "모바일 엔터",
+      "채팅방 메세지 입력창",
+      "장문 붙여넣기",
+      "콘솔 파일 첨부",
+      "메세지 입력창"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/message-attachments",
+      "console/message-island",
+      "console/screen-fit"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/push-notifications",
+    "title": "Push notifications",
+    "what": "Browser push notifications: a job's question and a room message with their pictures, the subscriptions in web_push_devices signed with the console's keys, and the installed app's manifest and service worker.",
+    "files": [
+      "client/apps/web/app/domain/push.ts",
+      "client/apps/web/app/domain/watching.ts",
+      "client/tests/app/domain/watching.test.ts",
+      "client/apps/web/app/plugins/pwa.client.ts",
+      "client/apps/web/app/plugins/watching.client.ts",
+      "client/apps/web/server/api/push.get.ts",
+      "client/apps/web/server/api/push.post.ts",
+      "client/apps/web/server/api/push.delete.ts",
+      "client/apps/web/server/api/push/test.post.ts",
+      "client/apps/web/server/api/push/watching.post.ts",
+      "client/apps/web/server/plugins/push.ts",
+      "client/apps/web/server/utils/push.ts",
+      "client/tests/server/utils/push.test.ts",
+      "client/apps/web/server/utils/pushnews.ts",
+      "client/tests/server/utils/pushnews.test.ts",
+      "client/apps/web/server/utils/pushsweep.ts",
+      "client/tests/server/utils/pushsweep.test.ts",
+      "client/apps/web/server/utils/roomnews.ts",
+      "client/tests/server/utils/roomnews.test.ts",
+      "client/apps/web/server/utils/watching.ts",
+      "client/apps/web/server/utils/build.ts",
+      "client/apps/web/shared/paths.ts",
+      "client/apps/web/public/sw.js",
+      "client/tests/server/utils/sw.test.ts",
+      "client/apps/web/server/routes/manifest.webmanifest.get.ts",
+      "client/apps/web/server/utils/app-manifest.ts",
+      "client/apps/web/modules/shell-version.ts",
+      "client/apps/web/shared/shell-version.ts",
+      "client/apps/web/scripts/vapid.ts"
+    ],
+    "symbols": [
+      "PushStanding",
+      "pushStanding",
+      "deviceOf",
+      "otherDevices",
+      "ring",
+      "ringAccount",
+      "devicesToRing",
+      "deviceHears",
+      "readKinds",
+      "receivedKinds",
+      "refusedKinds",
+      "builtConsole",
+      "mayRing",
+      "ringsFromThisServer",
+      "unrungQuestions",
+      "questionPush",
+      "todoSweeper",
+      "mailThreadPath",
+      "RoomRinger",
+      "roomPush",
+      "firstLine",
+      "RoomWatchers",
+      "roomWatchers",
+      "shownRoom",
+      "watchReport",
+      "roomPath",
+      "shellVersion",
+      "versioned",
+      "appManifest"
+    ],
+    "aliases": [
+      "푸시알림",
+      "다른 방 알림",
+      "pwa 아이콘"
+    ],
+    "needs": [
+      "console/home-page",
+      "console/language-pack",
+      "console/member-console",
+      "console/todo-queue"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/registered-models",
+    "title": "Registered models",
+    "what": "The providers and models registered for workers and the gateway, listed and changed from the agents screen through the agency's GET and POST /registry.",
+    "files": [
+      "client/apps/web/app/components/AgentsRegistry.vue",
+      "client/apps/web/app/components/AgentsRegistrySkeleton.vue",
+      "client/apps/web/app/domain/registry.ts",
+      "client/apps/web/server/api/registry.get.ts",
+      "client/apps/web/server/api/registry.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "공급자와 모델을 등록할 수 있는 구조로 만들어",
+      "주소 등록과 API 키 등록을 할 수 있게 해"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/room-screen",
+    "title": "Room screen",
+    "what": "The room screen: a room's line read page by page from the receiver's console routes, the owner's words sent through POST /say, controls and live turn progress, kept as one screen per room.",
+    "files": [
+      "client/apps/web/app/pages/rooms/[chatId].vue",
+      "client/apps/web/app/components/RoomMessage.vue",
+      "client/apps/web/app/components/RunProgress.vue",
+      "client/apps/web/app/domain/room.ts",
+      "client/apps/web/app/domain/working.ts",
+      "client/apps/web/app/domain/outbox.ts",
+      "client/apps/web/server/api/rooms/[chatId]/messages.get.ts",
+      "client/apps/web/server/api/rooms/[chatId]/say.post.ts",
+      "client/apps/web/app/domain/copy.ts",
+      "client/apps/web/app/domain/messagemenu.ts",
+      "client/apps/web/server/api/owner.get.ts",
+      "client/apps/web/app/domain/bottom.ts",
+      "client/apps/web/app/domain/first-line.ts",
+      "client/tests/browser/bottom.test.ts",
+      "client/apps/web/app/domain/pasted.ts",
+      "client/apps/web/app/components/RoomDayPicker.vue",
+      "client/apps/web/server/api/rooms/[chatId]/day.get.ts",
+      "client/tests/app/domain/room.test.ts",
+      "client/apps/web/app/components/LinkPreviews.vue",
+      "client/apps/web/shared/links.ts",
+      "client/tests/shared/links.test.ts",
+      "client/apps/web/server/utils/room-links.ts",
+      "client/apps/web/server/api/rooms/[chatId]/links/[messageId]/index.get.ts",
+      "client/apps/web/server/api/rooms/[chatId]/links/[messageId]/[index]/image.get.ts",
+      "client/tests/app/components/RoomMessage.test.ts",
+      "client/apps/web/app/components/RoomMessageSkeleton.vue",
+      "client/apps/web/app/components/RoomSenderRun.vue",
+      "client/apps/web/app/components/RoomQuote.vue",
+      "client/apps/web/app/domain/flight.ts",
+      "client/tests/app/domain/flight.test.ts",
+      "client/apps/web/server/utils/archive.ts",
+      "client/apps/web/app/components/BubbleTail.vue",
+      "client/apps/web/app/components/AlbumMosaic.vue",
+      "client/apps/web/app/domain/album.ts",
+      "client/tests/app/domain/album.test.ts",
+      "client/apps/web/app/domain/picture-shapes.ts",
+      "client/tests/app/domain/room-feed.test.ts",
+      "client/tests/browser/flight-layer.test.ts",
+      "client/apps/web/app/domain/tapfocus.ts",
+      "client/tests/browser/tapfocus-touch.test.ts",
+      "client/tests/browser/meta-inline.test.ts",
+      "client/tests/browser/bubble-contrast.test.ts",
+      "client/apps/web/app/assets/css/main.css",
+      "client/tests/browser/flight-meta.test.ts",
+      "client/apps/web/app/domain/outbox-store.ts",
+      "client/tests/app/domain/outbox.test.ts",
+      "client/tests/browser/outbox-store.test.ts",
+      "client/apps/web/server/utils/send-keys.ts",
+      "client/tests/server/utils/send-keys.test.ts",
+      "client/apps/web/app/domain/bubble-fit.ts",
+      "client/tests/browser/bubble-fit.test.ts",
+      "client/tests/browser/room-feed-gap.test.ts",
+      "client/tests/browser/bubble-wrap.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/sends/[key].get.ts",
+      "client/apps/web/app/components/RoomRemovalDialog.vue",
+      "client/apps/web/app/domain/room-removal.ts",
+      "client/tests/app/domain/room-removal.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/remove.get.ts",
+      "client/apps/web/server/api/rooms/[chatId]/remove.post.ts",
+      "client/apps/web/app/domain/polling.ts",
+      "client/apps/web/app/domain/room-copy.ts",
+      "client/apps/web/app/domain/turn-actions-fold.ts",
+      "client/apps/web/server/utils/owner.ts",
+      "client/apps/web/shared/text-marks.ts",
+      "client/apps/web/shared/particles.ts",
+      "client/apps/web/shared/web-address.ts"
+    ],
+    "symbols": [
+      "MessageLook",
+      "MessageSide",
+      "OutboxItem",
+      "OutboxState",
+      "RoomRunLine",
+      "phaseLook",
+      "RoomFeed",
+      "useRoomFeed",
+      "FeedRead",
+      "feedRead",
+      "needsPage",
+      "BottomFollower",
+      "FollowOptions",
+      "followBottom",
+      "readsFromFirstLine",
+      "SendMark",
+      "sendMark",
+      "composedText",
+      "isPasteEntry",
+      "bubbleBottomPad",
+      "sideLayout",
+      "sideOf",
+      "runItem",
+      "LiveTurn",
+      "linkParts",
+      "messageLinks",
+      "roomLinkPreviews",
+      "withoutMediaMark",
+      "bareMedia",
+      "SKIPPED_STAGE",
+      "skippedTurns",
+      "skippedLine",
+      "spokenWords",
+      "withChecking",
+      "overdueChecks",
+      "OUTBOX_CHECKING_SECONDS",
+      "senderRuns",
+      "SenderRun",
+      "RunPlace",
+      "runPlace",
+      "bubbleLook",
+      "useHandOver",
+      "handOvers",
+      "standingRuns",
+      "HandOver",
+      "quoteText",
+      "QuoteLook",
+      "QuoteMedia",
+      "flightTiming",
+      "FlightTiming",
+      "rowWidth",
+      "RUN_JOIN_SECONDS",
+      "nameColour",
+      "NAME_COLOURS",
+      "riseOutOf",
+      "riseStart",
+      "riseFrame",
+      "easing",
+      "albumLayout",
+      "albumRows",
+      "rememberShape",
+      "shapeOf",
+      "measurePicture",
+      "settledAnswers",
+      "StoodTurn",
+      "settleInto",
+      "settleStart",
+      "flightLayer",
+      "releaseFocusOutside",
+      "archivedRows",
+      "groupDays",
+      "keptRows",
+      "SendOutcome",
+      "sendOutcome",
+      "nextSend",
+      "withWaiting",
+      "sendRetryMs",
+      "SEND_RETRY_MAX_MS",
+      "freshKey",
+      "outboxStore",
+      "OutboxStore",
+      "sendOnce",
+      "claimSend",
+      "sendKeyOf",
+      "SEND_KEY_SECONDS",
+      "fitBubbles",
+      "keepFitted",
+      "graceEndsAt",
+      "landedPictures",
+      "LandedPicture",
+      "standIn",
+      "standInOf",
+      "releaseStandIn",
+      "wordsWrap",
+      "FirstLineReader",
+      "atFoot",
+      "asideSlide",
+      "choosingMotion",
+      "readSend",
+      "failSend",
+      "keyChecks",
+      "withKeyOutcome",
+      "overdueWaits",
+      "OUTBOX_WAITING_SECONDS",
+      "removedRoom",
+      "removalGroups",
+      "removable"
+    ],
+    "aliases": [
+      "채팅",
+      "말풍선",
+      "메세지 간 하부 패딩",
+      "채팅입력창",
+      "마더 채팅창 들어오면 하단에 마더 워커 알림이 늦게 떠서 스크롤이 밑에 더생기는 현상",
+      "스크롤이 맨 바닥에 있을 때 새 메세지 올라오면 바닥에 있도록 유지 시켜줘야할듯.",
+      "4천자 제한",
+      "정확히는 내가 직접 보낸 메세지만 보여줘야지",
+      "메세지 참조",
+      "답장걸",
+      "대화번호 복사",
+      "복사버튼",
+      "채팅창",
+      "채팅방 상단에 날짜 표시",
+      "opengraph",
+      "메세지 롱터치",
+      "선택 모드를 해제할 때마다 입력창에 포커스가 가서 폰 키보드가 올라온다",
+      "제품 이미지도 각기 다른 것들이라서 사진그룹으로 묶어 보내지 않고 개별로 나갔음",
+      "선택모드 해제하면 채팅방 스크롤이 바닥으로 감",
+      "메세지 벌룬",
+      "벌룬 표시",
+      "어떤건 음성칩이고 어떤건 그냥 음성이 붙어있고",
+      "링크항목",
+      "API 에러",
+      "상단바 이미지",
+      "the top of the newly added item can't go past the top of the screen",
+      "말풍선꼭지",
+      "가로선이 세로선에 안닿는게 문제임",
+      "프로필 이미지는 원이잖아 라운드가 이 원과 맞물려야해",
+      "메세지 스로우 되는 트랜지션",
+      "곡선이 프로필이랑 음... 안맞다는걸",
+      "코드에 있는 주소에 대한 미리보기",
+      "메세지 시간",
+      "배포새로고침하면 메세지 입력창도 사라짐",
+      "그리고 모바일에서 칩열면 자꾸 키보드올라옴",
+      "그리고 내 말풍선 색 어두운 민트색으로 바꿔",
+      "그리고 메세지 스로우시에 살짝 끊김이 있는데?",
+      "스크롤 앵커링이 좀 이상한데? 왜 자꾸 스크롤이 옛날 메세지로 확 위로 올라가지.",
+      "텍스트 빈공간",
+      "이미지 두개 첨부해서 보내니까 메세지도 두개로 보내지는듯.",
+      "그리고 말풍선 색상 바꾸면서 다른건 안바꿨네",
+      "이미지 보내고 나서 스로우 된다음에 이미지가 한번 깜빡임",
+      "갑자기 옛날메세지로 바뀜.",
+      "답장건",
+      "선택모드",
+      "선택하이라이트",
+      "메세지 줄바꿈",
+      "스티커 보낸거는 스티커만 나오게 해줘",
+      "lazy load 라서 내가 스크롤을 다시 내려야함",
+      "선택모드시 상단바 늘어나는거 엄청 버벅임.",
+      "선택모드 전환시 프로필 사진이 우측으로 밀린뒤에 말풍선이 한박자늦게 우측으로감",
+      "선택모드시 상단바가 먼저 나오고 그다음 체크박스가 나오는데",
+      "체크박스는 따로 상단 마진이 붙는것같은데",
+      "카톡에서 내가 장난으로 보냈던 메세지가 계속 하단에 대기상태로 남아있음."
+    ],
+    "needs": [
+      "console/archive-screen",
+      "console/audio-player",
+      "console/back-gesture",
+      "console/bot-events",
+      "console/control-api",
+      "console/drag-select",
+      "console/home-page",
+      "console/judgements",
+      "console/language-pack",
+      "console/list-place",
+      "console/loading",
+      "console/member-console",
+      "console/message-attachments",
+      "console/message-island",
+      "console/message-media",
+      "console/motion",
+      "console/number-format",
+      "console/prompt-box",
+      "console/room-stats",
+      "console/room-work",
+      "console/screen-fit",
+      "console/todo-questions",
+      "console/todo-queue",
+      "console/tooltips",
+      "console/unread-messages",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/room-stats",
+    "title": "Room statistics",
+    "what": "A room's session sheet: the room's figures and each agent's share where a unit serves them; the receiver and the agency serve none yet, so it stands empty.",
+    "files": [
+      "client/apps/web/app/components/RoomStats.vue",
+      "client/apps/web/app/domain/roomstats.ts",
+      "client/apps/web/server/api/rooms/[chatId]/stats.get.ts"
+    ],
+    "symbols": [
+      "peakLabel",
+      "spanText",
+      "speakerShare",
+      "hourBars",
+      "MessageShare",
+      "messageShares",
+      "agentLabel"
+    ],
+    "aliases": [
+      "채팅방이랑 에이전트 세부 내용 말인데 거기에 토큰 사용한거 표시해. 읽기 쓰기 캐시읽기 캐시쓰기말야. Rn Wn CRn CWn 이런식으로."
+    ],
+    "needs": [
+      "console/bot-events",
+      "console/language-pack",
+      "console/loading",
+      "console/number-format",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/room-work",
+    "title": "Work in progress",
+    "what": "Counts what runs in a room besides its own turn (jobs and searches) as one line under the conversation, opening the log of what runs when pressed.",
+    "files": [
+      "client/apps/web/app/components/RoomWork.vue",
+      "client/tests/app/components/RoomWork.test.ts",
+      "client/apps/web/app/domain/working.ts",
+      "client/tests/app/domain/working.test.ts"
+    ],
+    "symbols": [
+      "RoomRunLine",
+      "WorkingLook",
+      "phaseLook",
+      "receivedLine",
+      "roomRuns",
+      "runSummary"
+    ],
+    "aliases": [
+      "현재 워커 돌아가는거 채팅방 하단에 표시되잖아",
+      "work-order-257-stage-0-0-1 이런식으로 뜨는데 좀 포맷팅해서 짧게 표시해",
+      "워커랑 와쳐표시",
+      "watch 가 무슨 watch 인지 표시안해줌",
+      "지금 하는일 칩 중앙정렬해줘",
+      "워커·워치 표시"
+    ],
+    "needs": [
+      "console/agent-logs",
+      "console/language-pack",
+      "console/live-board",
+      "console/number-format",
+      "console/tooltips"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/screen-fit",
+    "title": "Fitting the screen",
+    "what": "Fits the console to what is really visible, minus the virtual keyboard and the bands over the screen, and keeps modals and sheets clear of the phone's status and gesture bars.",
+    "files": [
+      "client/apps/web/app/assets/css/main.css",
+      "client/apps/web/app/app.config.ts",
+      "client/apps/web/nuxt.config.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "가상키보드",
+      "셀렉트 드롭다운",
+      "하단 여백",
+      "전체 스크롤",
+      "난 화면 켰을 때 섬광탄 터지는걸 싫어한단다"
+    ],
+    "needs": [
+      "console/language-pack"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/screen-measure",
+    "title": "Screen measuring tool",
+    "what": "The screen measuring tool a test uses to check a console screen by numbers rather than a picture: position, spacing, alignment, styles, clipping, contrast and duplicate ids, served beside the development console.",
+    "files": [
+      "client/tests/browser/measure.ts",
+      "client/tests/browser/measure-source.ts",
+      "client/apps/web/modules/dev-measure.ts"
+    ],
+    "symbols": [
+      "install",
+      "measureSource",
+      "gaps",
+      "edges",
+      "middles",
+      "clipping",
+      "contrast",
+      "pictures",
+      "sharedIds",
+      "watch",
+      "drift"
+    ],
+    "aliases": [
+      "접근성 스냅샷"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/screen-shot",
+    "title": "Screenshot limit",
+    "what": "The bounded screenshot a test takes of a screen, captured at one pixel to a CSS pixel and shrunk to a width limit, keeping the smaller of JPEG and PNG.",
+    "files": [
+      "client/tests/browser/shot.ts",
+      "client/tests/browser/shot.test.ts"
+    ],
+    "symbols": [
+      "shot",
+      "shotWidth",
+      "shotPath",
+      "readCost"
+    ],
+    "aliases": [
+      "shot()"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/session-resets",
+    "title": "Agent session reset",
+    "what": "Every session an agent holds and the ask to clear one, read and sent through the agency's GET /sessions and POST /session-reset, with the reset's steps.",
+    "files": [
+      "client/apps/web/app/components/AgentsSessions.vue",
+      "client/apps/web/app/components/SessionResetStep.vue",
+      "client/apps/web/app/domain/sessions.ts",
+      "client/apps/web/server/api/sessions.get.ts",
+      "client/apps/web/server/api/session-reset.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "에이전트 세션을 초기화하는 버튼도 넣어줘."
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/shared-config",
+    "title": "Shared constants and addresses",
+    "what": "Shared constants and addresses the console's screens and server read alike: limits, periods, the base path, screen addresses and the parsing of item and job addresses.",
+    "files": [
+      "client/apps/web/shared/config.ts",
+      "client/apps/web/shared/paths.ts",
+      "client/tests/shared/paths.test.ts",
+      "client/apps/web/app/domain/urls.ts"
+    ],
+    "symbols": [
+      "PAGING",
+      "POLL_INTERVAL_MS",
+      "MAX_RUN_PROMPT_LENGTH",
+      "MAX_SAY_TEXT_LENGTH",
+      "FALLBACK_ROUTE_MODES",
+      "CONSOLE_BASE",
+      "todoPath",
+      "todoOfQuery",
+      "appUrl",
+      "imageUrl",
+      "GRAPH_VIEW",
+      "GRAPH_DRAWING",
+      "GRAPH_ZOOM",
+      "KEPT_FILE_ISOLATION",
+      "SIREN_PAGE_SIZE",
+      "SIREN_MAX",
+      "SHARE_SPANS",
+      "shareSpanSeconds",
+      "FOREVER_LABEL"
+    ],
+    "aliases": [
+      "숫자 표기되는 부분들에 thousands separator formatting 적용할 것"
+    ],
+    "needs": [
+      "console/language-pack"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/sidebar-nav",
+    "title": "Sidebar navigation",
+    "what": "The console's sidebar and shell: the screens, the rooms with unread counts and pinned rooms first, the agents in folding groups, and the search palette.",
+    "files": [
+      "client/apps/web/app/layouts/default.vue",
+      "client/tests/app/layouts/default.test.ts",
+      "client/apps/web/app/domain/screens.ts",
+      "client/tests/app/domain/screens.test.ts",
+      "client/apps/web/app/domain/jump.ts",
+      "client/tests/app/domain/jump.test.ts",
+      "client/apps/web/app/app.vue",
+      "client/tests/browser/console-ids.test.ts",
+      "client/apps/web/shared/pinned-rooms.ts",
+      "client/tests/shared/pinned-rooms.test.ts",
+      "client/apps/web/app/domain/agent-folds.ts"
+    ],
+    "symbols": [
+      "useAgentFolds",
+      "AgentFoldSettings",
+      "SCREENS",
+      "screenItems",
+      "isScreenActive",
+      "tabAddress",
+      "ScreenLive",
+      "ScreenStatus",
+      "jumpGroups",
+      "screenGroup",
+      "markedHtml",
+      "PINNED_ROOMS_SETTING",
+      "readPinnedRooms",
+      "pinnedFirst",
+      "namedWhenFolded",
+      "roomItems"
+    ],
+    "aliases": [
+      "좌측 패널",
+      "ContentSearch",
+      "ContentSearchButton",
+      "사이드 패널",
+      "좌측패널에 잡 워커",
+      "채팅방 목록"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/avatars",
+      "console/bmo-mark",
+      "console/language-pack",
+      "console/loading",
+      "console/message-island",
+      "console/number-format",
+      "console/screen-fit",
+      "console/screen-measure",
+      "console/todo-queue",
+      "console/unread-messages",
+      "console/user-menu"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/tab-bar",
+    "title": "Tab bar and toolbar",
+    "what": "The shared tab bar, toolbar and view switch: tabs that pin and close, each screen's tab state saved per account in the console's web_tab_states table, and the toolbar's one button shape.",
+    "files": [
+      "client/apps/web/app/domain/tab-state.ts",
+      "client/apps/web/server/utils/tab-states.ts",
+      "client/apps/web/server/api/tab-states/[screen].get.ts",
+      "client/apps/web/server/api/tab-states/[screen].put.ts",
+      "client/tests/server/api/tab-states/tab-states.test.ts",
+      "docs/web.md"
+    ],
+    "symbols": [
+      "useKeptTabs",
+      "readTabState",
+      "saveTabState"
+    ],
+    "aliases": [
+      "탭뷰",
+      "탭 컴포넌트",
+      "탭바",
+      "툴바",
+      "속성뷰어",
+      "탭 고정",
+      "탭바 세로 스크롤",
+      "탭 상태",
+      "더보기",
+      "아이콘버튼",
+      "툴팁",
+      "탭 컨텍스트 메뉴",
+      "탭 높이",
+      "텍스트 있는 버튼",
+      "상단 액션바도 모아 보기가 가능했으면",
+      "컨텐츠 768 페이지",
+      "더보기 메뉴",
+      "액션메뉴",
+      "보기메뉴버튼"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/screen-fit"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/themes",
+    "title": "Console themes",
+    "what": "Console themes each account chooses, kept in the console's web_themes table and sent in the page head so the first frame stands in them.",
+    "files": [
+      "client/apps/web/app/domain/theme.ts",
+      "client/apps/web/app/plugins/appearance.ts",
+      "client/apps/web/app/components/SettingsTheme.vue",
+      "client/apps/web/server/api/account/theme.get.ts",
+      "client/apps/web/server/api/account/theme.put.ts",
+      "client/tests/server/api/account/theme.test.ts",
+      "client/apps/web/server/utils/themes.ts",
+      "client/apps/web/server/utils/db.ts",
+      "client/apps/web/app/app.config.ts",
+      "client/apps/web/app/assets/css/main.css",
+      "server/src/migration/m20261019_000001_tables.rs"
+    ],
+    "symbols": [
+      "useTheme",
+      "readTheme",
+      "chooseTheme",
+      "saveTheme"
+    ],
+    "aliases": [
+      "웹 전체 테마"
+    ],
+    "needs": [
+      "console/language-pack"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/todo-questions",
+    "title": "Job questions",
+    "what": "Announces on every screen what a job stopped to ask, answered in one place through bmo-job's POST /question; the list of open questions with their words is served by no unit yet.",
+    "files": [
+      "client/apps/web/app/domain/questions.ts",
+      "client/apps/web/app/components/QuestionBar.vue",
+      "client/apps/web/app/components/QuestionAsk.vue",
+      "client/apps/web/server/api/questions.get.ts",
+      "client/apps/web/server/api/questions.post.ts",
+      "client/apps/web/server/api/question-pause.post.ts"
+    ],
+    "symbols": [
+      "QuestionCard",
+      "QuestionState",
+      "QuestionOption",
+      "questionState",
+      "questionCard",
+      "openQuestions",
+      "useOpenQuestions",
+      "questionReply",
+      "questionSendLabel"
+    ],
+    "aliases": [
+      "어느 화면에 있든 보이는 표시",
+      "선택지 누르자마자 전송됐는데 고쳐야할듯",
+      "메인 채팅에서 선택지띄워줘 투두리스트말고",
+      "타이머 정지 버튼"
+    ],
+    "needs": [
+      "console/forms",
+      "console/language-pack",
+      "console/markdown",
+      "console/todo-queue",
+      "console/tooltips"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/todo-queue",
+    "title": "TODO panel",
+    "what": "The TODO panel on every page: bmo-job's items in state tabs with counts, filters, the item list, an item's detail and verbs, the queue's holds and pause, read and changed through bmo-job's routes.",
+    "files": [
+      "client/apps/web/app/components/TodoPanel.vue",
+      "client/tests/app/components/TodoPanel.test.ts",
+      "client/apps/web/app/components/TodoItemDetail.vue",
+      "client/apps/web/app/components/TodoInstruction.vue",
+      "client/apps/web/app/components/TodoTime.vue",
+      "client/apps/web/app/domain/todos.ts",
+      "client/apps/web/server/api/todos.get.ts",
+      "client/apps/web/server/api/todos.post.ts",
+      "client/tests/server/api/todos.post.test.ts",
+      "client/apps/web/server/api/todos/[id]/notes.get.ts",
+      "client/apps/web/server/utils/todos.ts",
+      "client/tests/server/utils/todos.test.ts",
+      "client/apps/web/server/api/queue-pause.post.ts",
+      "client/tests/server/api/queue-pause.post.test.ts",
+      "client/apps/web/app/domain/spans.ts",
+      "client/apps/web/app/components/TodoOpenButton.vue",
+      "client/apps/web/app/components/WorkOrderPanel.vue",
+      "client/tests/app/components/WorkOrderPanel.test.ts",
+      "client/apps/web/server/api/todos/[id].get.ts",
+      "client/apps/web/app/components/TodoRowSkeleton.vue",
+      "client/apps/web/server/api/deploy-hold-release.post.ts",
+      "client/apps/web/app/components/TodoUnapproveStep.vue",
+      "client/apps/web/server/api/todos/[id]/approvals.get.ts",
+      "docs/web.md",
+      "client/apps/web/app/domain/queue-place.ts",
+      "client/apps/web/app/domain/todo-settings.ts",
+      "client/apps/web/shared/todo-blocks.ts",
+      "client/apps/web/shared/work-time.ts",
+      "client/apps/web/shared/ran-model.ts",
+      "client/apps/web/app/domain/watch-name.ts"
+    ],
+    "symbols": [
+      "TodoSection",
+      "TodoState",
+      "TodoView",
+      "TodoConditions",
+      "conditionsOf",
+      "PANEL_MIN_WIDTH",
+      "PANEL_MAX_WIDTH",
+      "readTodoBoard",
+      "readTodoNotes",
+      "instructionParts",
+      "todoSearchFields",
+      "canStop",
+      "heldLine",
+      "mergedLine",
+      "readTodoItem",
+      "filterCount",
+      "canBottom",
+      "queueSection",
+      "stateColour",
+      "canDrag",
+      "reorderedQueue",
+      "jobGoingOn",
+      "readTodoItems",
+      "rowVerbs",
+      "RowVerb",
+      "stopDetail",
+      "stoppedLine",
+      "approvalChangeLine",
+      "approvalChangeIcon"
+    ],
+    "aliases": [
+      "투두",
+      "투두 패널",
+      "투두 리스트",
+      "우측 패널",
+      "결재",
+      "우측 패널의 splitter",
+      "투두 패널 열기 버튼",
+      "투두잡에 n번째 시도 라고 표시하는건 좀 바꾸자",
+      "투두패널",
+      "투두 뷰",
+      "투두 모달",
+      "우측 투두패널",
+      "투두 리스트 패널",
+      "미결항목 필터",
+      "투두모달",
+      "관리탭",
+      "투두패널 헤더",
+      "투두패널 대기열탭",
+      "맨밑으로 내리기",
+      "추가 지시사항",
+      "배포항목 표시 안보이는데",
+      "자동 진행 일시정지",
+      "패널은 업데이트가 안됨",
+      "배포중 표시",
+      "재개버튼",
+      "완료 보고중",
+      "기다리는 중",
+      "결과 탭",
+      "우측 패널 splitter",
+      "투두 항목을 롱터치",
+      "컨텍스트 메뉴",
+      "롱터치",
+      "워커 현황",
+      "완료 목록"
+    ],
+    "needs": [
+      "console/agent-logs",
+      "console/bot-events",
+      "console/forms",
+      "console/language-pack",
+      "console/loading",
+      "console/markdown",
+      "console/motion",
+      "console/number-format",
+      "console/prompt-box",
+      "console/tooltips",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/todo-talk",
+    "title": "Item talk",
+    "what": "The talk about one item in the TODO panel, read and sent through bmo-job's GET and POST /todo-talk; its turns are served by no route yet.",
+    "files": [
+      "client/apps/web/server/api/todos/[id]/talk.get.ts",
+      "client/apps/web/server/api/todos/[id]/talk.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "이 항목에 대한 얘기",
+      "항목 이야기 에이전트"
+    ],
+    "needs": [
+      "console/todo-queue",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/tooltips",
+    "title": "Tooltips and items by number",
+    "what": "Tooltips and an item by its number: the one tooltip for words that say more than they show, the layer that shows any cut line whole, and the item tip read from bmo-job.",
+    "files": [
+      "client/apps/web/app/components/ItemTip.vue",
+      "client/apps/web/app/domain/item-tips.ts",
+      "client/tests/app/domain/item-tips.test.ts",
+      "client/apps/web/server/api/todos/items.get.ts",
+      "docs/web.md"
+    ],
+    "symbols": [
+      "itemBook",
+      "useItemTip",
+      "itemTipLines",
+      "ItemReading"
+    ],
+    "aliases": [
+      "툴팁",
+      "풀네임",
+      "Job 번호",
+      "항목 잘리면"
+    ],
+    "needs": [
+      "console/language-pack",
+      "console/long-press",
+      "console/motion",
+      "console/todo-queue"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/translation",
+    "title": "Console translation parts",
+    "what": "Cuts a text the console would hand a translator into parts at headings and paragraphs, fits returned parts back into one, and tells a text's language by its letters; no unit serves the console a translator yet.",
+    "files": [
+      "client/apps/web/shared/translation.ts",
+      "client/tests/shared/translation.test.ts",
+      "client/apps/web/shared/translation-parts.ts"
+    ],
+    "symbols": [
+      "textLanguage",
+      "translationLanguage",
+      "translationFailureLine",
+      "TRANSLATION_PART_TOKENS",
+      "translationParts",
+      "shownPart",
+      "translationCut",
+      "parsedAnswer",
+      "TranslationCut"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/typefaces",
+    "title": "Typefaces",
+    "what": "The console's typefaces: the interface face (Apple SD Gothic Neo with Pretendard behind it) and the monospace face, carried, served and preloaded by the app.",
+    "files": [
+      "client/apps/web/app/assets/css/main.css",
+      "client/apps/web/app/app.vue",
+      "client/apps/web/scripts/interface-font.py"
+    ],
+    "symbols": [],
+    "aliases": [
+      "CaskaydiaCove nerd font + Pretendard"
+    ],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/unit-calls",
+    "title": "Calls on the other units",
+    "what": "Each unit the console's server calls, by the address and token its settings name: the agency, bmo-job, the receiver and the brain, each with its refusal codes said by the pack's sentence (docs/boundary.md).",
+    "files": [
+      "client/apps/web/server/utils/units.ts",
+      "client/apps/web/server/utils/agency.ts",
+      "client/apps/web/server/utils/job.ts",
+      "client/apps/web/server/utils/job-codes.ts",
+      "client/apps/web/server/utils/receiver.ts",
+      "client/apps/web/server/utils/brain.ts",
+      "docs/boundary.md",
+      "client/tests/server/utils/units.test.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/unread-messages",
+    "title": "Unread message counts",
+    "what": "Unread message counts per room: the account's read marks in the console's web_room_reads, counted on the receiver's line past each mark, the account's own words reading the room up to them.",
+    "files": [
+      "client/apps/web/server/utils/room-reads.ts",
+      "client/tests/server/utils/room-reads.test.ts",
+      "client/apps/web/server/api/rooms/[chatId]/read.post.ts",
+      "client/apps/web/server/api/rooms.get.ts",
+      "client/apps/web/shared/read-place.ts",
+      "client/apps/web/app/domain/read-marks.ts",
+      "client/tests/app/domain/read-marks.test.ts",
+      "client/apps/web/app/domain/room-list.ts",
+      "client/tests/app/domain/room-list.test.ts",
+      "client/apps/web/app/components/SidebarRooms.vue",
+      "server/src/migration/m20261019_000001_tables.rs"
+    ],
+    "symbols": [
+      "ownSenders",
+      "unreadCounts",
+      "markRead",
+      "Unread",
+      "RoomLast",
+      "isPast",
+      "readThrough",
+      "lastRowInView",
+      "useReadMarks",
+      "ReadMarkSource",
+      "unreadLabel",
+      "unreadShown",
+      "useRoomReading",
+      "RoomReading",
+      "useRoomList",
+      "useMarkRoomRead",
+      "withNewestReads",
+      "useNewestReads"
+    ],
+    "aliases": [
+      "좌측 방 목록에 내가 읽지 않은 새 메세지들이 몇개 인지",
+      "최신 메세지가 있는 방은 상단으로 올라가잖아"
+    ],
+    "needs": [
+      "console/account-scope",
+      "console/bot-events",
+      "console/home-page",
+      "console/language-pack",
+      "console/motion",
+      "console/number-format"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/usage-display",
+    "title": "Usage display",
+    "what": "The usage meters and panel: the usage windows, tallies and sessions a unit would serve, which none does yet, so every meter reads as having nothing to say.",
+    "files": [
+      "client/apps/web/app/components/UsageMeters.vue",
+      "client/apps/web/app/components/UsageSplit.vue",
+      "client/apps/web/app/domain/usage.ts",
+      "client/apps/web/server/api/usage.get.ts",
+      "client/apps/web/shared/types.ts"
+    ],
+    "symbols": [
+      "tokenText",
+      "shareText",
+      "sharePercent",
+      "shareTone",
+      "selectedUsageMode",
+      "titleAccountLabel",
+      "titleWindows",
+      "windowOf",
+      "accountGroups",
+      "AccountUsageGroup",
+      "providerWindows",
+      "liveWindow",
+      "resetDay",
+      "resetClock",
+      "UsageTone",
+      "usageBar",
+      "HeadlineWindow",
+      "ActiveAgentView"
+    ],
+    "aliases": [
+      "ProgressGroup",
+      "한도 표시가 아직 클로드것만 되고있어",
+      "채팅방이랑 에이전트 세부 내용 말인데 거기에 토큰 사용한거 표시해. 읽기 쓰기 캐시읽기 캐시쓰기말야. Rn Wn CRn CWn 이런식으로.",
+      "주간 사용량",
+      "그리고 토큰사용량 CR CW는 RC WC 로 해줘",
+      "실제쓰는 계정으로 떠야지",
+      "근데 사용량 아이콘은 여전히 빨간색이야.",
+      "사용량 조회 실패"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/bot-events",
+      "console/language-pack",
+      "console/loading"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/user-account",
+    "title": "Settings dialog",
+    "what": "The settings dialog opened from the user menu, with its sections (account, theme, bubbles, notifications) in one dialog, the account's password and name changed on the account service.",
+    "files": [
+      "client/apps/web/app/components/SettingsModal.vue",
+      "client/apps/web/app/domain/settings-dialog.ts",
+      "client/apps/web/app/components/SettingsAccount.vue",
+      "client/apps/web/app/components/SettingsNotifications.vue",
+      "client/apps/web/app/pages/account.vue",
+      "client/apps/web/app/app.vue",
+      "client/apps/web/server/api/account.post.ts",
+      "client/apps/web/server/utils/users.ts",
+      "client/apps/web/app/domain/settings-cells.ts"
+    ],
+    "symbols": [
+      "SETTINGS_SECTIONS",
+      "SETTINGS_QUERY",
+      "SettingsSection",
+      "SettingsState",
+      "sectionsFor",
+      "sectionOf",
+      "settingsAsked",
+      "useSettings",
+      "openSettings"
+    ],
+    "aliases": [
+      "설정 모달",
+      "설정창"
+    ],
+    "needs": [
+      "console/back-gesture",
+      "console/forms",
+      "console/language-pack",
+      "console/loading",
+      "console/login",
+      "console/member-console",
+      "console/palettes",
+      "console/push-notifications",
+      "console/todo-queue",
+      "console/usage-display"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/user-menu",
+    "title": "User menu",
+    "what": "The user menu: a dropdown offering the settings dialog, the screen mode (dark until chosen, kept in a cookie so the server draws the first screen in it) and logout.",
+    "files": [
+      "client/apps/web/app/components/UserMenu.vue"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "console/language-pack",
+      "console/user-account"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/work-nodes",
+    "title": "A worker's node",
+    "what": "The node a worker stands on, sent to the agency's POST /worker/node; the nodes themselves are the node unit's, so a worker stands on this machine alone.",
+    "files": [
+      "client/apps/web/server/api/workers/node.post.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "문제는 herdr인데 원격 에이전트를 herdr에 잡게할수있나",
+      "우리 램이 모자르니까 워커에 노드를 지정할수있게 하면 진짜 분산작업이 가능하잖인",
+      "새로 설치되는곳에 원격 로그인 네가 해줄순없어?",
+      "원격 로그인"
+    ],
+    "needs": [
+      "console/agent-list",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/work-orders",
+    "title": "Work order panel",
+    "what": "An item's work order: its plan, stages and tasks read from bmo-job's GET /work-orders, a task's dialog and a builder's result, changes sent to POST /work-order; translation is the gate unit's and stands unavailable.",
+    "files": [
+      "client/apps/web/app/components/WorkTaskDialog.vue",
+      "client/apps/web/app/components/BuilderResult.vue",
+      "client/apps/web/app/domain/workorder.ts",
+      "client/apps/web/app/domain/work-translation.ts",
+      "client/apps/web/server/api/todos/[id]/work-order.get.ts",
+      "client/apps/web/server/api/todos/[id]/work-order.post.ts",
+      "client/apps/web/server/api/todos/[id]/work-order/translation.get.ts",
+      "client/apps/web/server/api/todos/[id]/work-order/translation.post.ts",
+      "client/apps/web/server/utils/work-order-view.ts"
+    ],
+    "symbols": [],
+    "aliases": [
+      "워크플로 TODO 진행 현황",
+      "워크플로우 작업지시",
+      "에이전트 모델 수준",
+      "워크플로에서 builder 로 뜨는건 워커가 해야되는 일",
+      "그걸 다시 원래 워커잡 세션이 이어서 한다는 룰",
+      "워커가 처음부터 json만 반환하게 하지말고 일단 일끝낸다음에 봇이 json으로 달라고 하게 만들어야할듯",
+      "너랑 내 대화만 한국어면 돼",
+      "원문처럼 한국어 도메인을 번역하면 안되고 그대로 말해야함",
+      "workflow list item 을 collapsed 에서 modal 로 띄우는",
+      "서브에이전트 목록",
+      "서브에이전트 TTL",
+      "딱 1시간",
+      "30분 보다는 5분여유 주는게좋을듯",
+      "기존 워크플로우 모달이 뒤로가기누르면 패널이 닫히지 모달이 닫히는 액션이 아님",
+      "일시정지가 되면 그뒤에 연달아실패되는걸",
+      "아니 그냥 미 커밋분 있으면 같이 커밋하면안돼??",
+      "워크플로우 중단",
+      "멈춘 작업지시",
+      "중단된계획 재시작안하는것도 고칩시다",
+      "협업",
+      "co-work",
+      "협업 프롬프트",
+      "놀고 있는 scout",
+      "verifier",
+      "차라리 그냥 이런식으로 두줄로 표기하고 한 항목으로 보여줬으면 함",
+      "각 세부 서브에이전트 워커 탭 타이틀은 builder 가 계획설계 시에 짓게 해",
+      "세부 내용은 항목 클릭하면 지시문 나오는거를 탭으로 구분해서 보게 해주면 될듯",
+      "워크플로우에서 조사 및 검증된 지시사항을 builder가 재조사및 재검증 못하게 해야할듯.",
+      "기계적으로 합칠수있도록 분산코워커에게 지시하고 기계적으로 합친후 빌더가 한번 읽게해야함.",
+      "사전조사를 해두면 코드가 변경사항된걸 모르고 그대로 하게 될듯.",
+      "코워크",
+      "원래 코워크 문서에서 지정한 5종류는 권장일뿐",
+      "코워크 목록",
+      "현재 진행중인 투두를 내가 중단시킬수있는 경로가 없는듯",
+      "멈춤 시간은 안세서",
+      "코워크 계획서 번역기 달으라는 잡 없었나",
+      "곁가지",
+      "멈춘채 있는것들",
+      "8개까지만이라는건 어디에 있는제약인데",
+      "상한은 필요없는데",
+      "작업 지시서",
+      "구현 단계를 지시서 안의 스텝으로",
+      "하다보니까 더있던데요",
+      "조사를 앞으로는 좀 똑바로 하게 해야함"
+    ],
+    "needs": [
+      "console/todo-queue",
+      "console/translation",
+      "console/unit-calls"
+    ],
+    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  }
+]
