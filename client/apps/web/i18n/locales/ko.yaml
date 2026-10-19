@@ -295,7 +295,57 @@ control:
 
 db:
   label:
+    cut_length: "전체 {n}자"
+    length: "{n}자"
     masked: 가려진 값
+    masked_badge: 가려짐
+    page: "{page} / {pages} 페이지 · {total}행"
+    primary_key: 기본키
+    required: 필수
+    result: "{rows}행 · {ms}ms"
+    result_cut: "{rows}행에서 잘림 · {ms}ms"
+    schema: 스키마
+    sql_rule: "읽기 전용 · 최대 {rows}행 · {seconds}초"
+    table: 테이블
+  action:
+    first_page: 첫 페이지
+    last_page: 마지막 페이지
+    next_page: 다음 페이지
+    previous_page: 이전 페이지
+    run: 실행
+  aria:
+    find_in_table: 이 테이블에서 찾기
+    pick_table: 테이블 선택
+    query: 쿼리
+    sort_by: "{name} 정렬"
+    tables_and_sql: 테이블과 SQL
+  error:
+    no_rowid: 행 번호가 없는 테이블이라 행을 하나씩 읽을 수 없습니다.
+    no_such_table: 테이블을 찾을 수 없습니다.
+    no_table_name: 테이블 이름이 없습니다.
+    query_empty: 쿼리가 비어 있습니다.
+    query_failed: 쿼리를 실행하지 못했습니다.
+    query_timeout: 쿼리가 제한 시간을 넘겨 중단됐습니다.
+    read_failed: 데이터베이스를 읽지 못했습니다.
+    row_not_found: 행을 찾을 수 없습니다.
+    rows_failed: 행을 읽지 못했습니다.
+    table_failed: 테이블을 읽지 못했습니다.
+    tables_failed: 테이블 목록을 읽지 못했습니다.
+  placeholder:
+    find_table: 테이블 찾기
+    query: SELECT * FROM web_users ORDER BY created_at DESC
+  status:
+    no_result: 결과 없음
+    no_rows: 행 없음
+    no_rows_found: 찾는 행 없음
+    no_tables: 테이블 없음
+    note_read_at: "{note} · {time}에 읽음"
+    result_loading: 결과 불러오는 중…
+    row_loading: 행 불러오는 중…
+    tables_loading: 테이블 불러오는 중…
+  title:
+    result_row: "쿼리 결과 · {n}번째 행"
+    table_row: "{table} · {n}번째 행"
 
 files:
   label:
@@ -669,6 +719,7 @@ screens:
     cards: 카드
     chat_id: 채팅 번호
     code: 코드 리뷰
+    db: DB
     documents: 문서 뷰어
     files: 파일
     find_description: 화면, 방, 에이전트로 이동
@@ -682,6 +733,7 @@ screens:
     monitor: 모니터
     remote: 원격
     search: 검색
+    siren: 캐시 사이렌
     todo_description: 대기열과 결재 대기
   placeholder:
     find: 화면·방·에이전트 찾기
@@ -704,7 +756,68 @@ screens:
 
 siren:
   error:
+    load_failed: 사이렌을 불러오지 못했습니다.
     unreachable: 캐시 사이렌이 응답하지 않습니다.
+  aria:
+    agent_filter: 에이전트 필터
+    kind_filter: 종류 필터
+    model_filter: 모델 필터
+    request_filter: 요청 필터
+  label:
+    all_models: 전체 모델
+    cache_tokens_of: "캐시 {tokens}"
+    cause_deploy: 배포
+    cause_launch: 실행선 이동
+    cause_reload: 문서 리로드
+    chat_session: "{title} {agent}"
+    filter: 필터
+    filter_count: "필터 {n}"
+    kind_burst: 폭주
+    kind_cmd: 명령
+    kind_cold: 재프리필
+    kind_compact: 압축
+    kind_error: 오류
+    kind_growth: 새 토큰 급증
+    kind_notice: 알림
+    kind_quota: 한도
+    kind_refusal: 모델 전환
+    kind_request: 요청
+    kind_start: 첫 요청
+    kind_warm: 캐시
+    last_request: 마지막 요청
+    minute_tokens: "{tokens} 새 토큰"
+    moving_sessions: 30분 내 활동한 세션
+    new_tokens: 최근 1분 새 토큰
+    new_tokens_of: "새 {tokens}"
+    no_known_cause: 기록된 원인 없음
+    note_burst: "{seconds}초 동안 요청 {count}건"
+    note_compact: 압축
+    note_effort_model: 모델·강도 변경
+    note_image: 이미지
+    note_model_switch: 모델 전환
+    note_prefix_changed: 프리픽스 변경
+    note_session_start: 세션 첫 요청
+    note_tool_search: 툴 검색
+    note_ttl_expired: 캐시 TTL 만료
+    note_unknown: 알 수 없음
+    note_usage_unavailable: 사용량 미제공
+    session_remaining: 5시간 남은 사용량
+    unnamed: 기타
+    uptime: 업타임
+    uptime_last: 업타임과 마지막 요청
+    watched_files: 감시 중인 트랜스크립트 파일
+    weekly_remaining: 주간 남은 사용량
+  message:
+    thresholds: "지난 10분, 분당 새 토큰 · 경보 기준 노랑 {yellow} · 빨강 {red} · 60초 폭주 {burst}"
+  status:
+    end: 끝
+    figures_loading: 수치 불러오는 중…
+    more_loading: 더 불러오는 중…
+    no_matching: 조건에 맞는 요청 없음
+    no_requests: 요청 없음
+    requests_loading: 최근 요청 불러오는 중…
+  title:
+    recent_requests: 최근 요청
 
 todo:
   error:
@@ -726,6 +839,7 @@ todo:
     change_failed: TODO를 바꾸지 못했습니다.
     cowork_change_failed: 협업 여부를 바꾸지 못했습니다.
     create_failed: 새 항목을 만들지 못했습니다.
+    hold_release_failed: 배포 대기를 해제하지 못했습니다.
     item_read_failed: "#{id}번을 읽지 못했습니다."
     job_ended: "#{id}번 Job이 이미 끝났습니다."
     job_read_failed: "#{id}번 Job을 읽지 못했습니다."
@@ -779,6 +893,7 @@ todo:
     panel_close: TODO 패널 닫기
     panel_collapse: TODO 패널 닫기
     panel_expand: TODO 패널 열기
+    release_hold: 해제
     reopen_keep: 이전 결과를 유지하고 다시 열기
     resume: 재개
     resume_from_done: 완료 단계부터 재개
@@ -833,6 +948,8 @@ todo:
     builder_stage: "{n}단계 · {title}"
     checkout_release_wait: 체크아웃을 놓을 차례를 기다리는 중
     conversation: 대화
+    deploy_hold_breaks: 스키마 변경
+    deploy_hold_jobs: 기다리는 Job
     deploy_waits: 이 Job이 끝나면 배포가 올라감
     detail_description: 지시와 기록
     edited_instruction: 수정한 지시
@@ -985,6 +1102,7 @@ todo:
     done_all_found: "검색된 완료 항목 {n}건을 모두 불러왔습니다."
     done_all_loaded: "완료 항목 {n}건을 모두 불러왔습니다."
     held: "#{id}번을 보류했습니다.\n대기열에서 제외됩니다."
+    hold_released: "배포 대기를 해제했습니다.\n커밋은 그대로 대기합니다."
     marked_done: "#{id}번을 완료 처리했습니다."
     note_added: "#{id}번에 추가 지시를 보냈습니다."
     note_delivered: 이 지시를 담은 채팅 에이전트의 수정 내용이 이미 실행 중인 Job에 전달되어 그 Job에는 그대로 남습니다.
@@ -1001,6 +1119,12 @@ todo:
     raised_item: "{from}의 미결에서 #{id}번을 만들었습니다.
 
       결재 대기로 올라갔습니다."
+    release_hold_confirm: 배포 대기를 해제할까요?
+    release_hold_effect: "이번 배포는 아무것도 반영하지 않고 끝나며, 커밋은 그대로 대기합니다.
+
+      지금 반영하면 재시작할 때 실행 중인 Job이 이전 코드로 삭제된 스키마를 사용하다 실패할 수 있어 대기하고 있습니다.
+
+      해제하면 새 Job이 시작되고, 배포는 실행 중인 Job이 없을 때 다시 진행합니다."
     search_found: "{n}건을 찾았습니다."
     search_none: 찾은 항목이 없습니다.
     section_done_empty: 완료된 항목 없음
@@ -1053,6 +1177,7 @@ todo:
     deploy_hold_after: "{items} 끝나면 올라감"
     deploy_hold_jobs: "Job {n}개 끝나면 올라감"
     deploy_hold_jobs_unread: Job 목록을 읽지 못함
+    deploy_hold_limit: "{time}까지 끝나지 않으면 대기를 해제합니다."
     deploy_hold_no_jobs: 기다리는 Job 없음
     deploy_hold_suffix: 배포 대기
     done_nothing_to_do: 완료된 항목이라 할 일 없음
@@ -1074,6 +1199,7 @@ todo:
     running_attempt: "{n}번째 실행 중"
     talk_loading: 대화 불러오는 중…
     translating: 번역 중
+    unreadable: 읽지 못함
     work_order_loading: 작업 지시서 불러오는 중…
   title:
     approvals: 결재 기록
@@ -1345,6 +1471,7 @@ agents:
     context_room: 방 컨텍스트
     context_rule: 룰
     context_situation: 상황 규칙
+    context_tokens: "컨텍스트 {tokens}"
     context_window: 컨텍스트
     credential: 자격 증명
     cut: 잘림
@@ -1601,6 +1728,7 @@ agents:
     voice_briefing_autoplay_on: 도착하면 바로 재생
     voice_briefing_off: 모든 브리핑 멈춤
     voice_briefing_on: 개인방 알림은 요약 음성으로
+    weekly: 주간
     worker_label: 이름표
   message:
     account_delete_confirm: 계정을 삭제할까요?
@@ -2326,7 +2454,45 @@ job:
     worker_needs_name: 워커를 지정하거나 지정을 풀어야 합니다.
 deploy:
   status:
+    cut: 배포 중단됨
+    failed: 배포 실패
     hold: 배포 대기
+    live: 배포 완료
+    newer: 새 버전
+    rolled_back: 배포 실패 · 롤백
+    running: 배포 중
+    stopped: 배포 안 함
+    updating: 업데이트 중
+  action:
+    reload: 새로고침
+  error:
+    log_failed: 로그를 읽지 못했습니다.
+  label:
+    commit: 커밋
+    exit_code: "종료 코드 {code}"
+    items: 항목
+    log: 로그
+    part_check: 확인
+    part_pack: 압축
+    part_snapshot: 스냅샷
+    stage_after: 마무리
+    stage_backup: 백업
+    stage_before: 전환 전 단계
+    stage_build: 빌드
+    stage_check: 검사·테스트
+    stage_restart: 서비스 재시작
+    stage_rollback: 롤백
+    stage_starting: 준비
+    stage_stay_up: 헬스 체크
+    stage_tree: 릴리스 준비
+    stages: 단계
+    state_ahead: 예정
+    state_current: 진행 중
+    state_done: 완료
+    state_failed: 실패
+  message:
+    log_empty: 로그 없음
+    updating_slow: 업데이트가 끝날 때까지 응답이 늦을 수 있습니다.
 documents:
   label:
     fragment: 조각
@@ -2548,3 +2714,12 @@ memories:
     none_down: 보관한 기억이 없습니다.
     none_of_kind: "{kind} 기억이 없습니다."
     none_open: 열린 기억이 없습니다.
+home:
+  label:
+    agents_description: 게이트, 러너, 에디터, Job 워커
+    bmo_link: 채팅 에이전트 연결
+    live_description: 현재 실행 중인 작업
+    loose_job: 항목 없이 실행한 Job
+    queue_job: 대기열 항목을 처리하는 Job
+  status:
+    bmo_answering: 채팅 에이전트가 답변 중

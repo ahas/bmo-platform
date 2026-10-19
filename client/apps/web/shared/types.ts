@@ -3,6 +3,7 @@
 // code (docs/boundary.md, 「Calls the console makes」). Each screen's group adds the shapes it reads.
 
 import type { FallbackRouteMode, PushKind } from "./config";
+import type { DeployEnding, DeployStage, DeployStep, DeployStepAhead, DeployStepUnderWay } from "./deploy-progress";
 
 // bmo-job's shapes (bmo-job's `docs/api.md`).
 
@@ -2651,4 +2652,172 @@ export interface VoiceBriefingChanged {
   ok: true;
   on: boolean;
   autoplay: boolean;
+}
+
+// The home, cache-siren, deployment and database screens' shapes.
+
+// What moved the prefix a request lost, where the agency has it on record. The siren can tell that a prefix
+// moved and never what moved it; this is the agency's side of that answer, matched to the request by the moment
+// it happened in.
+export interface SirenCause {
+  // A document a session reads was written, the code went live, or the line a session is opened on moved with it.
+  why: "reload" | "deploy" | "launch";
+  // The document, or the commit, or the part of the line that moved.
+  detail: string;
+  at: number;
+}
+
+// One request as the cache siren saw it: which session made it, on what model, whether it went to the cache or
+// burned new tokens, and how loud that is.
+export interface SirenEvent {
+  seq: number;
+  at: string;
+  // The second the request was made, which carries a press on the row to the place in the agent's log where
+  // that request stands; null where the feed is too old to carry it.
+  atSeconds: number | null;
+  project: string;
+  session: string;
+  // Which agent made the request, by its registration name. A request the console has no ground to name one
+  // for says nothing rather than guessing.
+  agent: string | null;
+  mode: AgentMode;
+  model: string;
+  kind: string;
+  level: string;
+  note: string;
+  // Why the prefix moved, where this request lost one and a move is on record in the gap before it.
+  cause: SirenCause | null;
+  newTokens: number;
+  readTokens: number;
+}
+
+// What the siren's own quota source told it. A source it could not reach leaves every figure null.
+export interface SirenQuota {
+  fiveHour: number | null;
+  fiveHourResetsAt: number | null;
+  weekly: number | null;
+  weeklyResetsAt: number | null;
+  // Whose figures these are: the name of the login the source marked active, or the provider's label where it
+  // holds none; the provider; and how many logins that provider holds.
+  account: string | null;
+  provider: AgentMode | null;
+  accounts: number | null;
+}
+
+// The siren itself: whether it is up, how much of the machine it watches, and how much new token has gone out
+// lately — the last ten minutes a minute at a time, and the last one alone.
+export interface SirenWatch {
+  reachable: boolean;
+  files: number;
+  lastEvent: string | null;
+  uptimeSeconds: number;
+  newLastMinute: number;
+  perMinute: number[];
+  sessions30m: number;
+  thresholds: { yellow: number; red: number; burst: number };
+  events: SirenEvent[];
+  // Whether the siren had as many as it was asked for. It keeps a ring rather than a history, so this says a
+  // reader who has scrolled to the foot has reached the end of what there is.
+  hasMore: boolean;
+  quota: SirenQuota;
+}
+
+// One table of the console's database, as the DB screen lists them. A table that keeps no row number has no
+// hidden number to open a row by.
+export interface DbTable {
+  name: string;
+  rows: number;
+  hasRowid: boolean;
+}
+
+// One column, as the database describes it, and whether this console withholds its values.
+export interface DbColumn {
+  name: string;
+  type: string;
+  required: boolean;
+  primaryKey: boolean;
+  masked: boolean;
+}
+
+// One value in a row. A long one arrives cut, and says how long the whole of it is, so the screen never shows
+// a shortened value as though it were the value.
+export interface DbCell {
+  text: string;
+  cut: boolean;
+  length: number;
+}
+
+// SQL NULL is nothing rather than empty, so it stands as nothing here too.
+export type DbValue = DbCell | null;
+
+// One row, with the number the table knows it by where it keeps one; that number is what the whole of a row is
+// asked for by.
+export interface DbRow {
+  rowid: number | null;
+  cells: DbValue[];
+}
+
+// One page of one table: what the table is made of, what it was created as, the page itself and how many rows
+// the whole table has under the same search.
+export interface DbPage {
+  table: string;
+  columns: DbColumn[];
+  ddl: string;
+  rows: DbRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  ms: number;
+}
+
+// What a typed query answered with. The columns are the query's own, so they are names alone; `cut` says the
+// answer stopped at the row cap rather than at the end of the answer.
+export interface DbResult {
+  columns: string[];
+  masked: boolean[];
+  rows: DbRow[];
+  cut: boolean;
+  ms: number;
+}
+
+// One row of one table with nothing left out: every column the table has, and the whole of each value.
+export interface DbRowDetail {
+  columns: DbColumn[];
+  row: DbRow | null;
+}
+
+// A deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」), out of the testbed's
+// progress record. A run whose process went without ending its record is cut off, and its end is the record's
+// last write.
+export interface DeployRunView {
+  phase: "running" | "ended" | "cut";
+  startedAt: number;
+  endedAt: number | null;
+  outcome: DeployEnding | null;
+  commit: string | null;
+  /** Every stage the run means to pass, in order. */
+  plan: DeployStage[];
+  stages: { stage: DeployStage; at: number }[];
+  /** The heavy steps ended so far, each with the stage it ended in and, for a part of its stage, which part. */
+  steps: DeployStep[];
+  /** The steps of the stage under way still to come, in order. */
+  ahead: DeployStepAhead[];
+  /** The heavy step under way, with when it began. */
+  running: DeployStepUnderWay | null;
+}
+
+// What `/api/deploy` hands a tab. A member is told only of a run under way and of the release, and `detailed`
+// says the rest was left out.
+export interface DeployView {
+  /** The build the console server runs, which a page older than it compares its own with. */
+  release: string;
+  detailed: boolean;
+  run: DeployRunView | null;
+  hold: DeployHold | null;
+}
+
+/** One line of the deployment unit's journal. */
+export interface DeployLogLine {
+  at: number;
+  text: string;
 }

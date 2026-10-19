@@ -164,9 +164,9 @@ export function providerWindows(view: UsageView): UsageWindow[] {
 
 // A window's figure as it stands now: the window itself while its reset is still ahead, and nothing
 // once the reset has passed. Past its reset the account is in a new window whose figure has not
-// been read yet, and the old figure says nothing about it.
-export function liveWindow<T extends HeadlineWindow>(window: T | null, now: number): T | null {
-  return window === null || window.resetsAt === null || window.resetsAt > now ? window : null;
+// been read yet, and the old figure says nothing about it. A window not found is none.
+export function liveWindow<T extends HeadlineWindow>(window: T | null | undefined, now: number): T | null {
+  return window === null || window === undefined ? null : window.resetsAt === null || window.resetsAt > now ? window : null;
 }
 
 // The title bar stands for the agent serving now, which is the bot's own answer: the provider the

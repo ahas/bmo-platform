@@ -136,8 +136,9 @@ The places in the shell that name a later group's file are cut here, and that gr
   the stream notice's link to the live screen, the agents and live screen entries, and the configuration's
   fallback modes and Laya road. The gate stages stay out, the gate unit's, and the job models' check is the
   job screens' to restore.
-- **The ops screens (build-13):** the home page at `/`, `/api/deploy`, the deployment mark on the rooms page,
-  and the cache-siren and database entries and choices.
+- **The ops screens (build-13):** stand again — the home page at `/`, `/api/deploy`, the deployment mark on the
+  rooms page, the cache-siren and database entries, and their kept choices, carved out of the old settings module as
+  `app/domain/siren-settings.ts` and `app/domain/db-settings.ts`.
 - **The brain screens (build-12):** stand again — the documents and memories entries, and `DocumentToc.vue`, which
   the bmo-artifact bundle's archive screen asks of the console.
 - **The placeholders (build-8):** the mail, files, graph, code, monitor and remote entries stand again, with
@@ -250,7 +251,7 @@ Of these, not carried here:
 | `server/utils/work-text.ts`, `server/utils/work-text.test.ts` | not carried: they read a work order's text out of the old archive to translate it, which is bmo-gate's |
 | `server/utils/todos.test.ts`, the route tests (`server/api/queue-pause.post.test.ts`, `todos.post.test.ts`, `worker-word.post.test.ts`) | rewritten onto a stood-in bmo-job, each refusal said by the pack's sentence for its code |
 | the cross-check of `app/domain/todos.test.ts` against the old sources' phase words, and its instructions composed by the old job package | not carried: another unit's files are never read; the phases and the block heads are bmo-job's as its documents state them |
-| the room screen's check in `app/domain/questions.test.ts` and the deployment mark's in `app/components/TodoPanel.test.ts` | with the receiver screens, build-11, and the ops screens, build-13, whose files they read |
+| the room screen's check in `app/domain/questions.test.ts` and the deployment mark's in `app/components/TodoPanel.test.ts` | stand again with the receiver screens, build-11, and the ops screens, build-13, whose files they read |
 
 ### The receiver screens (136 files)
 
@@ -332,6 +333,30 @@ Of these, not carried here:
 Stands here as `client/apps/web/` at the same path; a test under `client/tests/`. Carried by build-13 (ops screens).
 
 `app/components/AgentVitals.vue`; `app/components/DbRowDialog.vue`; `app/components/DbRows.test.ts`; `app/components/DbRows.vue`; `app/components/DeployMark.test.ts`; `app/components/DeployMark.vue`; `app/components/SirenRowSkeleton.vue`; `app/domain/dbview.test.ts`; `app/domain/dbview.ts`; `app/domain/deploy.test.ts`; `app/domain/deploy.ts`; `app/domain/siren.test.ts`; `app/domain/siren.ts`; `app/pages/db.vue`; `app/pages/index.test.ts`; `app/pages/index.vue`; `app/pages/siren.test.ts`; `app/pages/siren.vue`; `browser/topbar-square.test.ts`; `server/api/db/` (4 files); `server/api/deploy.get.ts`; `server/api/deploy/log.get.ts`; `server/api/siren.get.ts`; `server/plugins/deploy.ts`; `server/utils/dbview.test.ts`; `server/utils/dbview.ts`; `server/utils/deploy.test.ts`; `server/utils/deploy.ts`; `server/utils/siren.test.ts`; `server/utils/siren.ts`.
+
+How the ops screens stand here:
+
+- **The home page** stands the rooms the receiver lists and the agents of the agency's catalogue, the gates among
+  them in the catalogue's order; the old gate list (`app/domain/gates.ts`) is the gate unit's and is not read. The
+  chat agent is known by the name the deployment registers.
+- **The cache siren screen** reads the siren's `GET /stats` and `GET /events` at `CACHE_SIREN_ADDRESS`. The sessions
+  each agent held and the moves of a cache prefix stood in the old archive and are the agency's now, served by no
+  route, so a request is named only by the siren's row or a runner's directory and carries no cause.
+- **The deployment mark** reads the testbed's progress record at `DEPLOY_PROGRESS_FILE`, in the shape the testbed
+  writes it (`shared/deploy-progress.ts`, written new for the record's stages, steps and ending), and the deployment's
+  hold from bmo-job's `GET /queue/holds`. The old record's items and its reasons' codes are not the testbed's, so a
+  run's popover lists no items and a stopped run says its outcome alone.
+- **The DB screen** reads the server's own database alone, on PostgreSQL, in read-only transactions run by a process
+  of its own; the old SQLite reading is not carried. It withholds the console's account hashes and push keys and
+  sumida's users' passwords and keys.
+- **Korean and names:** the tests' Korean stands in `client/tests/fixtures/` at each test's own path, their names and
+  paths are neutral, and pack sentences that named the agent now name the chat agent by its role or its label.
+
+Of these, not carried here:
+
+| Old member | Where it stands |
+|---|---|
+| `server/utils/dbview.test.ts`, `server/utils/siren.test.ts`, `server/utils/deploy.test.ts` | rewritten onto a scratch PostgreSQL database, a stood-in siren and bmo-job, and progress records in the testbed's shape |
 
 ### The console's user unit (1 files)
 

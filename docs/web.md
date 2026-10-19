@@ -934,18 +934,20 @@ edit to that file alone.
 
 ### Deployment in the title bar
 
-- **While the chat agent deploys, every screen's title bar says so.** A mark stands at the head of the bar's
+- **While a deployment runs, every screen's title bar says so.** A mark stands at the head of the bar's
   right end, before the queue button and the usage figures, from the moment a deployment begins until
-  a short while after it ends, and nothing stands there otherwise. It reads the deployment's progress
-  record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」).
+  a short while after it ends, and nothing stands there otherwise. It reads the testbed's progress
+  record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) at the path
+  `DEPLOY_PROGRESS_FILE` names; a console that names none stands no run.
   - Wide, it is a spinning mark, 「배포 중」, the stage and the time since the deployment began,
     ticking each second in tabular figures. At phone width it is the spinning mark alone, its words
     in its tooltip.
-  - Pressed, it opens a popover: the items carried, one to a line by number and title, each opening
-    that item in the TODO panel, with no tooltip since its title stands beside it (「An item by its number」); the commit; the stages, and the last lines of the deployment unit's journal, read again every few
-    seconds while the popover stands.
-  - The stages stand whole from the run's first moment, in the order of the run's plan (the testbed's `docs/deploy.md`,
-    「What a deployment says of itself as it runs」), so what is done, what is under way and what is
+  - Pressed, it opens a popover: the commit; the stages, and the last lines of the deployment unit's
+    journal, read with `journalctl` again every few seconds while the popover stands. The record names
+    no items, so a run's popover stands none.
+  - The stages stand whole from the run's first moment, in the order of the run's plan — 검사·테스트, 백업,
+    릴리스 준비, 빌드, 전환 전 단계, 서비스 재시작, 헬스 체크, 마무리, and 롤백 where one is put back
+    (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) — so what is done, what is under way and what is
     left read at a glance: one passed carries a check and how long it took, the one under way a
     spinning mark and its time ticking, each one still to come an empty circle and muted words, with
     no time.
@@ -958,25 +960,29 @@ edit to that file alone.
   - The quieter the row, the further from now: an ended step a step quieter than the one under way,
     one still to come quieter again, each still reading at 4.5:1 in both themes.
   - Once the run has ended or been cut off, nothing still to come stands: only what happened.
-- **Waiting for the gap stands in the same place,** in the warning colour: 「배포 대기 · #1389 끝나면
-  올라감」, the items whose Jobs must end before the batch goes up, or how many Jobs where their items could
-  not be read. How long it may wait is not a time the deployment ends, so the mark never says it.
+- **A deployment's hold on the queue stands in the same place** while no run is under way, in the warning
+  colour: 「배포 대기 · #1389 끝나면 올라감」, the items whose Jobs must end before the batch goes up, or how
+  many Jobs where their items could not be read. The hold is bmo-job's, read from its `GET /queue/holds`
+  as the TODO panel reads it. How long it may wait is not a time the deployment ends, so the mark never
+  says it.
   - Its popover is the one place the hold stands whole: what goes up, each item by number and title; the
     Jobs it waits for, by their items' numbers and titles and each with why; what the batch takes away;
     the limit, said as what happens then — 「02:37까지 끝나지 않으면 대기를 해제합니다.」 — and the 해제
     button, which lets the hold go. A hold standing with no run behind it is shown the same way.
 - **The end stands for two minutes, then goes:** 「배포 완료」, 「배포 실패 · 롤백」, 「배포 실패」,
-  「배포 안 함」 with why, or 「배포 중단됨」 for a run whose process went without ending its record. Its
+  「배포 안 함」, or 「배포 중단됨」 for a run whose process went without ending its record. The record says why a
+  run put nothing live in the testbed's own English sentence and with no code, so the mark says the outcome
+  alone. Its
   popover is the same as the run's, with the outcome at its head.
 - **A page older than the console being served says so.** Where the build the console server runs
   differs from the page's own, the mark is a refresh icon button in the accent colour at every width,
   the title bar's own icon button, its words 「새 버전 · 새로고침」 in its tooltip and its accessible name;
   pressing it loads the page again. It is read every time the stream opens, which it does again once
   bmo-web is back from a deployment's restart.
-- **It is told live, and stands through the bot's restart.** The console server looks at the progress
+- **It is told live, and stands through the units' restarts.** The console server looks at the progress
   record and the run's process every second and tells every open tab's stream a `deploy` word when
   either changed; a tab reads the deployment again on that word and every time its stream opens. None
-  of this goes through the bot, so the bot's restart leaves the mark as it was; bmo-web's own restart
+  of this goes through a unit, so a unit's restart leaves the mark as it was; bmo-web's own restart
   breaks the stream for a moment, and the stream that opens again reads it afresh.
 - **One mark opens at a time.** The popover opens on the mark of the screen standing, and only there. A screen
   the router keeps set aside keeps its own mark, which never opens while it is set aside: it has nothing on the
@@ -1547,12 +1553,14 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
 The first place on entering, where what is running on this machine is skimmed a line per branch. Six groups.
 This is the administrator's home; a member's is their rooms alone (「Access」).
 
-Its bar carries no name and no mark of its own, only what stands on every screen — the queue's button and
-the usage meters — so the front door opens on the groups themselves.
+Its bar carries no name and no mark of its own, only what stands on every screen — the deployment mark, the
+queue's button and the usage meters — so the front door opens on the groups themselves.
 
 - **Live status** — one hook to the live status screen.
-- **Rooms** — the rooms in the archive. The room name, message count and last message time stand.
-- **Gate agents** — every gate, in the gate order (the gate unit's documents).
+- **Rooms** — the rooms as the receiver lists them. The room name, message count and last message time stand.
+- **Gate agents** — every gate the agency's catalogue holds, in the catalogue's order, each opening its agent page;
+  the gate order is the gate unit's, which serves the console none (`docs/boundary.md`, 「Screens of units not yet
+  split」).
 - **Runners** — the searcher and the browser searcher.
 - **Editors** — the digest and the person-book writer.
 - **Job workers** — each worker on this machine stands a line. As the agent doing the queue's work it stands in
@@ -1561,7 +1569,7 @@ the usage meters — so the front door opens on the groups themselves.
   place. A worker with no job running is written only as doing the
   queue's work.
 
-The runner, editor and job worker groups are stood by reading that branch's rows from the catalogue as they are.
+The gate, runner, editor and job worker groups are stood by reading that branch's rows from the catalogue as they are.
 So if the owner makes one more worker, that worker stands here at once under its own name. If a branch has nobody, no
 empty group is stood and the group itself does not stand.
 
@@ -1860,49 +1868,37 @@ Two ways, split because the running places differ.
 - What was rolled out to grow stays even when its own clock rereads. The whole list comes anew each time but always at
   the size now asked, so reading down does not return to the first sixty. Lines stand by the serial number the watch
   assigned, so a reread does not stand the same line twice.
-- **Why the prefix moved.** The siren knows only that the prefix moved. The arithmetic that it hardly read what it held
-  though the cache is still alive is in the transcript, but what moved is not. **The bot knows that** — telling a room to
-  reread a document, uploading code, the session-opening line itself moving are all the bot's doing. So the bot records
-  those three with the time they happened, and this screen matches a request to that record. **문서 리로드** stands which
-  document, **배포** stands what deployment changed, **실행선 이동** stands which part moved.
-- The matching window is the **gap from the prior request** the siren measured. That prior request read its own prefix
-  without losing it, so what moved before it does not explain what this request lost. If several fall in the window, one
-  naming that agent by name comes before one that moved all at once, and same-ranked, the later comes first. Cache
-  lifetime does not enter this window — at the point the siren called it 「프리픽스 변경」 rather than 「캐시 TTL 만료」 the
-  lifetime was already reckoned, so this screen has no reason to hold that number again.
-- **If it does not know, it writes so.** With no bot record in the window, 「봇이 아는 원인 없음」 stands there. Not blank,
-  because the reason to read this line is to know 「is this what we did」 and a blank reads as 「not looked at yet」. A
-  request the bot could not name — a line grouped as **그 외** — stands nothing. The bot's deployment moves only what the
-  bot's session stands on, saying nothing about another session on this machine.
-- **Which agent's request.** The name at the line head is the agent that made that request. A room's chat agent stands by its
-  room name, and the job worker and two runners stand by their own name.
-  There are two grounds only — the session number the bot now holds (one per room, one per model for the worker) and a
-  runner running in its own deploy directory. A line hitting neither stands as the project name and is grouped in the
-  filter as **그 외** — an old session the bot let go, an editor's run, a session the owner launched themselves. A gate leaves no
-  transcript, so it does not stand on this screen at all.
+- **Why the prefix moved.** The siren knows only that the prefix moved; what moved it — a room told to reread a
+  document, code going live, the session-opening line itself moving — is the agency's record, which no route serves
+  the console (`docs/boundary.md`, 「Gaps the console meets」). So no request stands a cause, and a line that lost its
+  prefix says only what the siren said of it.
+- **Which agent's request.** The name at the line head is the agent that made that request, called by its label. There
+  are two grounds only — the agent a row the siren took from a caller names, and a runner running in its own deploy
+  directory. Which agent holds which session is the agency's record, served by no route, so every other line stands as
+  its project name and is grouped in the filter as **그 외**. A gate leaves no transcript, so it does not stand on this
+  screen at all.
 - **Pressing goes to where that request was.** One request is one call an agent made, and where a call is written a line
   at a time is only that agent's log, so pressing a line opens that log — at the first line of the run that request
   belonged to. The same rule the live status screen's lines follow. A request a room's chat agent made goes to that session's
   log, not the room screen — what stands in a room is what was said, and what this screen says is what was burned to say
   it. With no log line around that time, it goes to the end of that agent's log — the screen right, the place merely the
   end.
-- **A line with nowhere to go is not pressable.** A line grouped as **그 외**, a request of a session the bot does not
-  hold, has no screen in this console to open. Such a line stands not as a link but a plain line, with no finger mark or
+- **A line with nowhere to go is not pressable.** A line grouped as **그 외** has no screen in this console to open. Such a line stands not as a link but a plain line, with no finger mark or
   press mark. A pressable line stands a chevron at the right end and its background changes on hover, so the two are told
   apart by eye.
 - **Filters.** Three in the screen's own row — per agent, per kind and per model — and only what is actually in the list
   now stands as a choice. The choice stays in that browser.
 - Beside those counts **the 5-hour limit and the weekly limit** stand as percents. The siren asks its quota source for those
-  values, and on this machine that source is the bot — the bot gathers the account windows carried in its runs' answers
-  and serves them in the shape the siren expects (`README.md`). If the source does not answer, the two cells stay a dash.
+  values from the agency, which gathers the account windows carried in its runs' answers and serves them in the shape the
+  siren expects (the cache siren's `docs/api.md`, 「Quota source」). If the source does not answer, the two cells stay a dash.
   What is not there is not stood up as if it were.
 - **The two limits are the active agent's.** The siren reads the slot its source marks active — the provider the road
   answers on and the login it walks to now — and the screen names whose figures they are beside them: the account's
   name where the provider holds more than one account, and the provider's label where the active provider holds no
   login. With one login there is nothing to tell apart and nothing is named.
-- The screen does not attach to the siren directly. The app's server asks the siren over loopback and the browser calls
-  only the app's paths. It does not keep a stream open either — asking once every few seconds is all, so if the siren dies
-  the screen only writes so and neither the console nor the bot is held.
+- The screen does not attach to the siren directly. The app's server asks the siren's `GET /stats` and `GET /events` at
+  the address `CACHE_SIREN_ADDRESS` names, and the browser calls only the app's paths. It does not keep a stream open
+  either — asking once every few seconds is all, so if the siren dies the screen only writes so and nothing else is held.
 
 ### DB screen
 
@@ -1921,8 +1917,9 @@ Two ways, split because the running places differ.
   app recognises but by the database itself. A directly typed query has one more layer: the query is wrapped whole
   in a subquery to run, so anything not one SELECT-shaped statement is caught at the parser first, and joining two
   statements with a semicolon is caught in the same place.
-- **It can be stopped.** Each read carries a statement timeout the database enforces, so a query missing a join
-  condition is cancelled past it rather than burning a core. A query past the limit says so, and the console answers
+- **It can be stopped.** Each read runs in a process of its own, killed at the console's deadline, and carries a
+  statement timeout the database enforces a moment past it, so a query missing a join condition is cancelled rather
+  than burning a core. A query past the limit says so, and the console answers
   other things meanwhile.
 - **Skimming a table.** Choosing a table stands its rows fifty at a time. The table choice is a dropdown with a
   search box, so a table is found by typing part of its name. The choices carry how many rows each table holds, and
@@ -1947,7 +1944,7 @@ Two ways, split because the running places differ.
   changes, and a widened column shows more of each value. Another table, or another query's columns, starts again
   at natural widths.
 - **What is not hidden and what is not shown.** Only the credentials hide their value — the web account's password
-  hash, the notification device's two keys, and sumida's password hashes, session secrets and key hashes. They are
+  hash, the notification device's two keys, and sumida's users' passwords and its keys. They are
   credentials, not records, and no screen of this console has ever shown them. In table skimming such a value is not
   even selected. A constant stands in its place so the value never leaves the database, and search does not search
   that column either — whether a search hits or not is itself an answer about that value. In a directly typed query,

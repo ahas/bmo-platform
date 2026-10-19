@@ -62,6 +62,11 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.live", to: "/live", icon: "i-material-symbols-monitor-heart-outline", nested: false, tabs: LIVE_TABS },
   // The mailboxes, bmo-mail's. Its screen had places below its address, so they light it too.
   { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, placeholder: true },
+  // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
+  // it. It stands under the live board because it is the other thing worth glancing at while something runs.
+  { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false },
+  // The console's own database, read as tables and rows.
+  { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },
   // A machine's drives walked as files, bmo-drive's.
   { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, placeholder: true },
   // The Archive: the documents kept for reading, each with its attachments. Its pages are the

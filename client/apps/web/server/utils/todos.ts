@@ -302,7 +302,7 @@ function standingOf(lines: readonly ItemLine[], running: ReadonlySet<number>): T
 }
 
 // A deployment's hold as its deploy wrote it, kept as it stands; a hold that does not read as one is still a hold.
-function holdOf(value: unknown): DeployHold | null {
+export function holdOf(value: unknown): DeployHold | null {
   if (value === null || value === undefined) return null;
 
   const hold = (typeof value === "object" ? value : {}) as Partial<DeployHold>;

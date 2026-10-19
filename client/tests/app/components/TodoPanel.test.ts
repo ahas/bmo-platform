@@ -339,10 +339,11 @@ describe("the auto-progression switch", () => {
   });
 });
 
-// The deployment's hold is a state of its own beside his pause. Its band says which Jobs' end the
+// The deployment's hold is a state of its own beside the owner's pause. Its band says which Jobs' end the
 // batch goes up after, and pressing it opens the title bar's deployment popover, the one place the
 // hold stands whole and is let go; the panel keeps no window of its own repeating it, and the resume
-// in the pause's band never reaches it. The popover is the deployment mark's, which stands with the ops screens.
+// in the pause's band never reaches it.
+const mark = await Bun.file(new URL("../../../apps/web/app/components/DeployMark.vue", import.meta.url)).text();
 
 describe("the deployment's hold", () => {
   test("stands in a band of its own while it holds, saying the mark's own words", () => {
@@ -359,9 +360,14 @@ describe("the deployment's hold", () => {
     expect(template).not.toContain("holdOpen");
     expect(template).not.toContain("todo.label.deploy_hold_");
     expect(source).toContain('const deployOpen = useState<boolean>("deploy-open", () => false);');
+    expect(mark).toContain('const open = useState<boolean>("deploy-open", () => false);');
   });
 
-  test("is never let go by the resume", () => {
+  test("is let go in the popover, asked first in the message pill, and never by the resume", () => {
+    expect(mark).toContain("await island.ask({");
+    expect(mark).toContain('description: t("todo.message.release_hold_effect")');
+    expect(mark).toContain('$fetch("/api/deploy-hold-release", { method: "POST" })');
+    expect(mark).toContain('@click="releaseHold"');
     expect(template).not.toContain("releaseHold");
     expect(source).toContain('t("todo.message.auto_resumed_hold_stands", { hold: holdSummary.value })');
   });

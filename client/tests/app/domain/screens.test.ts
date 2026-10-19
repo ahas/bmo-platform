@@ -10,12 +10,12 @@ import type { Screen } from "../../../apps/web/app/domain/screens";
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen standing in this console is listed, named from the pack", () => {
-  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/files", "/archive", "/documents", "/memories", "/graph", "/code", "/agents", "/monitor", "/cards", "/gates", "/briefing", "/remote"]);
+  expect(SCREENS.map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/graph", "/code", "/agents", "/monitor", "/cards", "/gates", "/briefing", "/remote"]);
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
 test("the screens this console carries stand whole; every other screen is its unit's placeholder", () => {
-  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/archive", "/documents", "/memories", "/agents"]);
+  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/archive", "/documents", "/memories", "/agents"]);
 });
 
 test("a nested screen is lit on its own address and on the pages below it, and nowhere else", () => {
