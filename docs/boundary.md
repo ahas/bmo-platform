@@ -224,6 +224,10 @@ and then by the environment, where a variable named `BMO_WEB_SERVER_`, the table
 sets that key (`BMO_WEB_SERVER_DATABASE__URL`); the console reads its runtime configuration from the
 environment. No address, token or name is written into the code.
 
+Deployed, the server's `settings.local.toml` is the data root's `env/web.toml`, and the console's environment is the
+data root's `env/web-console.env`, which its unit reads and its build reads for the base path (docs/web.md,
+「Running as a service」).
+
 | Process | Setting | What it names |
 |---|---|---|
 | server | `server.listen` | the socket address the server binds |
@@ -232,6 +236,8 @@ environment. No address, token or name is written into the code.
 | server | `sessions.valkey` | the Valkey sumida keeps its sessions in |
 | server | `receiver.base`, `receiver.token` | the receiver, set together or not at all; with neither, a check or a grant on a message is refused 503 |
 | server | `names.chat_agent` | the name the chat agent goes by in a room, which a fixed line says it as; the server does not stand without one |
+| console | `PORT` | the port the console listens on |
+| console | `BMO_WEB_BASE_URL` | the base path every road of the console stands under, fixed as the console is built |
 | console | `WEB_SERVER_ADDRESS`, `WEB_SERVER_TOKEN` | the server |
 | console | `WEB_DATABASE_URL` | the server's PostgreSQL database, where the console's own tables stand |
 | console | `NUXT_PUBLIC_CHAT_AGENT_NAME`, `NUXT_PUBLIC_CHAT_AGENT_LABEL` | the name the chat agent's messages stand under, and the label a room calls it by |
@@ -377,5 +383,14 @@ shown as.
 ## The public address
 
 The console answers under one base path, the one its settings name, behind the deployment's proxy. The proxy
-hands on the base path as it is, and flows the event streams unbuffered; every road, the artifact bundle's
-`/api/archive` and `/api/share/` included, is the console's to hand on.
+hands on the base path as it is, and flows the event streams unbuffered. The port the console listens on and the
+public name stand in the console's settings (「Settings」) and are not written into this repository.
+
+| Road under the base path | Where it goes |
+|---|---|
+| every road | the console, at the port its settings name, the base path handed on as it is |
+| `/api/events` and every other event stream | the console, unbuffered, the connection kept open while it idles |
+| `/api/archive` and every road under it, every road under `/api/share/` | the console, which hands each on whole to bmo-artifact (「Calls the console makes」), behind its sign-in but for the share page's roads |
+
+The server answers on its own listen address to the console and the other units on the machine, and no road of
+the proxy reaches it.

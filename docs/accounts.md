@@ -33,7 +33,12 @@ flowchart TD
   each with the server's base address and token in its own settings.
 - **No browser and no phone reaches it.** The console's server is the only caller on the web side, and sumida's
   session routes are reached through it alone.
-- **Its user unit** is the server's own, linked and restarted by the deployment (`testbed.toml`).
+- **Its user unit** is the server's own, `deploy/bmo-web-server.service`, linked and restarted by the deployment
+  (`testbed.toml`), running `serve` in the release's `server/`, where the deployment's settings stand as
+  `settings.local.toml`.
+- **Whether it answers** is `bmo-web-server health`: it asks `GET /health` at the address the settings name, an
+  unspecified host asked at the loopback one, waiting at most five seconds, and ends 0 where the service answers
+  and 1 otherwise, saying why. The deployment waits on it.
 
 ## When it is in force
 

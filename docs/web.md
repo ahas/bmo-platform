@@ -5506,10 +5506,24 @@ Do not build by hand. The one road to put the console up is the deployment, and 
 
 ## Running as a service
 
-The console stands as the systemd user unit this repository's `deploy/` holds, running the built
-`.output/server/index.mjs` out of the release. The server stands as a unit of its own beside it. Both are linked,
-started and restarted by the testbed's deployment of this repository (`testbed.toml`; the testbed's
-`docs/deploy.md`).
+The console stands as the systemd user unit this repository's `deploy/` holds, `bmo-web.service`, running the built
+`.output/server/index.mjs` out of the release. The server stands as a unit of its own beside it,
+`bmo-web-server.service`. Both are linked, started and restarted by the testbed's deployment of this repository
+(`testbed.toml`; the testbed's `docs/deploy.md`), into the deploy tree `~/.local/share/bmo-web/deploy`.
+
+- **The server is the deployment's service,** marked `bot`: the deployment waits on its health, `bmo-web-server
+  health` run in the release's `server/`, and watches it stay up. The console is marked `restart`, restarted by
+  every deployment just before the server.
+- **What a deployment does for this repository,** beyond the testbed's own steps: the server's release build; the
+  console's install and build in the build tree, written into the release being built; the server's migrations,
+  run before the flip, every one of which only adds, so the release still serving reads on through them.
+- **The settings stand under the data root,** never in the repository and never in a release: the server's as
+  `env/web.toml`, which each release links to as `server/settings.local.toml` (`docs/boundary.md`, 「Settings」), and
+  the console's environment as `env/web-console.env`, which each release links to as `client/apps/web/console.env`
+  and the console's unit reads; the build reads it too, since the base path is fixed as the console is built, so it
+  is written as plain `KEY=value` lines, the keys `client/apps/web/.env.example` lists. The ports, the base path and
+  the public name are among them. A deployment finding either file missing is refused, and neither unit starts
+  without its own.
 
 - **A request waits on its answer up to Bun's ceiling of 255 seconds.** Bun's server cuts a request that has sent
   nothing for its idle limit, ten seconds unless told otherwise, and the console's server reports that cut as

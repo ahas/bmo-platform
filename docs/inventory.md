@@ -364,6 +364,11 @@ Stands here as `deploy/`. Carried by build-14 (deployment).
 
 `bmo-web.service`.
 
+It stands as `deploy/bmo-web.service`, run out of this repository's deploy tree with its environment linked from
+the data root's `env/web-console.env`, and restarted by every deployment before the server. Beside it, written new,
+stands `deploy/bmo-web-server.service`, the server's unit, which the old repository ran inside its bot's binary; the
+deployment waits on it through the new `bmo-web-server health`.
+
 ### Already in bmo-ui (165 files)
 
 Stands here as not carried: the same module from the bmo-ui layer, which kept code imports by the package's path. Carried by build-6 (console workspace).

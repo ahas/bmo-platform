@@ -1,6 +1,6 @@
 //! The server's binary (docs/accounts.md): `serve` stands the account service on the address its settings
-//! name, `migrate` brings its database up to date, `user` is the account command, and `wording` writes the
-//! document wording file from the language pack.
+//! name, `migrate` brings its database up to date, `health` asks the service standing there whether it answers,
+//! `user` is the account command, and `wording` writes the document wording file from the language pack.
 
 use std::fs;
 use std::io::{self, Write};
@@ -42,6 +42,9 @@ enum Verb {
   Serve,
   /// Brings the database the settings name up to date with every migration.
   Migrate,
+  /// Asks the service on the address the settings name whether it answers, waiting at most a few seconds:
+  /// ends 0 where it does, and 1 otherwise, saying why (docs/accounts.md, 「Where it answers」).
+  Health,
   /// Makes the user a name signs in as, or gives one standing a new password, read from standard input
   /// (docs/accounts.md, 「The account command」).
   User {
@@ -197,6 +200,26 @@ async fn user(settings: Settings, name: String, administrator: bool) -> ExitCode
   }
 }
 
+// How long the health waits on the service's answer.
+const HEALTH_WAIT: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Whether the service on the address the settings name answers its health route, and why not where it does not.
+async fn health(settings: &Settings) -> Result<(), String> {
+  let address = format!("{}/health", settings.server.address());
+  let answer = reqwest::Client::new()
+    .get(&address)
+    .timeout(HEALTH_WAIT)
+    .send()
+    .await
+    .map_err(|why| format!("nothing answered at {address}: {why}"))?;
+
+  if answer.status().is_success() {
+    Ok(())
+  } else {
+    Err(format!("{address} answered {}", answer.status()))
+  }
+}
+
 // The document wording file written to `file`, from the pack alone, so a release writes it with no settings.
 fn wording(file: &PathBuf) -> ExitCode {
   let written = document_wording().and_then(|text| {
@@ -220,6 +243,19 @@ fn main() -> ExitCode {
     Ok(settings) => settings,
     Err(why) => return refused(why),
   };
+
+  // The health asks the service standing over HTTP and reads nothing sumida keeps, so it settles nothing.
+  if let Verb::Health = &cli.verb {
+    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build();
+
+    return match runtime
+      .map_err(|why| why.to_string())
+      .and_then(|runtime| runtime.block_on(health(&settings)))
+    {
+      Ok(()) => ExitCode::SUCCESS,
+      Err(why) => refused(why),
+    };
+  }
 
   if let Err(why) = settle_sumida(&settings) {
     return refused(format!("sumida's settings could not be written: {why}"));
@@ -249,7 +285,7 @@ fn main() -> ExitCode {
         name,
         administrator,
       } => user(settings, name, administrator).await,
-      Verb::Wording { .. } => ExitCode::SUCCESS,
+      Verb::Wording { .. } | Verb::Health => ExitCode::SUCCESS,
     }
   })
 }

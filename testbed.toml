@@ -36,5 +36,49 @@ lane = "wide"
 id = "fmt"
 command = "cargo fmt --all --check"
 
+# The server's binary goes into a release's bin/.
 [build]
 binaries = ["bmo-web-server"]
+
+# The console, built in the build tree, where its install and Nuxt's generated project stay warm between
+# deployments, and written into the release being built: the release beside the build tree, named by the first
+# twelve hex digits of the commit (the testbed's docs/deploy.md, 「The places」). A running console reads its chunks
+# from the release it started from, so a build never writes over a release that serves (docs/web.md, 「Running as a
+# service」). The base path is fixed as the console is built, so the build reads the console's environment from the
+# data root first.
+[[build.step]]
+id = "console-install"
+dir = "client"
+command = "bun install --frozen-lockfile"
+
+[[build.step]]
+id = "console-build"
+dir = "client/apps/web"
+lane = "wide"
+command = "set -a && . ~/.local/share/bmo/data/env/web-console.env && set +a && BMO_WEB_OUTPUT_DIR=\"$(git rev-parse --show-toplevel)/../deploy-releases/$(git rev-parse HEAD | cut -c1-12)/client/apps/web/.output\" bun run build"
+
+# The repository's own deploy tree, and the data root it shares with the services that read its files. The
+# server's settings stand under the data root as env/web.toml, which each release links to as the server's
+# settings.local.toml, and the console's environment as env/web-console.env, which each release links to beside the
+# console (docs/web.md, 「Running as a service」). The ports, the base path and the public name are among them, and
+# none is written here.
+[deploy]
+root = "~/.local/share/bmo-web"
+link = "deploy"
+data_root = "~/.local/share/bmo/data"
+env_links = [
+  { link = "server/settings.local.toml", target = "env/web.toml" },
+  { link = "client/apps/web/console.env", target = "env/web-console.env" }
+]
+# The server's unit, marked bot, whose health the deployment waits on, and the console's, marked restart.
+units = ["deploy/*.service"]
+# Answers 0 once the server the deployed settings name answers its health route (docs/accounts.md, 「Where it
+# answers」).
+health = "cd ~/.local/share/bmo-web/deploy/server && ../bin/bmo-web-server health"
+
+# The server's database brought up to date before the flip; every migration only adds, so the release still serving
+# reads on through it.
+[[deploy.step]]
+id = "migrate"
+phase = "before-flip"
+command = "cd server && ../bin/bmo-web-server migrate"
