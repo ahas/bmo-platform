@@ -10,6 +10,10 @@ export interface RouteEvent {
   body?: unknown;
   query?: Record<string, unknown>;
   params?: Record<string, string>;
+  // The request's method, its headers by lower-case name and its body as it was sent, where a route reads them.
+  method?: string;
+  headers?: Record<string, string>;
+  rawBody?: string;
 }
 
 const globals = globalThis as unknown as Record<string, unknown>;
@@ -23,6 +27,11 @@ globals.signedInUser = async () => ({ id: 1, name: "tester", administrator: true
 globals.readBody = async (event: RouteEvent) => event.body;
 globals.getQuery = (event: RouteEvent) => event.query ?? {};
 globals.getRouterParam = (event: RouteEvent, name: string) => event.params?.[name];
+globals.getMethod = (event: RouteEvent) => event.method ?? "GET";
+globals.getRequestHeader = (event: RouteEvent, name: string) => event.headers?.[name.toLowerCase()];
+globals.readRawBody = async (event: RouteEvent) => event.rawBody;
+// A route that answers with a web response hands it back as it is, which a test reads whole.
+globals.sendWebResponse = (_event: RouteEvent, response: Response) => response;
 
 for (const module of [
   await import("../../apps/web/server/utils/units"),

@@ -296,7 +296,12 @@
     "what": "The archive screen is bmo-artifact's console plugin bundle, which the console extends in nuxt.config.ts; the console keeps the document design the bundle's pages and the share page read, and hands their roads on to bmo-artifact.",
     "files": [
       "client/apps/web/shared/document-design.ts",
-      "client/tests/shared/document-design.test.ts"
+      "client/tests/shared/document-design.test.ts",
+      "client/apps/web/server/utils/artifact.ts",
+      "client/apps/web/server/api/archive/index.ts",
+      "client/apps/web/server/api/archive/[...path].ts",
+      "client/apps/web/server/api/share/[...path].ts",
+      "client/tests/server/api/archive-roads.test.ts"
     ],
     "symbols": [
       "DOCUMENT_PALETTE",
@@ -304,7 +309,12 @@
       "DARK_PALETTE",
       "pageSheet",
       "DocumentScheme",
-      "SCHEME_COOKIE"
+      "SCHEME_COOKIE",
+      "ARTIFACT_CODES",
+      "ArtifactAsk",
+      "forwardToArtifact",
+      "artifactPath",
+      "artifactAsk"
     ],
     "aliases": [
       "검색 결과를 열람할 수 있는 페이지",
@@ -336,7 +346,7 @@
       "console/message-island",
       "console/screen-fit"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "1f85dadfeb6b180dfbd2b2d4274f5a3916ea285d"
   },
   {
     "id": "console/audio-player",

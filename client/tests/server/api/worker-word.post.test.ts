@@ -6,10 +6,6 @@ import { answer, standIn } from "../../support/units";
 // The console's own road for a word said to a worker. It launches nothing and names no model: the words and the
 // worker are the whole of what travels, and bmo-job is what hands them over.
 
-const globals = globalThis as unknown as Record<string, unknown>;
-
-globals.getRequestHeader = () => undefined;
-
 const job = standIn("JOB", () => new Response(null, { status: 204 }));
 
 const handler = await routeOf<{ ok: true }>("../../apps/web/server/api/worker-word.post");
