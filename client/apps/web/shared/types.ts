@@ -2636,12 +2636,12 @@ export interface RoomAgentStats {
   lastMode: AgentMode | null;
   lastModel: string | null;
   lastEffort: string | null;
-  runs: number;
+  // Its runs in this room and what they cost, each null where no unit counts them by room.
+  runs: number | null;
   contextTokens: number | null;
   lastRunAt: number | null;
-  // What its runs for this room have cost, from the same rows the title bar's figures come from.
-  weekTokens: number;
-  totalTokens: number;
+  weekTokens: number | null;
+  totalTokens: number | null;
 }
 
 // What the console is answered with when it sends attachments: what each file became, and what

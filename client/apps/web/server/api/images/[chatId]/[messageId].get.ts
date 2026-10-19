@@ -1,8 +1,8 @@
 import { wording } from "#shared/wording";
 
-// A photo is served by the message it belongs to, never by a path the browser names. No unit serves a message's
-// files to the console (docs/boundary.md, 「Gaps the console meets」), so every photo answers as not found, and the
-// room stands its frame without it.
+// A photo is served by the message it belongs to, never by a path the browser names: the receiver hands over the
+// picture that message stored (its `docs/boundary-api.md`, 「A message's files and picture」), and a message whose
+// picture is not kept answers as not found, so the room stands its frame without it.
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
 
@@ -16,5 +16,11 @@ export default defineEventHandler(async (event) => {
     throw fail(400, wording("room.error.bad_message_id"));
   }
 
-  throw fail(404, wording("room.error.photo_not_found"));
+  const range = getRequestHeader(event, "range");
+  const answer = await unitBytes("RECEIVER", `/console/rooms/${chatId}/messages/${messageId}/picture`, {
+    headers: range === undefined ? {} : { range },
+    codes: { "not-found": "room.error.photo_not_found" }
+  });
+
+  return sendWebResponse(event, servedFile(answer));
 });

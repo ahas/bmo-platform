@@ -1,8 +1,4 @@
-import { CONTROL_SLOW, CONTROL_UNREACHABLE } from "#shared/config";
-import { wording } from "#shared/wording";
-
-import { fail } from "./fail";
-import { unitAt, unitHeaders } from "./units";
+import { unitBytes } from "./units";
 
 import type { H3Event } from "h3";
 
@@ -32,13 +28,8 @@ export const ARTIFACT_CODES: Readonly<Record<string, string>> = {
   nothing_to_share: "archive.error.nothing_to_share"
 };
 
-// The headers a road is asked with that bmo-artifact reads, and those of its answer the browser reads.
+// The headers a road is asked with that bmo-artifact reads.
 const ASKED_HEADERS = ["accept", "content-type", "range", "if-none-match", "if-modified-since"];
-const ANSWER_HEADERS = ["content-type", "content-length", "content-disposition", "cache-control", "x-content-type-options",
-  "etag", "last-modified", "accept-ranges", "content-range"];
-
-// How long bmo-artifact has to begin its answer; a file it sends may take longer to arrive whole.
-const ANSWER_BEGINS_MS = 30_000;
 
 // The road a share link is made on, whose maker is the signed-in user.
 const MAKING_A_LINK = /^\/api\/archive\/[^/]+\/share$/;
@@ -87,12 +78,8 @@ function bodyOf(ask: ArtifactAsk): string | undefined {
 
 /** One road handed on to bmo-artifact, answered as it answered, or refused in the pack's words for its code. */
 export async function forwardToArtifact(ask: ArtifactAsk): Promise<Response> {
-  const unit = unitAt("ARTIFACT");
-
-  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
-
   const body = ask.method === "GET" || ask.method === "HEAD" ? undefined : bodyOf(ask);
-  const headers: Record<string, string> = { ...unitHeaders(unit) };
+  const headers: Record<string, string> = {};
 
   for (const name of ASKED_HEADERS) {
     if (ask.headers[name] !== undefined) headers[name] = ask.headers[name];
@@ -100,36 +87,7 @@ export async function forwardToArtifact(ask: ArtifactAsk): Promise<Response> {
 
   if (body !== undefined && MAKING_A_LINK.test(ask.path)) headers["content-type"] = "application/json";
 
-  const waiting = new AbortController();
-  const timer = setTimeout(() => waiting.abort(new DOMException("bmo-artifact did not begin its answer", "TimeoutError")), ANSWER_BEGINS_MS);
-  let response: Response;
-
-  try {
-    response = await fetch(`${unit.address}${ask.path}${search(ask.query)}`, { method: ask.method, headers, body, signal: waiting.signal });
-  } catch (error) {
-    throw (error instanceof Error && error.name === "TimeoutError") || waiting.signal.aborted ? fail(504, wording(CONTROL_SLOW)) : fail(503, wording(CONTROL_UNREACHABLE));
-  } finally {
-    clearTimeout(timer);
-  }
-
-  if (!response.ok && (response.headers.get("content-type") ?? "").includes("json")) {
-    const refused = (await response.clone().json().catch(() => null)) as { code?: unknown } | null;
-    const key = typeof refused?.code === "string" ? ARTIFACT_CODES[refused.code] : undefined;
-
-    if (key !== undefined) {
-      throw createError({ statusCode: response.status, message: wording(key), data: { code: refused?.code, field: null } });
-    }
-  }
-
-  const answered = new Headers();
-
-  for (const name of ANSWER_HEADERS) {
-    const value = response.headers.get(name);
-
-    if (value !== null) answered.set(name, value);
-  }
-
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
+  return await unitBytes("ARTIFACT", `${ask.path}${search(ask.query)}`, { method: ask.method, headers, body, codes: ARTIFACT_CODES });
 }
 
 /** The road a request names, as bmo-artifact serves it: the root it stands under and what follows. */

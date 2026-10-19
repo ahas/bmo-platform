@@ -129,7 +129,13 @@
       <div class="flex items-center gap-2 text-sm">
         <span class="w-20 shrink-0 text-dimmed">{{ $t("room.label.runs") }}</span>
         <span class="text-muted">
-          {{ agent.lastRunAt === null ? $t("room.label.runs_count", { n: countText(agent.runs) }) : $t("room.label.runs_last", { n: countText(agent.runs), time: formatStamp(agent.lastRunAt) }) }}
+          {{
+            agent.runs === null
+              ? "—"
+              : agent.lastRunAt === null
+                ? $t("room.label.runs_count", { n: countText(agent.runs) })
+                : $t("room.label.runs_last", { n: countText(agent.runs), time: formatStamp(agent.lastRunAt) })
+          }}
         </span>
       </div>
       <div class="flex items-center gap-2 text-sm">
@@ -137,7 +143,11 @@
         <!-- The words are Korean, so they stand in the interface's own face; what wants a fixed
              width here is the digits, and they have it on their own. -->
         <span class="tabular-nums text-muted"
-          >{{ $t("room.label.tokens_week_total", { week: tokenText(agent.weekTokens), total: tokenText(agent.totalTokens) }) }}</span
+          >{{
+            agent.weekTokens === null || agent.totalTokens === null
+              ? "—"
+              : $t("room.label.tokens_week_total", { week: tokenText(agent.weekTokens), total: tokenText(agent.totalTokens) })
+          }}</span
         >
       </div>
     </section>

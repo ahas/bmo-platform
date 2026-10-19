@@ -46,6 +46,7 @@ for (const module of [
   await import("../../apps/web/server/utils/todos"),
   await import("../../apps/web/server/utils/work-order-view"),
   await import("../../apps/web/server/utils/receiver"),
+  await import("../../apps/web/server/utils/media"),
   await import("../../apps/web/server/utils/owner"),
   await import("../../apps/web/server/utils/archive"),
   await import("../../apps/web/server/utils/openings"),

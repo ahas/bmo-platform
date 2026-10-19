@@ -2900,11 +2900,11 @@ Four bounds keep it from growing forever.
 
 - **The room is the receiver's.** Its list, its name and its line, page by page, past a message, one message and
   where a day begins, are read from the receiver's console routes, and the owner's words and files go out through
-  its sends (`docs/boundary.md`, 「Calls the console makes」). What its pages do not carry, and what of the
-  receiver's room routes the console does not read yet, stands empty — the verdicts, a round's figures and
-  actions, a line's voice briefing, a message's files and photos, the room's pictures, figures and window, and a
-  link's preview — and the sections below that draw them stand empty with them (`docs/boundary.md`, 「Gaps the
-  console meets」).
+  its sends (`docs/boundary.md`, 「Calls the console makes」). A message that carries files is read again for them
+  and for the metadata it arrived with; a photo, a file's bytes, the room's pictures, its figures and the chat
+  agent's window come from the receiver's routes for each. What no unit serves the console stands empty — the
+  verdicts, a round's figures and actions, a line's voice briefing and a link's preview — and the sections below
+  that draw them stand empty with them (`docs/boundary.md`, 「Gaps the console meets」).
 - Conversation piles up as a chat screen. The right is the owner's own side and nobody else's: what they
   themselves sent stands there, and every other voice — the chat agent, another person in a group, a notice — stands on
   the left, the same rule in their own chat as in a group. The side says whose message it is and nothing
@@ -3286,8 +3286,8 @@ Four bounds keep it from growing forever.
 - **사진** — a message with a photo shows the photo in place. Pressing opens it in the picture viewer. The
   archive's mark for it — `[사진]` at the head of the message — is not shown above the picture, since the picture
   says the same; a caption after the mark stays, and a message whose picture is not kept keeps its mark. A photo goes
-  out only through the message it is attached to, and no file outside the bot's photo directory goes out on any
-  request.
+  out only through the message it is attached to, read from the receiver's picture of that message, which serves
+  nothing outside the room's folder of its picture store.
 - **사진이 있는 말풍선** — a picture runs to the bubble's edges, with no inner room or corners of its own: the
   bubble's own corners cut it. The run's name and a quote stand over it inside the bubble's inner room, and the
   caption under it, with the bubble's inner room on its top, sides and foot. A picture with nothing under it
@@ -3949,8 +3949,9 @@ Four bounds keep it from growing forever.
     the row is one height listening and working, and the conversation above it never moves as a turn begins or ends.
   - **It is still, with no shimmer and no chips.** The shimmer says a turn is going and the chips say what a turn
     spent; listening is no turn, so neither stands.
-  - **The window is the archive's,** as the receiver and the conversation write it for the chat agent's own agent
-    (the receiver's `docs/wake.md`, 「The names and the window」). The room asks the console how long it has left when it
+  - **The window is the receiver's,** as the receiver and the conversation write it for the chat agent's own agent
+    (the receiver's `docs/wake.md`, 「The names and the window」), read through its
+    `GET /console/rooms/{chat}/window`. The room asks the console how long it has left when it
     opens, again on each thing in the room that may move it — a message filed or queued, a turn beginning or
     ending, the window itself written — and once more as that time runs out, so the row goes when the window
     closes and never on a guess of the screen's. The countdown only reads that answer down between reads and
@@ -4111,7 +4112,11 @@ Four bounds keep it from growing forever.
 #### 세션 정보
 
 - **The sheet is the room's figures, counted on the way out.** Nothing of it is kept anywhere; it
-  is read off the archive each time it opens.
+  is read from the receiver's `GET /console/rooms/{chat}/figures` each time it opens, its messages by the hour
+  counted in the zone the console shows every time in.
+- **What no unit counts by room stands as "—":** an agent's runs, its last run and its tokens, which the agency
+  answers by no room, so the receiver hands each as null (its `docs/boundary-api.md`, 「A room's figures」). The
+  rules below are what those figures mean wherever they are counted.
 - **Who wrote a message is decided as the room screen decides it** (「Room screen」): an agent's when
   filed under the bot's own sender name, which is the chat agent's, or under a number a road gave an
   agent. Every other message is a person's.
@@ -4209,13 +4214,14 @@ Four bounds keep it from growing forever.
 - **It plays in its room.** A room's conversation is read again each time the bot says a message came, and a row
   keeps its player through that, so a sound going is not cut by the room hearing something new. Leaving the room
   takes its players with it, and a sound going stops there.
-- **A file is called by message, not by path.** The browser names the room and message number, the path comes from
-  the table, and if the place the table points at is empty it finds by the rule of the receiver's `docs/room-files.md`, 「Message files」 — that room
-  and that name. If the place the table points at is outside the message-file store's directory — going out by a
-  symbolic link, or a neighbouring directory of a similar name — it counts as not a file. Only a logged-in person can
-  receive it, and to skip sound in the middle a partial request is needed so it answers range requests. The road is
-  cut per kind — sound, video, document and the Telegram expressions — and each goes out by an address naming its
-  kind.
+- **A file is called by message, not by path.** The browser names the room, the message number and the file's place
+  among the message's files; the console asks the receiver for that file (its `docs/boundary-api.md`, 「A message's
+  files and picture」), which serves only what its store keeps inside the room's folder. Only a logged-in person
+  who may read the room can receive it, and to skip sound in the middle a partial request is needed, so the range
+  asked for is handed on and the stretch answered is handed back. The road is cut per kind — sound, video, document
+  and the Telegram expressions — and each goes out by an address naming its kind; a file whose type its kind does
+  not take is refused rather than handed on, and a document, or a sound or video asked for to keep, leaves as a
+  file to keep.
 
 #### 첨부와 Telegram 표현
 

@@ -92,6 +92,64 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
   return (text === "" ? null : JSON.parse(text)) as T;
 }
 
+// The headers of a unit's answer a browser reads of bytes handed on whole: what they are, how many, how they are
+// kept, and the stretch a range was answered with.
+const BYTE_HEADERS = ["content-type", "content-length", "content-disposition", "cache-control", "x-content-type-options",
+  "etag", "last-modified", "accept-ranges", "content-range"];
+
+// How long a unit has to begin answering bytes; the bytes themselves, a file sent whole, may take longer.
+const BYTES_BEGIN_MS = 30_000;
+
+/** How bytes are asked of a unit: the request as it goes, and the unit's refusal codes said in the pack's words. */
+export interface UnitBytes {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  codes?: Readonly<Record<string, string>>;
+}
+
+/**
+ * A unit's answer handed on whole, its status, its bytes as they stream and the headers a browser reads of them;
+ * a refusal whose code stands in the caller's table is said in the pack's sentence, and any other answer goes on
+ * as the unit gave it.
+ */
+export async function unitBytes(name: string, path: string, asked: UnitBytes = {}): Promise<Response> {
+  const unit = unitAt(name);
+
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  const waiting = new AbortController();
+  const timer = setTimeout(() => waiting.abort(new DOMException("the unit did not begin its answer", "TimeoutError")), BYTES_BEGIN_MS);
+  let response: Response;
+
+  try {
+    response = await fetch(`${unit.address}${path}`, { method: asked.method ?? "GET", headers: { ...unitHeaders(unit), ...asked.headers }, body: asked.body, signal: waiting.signal });
+  } catch (error) {
+    throw timedOut(error) || waiting.signal.aborted ? fail(504, wording(CONTROL_SLOW)) : fail(503, wording(CONTROL_UNREACHABLE));
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!response.ok && asked.codes !== undefined && (response.headers.get("content-type") ?? "").includes("json")) {
+    const refused = (await response.clone().json().catch(() => null)) as Refusal | null;
+    const key = typeof refused?.code === "string" ? asked.codes[refused.code] : undefined;
+
+    if (key !== undefined) {
+      throw createError({ statusCode: response.status, message: wording(key, fieldsOf(refused)), data: { code: refused?.code, field: null } });
+    }
+  }
+
+  const answered = new Headers();
+
+  for (const header of BYTE_HEADERS) {
+    const value = response.headers.get(header);
+
+    if (value !== null) answered.set(header, value);
+  }
+
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
+}
+
 interface Refusal {
   error?: unknown;
   code?: unknown;

@@ -3,16 +3,17 @@ import { isSystemNotice } from "#shared/text-marks";
 import { wording } from "#shared/wording";
 
 import { ownerChat } from "./owner";
+import { carriesFiles, messageMedia } from "./message-media";
 import { receiverRead } from "./receiver";
 
-import type { ArchivedMessage, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomStats, RoomSummary } from "#shared/types";
+import type { ArchivedMessage, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomSummary, TelegramExpression } from "#shared/types";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
 // room」): the rooms, a room's name, and its line walked by a cursor the reader holds, read into the shapes the room
 // screen draws. A page holds only what a person said themselves, as the receiver hands it. What the receiver's
 // pages do not carry stands empty (docs/boundary.md, 「Gaps the console meets」): the judgements beside a page, which
-// are the gate's; what a round cost and what its turn did; a line's voice briefing; a message's files themselves,
-// so an attachment names its file and is not available; and the expressions a message's metadata drew.
+// are the gate's; what a round cost and what its turn did; and a line's voice briefing. A message that carries files
+// is read again for them and for the metadata it arrived with (`server/utils/message-media.ts`).
 
 interface RoomLine {
   chatId: number;
@@ -76,8 +77,8 @@ export async function roomTitleOf(chatId: number): Promise<string> {
   return roomLabel(chatId, title, owner);
 }
 
-// The files a message carried as the screen lists them, each by its place among them. The receiver serves no
-// file's bytes, so each names its file and stands unavailable.
+// The files a message carried as its page names them, each by its place among them and standing unavailable: what
+// the line stands where the receiver's list of them could not be read.
 function attachmentsOf(message: ReceivedMessage): MessageAttachment[] {
   return message.files.flatMap((file, at) => {
     const kind = file.kind as MessageAttachment["kind"];
@@ -86,6 +87,19 @@ function attachmentsOf(message: ReceivedMessage): MessageAttachment[] {
       ? [{ id: at, kind, name: file.source.startsWith("bmo:") ? wording("room.label.voice_message") : file.source, bytes: null, type: null, available: false }]
       : [];
   });
+}
+
+// What a message carried and the expressions its words drew. Only a message whose page names a file is asked
+// about, since every expression stands on one of its files; a list that cannot be read is no reason to fail the
+// page, and the line names its files as unavailable instead.
+async function mediaOf(chatId: number, message: ReceivedMessage): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[] }> {
+  if (!carriesFiles(message.files)) return { attachments: [], expressions: [] };
+
+  try {
+    return await messageMedia(chatId, message.messageId, message.text);
+  } catch {
+    return { attachments: attachmentsOf(message), expressions: [] };
+  }
 }
 
 // Whether each sender of a page is an agent, asked of the receiver once a sender on one of its messages: the
@@ -129,7 +143,7 @@ async function replyQuoteOf(chatId: number, messageId: number): Promise<ReplyQuo
         senderName: answered.senderName,
         text: answered.text,
         pictured: answered.imagePath !== null,
-        attachment: attachmentsOf(answered)[0] ?? null
+        attachment: (await mediaOf(chatId, answered)).attachments[0] ?? null
       };
     }
   } catch {
@@ -158,6 +172,7 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   return await Promise.all(
     received.map(async (message) => {
       const agent = agents.get(senderKey(message)) === true;
+      const media = await mediaOf(chatId, message);
 
       return {
         chatId: message.chatId,
@@ -173,8 +188,8 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
         album: message.album,
         agent,
         notice: agent && isSystemNotice(message.text),
-        attachments: attachmentsOf(message),
-        expressions: [],
+        attachments: media.attachments,
+        expressions: media.expressions,
         replyQuote: message.replyToMessageId === null ? null : await quote(message.replyToMessageId),
         spend: null,
         actions: null
@@ -215,11 +230,6 @@ export async function readDayStart(chatId: number, from: number): Promise<{ mess
   const { messageId } = await receiverRead<{ messageId: number | null }>(`/console/rooms/${chatId}/day-start?from=${from}`);
 
   return messageId === null ? null : { messageId };
-}
-
-/** A room counted, with nothing counted: what it is made of is served by no unit yet. */
-export function emptyRoomStats(chatId: number): RoomStats {
-  return { chatId, messages: 0, fromPeople: 0, speakers: 0, firstAt: null, lastAt: null, lastAnswerAt: null, top: [], byHour: Array.from({ length: 24 }, () => 0), agents: [] };
 }
 
 /** A room's judgements newest first. They are the gate's, which serves the console none yet. */

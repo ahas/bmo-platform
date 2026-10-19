@@ -169,7 +169,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/agent-logs",
@@ -347,12 +347,12 @@
       "console/message-island",
       "console/screen-fit"
     ],
-    "base": "1f85dadfeb6b180dfbd2b2d4274f5a3916ea285d"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/audio-player",
     "title": "Audio playback",
-    "what": "The console's audio player for sounds in rooms, laid out as a voice message with its waveform as the seek bar; the media route answers ranges for files the console keeps.",
+    "what": "The console's audio player for sounds in rooms, laid out as a voice message with its waveform as the seek bar; the media route hands on the stretch a player asks for of a file the receiver keeps.",
     "files": [
       "client/apps/web/app/domain/player.ts",
       "client/apps/web/server/api/media/[kind]/[chatId]/[messageId].get.ts",
@@ -369,7 +369,7 @@
       "buttonAfter",
       "PlayerButton",
       "playedKind",
-      "sendKeptFile"
+      "servedFile"
     ],
     "aliases": [
       "오디오 재생바",
@@ -390,7 +390,7 @@
       "console/language-pack",
       "console/loading"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/avatars",
@@ -614,7 +614,7 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/cache-siren",
@@ -757,7 +757,7 @@
       "console/language-pack",
       "console/shared-config"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/data-table",
@@ -1072,7 +1072,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/job-launcher",
@@ -1407,7 +1407,7 @@
       "console/member-console",
       "server/account-service"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/long-press",
@@ -1541,7 +1541,7 @@
   {
     "id": "console/message-attachments",
     "title": "Message attachments",
-    "what": "Images and files in a room: a send's attachment handed to the receiver's POST /say-file once under a send key, the picture viewer and the names of files the receiver's pages carry; the receiver serves their bytes, which the console does not read yet.",
+    "what": "Images and files in a room: a send's attachment handed to the receiver's POST /say-file once under a send key, a message's files, photo and custom emoji read from the receiver's routes, and the picture viewer walking the room's pictures.",
     "files": [
       "client/apps/web/app/components/MessageImage.vue",
       "client/apps/web/app/domain/attachments.ts",
@@ -1551,7 +1551,12 @@
       "client/apps/web/app/domain/gallery.ts",
       "client/tests/app/domain/gallery.test.ts",
       "client/apps/web/server/api/rooms/[chatId]/pictures.get.ts",
-      "client/apps/web/shared/types.ts"
+      "client/apps/web/shared/types.ts",
+      "client/apps/web/server/utils/message-media.ts",
+      "client/apps/web/server/utils/media.ts",
+      "client/apps/web/server/api/media/[kind]/[chatId]/[messageId].get.ts",
+      "client/tests/server/api/room-files.test.ts",
+      "client/tests/server/utils/media.test.ts"
     ],
     "symbols": [
       "PickedFile",
@@ -1566,7 +1571,12 @@
       "stretchAround",
       "widened",
       "sideToRead",
-      "pictureProperties"
+      "pictureProperties",
+      "messageMedia",
+      "carriesFiles",
+      "fileAsked",
+      "fileOut",
+      "messageFiles"
     ],
     "aliases": [
       "웹콘솔에서는 파일 안보이는거",
@@ -1580,7 +1590,7 @@
       "console/loading",
       "console/motion"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/message-island",
@@ -1902,7 +1912,7 @@
       "console/language-pack",
       "console/sidebar-nav"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/prompt-box",
@@ -2309,12 +2319,12 @@
       "console/unread-messages",
       "console/usage-display"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/room-stats",
     "title": "Room statistics",
-    "what": "A room's session sheet: the room's figures and each agent's share where a unit serves them; the receiver and the agency serve none yet, so it stands empty.",
+    "what": "A room's session sheet: the receiver's figures for the room and each agent's share and session; an agent's runs and tokens, which no unit counts by room, stand as a dash.",
     "files": [
       "client/apps/web/app/components/RoomStats.vue",
       "client/apps/web/app/domain/roomstats.ts",
@@ -2339,7 +2349,7 @@
       "console/number-format",
       "console/usage-display"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/room-work",
@@ -2607,7 +2617,7 @@
       "console/language-pack",
       "console/screen-fit"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/themes",
@@ -2794,7 +2804,7 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/todo-talk",
@@ -2844,7 +2854,7 @@
       "console/motion",
       "console/todo-queue"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/translation",
@@ -2903,7 +2913,7 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/unread-messages",
@@ -3003,7 +3013,7 @@
       "console/language-pack",
       "console/loading"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
   },
   {
     "id": "console/user-account",

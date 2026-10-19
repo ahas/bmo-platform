@@ -1,21 +1,31 @@
-import { createReadStream } from "node:fs";
 import { extname } from "node:path";
 
-import type { H3Event } from "h3";
+import { receiverRead } from "./receiver";
 
 // A file that came with a room's message, served by the message it belongs to. A browser never names
-// a path: it names a room, a message and a kind, and the file comes off the receiver, which keeps it
-// (docs/web.md, 「Message files」). The rules a served file is held to are this app's: the types each
-// kind may be, the kinds that leave only as a file to keep, and the stretch a player asks for.
+// a path: it names a room, a message, a kind and the file's place among the message's files, and the file
+// comes off the receiver, which keeps it (docs/web.md, the room screen's message files). The rules a served
+// file is held to are this app's: the types each kind may be and the kinds that leave only as a file to keep.
+// The receiver answers the stretch a player asks for.
 //
 // Audio, video, ordinary downloads, and Telegram visual assets share this authenticated route.
 
-export interface MediaFile {
-  path: string;
-  type: string;
-  bytes: number;
-  // What it is called on the disk, which is what a browser saves it as when it is kept.
+/** One of a message's files as the receiver lists it (its `docs/boundary-api.md`, 「A message's files and picture」). */
+export interface ReceivedFile {
+  place: number;
+  kind: string;
+  // The name it was sent under.
   name: string;
+  // The type the stored file's name implies, its size, and whether its bytes stand in the store.
+  type: string | null;
+  size: number | null;
+  kept: boolean;
+}
+
+/** How one kept file goes out: the type it is served as, and whether it leaves only as a file to keep. */
+export interface FileOut {
+  type: string;
+  keep: boolean;
 }
 
 // What each kind is allowed to be. A file whose name is not one of these is refused rather than
@@ -77,19 +87,42 @@ export function servedAsFile(kind: string): boolean {
   return KEEP_ONLY.has(kind);
 }
 
-// Which of a room's kept files a request is about. A message can carry more than one, so the item
-// may be named outright; a captured page's embedded files are numbered by their part.
-export interface MediaAsked {
-  download?: boolean;
-  item?: number | null;
-  part?: number | null;
+// The kinds a message's files are asked for by. A captured page's kinds belong to a unit not split yet.
+const MESSAGE_KINDS = ["audio", "video", "document", "sticker"];
+
+// What a file kept to be saved goes out as: bytes, never anything a browser would open.
+const KEPT_AS_FILE = "application/octet-stream";
+
+/** A message's files, in the order a page's files stand. */
+export async function messageFiles(chatId: number, messageId: number): Promise<ReceivedFile[]> {
+  return (await receiverRead<{ files: ReceivedFile[] }>(`/console/rooms/${chatId}/messages/${messageId}/files`)).files;
 }
 
-// The file one message points at. The receiver serves no road for a message's files, and no file is
-// read from its folders (docs/boundary.md, 「Gaps the console meets」), so there is none to serve: a room's
-// line names its file and its kind, and neither plays nor opens it.
-export async function mediaFileFor(_kind: string, _chatId: number, _messageId: number, _asked: MediaAsked = {}): Promise<MediaFile | null> {
-  return null;
+// The kinds of file a kind is asked for under: a sound or a video may stand as a document, its name saying which.
+function filedUnder(kind: string): string[] {
+  return kind === "audio" || kind === "video" ? [kind, "document"] : [kind];
+}
+
+/** The file a request names among a message's files: the one at its place, or the kind's first where it names none. */
+export function fileAsked(kind: string, files: readonly ReceivedFile[], place: number | null): ReceivedFile | null {
+  const under = filedUnder(kind);
+
+  return files.find((file) => under.includes(file.kind) && (place === null || file.place === place)) ?? null;
+}
+
+/**
+ * How a kept file of a kind goes out, or null where it may not: a document, or a sound or a video asked for to
+ * keep, leaves as a file to keep; anything else goes out as the type its kind takes for its name, or as the type
+ * the receiver gives it where that is one its kind takes, and a file of any other type is refused.
+ */
+export function fileOut(kind: string, file: ReceivedFile, download: boolean): FileOut | null {
+  if (!MESSAGE_KINDS.includes(kind) || !file.kept) return null;
+  if (servedAsFile(kind) || ((kind === "audio" || kind === "video") && download)) return { type: KEPT_AS_FILE, keep: true };
+
+  const taken = Object.values(TYPES[kind] ?? {});
+  const type = servedType(kind, file.name) ?? (file.type !== null && taken.includes(file.type) ? file.type : null);
+
+  return type === null ? null : { type, keep: false };
 }
 
 // The kinds a browser plays where the file stands, in the order a name is judged by: a WebM is
@@ -108,61 +141,18 @@ export function servedType(kind: string, name: string): string | null {
   return TYPES[kind]?.[extname(name).toLowerCase()] ?? null;
 }
 
-// What a browser asked for of a file it is playing. Seeking in a sound sends a range, and a
-// player that is refused one cannot move through a briefing at all.
-export interface MediaRange {
-  from: number;
-  to: number;
-}
+/**
+ * A kept file the receiver answered, as this console hands it on: the type it decided where one is given, the
+ * browser told never to guess another, the stretch a player seeks answered as the receiver answered it, and kept
+ * by no cache but the reader's, since it is their own room read behind their own login. A refusal goes on as it is.
+ */
+export function servedFile(answer: Response, out: FileOut | null = null): Response {
+  if (!answer.ok) return answer;
 
-// The stretch a Range header names, or null where it names none and the whole file is the
-// answer. A range nobody could satisfy — beyond the end, or backwards — is refused by returning
-// the whole file rather than by failing: the sound still plays.
-export function rangeOf(header: string | undefined, bytes: number): MediaRange | null {
-  const match = /^bytes=(\d*)-(\d*)$/.exec(header?.trim() ?? "");
+  if (out !== null) answer.headers.set("content-type", out.type);
+  answer.headers.set("x-content-type-options", "nosniff");
+  answer.headers.set("accept-ranges", "bytes");
+  answer.headers.set("cache-control", "private, max-age=86400");
 
-  if (match === null || bytes === 0) {
-    return null;
-  }
-
-  const [, start, end] = match;
-  // A range with no start counts back from the end: the last N bytes.
-  const from = start === "" ? Math.max(0, bytes - Number(end || 0)) : Number(start);
-  const to = start === "" || end === "" ? bytes - 1 : Math.min(Number(end), bytes - 1);
-
-  return from > to || from < 0 || from >= bytes ? null : { from, to };
-}
-
-// A kept file put on the wire. Every road a kept file goes down answers a range, because a video is
-// played from either and a player that cannot seek cannot move through it. Only the caller's own
-// headers differ, so this is written once and they set theirs before calling it. A road whose answer
-// must not outlive a link names its own caching.
-export function sendKeptFile(event: H3Event, file: MediaFile, keep: boolean, cache = "private, max-age=86400"): Promise<void> {
-  const asked = rangeOf(getRequestHeader(event, "range"), file.bytes);
-
-  setResponseHeaders(event, {
-    "content-type": file.type,
-    // Saying so is what lets a player seek at all; without it a browser must play from the
-    // beginning or not at all.
-    "accept-ranges": "bytes",
-    // It is the reader's own room read behind their own login, so no cache but theirs may hold it.
-    "cache-control": cache,
-    "content-disposition": keep
-      ? `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`
-      : "inline"
-  });
-
-  if (asked === null) {
-    setResponseHeaders(event, { "content-length": file.bytes });
-
-    return sendStream(event, createReadStream(file.path));
-  }
-
-  setResponseStatus(event, 206);
-  setResponseHeaders(event, {
-    "content-length": asked.to - asked.from + 1,
-    "content-range": `bytes ${asked.from}-${asked.to}/${file.bytes}`
-  });
-
-  return sendStream(event, createReadStream(file.path, { start: asked.from, end: asked.to }));
+  return answer;
 }

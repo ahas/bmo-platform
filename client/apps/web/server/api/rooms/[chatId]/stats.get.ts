@@ -1,7 +1,7 @@
 import type { RoomStats } from "#shared/types";
 
-// What one room adds up to. The usage, the sessions and the turns it was counted from are served by no unit
-// (docs/boundary.md, 「Gaps the console meets」), so the room's figures stand empty.
+// What one room adds up to: the receiver's figures for it (its `docs/boundary-api.md`, 「A room's figures」), its
+// messages by the hour counted in the zone the console shows every time in.
 export default defineEventHandler(async (event): Promise<RoomStats> => {
   await requireUserSession(event);
 
@@ -9,5 +9,7 @@ export default defineEventHandler(async (event): Promise<RoomStats> => {
 
   await requireReadableRoom(event, chatId);
 
-  return emptyRoomStats(chatId);
+  const { zone } = useAppConfig().bmoUi as { zone: string };
+
+  return await receiverRead<RoomStats>(`/console/rooms/${chatId}/figures?zone=${encodeURIComponent(zone)}`);
 });

@@ -267,10 +267,13 @@ How the receiver screens stand here:
   sender on a page whether it is an agent's; `server/utils/room-reads.ts` keeps the read marks in the console's own
   `web_room_reads` and counts on the receiver's line past them; the sends, a room's removal, what opened a turn and
   the voice briefing go to the receiver's own routes. No statement of theirs reads another unit's table.
-- **What no unit serves, or the console does not read yet, stands empty** (`docs/boundary.md`, 「Gaps the console
-  meets」): a message's files and photos, a room's pictures, figures and window, a link's preview, the judgements
-  beside a page, a round's figures and actions, and a line's voice briefing. A room is pinned and let go from its
-  screen's menu, which the old console did not offer, through the receiver's routes for the pinned order.
+- **A message's files and photos, a room's pictures, its figures and the chat agent's window there** come from the
+  receiver's console routes: a file's bytes and a photo handed on whole through `unitBytes` in
+  `server/utils/units.ts`, under the types `server/utils/media.ts` holds each kind to.
+- **What no unit serves stands empty** (`docs/boundary.md`, 「Gaps the console meets」): a link's preview, the
+  judgements beside a page, a round's figures and actions, a line's voice briefing, and an agent's runs and tokens
+  in a room. A room is pinned and let go from its screen's menu, which the old console did not offer, through the
+  receiver's routes for the pinned order.
 - **Written new:** `server/utils/receiver.ts`; `server/api/rooms/[chatId]/pin.post.ts`, the pin;
   `app/domain/room-copy.ts` and `app/domain/turn-actions-fold.ts`, the
   parts of the old copy and settings modules the room screen reads; `shared/particles.ts`, the subject particle a
@@ -288,12 +291,13 @@ Of these, not carried here:
 | `server/utils/actions.ts`, `server/utils/actions.test.ts`, `server/utils/chat-tool-facts.ts` | not carried: they read a turn's records and the tool host's facts, which no route serves |
 | `server/utils/spends.ts`, `server/utils/spends.test.ts` | not carried: they read a round's usage rows, which no route serves |
 | `server/utils/roads.ts`, `server/utils/roads.test.ts`, `shared/gate-roads.ts`, `shared/gate-roads.test.ts` | not carried: the roads a judgement's run walked are the gate's |
-| `server/utils/roomstats.ts`, `server/utils/roomstats.test.ts`, `server/utils/room-window.ts`, `server/utils/room-pictures.ts` | not carried: a room's figures, its window and its pictures are served by no route |
-| `server/utils/images.ts`, `server/utils/message-media.ts` | not carried: a message's files and the metadata it arrived with are served by no route; `server/utils/archive.ts` names the files the receiver's page carries |
+| `server/utils/roomstats.ts`, `server/utils/roomstats.test.ts`, `server/utils/room-window.ts`, `server/utils/room-pictures.ts` | not carried: they counted and read the old archive; the receiver counts a room's figures and serves its window and its pictures, which the routes read through `server/utils/receiver.ts` |
+| `server/utils/images.ts` | not carried: it read a photo off the disk; the receiver serves a message's picture, which the photo route hands on |
 | `shared/briefings.ts`, `shared/briefings.test.ts` | not carried: a line's voice briefing is the voice unit's |
 | `shared/spoken.ts` | not carried: the receiver's pages leave out what no person said |
 | `app/components/SettingsBriefing.vue` | not carried: it placed the voice briefing player, which the console does not carry |
 | `server/utils/archive.test.ts`, `server/utils/room-reads.test.ts`, `server/utils/openings.test.ts`, `server/api/voice-briefing.post.test.ts` | rewritten onto a stood-in receiver, each refusal said by the pack's sentence for its code |
+| `server/utils/message-media.ts` | carried, rewritten onto the receiver's list of a message's files and the metadata it arrived with, asked only of a message whose page names a file |
 
 ### The brain screens (39 files)
 

@@ -1,8 +1,7 @@
 import type { RoomWindow } from "#shared/types";
 
-// How long the chat agent's window in the room has left, which its listening row stands by. The receiver keeps the
-// window and serves it by no route (docs/boundary.md, 「Gaps the console meets」), so no window stands open and the row
-// is not drawn.
+// How long the chat agent's window in the room has left, which its listening row stands by: the receiver's
+// `GET /console/rooms/{chat}/window`, 0 where the window stands closed.
 export default defineEventHandler(async (event): Promise<RoomWindow> => {
   await requireUserSession(event);
 
@@ -10,5 +9,7 @@ export default defineEventHandler(async (event): Promise<RoomWindow> => {
 
   await requireReadableRoom(event, chatId);
 
-  return { openFor: 0 };
+  const { openFor } = await receiverRead<{ openFor: number; closesAt: number | null }>(`/console/rooms/${chatId}/window`);
+
+  return { openFor };
 });
