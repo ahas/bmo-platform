@@ -11,9 +11,10 @@ import type { LiveRun, StatusView } from "../../apps/web/shared/types";
 // control in the bar overlaps another; on a desktop the uptime and the stop stand in the bar as words.
 // Each is measured as the browser lays it out.
 //
-// It drives a dev console given in BMO_CONSOLE_TEST_URL, which reads a copy of the archive and answers
-// on a control port nobody listens on (the agency's docs/worker-bench.md). Its fixture account is made in that copy
-// alone. The ordinary run has no console of its own and skips it.
+// It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
+// the development server on a scratch database, with stand-ins for the units it reads and this file's fixture
+// account made there (docs/checks.md, 「How the suite runs the tests」). The suite stands up no console, so
+// there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "agent-topbar", password: "fixture-password-1558" };

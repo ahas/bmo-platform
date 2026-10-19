@@ -1124,12 +1124,12 @@ Four groups.
     patch of `reka-ui`, under `client/patches/`, by which a collapsible region's id is made with the
     region's root rather than with its list, so a button drawn before its list already names it.
   - No id stands twice anywhere on a console screen. `client/tests/browser/console-ids.test.ts` holds home,
-    every screen the sidebar lists and one room, agent and node to that at a desktop width and at a
+    every screen the sidebar lists and the first room and agent to that at a desktop width and at a
     phone's with the drawer open, and holds each branch's button, its chevron and the keyboard to
     opening and closing the list it names.
-  - It drives a console given in `BMO_CONSOLE_TEST_URL`, with its fixture account made in that
-    console's own database. The suite stands up no console, so it skips it there (`docs/checks.md`,
-    「How the suite runs the tests」).
+  - It drives the console given in `BMO_CONSOLE_TEST_URL`, the one `client/tests/support/browser-console.ts`
+    stands up, with its fixture account made in that console's own database. The suite stands up no console,
+    so it skips it there (`docs/checks.md`, 「Running the console-driven browser files」).
 - **노드** — the machines the chat agent reaches beyond this one, the same list herdr shows on its left
   (the node unit's documents). It stands under the agents, in the list's own order, and not at all while the list
   is empty. Each node stands as its own letter on a colour drawn from its name, since each is an identity

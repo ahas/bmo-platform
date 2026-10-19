@@ -18,6 +18,33 @@ console's typecheck and then every test file under `client/tests` in one `bun te
   from `BMO_CONSOLE_TEST_URL`) and `skeleton` (from `BMO_SKELETON_TEST_URL`). The suite stands up no console, so
   without those variables they skip; every other browser file runs.
 
+### Running the console-driven browser files
+
+`client/tests/support/browser-console.ts` stands up the console they drive:
+
+- **What it starts:**
+  - the account service, the binary `BMO_WEB_SERVER_BIN` names, on a scratch database of the test server
+    (`BMO_TEST_POSTGRES`, or the machine's own socket where it names none);
+  - a stand-in for each unit the console reads, answering the agent list, the owner's room and its figures, an
+    empty TODO board and silent event streams, and every other road with the unit's own not-found;
+  - the fixture account each file signs in with, made by the console's own `user` script as an administrator;
+  - the console's development server, under the base path `/console/`, with a build folder of its own,
+    `.nuxt-browser-tests`. Only the development server serves the screen-measuring module `console-ids` reads.
+- **What it prints:** the console's address, once it answers.
+- **When it stops:** on an interrupt, stopping everything it started and dropping the database.
+
+The tests serve the rest of what they measure through the page's own routes. The files run one at a time,
+through the testbed, with the address the script printed:
+
+```
+cd client
+BMO_WEB_SERVER_BIN=<the bmo-web-server binary> bun tests/support/browser-console.ts
+BMO_CONSOLE_TEST_URL=<the address> bmo-testbed run -- bun test tests/browser/console-ids.test.ts
+BMO_SKELETON_TEST_URL=<the address> bmo-testbed run -- bun test tests/browser/skeleton.test.ts
+```
+
+The first command stands until interrupted, so it runs in a shell of its own beside the others.
+
 ## The repository-wide checks
 
 The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo

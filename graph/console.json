@@ -169,7 +169,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/agent-logs",
@@ -1407,7 +1407,7 @@
       "console/member-console",
       "server/account-service"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/long-press",
@@ -2412,11 +2412,12 @@
   {
     "id": "console/screen-measure",
     "title": "Screen measuring tool",
-    "what": "The screen measuring tool a test uses to check a console screen by numbers rather than a picture: position, spacing, alignment, styles, clipping, contrast and duplicate ids, served beside the development console.",
+    "what": "The screen measuring tool a test uses to check a console screen by numbers rather than a picture: position, spacing, alignment, styles, clipping, contrast and duplicate ids, served beside the development console, and the console of stand-ins the console-driven browser tests drive.",
     "files": [
       "client/tests/browser/measure.ts",
       "client/tests/browser/measure-source.ts",
-      "client/apps/web/modules/dev-measure.ts"
+      "client/apps/web/modules/dev-measure.ts",
+      "client/tests/support/browser-console.ts"
     ],
     "symbols": [
       "install",
@@ -2435,7 +2436,7 @@
       "접근성 스냅샷"
     ],
     "needs": [],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/screen-shot",
@@ -2618,7 +2619,7 @@
       "console/language-pack",
       "console/screen-fit"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/themes",
@@ -2805,7 +2806,7 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/todo-talk",
@@ -2855,7 +2856,7 @@
       "console/motion",
       "console/todo-queue"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "838fc825205119291eda6427a072961e123cd49b"
   },
   {
     "id": "console/translation",

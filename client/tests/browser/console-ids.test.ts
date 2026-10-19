@@ -13,9 +13,10 @@ import KO from "../fixtures/browser/console-ids.test.ko.json";
 // screen reader and keyboard movement quietly go to the first of them, so the page is asked to
 // count them rather than anybody being asked to look.
 //
-// It drives a dev console given in BMO_CONSOLE_TEST_URL, which reads a copy of the archive and
-// answers on a control port nobody listens on (the agency's docs/worker-bench.md). Its fixture account is made in
-// that copy alone. The ordinary run has no console of its own and skips it.
+// It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
+// the development server, which alone serves the measuring module, on a scratch database, with stand-ins for
+// the units it reads and this file's fixture account made there (docs/checks.md, 「How the suite runs the
+// tests」). The suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "console-ids", password: "fixture-password-789" };
@@ -74,7 +75,7 @@ async function shared(page: Page): Promise<SharedId[]> {
 }
 
 // Where the sidebar leads, as the addresses under the console's base path: every screen of its
-// first list, and the first entry of each list after it — a room, an agent, a node — since the
+// first list, and the first entry of each list after it — a room, an agent — since the
 // entries of one list are one screen drawn for different rows. Home is where it is read from.
 async function listed(page: Page): Promise<string[]> {
   const base = new URL(origin!).pathname.replace(/\/$/, "");
@@ -126,7 +127,7 @@ describe.skipIf(!origin || !touchReady())("ids on a console screen", () => {
           found[path] = await shared(page);
         }
 
-        // Home, a dozen screens and a room, an agent and a node at the least.
+        // Home, a dozen screens, a room and an agent at the least.
         expect(Object.keys(found).length).toBeGreaterThan(12);
 
         if (viewport.phone) {

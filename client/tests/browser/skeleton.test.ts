@@ -6,8 +6,10 @@ import { touchReady } from './touch';
 import type { TodoBoard, TodoItem } from '../../apps/web/shared/types';
 import KO from "../fixtures/browser/skeleton.test.ko.json";
 
-// This suite needs a separately launched console with a copied DB and control stand-ins.
-// No production URL or credentials are supplied by default.
+// It drives the console given in BMO_SKELETON_TEST_URL, the one tests/support/browser-console.ts stands up:
+// the development server on a scratch database, with stand-ins for the units it reads and this file's fixture
+// account made there (docs/checks.md, 「How the suite runs the tests」). The suite stands up no console, so
+// there it skips.
 const origin = process.env.BMO_SKELETON_TEST_URL;
 let browser: Browser | null = null;
 beforeAll(async () => { if (origin && touchReady()) browser = await chromium.launch(); });
@@ -78,7 +80,8 @@ describe.skipIf(!origin || !touchReady())('skeletons in the isolated console', (
         await aside.getByText('fixture failure', { exact: false }).waitFor();
         expect(await skeleton.count()).toBe(0);
         fail = false;
-        await aside.getByRole('button', { name: wording('common.action.refresh'), exact: true }).click();
+        // The failure carries a refresh of its own beside the panel's, and that is the one its reader presses.
+        await aside.getByRole('alert').getByRole('button', { name: wording('common.action.refresh'), exact: true }).click();
         await aside.getByText('fixture failure', { exact: false }).waitFor({ state: 'hidden' });
         expect(errors).toEqual([]);
       } finally { await page?.context().close(); }
@@ -244,7 +247,9 @@ describe.skipIf(!origin || !touchReady())('TODO response ownership', () => {
       await refreshing(aside).waitFor({ state: 'detached' });
       releaseOld();
       await aside.getByRole('button', { name: /9001 current result/ }).click();
-      await page.getByRole('tab', { name: KO.line_246, exact: true }).click();
+      // The note box stands under the item's conversation, the first of the detail's tabs of that name: the
+      // talk on the other side carries the same one.
+      await page.getByRole('tab', { name: wording('todo.label.conversation'), exact: true }).first().click();
       const input = page.getByRole('textbox', { name: KO.line_247, exact: true }).filter({ visible: true });
       await input.fill('keep my draft');
       // The detail stands over the list, and everything under it is out of a pointer's reach, so
@@ -272,16 +277,17 @@ describe.skipIf(!origin || !touchReady())('TODO response ownership', () => {
 // Every screen that keeps a place for what it is fetching, at the two widths the rules name: its
 // own title and toolbar stand from the first frame, the busy place stands inside the body, and
 // nothing already on the screen moves when the answer lands. Every read but the login is held, so
-// each region of the screen is caught waiting.
+// each region of the screen is caught waiting. A screen of a unit not split yet stands as a
+// placeholder that fetches nothing (docs/boundary.md, 「Screens of units not yet split」), so none is
+// among them.
 describe.skipIf(!origin || !touchReady())('a screen keeps its frame while it fetches', () => {
   for (const width of [1440, 390]) {
     // Where a region a phone reaches through a drawer is the one fetching, the drawer is opened
     // first: that is where its place is kept, and it is where a reader goes to look.
     for (const [path, title, narrowOpen] of [
       ['agents', KO.line_280, null], ['live', KO.line_280_2, null], ['siren', KO.line_280_3, null],
-      ['db', 'DB', null], ['graph', KO.line_281, null],
-      ['archive', KO.line_282, null], ['documents', KO.line_282_2, KO.line_282_3], ['mail', KO.line_282_4, null],
-      ['account', KO.line_283, null], ['', KO.line_283_2, null], ['gates/output-format', KO.line_283_3, null]
+      ['db', 'DB', null], ['archive', KO.line_282, null], ['documents', KO.line_282_2, KO.line_282_3],
+      ['account', KO.line_283, null], ['', KO.line_283_2, null]
     ] as [string, string, string | null][]) {
       test(`${path} at ${width}px`, async () => {
         let page: Page | undefined;
@@ -460,9 +466,9 @@ describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read
   }
 });
 
-// What a screen says of the bot's control API while it is still asking and once it failed. The
-// bench's control port reaches nothing, so the failure is the real one; the ask is held to be
-// looked at.
+// What a screen says of the units it reads while it is still asking and once it failed. The live screen's
+// failure is the one its read is answered with here; a room's box asks the console's own control road, whose
+// receiver stand-in serves no health, so that failure is the real one. The ask is held to be looked at.
 describe.skipIf(!origin || !touchReady())('asking the bot is not a failure', () => {
   for (const width of [1440, 390]) {
     test(`the live screen asks calmly and fails briefly at ${width}px`, async () => {

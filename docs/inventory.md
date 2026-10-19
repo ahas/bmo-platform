@@ -96,7 +96,8 @@ How the shell stands here:
   as the receiver answers it; `server/plugins/names.ts` and `app/plugins/names.ts`, which register the chat
   agent's names; `app/domain/settings-cells.ts`, the settings cells' shared classes; and among the tests
   `client/tests/support/web-database.ts` with its fixture `client/tests/fixtures/web-tables.sql`, a scratch
-  database holding the console's tables.
+  database holding the console's tables, and `client/tests/support/browser-console.ts`, the console the
+  console-driven browser tests drive.
 - **Copied in from the old shared packages:** `shared/markdown-structure.ts` and `shared/web-address.ts`, the
   markdown reader's structure and an address's reading, from the old markup package.
 - **Its fixtures:** a test's Korean input stands in `client/tests/fixtures/`, at the test's own path, read by

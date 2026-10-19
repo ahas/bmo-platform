@@ -15,10 +15,10 @@ import type { Browser, CDPSession, Page } from "playwright-core";
 // own computed style, one span to a letter, and the copy is held to the box by its line count at every
 // step.
 //
-// It drives a dev console given in BMO_CONSOLE_TEST_URL, which reads a copy of the archive and answers
-// on a control port nobody listens on (docs/worker-bench.md). Its fixture account is made in that copy
-// alone, as an administrator, so the owner's room opens to it. The ordinary run has no console of its
-// own and skips it.
+// It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
+// the development server on a scratch database, with stand-ins for the units it reads and this file's fixture
+// account made there as an administrator, so the owner's room opens to it (docs/checks.md, 「How the suite
+// runs the tests」). The suite stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "prompt-wrap", password: "fixture-password-1575" };

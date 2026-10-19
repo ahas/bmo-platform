@@ -14,9 +14,10 @@ import KO from "../fixtures/browser/topbar-square.test.ko.json";
 // mark for a newer release is held to it at every width. Each is measured as the browser lays it out, in both
 // themes, since a size read off the source says nothing about what the library's styles made of it.
 //
-// It drives a dev console given in BMO_CONSOLE_TEST_URL, which reads a copy of the archive and
-// answers on a control port nobody listens on (docs/worker-bench.md). Its fixture account is made in
-// that copy alone. The ordinary run has no console of its own and skips it.
+// It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
+// the development server on a scratch database, with stand-ins for the units it reads and this file's fixture
+// account made there (docs/checks.md, 「How the suite runs the tests」). The suite stands up no console, so
+// there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "topbar-square", password: "fixture-password-1444" };

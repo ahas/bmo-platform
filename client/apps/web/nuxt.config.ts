@@ -83,6 +83,11 @@ export default defineNuxtConfig({
   // A dev server answers only the hosts it is told of: those `BMO_WEB_DEV_HOSTS` names, comma-separated.
   vite: {
     server: { allowedHosts: (process.env.BMO_WEB_DEV_HOSTS ?? "").split(",").filter((host) => host !== "") },
+    // The development server pre-bundles only what its scan of the console's own files finds. bmo-ui's
+    // modules stand inside node_modules, where the scan does not go, and the time module there imports
+    // dayjs and its plugins, which ship as CommonJS: served unbundled, the browser finds no default export
+    // in them and the app does not start. So they are named here.
+    optimizeDeps: { include: ["dayjs", "dayjs/plugin/utc", "dayjs/plugin/timezone"] },
     plugins: [yamlData],
     build: {
       // Rolldown's notice of how much of a build its plugins took is off. Most of a Nuxt build is plugin

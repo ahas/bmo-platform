@@ -9,16 +9,18 @@ import KO from "../fixtures/browser/bubble-wrap.test.ko.json";
 
 // What a bubble holds keeps inside it, at a phone's widths and a desktop's (docs/web.md, 「Every message
 // is a bubble」, the room screen's meta line section, the room screen's listening section):
-// - a kept sound stands as a player 320 px wide or the bubble's room where that is narrower, and every
-//   other file line keeps inside the bubble the same way;
+// - a kept sound stands as a player taking its bubble's whole room, 320 px or the bubble's widest where
+//   that is narrower, or wider where its words are, and every other file line keeps inside the bubble the
+//   same way;
 // - the words break between words, a Korean one included, and the blank they keep for a meta line at
 //   their end takes no letter of theirs onto a line of its own: where it has no room on the last line,
 //   it alone drops.
 // The room is a fixture this test serves itself through the page's own routes, its words of every
 // length from a few words to several lines, so at every width some last line leaves the meta line
-// room and some just does not. The console around it is a dev console given in BMO_CONSOLE_TEST_URL, on
-// a copy of the archive (docs/worker-bench.md), with its fixture account made in that copy alone; the
-// ordinary run has no console of its own and skips it.
+// room and some just does not. The console around it is the one given in BMO_CONSOLE_TEST_URL, which
+// tests/support/browser-console.ts stands up on a scratch database with stand-ins for the units it reads,
+// this file's fixture account made there (docs/checks.md, 「How the suite runs the tests」); the suite
+// stands up no console, so there it skips.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "bubble-wrap", password: "fixture-password-1477" };
@@ -192,7 +194,8 @@ async function answerRoom(route: Route): Promise<void> {
 }
 
 // The room entered from inside the console, as a person goes to it, its rows all standing, their
-// players measured and their bubbles fitted.
+// players measured and their bubbles fitted. A player at rest says its sound's length on its meta line
+// once it has read it, so a player is measured when that clock stands there.
 async function visit(page: Page): Promise<void> {
   const listed = page.waitForResponse(/\/api\/rooms$/);
 
@@ -210,8 +213,14 @@ async function visit(page: Page): Promise<void> {
   }
 
   await page.locator(`[data-message="m${FILES.at(-1)!.messageId}"] img`).waitFor({ state: "attached", timeout: 20_000 });
+
+  // An agent's words are drawn by the markdown renderer, which loads after the row stands, so a web address
+  // in them is a link only once it has; the words are read when every address stands as one.
+  for (const each of WORDS.filter((row) => row.text.includes(LONG))) {
+    await page.locator(`[data-message="m${each.messageId}"] a[href="${LONG}"]`).first().waitFor({ state: "attached", timeout: 20_000 });
+  }
   await page.waitForFunction(
-    (count) => [...document.querySelectorAll("[data-attachment]")].filter((block) => /\d+:\d+ \/ \d+:\d+/.test(block.textContent ?? "")).length === count,
+    (count) => [...document.querySelectorAll("[data-attachment]")].filter((block) => /\d+:\d+/.test(block.textContent ?? "")).length === count,
     FILES.filter((each) => each.attachments?.[0]?.kind === "audio").length,
     { timeout: 20_000 }
   );
@@ -402,9 +411,13 @@ describe.skipIf(!origin || !touchReady())("what a bubble holds keeps inside it",
           expect(block.hidden).toBe(0);
         }
 
-        // A player is 320 px wide, or the bubble's room where that is narrower.
+        // A player takes its bubble's whole room, which is 320 px, or the bubble's widest where that is
+        // narrower, or wider where the words beside the player are wider.
+        const widest = Math.max(...blocks.map((block) => block.room));
+
         for (const player of blocks.slice(0, 4)) {
-          expect(Math.abs(player.width - Math.min(PLAYER, player.room))).toBeLessThanOrEqual(0.5);
+          expect(Math.abs(player.width - player.room)).toBeLessThanOrEqual(0.5);
+          expect(player.width).toBeGreaterThanOrEqual(Math.min(PLAYER, widest) - 0.5);
         }
 
         const bubbles = await worded(page);

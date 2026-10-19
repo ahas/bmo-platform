@@ -4,5 +4,6 @@ node_modules
 .nuxt
 .env
 .nuxt-bench
+.nuxt-browser-tests
 .check-build
 *.tsbuildinfo

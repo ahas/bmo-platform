@@ -11,10 +11,11 @@ import KO from "../fixtures/browser/room-feed-gap.test.ko.json";
 // the stream coming back after more was said than one page holds, both leave every message between
 // the first row shown and the last, in the room's order, and nothing twice (docs/web.md, 「A page joins
 // the room's line where its rows stand」). The room is a fixture this test serves itself through the
-// page's own routes, so its line is known row by row; the console around it is a dev console given in
-// BMO_CONSOLE_TEST_URL, on a copy of the archive (docs/worker-bench.md). Its fixture account is made in
-// that copy alone. The ordinary run has no console of its own and skips it. BMO_TEST_VIDEO_DIR, where
-// given, keeps a recording of each run there.
+// page's own routes, so its line is known row by row; the console around it is the one given in
+// BMO_CONSOLE_TEST_URL, which tests/support/browser-console.ts stands up on a scratch database with stand-ins
+// for the units it reads, this file's fixture account made there (docs/checks.md, 「How the suite runs the
+// tests」). The suite stands up no console, so there it skips. BMO_TEST_VIDEO_DIR, where given, keeps a
+// recording of each run there.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const videos = process.env.BMO_TEST_VIDEO_DIR;
