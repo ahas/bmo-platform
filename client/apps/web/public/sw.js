@@ -5,6 +5,12 @@
 
 const ADDRESS = new URL(self.location.href).searchParams;
 
+// The console's base path. The window registers this worker at the base the console's
+// configuration names, with that base as its scope, so the scope is where the base is read: every
+// icon, every window taken as the console's and the front door below stand under it, and none
+// names a base of its own (docs/web.md, 「Installing on a phone」).
+const BASE = new URL(self.registration.scope).pathname;
+
 // The shell version the window registering this worker names in its address, a hash of every icon
 // file's bytes (client/modules/shell-version.ts). The cache is named after it and every icon
 // address carries it, so redrawn icons are a new address, a new worker and a new cache, and the
@@ -20,7 +26,7 @@ function shellFile(path) {
 // the text. The small one is what Android draws in the status bar, and the platform paints every
 // opaque pixel of it in one colour of its own choosing: a full-colour square handed over there
 // arrives as a solid white block, so the small one is a silhouette whose shape is its alpha.
-const NOTIFICATION_ICON = shellFile("/bmo/icons/icon-192.png");
+const NOTIFICATION_ICON = shellFile(`${BASE}icons/icon-192.png`);
 
 // The small picture is drawn for a status bar showing one, two and three device pixels to a CSS
 // pixel, 24, 48 and 72 pixels square, and one drawn for another density lands its edges between
@@ -30,7 +36,7 @@ const NOTIFICATION_ICON = shellFile("/bmo/icons/icon-192.png");
 function badgeFor(density) {
   const drawn = Math.min(3, Math.max(1, Math.ceil(Number(density) || 1)));
 
-  return shellFile(`/bmo/icons/badge-${24 * drawn}.png`);
+  return shellFile(`${BASE}icons/badge-${24 * drawn}.png`);
 }
 
 const NOTIFICATION_BADGE = badgeFor(ADDRESS.get("density"));
@@ -42,7 +48,7 @@ const NOTIFICATION_BADGE = badgeFor(ADDRESS.get("density"));
 // manifest is not among them either: its words come out of the language pack, which no icon's
 // version follows. Everything under the API, and every page, is left to the network.
 function isShell(url) {
-  return url.origin === self.location.origin && url.pathname.startsWith("/bmo/icons/");
+  return url.origin === self.location.origin && url.pathname.startsWith(`${BASE}icons/`);
 }
 
 self.addEventListener("install", (event) => {
@@ -155,7 +161,7 @@ self.addEventListener("push", (event) => {
 // focused and told where to go over a message, and a window that answers neither is opened fresh.
 function inScope(client) {
   try {
-    return new URL(client.url).pathname.startsWith("/bmo/");
+    return new URL(client.url).pathname.startsWith(BASE);
   } catch {
     return false;
   }
@@ -191,7 +197,7 @@ async function openTarget(target) {
 }
 
 self.addEventListener("notificationclick", (event) => {
-  const target = (event.notification.data && event.notification.data.url) || "/bmo/";
+  const target = (event.notification.data && event.notification.data.url) || BASE;
 
   event.notification.close();
   event.waitUntil(openTarget(target));
@@ -199,4 +205,4 @@ self.addEventListener("notificationclick", (event) => {
 
 // The rules above are plain functions so they can be read back and exercised without a browser.
 self.pushRules = { samePlace, alreadyWatched, inScope, badgeFor };
-self.shellRules = { cache: CACHE, notificationIcon: NOTIFICATION_ICON, isShell };
+self.shellRules = { base: BASE, cache: CACHE, notificationIcon: NOTIFICATION_ICON, isShell };

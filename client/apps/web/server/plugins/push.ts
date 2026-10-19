@@ -67,6 +67,7 @@ export default defineNitroPlugin((nitro) => {
   // What any agent has just said in any room: both words the stream says of a room's message reach
   // the one ringer, which reads the message off the receiver and rings only an agent's.
   const rooms = new RoomRinger({
+    base: useRuntimeConfig().app.baseURL,
     read: async (chatId, messageId) => {
       const row = await agentMessage(chatId, messageId);
       const line = row === null ? null : firstLine(row.text);

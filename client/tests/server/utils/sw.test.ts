@@ -25,6 +25,7 @@ interface Rules {
 // What a click does with the windows it finds is the browser's to trigger and the worker's to
 // decide, so the handler is taken off the file the same way and run against stand-in windows.
 interface ShellRules {
+  base: string;
   cache: string;
   notificationIcon: string;
   isShell: (url: URL) => boolean;
@@ -37,7 +38,8 @@ interface Loaded {
   setClients: (clients: unknown) => void;
 }
 
-async function serviceWorker(href = "https://bmo.example.com/bmo/sw.js?density=2"): Promise<Loaded> {
+// The worker as the window registers it: at the console's base, with that base as its scope.
+async function serviceWorker(href = "https://bmo.example.com/bmo/sw.js?density=2", scope = new URL("./", href).href): Promise<Loaded> {
   const source = await Bun.file(new URL("../../../apps/web/public/sw.js", import.meta.url)).text();
   const listeners = new Map<string, (event: unknown) => void>();
   const self: {
@@ -45,10 +47,12 @@ async function serviceWorker(href = "https://bmo.example.com/bmo/sw.js?density=2
     pushRules?: Rules;
     shellRules?: ShellRules;
     location: { origin: string; href: string };
+    registration: { scope: string };
     clients?: unknown;
   } = {
     addEventListener: (name, handler) => void listeners.set(name, handler),
-    location: { origin: "https://bmo.example.com", href }
+    location: { origin: "https://bmo.example.com", href },
+    registration: { scope }
   };
 
   new Function("self", "caches", "fetch", source)(self, undefined, undefined);
@@ -127,7 +131,7 @@ describe("what a click on a notification does", () => {
   // A window of the console, as the browser hands one over: it is focused first and then moved.
   // One installed as an app may be a window this worker does not control, which refuses to be
   // moved from here, so that window is a case of its own.
-  async function click(urls: string[], data: unknown, movable = true): Promise<Opened> {
+  async function click(urls: string[], data: unknown, movable = true, on: Loaded = worker): Promise<Opened> {
     const seen: Opened = { navigated: [], focused: 0, told: [], openedWindows: [], closed: 0 };
     const windows = urls.map((url) => {
       const window = {
@@ -153,7 +157,7 @@ describe("what a click on a notification does", () => {
     });
     const waits: Promise<unknown>[] = [];
 
-    worker.setClients({
+    on.setClients({
       matchAll: () => Promise.resolve(windows),
       openWindow: (target: string) => {
         seen.openedWindows.push(target);
@@ -162,7 +166,7 @@ describe("what a click on a notification does", () => {
       }
     });
 
-    worker.clicked({
+    on.clicked({
       notification: { data, close: () => void (seen.closed += 1) },
       waitUntil: (work: Promise<unknown>) => void waits.push(work)
     });
@@ -209,6 +213,17 @@ describe("what a click on a notification does", () => {
     expect((await click([], undefined)).openedWindows).toEqual(["/bmo/"]);
     expect((await click([], {})).openedWindows).toEqual(["/bmo/"]);
   });
+
+  test("under another base path, the console's windows and its front door are that base's", async () => {
+    const elsewhere = await serviceWorker("https://bmo.example.com/console/sw.js?density=2");
+
+    expect((await click([], undefined, true, elsewhere)).openedWindows).toEqual(["/console/"]);
+
+    const reused = await click(["https://bmo.example.com/bmo/rooms/1", "https://bmo.example.com/console/rooms/1"], { url: "/console/rooms/42" }, true, elsewhere);
+
+    expect(reused.navigated).toEqual(["/console/rooms/42"]);
+    expect(reused.openedWindows).toEqual([]);
+  });
 });
 
 // The small icon Android draws in the status bar is painted in one colour of the platform's own,
@@ -237,7 +252,7 @@ describe("the pictures a notification carries", () => {
   test("the window names its density in the worker's address", async () => {
     const plugin = await Bun.file(new URL("../../../apps/web/app/plugins/pwa.client.ts", import.meta.url)).text();
 
-    expect(plugin).toContain("/bmo/sw.js?density=${Math.ceil(window.devicePixelRatio)}");
+    expect(plugin).toContain("${base}sw.js?density=${Math.ceil(window.devicePixelRatio)}");
   });
 
   test("every silhouette it may pick ships at its own size, and its shape is its alpha", async () => {
@@ -258,6 +273,54 @@ describe("which windows are the console's", () => {
     expect(rules.inScope({ url: "https://bmo.example.com/bmo/mail/owner/inbox" })).toBe(true);
     expect(rules.inScope({ url: "https://bmo.example.com/bmo-dev/" })).toBe(false);
     expect(rules.inScope({ url: "not a url at all" })).toBe(false);
+  });
+});
+
+// The base path is the console's configuration, so a console built under another one installs,
+// registers and notifies under that one: the manifest is written under the base it is handed, the
+// window registers the worker at that base with it as the scope, and the worker reads its base back
+// off its scope.
+describe("the install and push roads follow the configured base path", () => {
+  for (const base of ["/bmo/", "/console/"]) {
+    test(`under ${base} the manifest opens, scopes and draws itself there`, () => {
+      const manifest = appManifest(base, "0123456789ab") as { start_url: string; scope: string; icons: { src: string }[] };
+
+      expect(manifest.start_url).toBe(base);
+      expect(manifest.scope).toBe(base);
+      expect(manifest.icons.map((icon) => icon.src)).toEqual([
+        `${base}icons/icon-192.png?v=0123456789ab`,
+        `${base}icons/icon-512.png?v=0123456789ab`,
+        `${base}icons/icon-maskable-192.png?v=0123456789ab`,
+        `${base}icons/icon-maskable-512.png?v=0123456789ab`
+      ]);
+    });
+
+    test(`under ${base} the worker names, keeps and claims only that base's`, async () => {
+      const there = await serviceWorker(`https://bmo.example.com${base}sw.js?density=2&shell=0123456789ab`);
+      const other = base === "/bmo/" ? "/console/" : "/bmo/";
+
+      expect(there.shell.base).toBe(base);
+      expect(there.shell.notificationIcon).toBe(`${base}icons/icon-192.png?v=0123456789ab`);
+      expect(there.rules.badgeFor("2")).toBe(`${base}icons/badge-48.png?v=0123456789ab`);
+      expect(there.shell.isShell(new URL(`https://bmo.example.com${base}icons/icon-192.png`))).toBe(true);
+      expect(there.shell.isShell(new URL(`https://bmo.example.com${other}icons/icon-192.png`))).toBe(false);
+      expect(there.rules.inScope({ url: `https://bmo.example.com${base}rooms/1` })).toBe(true);
+      expect(there.rules.inScope({ url: `https://bmo.example.com${other}rooms/1` })).toBe(false);
+    });
+  }
+
+  test("a manifest handed a base without its slashes still writes it as a scope", () => {
+    expect(appManifest("console", "0123456789ab")).toMatchObject({ start_url: "/console/", scope: "/console/" });
+  });
+
+  test("no file of these roads writes a base path of its own", async () => {
+    const files = ["server/utils/app-manifest.ts", "app/plugins/pwa.client.ts", "shared/paths.ts", "public/sw.js"];
+
+    for (const file of files) {
+      const source = await Bun.file(new URL(`../../../apps/web/${file}`, import.meta.url)).text();
+
+      expect({ file, literal: source.includes("/bmo") }).toEqual({ file, literal: false });
+    }
   });
 });
 
@@ -288,7 +351,7 @@ describe("the shell follows its icons", () => {
   });
 
   test("the manifest names its icons at their versioned addresses", () => {
-    const manifest = appManifest("0123456789ab") as { icons: { src: string }[] };
+    const manifest = appManifest("/bmo/", "0123456789ab") as { icons: { src: string }[] };
 
     expect(manifest.icons.map((icon) => icon.src)).toContain("/bmo/icons/icon-192.png?v=0123456789ab");
     expect(manifest.icons.every((icon) => icon.src.endsWith("?v=0123456789ab"))).toBe(true);

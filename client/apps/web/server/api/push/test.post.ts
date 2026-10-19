@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<{ sent: number; gone: n
     kind: "test",
     title: consoleName(wording),
     body: wording("push.message.test_body"),
-    url: ownerRoomPath(await ownerChat()),
+    url: ownerRoomPath(useRuntimeConfig(event).app.baseURL, await ownerChat()),
     tag: "push-test"
   });
 });

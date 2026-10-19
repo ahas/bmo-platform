@@ -18,15 +18,16 @@ export function unrungQuestions(questions: JobQuestion[], rung: ReadonlySet<numb
 
 // A notification names its item by number and title together: a number alone on a lock screen says
 // nothing to somebody who does not keep every number in mind. A question whose item could not be
-// read names the number alone.
-export function questionPush(question: JobQuestion, ownerChatId: number | null, itemTitle: string | null = null): PushPayload {
+// read names the number alone. The item it opens stands under the console's base path, the one its
+// configuration names.
+export function questionPush(base: string, question: JobQuestion, ownerChatId: number | null, itemTitle: string | null = null): PushPayload {
   return {
     kind: "question",
     title: itemTitle === null
       ? wording("push.title.question", { id: question.todoId })
       : wording("push.title.question_titled", { id: question.todoId, title: itemTitle }),
     body: clipBody(question.question),
-    url: todoPath(ownerChatId, question.todoId),
+    url: todoPath(base, ownerChatId, question.todoId),
     // One question rings once and a repeat replaces it, so a device that was asleep wakes to
     // the question rather than to a pile of the same question.
     tag: `question:${question.id}`

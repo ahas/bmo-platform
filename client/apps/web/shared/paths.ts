@@ -1,28 +1,42 @@
+import { joinURL, withLeadingSlash, withoutBase, withTrailingSlash } from "ufo";
+
 // Where a notification goes when it is pressed. The server writes these into a push and the
 // browser opens them, so both sides read the one set of rules rather than each spelling out
 // paths of its own.
+//
+// The console lives under one base path, the one its configuration names as `app.baseURL`
+// (docs/web.md, 「Where it opens」), in the browser's address and in the service worker's scope
+// alike. Every address below is built under the base its caller reads from that configuration, so
+// none of them names a base of its own.
 
-// The console lives under this prefix, in the browser's address and in the service worker's
-// scope alike.
-export const CONSOLE_BASE = "/bmo";
+// The base as the manifest and a service worker's scope write it: beginning and ending with a slash.
+export function consoleBase(baseURL: string): string {
+  return withTrailingSlash(withLeadingSlash(baseURL));
+}
+
+// An address the browser opened, as a route inside the app: the router already works below the
+// base, so the base is taken off. An address outside the base is handed on as it is.
+export function routeOf(baseURL: string, address: string): string {
+  return withoutBase(address, consoleBase(baseURL));
+}
 
 // The owner's room, which is where the queue's panel stands. A console that does not know which
 // chat is theirs opens the home page instead — every room is one press from there, and a guessed
 // number would open somebody else's room.
-export function ownerRoomPath(ownerChatId: number | null): string {
-  return ownerChatId === null ? `${CONSOLE_BASE}/` : roomPath(ownerChatId);
+export function ownerRoomPath(baseURL: string, ownerChatId: number | null): string {
+  return ownerChatId === null ? consoleBase(baseURL) : roomPath(baseURL, ownerChatId);
 }
 
 // One room's screen.
-export function roomPath(chatId: number): string {
-  return `${CONSOLE_BASE}/rooms/${chatId}`;
+export function roomPath(baseURL: string, chatId: number): string {
+  return joinURL(consoleBase(baseURL), roomRoute(chatId));
 }
 
 // One item of the queue, with the panel opened on it. The panel reads the number off the address
 // and opens that row, so a notification about a question or a report lands on the thing it is
 // about rather than on a list to search through.
-export function todoPath(ownerChatId: number | null, todoId: number): string {
-  return `${ownerRoomPath(ownerChatId)}?todo=${todoId}`;
+export function todoPath(baseURL: string, ownerChatId: number | null, todoId: number): string {
+  return `${ownerRoomPath(baseURL, ownerChatId)}?todo=${todoId}`;
 }
 
 // The item a path names, for the panel reading its own address back. Anything that is not a
@@ -42,8 +56,8 @@ function positiveQueryId(value: unknown): number | null {
 // One message in a room. The room reads the number off the address and carries the screen to
 // that row, which is how a notification or the playing bar sends them back to where a thing was
 // said rather than to the foot of the conversation.
-export function messagePath(chatId: number, messageId: number): string {
-  return `${CONSOLE_BASE}/rooms/${chatId}?at=${messageId}`;
+export function messagePath(baseURL: string, chatId: number, messageId: number): string {
+  return `${roomPath(baseURL, chatId)}?at=${messageId}`;
 }
 
 // The same room as a route inside the app rather than as an address. The router already works
@@ -66,10 +80,4 @@ export function messageOfQuery(value: unknown): number | null {
   const id = Number.parseInt(typeof value === "string" ? value : "", 10);
 
   return Number.isSafeInteger(id) && id !== 0 ? id : null;
-}
-
-// One conversation of one mail account, opened from its inbox: the account by the local part of
-// its address, the conversation by its key, which is a message ID and so needs escaping.
-export function mailThreadPath(account: string, key: string): string {
-  return `${CONSOLE_BASE}/mail/${encodeURIComponent(account)}/inbox/${encodeURIComponent(key)}`;
 }

@@ -1954,7 +1954,7 @@
   {
     "id": "console/push-notifications",
     "title": "Push notifications",
-    "what": "Browser push notifications: a job's question and a room message with their pictures, the subscriptions in web_push_devices signed with the console's keys, and the installed app's manifest and service worker.",
+    "what": "Browser push notifications: a job's question and a room message with their pictures, the subscriptions in web_push_devices signed with the console's keys, and the installed app's manifest and service worker, all under the configured base path.",
     "files": [
       "client/apps/web/app/domain/push.ts",
       "client/apps/web/app/domain/watching.ts",
@@ -2004,7 +2004,6 @@
       "unrungQuestions",
       "questionPush",
       "todoSweeper",
-      "mailThreadPath",
       "RoomRinger",
       "roomPush",
       "firstLine",
@@ -2013,6 +2012,8 @@
       "shownRoom",
       "watchReport",
       "roomPath",
+      "consoleBase",
+      "routeOf",
       "shellVersion",
       "versioned",
       "appManifest"
@@ -2028,7 +2029,7 @@
       "console/member-console",
       "console/todo-queue"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "f21467355d7a509f9e58615fa952d43df02a78f9"
   },
   {
     "id": "console/registered-models",
@@ -2480,7 +2481,7 @@
   {
     "id": "console/shared-config",
     "title": "Shared constants and addresses",
-    "what": "Shared constants and addresses the console's screens and server read alike: limits, periods, the base path, screen addresses and the parsing of item and job addresses.",
+    "what": "Shared constants and addresses the console's screens and server read alike: limits, periods, the configured base path, screen addresses and the parsing of item and job addresses.",
     "files": [
       "client/apps/web/shared/config.ts",
       "client/apps/web/shared/paths.ts",
@@ -2493,7 +2494,7 @@
       "MAX_RUN_PROMPT_LENGTH",
       "MAX_SAY_TEXT_LENGTH",
       "FALLBACK_ROUTE_MODES",
-      "CONSOLE_BASE",
+      "consoleBase",
       "todoPath",
       "todoOfQuery",
       "appUrl",
@@ -2514,7 +2515,7 @@
     "needs": [
       "console/language-pack"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "f21467355d7a509f9e58615fa952d43df02a78f9"
   },
   {
     "id": "console/sidebar-nav",

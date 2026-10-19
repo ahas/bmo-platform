@@ -30,15 +30,15 @@ test("a refused request carries the pack's sentence, filled in, as its message",
 test("a question's notification rings with the pack's title", () => {
   const question = { id: 7, todoId: 90, question: "what should be the default" } as JobQuestion;
 
-  expect(questionPush(question, null).title).toBe(wording("push.title.question", { id: 90 }));
-  expect(questionPush(question, null, "Get push notifications").title).toBe(wording("push.title.question_titled", { id: 90, title: "Get push notifications" }));
+  expect(questionPush("/bmo/", question, null).title).toBe(wording("push.title.question", { id: 90 }));
+  expect(questionPush("/bmo/", question, null, "Get push notifications").title).toBe(wording("push.title.question_titled", { id: 90, title: "Get push notifications" }));
 });
 
 
 test("the manifest takes its name and its line from the pack, the name filled with the chat agent's label, and keeps the rest of its shape", () => {
   registerChatAgent({ name: "agent-a", label: "Agent A" });
 
-  const manifest = appManifest("0123456789ab");
+  const manifest = appManifest("/bmo/", "0123456789ab");
 
   registerChatAgent({ name: "", label: "" });
 

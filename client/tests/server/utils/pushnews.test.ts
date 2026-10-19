@@ -68,7 +68,7 @@ describe("which news is worth ringing about", () => {
 
 describe("what one notification says", () => {
   test("a question names its item and goes to that item's own row", () => {
-    const push = questionPush(question(), OWNER);
+    const push = questionPush("/bmo/", question(), OWNER);
 
     expect(push.kind).toBe("question");
     expect(push.title).toContain("#90");
@@ -79,7 +79,12 @@ describe("what one notification says", () => {
   });
 
   test("a console that does not know their room opens the home page rather than guessing one", () => {
-    expect(questionPush(question(), null).url).toBe("/bmo/?todo=90");
+    expect(questionPush("/bmo/", question(), null).url).toBe("/bmo/?todo=90");
+  });
+
+  test("the item it opens stands under the base path the console is configured with", () => {
+    expect(questionPush("/console/", question(), OWNER).url).toBe(`/console/rooms/${OWNER}?todo=90`);
+    expect(questionPush("/console/", question(), null).url).toBe("/console/?todo=90");
   });
 });
 

@@ -5220,6 +5220,12 @@ dialog open at 계정.
   from the home screen and installing it again takes the new icon at once.
   The console's server serves the manifest at `manifest.webmanifest` under the console's path rather than keeping it
   as a static file, so its name and the line that says what the app is come out of the language pack.
+- **Every address of the installed app follows the configured base path,** the one `BMO_WEB_BASE_URL` names (「Where
+  it opens」). The manifest's start URL, scope and icons are written under it; the page registers the service worker
+  at `sw.js` under it, with the base path as the worker's scope; and the worker reads its base from that scope, so
+  the icons it names and keeps, the windows it takes as the console's and the front door a notification with no
+  place opens all stand under the same path. None of these addresses is written with a base of its own, so a console
+  built under another base path installs, registers and notifies under that one.
 - The service worker handles the shell and notifications. What it caches is only the icons, and **it caches no API
   response, no manifest and does not intervene in page navigation.** This screen is a place to see what happens now,
   so a cached answer is soon a wrong answer, and login state must always be as the server says. So even while the
@@ -5283,7 +5289,9 @@ dialog open at 계정.
   notice itself, so a bell ringing there is noise. Only for that screen, though — a tab looking at the cache siren screen
   has no way to know a question in the queue, so it rings then.
 - **Pressing goes to that place.** A question stands the queue panel with that item open, a room
-  message stands that room, and mail opens the conversation of the newest message that arrived. If a console is already open its window
+  message stands that room, and mail opens the conversation of the newest message that arrived. The address a
+  notification carries is written by the server under the configured base path, and a window told to go there takes
+  that base off before handing the place to its router. If a console is already open its window
   is brought forward and moved, not opened anew. A window installed as an app is not always one the service worker
   controls, and such a window refuses to be moved from there; it is then focused and told where to go, and the console
   carries itself to that place. A window that answers neither is left alone and a fresh one is opened.

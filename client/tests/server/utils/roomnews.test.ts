@@ -29,6 +29,7 @@ function bench(): Bench {
   const rows = new Map<string, RoomLine>();
   const watchers = new RoomWatchers(90_000);
   const ringer = new RoomRinger({
+    base: "/console/",
     read: async (chatId, messageId) => rows.get(`${chatId}:${messageId}`) ?? null,
     title: async () => "Alpha Room",
     lookingAt: (chatId) => watchers.lookingAt(chatId, clock),
@@ -75,9 +76,18 @@ async function said(at: Bench, messageId: number, line: string, sender = "agent-
 
 describe("a room's notification", () => {
   test("names the room, then who said it and the first line, and opens the room", () => {
-    const push = roomPush({ chatId: ROOM, room: "Alpha Room", latest: { sender: "Alice", line: "I'm back" }, count: 1 });
+    const push = roomPush({ base: "/bmo/", chatId: ROOM, room: "Alpha Room", latest: { sender: "Alice", line: "I'm back" }, count: 1 });
 
     expect(push).toEqual({ kind: "room", title: "Alpha Room", body: wording("push.message.room_line", { sender: "Alice", line: "I'm back" }), url: `/bmo/rooms/${ROOM}`, tag: `room:${ROOM}` });
+  });
+
+  test("the room it opens stands under the base path the ringer is configured with", async () => {
+    const at = bench();
+
+    await said(at, 1, "one");
+    await at.pass(ROOM_GATHER_MS);
+
+    expect(at.sent.map((one) => one.payload.url)).toEqual([`/console/rooms/${ROOM}`]);
   });
 
   test("the first line with words in it is the line, and a voice message has none", () => {

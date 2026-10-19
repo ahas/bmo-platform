@@ -37,12 +37,13 @@ export function firstLine(text: string): string | null {
   return text.split("\n").map((line) => line.trim()).find((line) => line !== "") ?? null;
 }
 
-export function roomPush(input: { chatId: number; room: string; latest: RoomLine; count: number }): PushPayload {
+// The room it opens stands under the console's base path, the one its configuration names.
+export function roomPush(input: { base: string; chatId: number; room: string; latest: RoomLine; count: number }): PushPayload {
   return {
     kind: "room",
     title: input.count > 1 ? wording("push.title.room_bundled", { room: input.room, n: input.count }) : input.room,
     body: clipBody(wording("push.message.room_line", { sender: input.latest.sender, line: input.latest.line })),
-    url: roomPath(input.chatId),
+    url: roomPath(input.base, input.chatId),
     // The room rather than the message: a later notification of the room replaces the one standing,
     // which is how a room reads on a phone.
     tag: `room:${input.chatId}`
@@ -50,6 +51,8 @@ export function roomPush(input: { chatId: number; room: string; latest: RoomLine
 }
 
 export interface RoomRingerDeps {
+  // The console's base path, the configuration's `app.baseURL`, which the room a notification opens stands under.
+  base: string;
   // The agent's line a message of a room is, or null where it is not one to ring for.
   read: (chatId: number, messageId: number) => Promise<RoomLine | null>;
   title: (chatId: number) => Promise<string>;
@@ -153,7 +156,7 @@ export class RoomRinger {
     this.rung.set(chatId, { count: looking.size > 0 ? 0 : count, at: now });
 
     try {
-      await this.deps.ring(roomPush({ chatId, room: await this.deps.title(chatId), latest: gathered.latest, count }), looking);
+      await this.deps.ring(roomPush({ base: this.deps.base, chatId, room: await this.deps.title(chatId), latest: gathered.latest, count }), looking);
     } catch (error) {
       this.deps.failed(error);
     }

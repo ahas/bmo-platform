@@ -1,4 +1,4 @@
-import { CONSOLE_BASE } from "#shared/paths";
+import { consoleBase, routeOf } from "#shared/paths";
 
 // The service worker is registered once the page is up, so it never competes with the first
 // paint. A browser without one simply does not install the console, which costs the console
@@ -13,13 +13,18 @@ import { CONSOLE_BASE } from "#shared/paths";
 // picture drawn for that density; a window on a screen of another density registers it again. It is
 // told the shell version too (client/modules/shell-version.ts), so a build with redrawn icons
 // registers a worker at another address, which replaces the one keeping the old icons.
+//
+// The worker stands at the console's base path, the one the configuration names, with that path as
+// its scope; the worker reads its base back from that scope (docs/web.md, 「Installing on a phone」).
 export default defineNuxtPlugin(() => {
   if (!import.meta.client || !("serviceWorker" in navigator)) {
     return;
   }
 
   const router = useRouter();
-  const { shellVersion } = useRuntimeConfig().public;
+  const config = useRuntimeConfig();
+  const { shellVersion } = config.public;
+  const base = consoleBase(config.app.baseURL);
 
   navigator.serviceWorker.addEventListener("message", (event: MessageEvent) => {
     const said = event.data as { type?: unknown; url?: unknown } | null;
@@ -28,11 +33,11 @@ export default defineNuxtPlugin(() => {
       return;
     }
 
-    void router.push(said.url.startsWith(CONSOLE_BASE) ? said.url.slice(CONSOLE_BASE.length) || "/" : said.url);
+    void router.push(routeOf(base, said.url));
   });
 
   const register = (): void => {
-    navigator.serviceWorker.register(`/bmo/sw.js?density=${Math.ceil(window.devicePixelRatio)}&shell=${shellVersion}`, { scope: "/bmo/" }).catch((error: unknown) => {
+    navigator.serviceWorker.register(`${base}sw.js?density=${Math.ceil(window.devicePixelRatio)}&shell=${shellVersion}`, { scope: base }).catch((error: unknown) => {
       console.error("service worker registration failed:", error);
     });
   };
