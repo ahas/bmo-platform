@@ -138,7 +138,8 @@ The places in the shell that name a later group's file are cut here, and that gr
   job screens' to restore.
 - **The ops screens (build-13):** the home page at `/`, `/api/deploy`, the deployment mark on the rooms page,
   and the cache-siren and database entries and choices.
-- **The brain screens (build-12):** the documents and memories entries.
+- **The brain screens (build-12):** stand again — the documents and memories entries, and `DocumentToc.vue`, which
+  the bmo-artifact bundle's archive screen asks of the console.
 - **The placeholders (build-8):** the mail, files, graph, code, monitor and remote entries stand again, with
   the cards, gates and briefing entries, as placeholders (below, 「Screens of units not yet split」). The
   briefing player and the stream's mail and briefing-stop words are not carried. The mail notices' push kind
@@ -298,10 +299,33 @@ Stands here as `client/apps/web/` at the same path, calling the brain over HTTP;
 
 `app/components/DocumentPane.vue`; `app/components/DocumentReader.vue`; `app/components/DocumentSeek.vue`; `app/components/DocumentSide.vue`; `app/components/DocumentTalk.vue`; `app/components/DocumentToc.vue`; `app/components/DocumentTree.vue`; `app/components/MemoryActiveSwitch.vue`; `app/components/MemoryCondition.vue`; `app/components/MemoryDetail.vue`; `app/components/MemoryWatch.vue`; `app/domain/documents.test.ts`; `app/domain/documents.ts`; `app/domain/memories.ts`; `app/pages/documents.test.ts`; `app/pages/documents.vue`; `app/pages/memories.test.ts`; `app/pages/memories.vue`; `server/api/documents/` (9 files); `server/api/memories.get.ts`; `server/api/memories.post.ts`; `server/utils/document-fragments.test.ts`; `server/utils/document-fragments.ts`; `server/utils/document-records.ts`; `server/utils/document-request.ts`; `server/utils/documents.test.ts`; `server/utils/documents.ts`; `server/utils/memories.test.ts`; `server/utils/memories.ts`; `shared/translation.test.ts`; `shared/translation.ts`.
 
-The talk about a document that `server/utils/document-records.ts` read stands already as
-`server/utils/document-talk.ts`, on the console's own `document_talk` (「The tables」 below), with its test under
-`client/tests/server/utils/`; the console writes the talk there itself, the owner's words as they are sent and the
-chat agent's answer as the receiver's talk answers. Carried by build-18 (document talk).
+How the brain screens stand here:
+
+- **The memories screen calls the brain** (`docs/boundary.md`, 「Calls the console makes」) through
+  `server/utils/brain.ts`, written new, with the brain's codes, each said by the pack's sentence for it. A row is
+  read by what the agency calls its agent, by what the receiver calls its room and its people and by the message
+  the receiver keeps; the watch serving a row is served by no route and stands empty.
+- **The document viewer's roots are checkouts a setting names,** `DOCUMENT_ROOTS`: each one's `docs/` and the
+  upper-case markdown at its top. The brain's library and the agency's documents stand in the list unread, and
+  neither unit's folders are read. `server/utils/documents.ts` is rewritten on those roots; the seek indexes and
+  the seek gate's three steps are not carried, since the gate is the gate unit's, and a question is answered by the
+  documents' own text. A fragment is the brain's row, matched by the file its path names under a root, its kind
+  called by the brain's label for it.
+- **The talk about a document** that `server/utils/document-records.ts` read stands as
+  `server/utils/document-talk.ts`, on the console's own `document_talk` (「The tables」 below; build-18): the console
+  writes the owner's words as they are sent, hands the turn to the receiver's `POST /talks` and writes the chat
+  agent's answer as it comes, holding which talk is being answered, and tells every tab that the talk moved.
+- **A translation stands unavailable:** the translator is the gate unit's, so both translation routes answer as
+  unavailable and the toggle says why.
+- **Korean and names:** the seek index's Korean root descriptions went with the index; the tests' Korean stands in
+  `client/tests/fixtures/` at each test's own path, and their names are neutral.
+
+Of these, not carried here:
+
+| Old member | Where it stands |
+|---|---|
+| `server/utils/document-records.ts` | not carried: the talk it read is `server/utils/document-talk.ts`'s; the group names it read were the brain's roots', which stand unread; the translations it read are the gate unit's |
+| `server/utils/memories.test.ts`, `server/utils/documents.test.ts`, `server/utils/document-fragments.test.ts` | rewritten onto stood-in units and checkouts of their own |
 
 ### The home, cache-siren, deployment and database screens (33 files)
 

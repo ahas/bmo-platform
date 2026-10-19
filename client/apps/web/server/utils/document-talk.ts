@@ -1,4 +1,9 @@
+import { wording } from "#shared/wording";
+
+import { publishConsoleEvent } from "./console-events";
 import { useWebSql } from "./db";
+import { fail } from "./fail";
+import { receiverPost } from "./receiver";
 
 import type { DocumentTalkTurn, TalkSpeaker } from "#shared/types";
 
@@ -53,4 +58,106 @@ export async function writeOwnerWords(document: string, text: string, over: Said
 /** The chat agent's answer written as the talk answers it; the turn's id answers. */
 export async function writeAgentAnswer(document: string, text: string, now: number = Date.now()): Promise<number> {
   return await say(document, "bmo", text, now, null);
+}
+
+// A turn of the talk is the receiver's (its `docs/boundary-api.md`, `POST /talks`): a round of the owner's private
+// chat on the chat agent's session, behind whatever round is running there, so the owner's words are answered at
+// once and the agent's answer is written when the talk comes back. One turn of a document's talk is answered at a
+// time; where each talk stands is this process's to hold, and every tab hears that it moved.
+
+// How long a turn may take: it waits its place behind the rounds already running, then a model's turn.
+export const TALK_TIMEOUT_MS = 15 * 60_000;
+
+/** The document a turn is about, as the receiver's topic names it. */
+export interface TalkedDocument {
+  document: string;
+  label: string;
+  writer: string;
+  // The file the agent opens with its tools.
+  file: string;
+  version: string;
+}
+
+/** Where a document's talk stands: whether a turn is being answered, and why the last came back with nothing. */
+export interface TalkState {
+  answering: boolean;
+  failure: string | null;
+}
+
+const answering = new Set<string>();
+const failures = new Map<string, string>();
+
+// Why a turn came back with nothing, by the receiver's code for it.
+const UNANSWERED: Readonly<Record<string, string>> = {
+  resting: "documents.message.unanswered_resting",
+  limit: "documents.message.unanswered_limit",
+  outage: "documents.message.unanswered_outage"
+};
+
+function unansweredWords(error: unknown): string {
+  const code = (error as { data?: { code?: unknown } } | null)?.data?.code;
+
+  return wording(typeof code === "string" ? (UNANSWERED[code] ?? "documents.message.unanswered_other") : "documents.message.unanswered_other");
+}
+
+/** Where one document's talk stands. */
+export function talkState(document: string): TalkState {
+  return { answering: answering.has(document), failure: failures.get(document) ?? null };
+}
+
+async function answer(about: TalkedDocument, over: SaidOver, earlier: DocumentTalkTurn[], said: string): Promise<void> {
+  const topic = {
+    kind: "document",
+    document: about.document,
+    label: about.label,
+    writer: about.writer,
+    file: about.file,
+    version: about.version,
+    ...(over.heading === null ? {} : { heading: over.heading }),
+    ...(over.passage === null ? {} : { passage: over.passage }),
+    translated: over.translated
+  };
+  const turns = earlier.map((turn) => ({ owner: turn.speaker === "owner", text: turn.text }));
+
+  try {
+    const answered = await receiverPost<{ answer?: string | null } | null>("/talks", { topic, turns, said }, { timeoutMs: TALK_TIMEOUT_MS });
+    const words = answered?.answer?.trim() ?? "";
+
+    if (words === "") {
+      failures.set(about.document, wording("documents.message.unanswered_silent"));
+    } else {
+      await writeAgentAnswer(about.document, words);
+    }
+  } catch (error) {
+    failures.set(about.document, unansweredWords(error));
+  } finally {
+    answering.delete(about.document);
+    publishConsoleEvent("document-talk", { document: about.document });
+  }
+}
+
+/**
+ * The owner's words about a document: written down at once, and the turn handed to the receiver, whose answer is
+ * written when it comes. Words said while the last are still being answered are refused.
+ */
+export async function sayAboutDocument(about: TalkedDocument, said: string, over: SaidOver): Promise<void> {
+  if (answering.has(about.document)) {
+    throw fail(409, wording("documents.error.talk_busy"));
+  }
+
+  answering.add(about.document);
+  failures.delete(about.document);
+
+  let earlier: DocumentTalkTurn[];
+
+  try {
+    earlier = await readDocumentTalk(about.document);
+    await writeOwnerWords(about.document, said, over);
+  } catch (error) {
+    answering.delete(about.document);
+    throw error;
+  }
+
+  publishConsoleEvent("document-talk", { document: about.document });
+  void answer(about, over, earlier, said);
 }

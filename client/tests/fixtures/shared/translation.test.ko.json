@@ -1,0 +1,20 @@
+{
+  "line_18": "# Working here\n\nThis repository holds 비모.",
+  "line_19": "# 문서 뷰어\n\n콘솔의 `documentRoots`와 `resolveDocument`가 뿌리를 가둔다.",
+  "line_20": "```ts\nconst englishOnly = true;\n```\n\n한국어 설명.",
+  "line_31": "문장 ",
+  "line_32": "# 문서\n\n",
+  "line_42": "## 제목\n\n본문\n\n",
+  "line_43": "## 제목\n본문\n",
+  "line_44": "본문",
+  "line_50": "번역기가 답하지 않았습니다.",
+  "line_51": "번역기가 답하지 않았습니다. (engine-a · model-a)",
+  "line_53": "번역기가 답하지 않았습니다.",
+  "line_72": "# 계획\n",
+  "line_72_2": "# 계획",
+  "line_73": "# 계획\n",
+  "line_105": "단계 하나",
+  "line_105_2": "작업 지시서 패널을 읽고 파일을 보고한다.",
+  "line_108": "단계 하나",
+  "line_113": "작업 지시서 패널을 읽고 파일을 보고한다."
+}

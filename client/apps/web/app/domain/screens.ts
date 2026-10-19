@@ -67,6 +67,13 @@ export const SCREENS: readonly Screen[] = [
   // The Archive: the documents kept for reading, each with its attachments. Its pages are the
   // bmo-artifact bundle's, and its pages below the address light it.
   { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true },
+  // The documents the agents read and the deployment's operating documents, read as documents. It stands beside
+  // the Archive because both are kept for reading.
+  { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false },
+  // Everything the agents are holding — a promise, a check, a follow-up and a "when ..., do ..." rule — read as a
+  // table rather than a document, with the switch that takes one down or puts it back. It stands after the two
+  // screens of what is kept for reading because it is the third of them and the only one read as rows.
+  { label: "screens.label.memories", to: "/memories", icon: "i-material-symbols-rule-folder-outline", nested: false },
   // A checkout's code as its graph, bmo-graph's.
   { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
   // A checkout read at a commit with reviews pinned to its lines, bmo-review's.

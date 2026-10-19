@@ -47,6 +47,9 @@ export interface UnitCall {
   // are English and for an agent to read, so a refusal whose code stands here is said in the pack's sentence;
   // the table is the calling unit's, written where its calls are.
   codes?: Readonly<Record<string, string>>;
+  // Where a unit's refusal holds its code and that code's parameters: the refusal body itself where none is
+  // given, or the part of it the unit's document names.
+  refusal?: (body: Record<string, unknown>) => Record<string, unknown>;
 }
 
 // A unit that does not answer is this app's own failure, not the fetch's error: the view reads that one line
@@ -74,12 +77,13 @@ export async function unitFetch<T>(name: string, path: string, init?: RequestIni
   if (!response.ok) {
     const status = asked.passStatus?.includes(response.status) === true ? response.status : statusOf(response.status);
     const body = await refusalOf(response);
-    const coded = typeof body?.code === "string" ? asked.codes?.[body.code] : undefined;
-    const reason = coded !== undefined ? wording(coded, fieldsOf(body)) : reasonIn(body, response.status, carries(asked, response.status));
+    const held: Refusal | null = body === null || asked.refusal === undefined ? body : asked.refusal(body as Record<string, unknown>);
+    const coded = typeof held?.code === "string" ? asked.codes?.[held.code] : undefined;
+    const reason = coded !== undefined ? wording(coded, fieldsOf(held)) : reasonIn(body, response.status, carries(asked, response.status));
 
     // A refusal about one field names it, so the screen can say it under that field; its code travels too, for
     // the caller that tells refusals apart.
-    throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof body?.code === "string" ? body.code : null } });
+    throw createError({ statusCode: status, message: reason, data: { field: typeof body?.field === "string" ? body.field : null, code: typeof held?.code === "string" ? held.code : null } });
   }
 
   // An answer with no body — a 204, or a turn taken to be answered later — answers nothing.

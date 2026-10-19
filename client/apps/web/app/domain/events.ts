@@ -368,6 +368,18 @@ function open(): void {
     }
   });
 
+  // The console's word that a document's talk moved: the owner's words written, or the chat agent's turn ended.
+  // It is this app's own, so no cursor counts it.
+  source.addEventListener("document-talk", (message) => {
+    heard = true;
+
+    const document = fieldsOf((message as MessageEvent<string>).data)?.document;
+
+    if (typeof document === "string") {
+      hand({ id: 0, at: Math.floor(Date.now() / 1000), type: "document-talk", chatId: 0, messageId: null, document });
+    }
+  });
+
   // The console's word that the deployment moved. It carries nothing; a listener reads it again.
   source.addEventListener("deploy", () => {
     heard = true;

@@ -2035,6 +2035,206 @@ export interface DocumentTalkTurn {
   translated: boolean;
 }
 
+// The talk as the drawer reads it: the turns kept, whether the chat agent is answering the last one now, and
+// why the last came back with nothing.
+export interface DocumentTalk {
+  turns: DocumentTalkTurn[];
+  answering: boolean;
+  failure: string | null;
+}
+
+// The memories and the document viewer's shapes: a memory row as the brain answers it and as the memories
+// screen shows it, and the documents, their fragments, their search and their translation as the viewer reads
+// them.
+
+// How a watch stands, as the brain names it.
+export type WatchState = "active" | "fired" | "lapsed" | "broken" | "cancelled";
+
+// One memory as the brain answers it (the brain's `docs/boundary-api.md`, 「Memory rows」): what an agent is
+// holding, what it has done since, how it ended where it has, and why it came down where it has. Nothing here
+// deletes a row, so a row that is down and a row that is finished both stand beside the ones still open.
+export interface MemoryRecord {
+  id: number;
+  // The agent whose memory the row is, by its registration name.
+  agent: string;
+  slug: string;
+  // Which kind of thing the row is. A condition, not a type, decides how it attaches; a state is the one type
+  // that always stands in its room while it is open.
+  type: "promise" | "check" | "followup" | "situation" | "state";
+  // The room it belongs to, or null where it is global.
+  chatId: number | null;
+  // Which kinds of room a global row reaches. A room's own row carries it and nothing reads it.
+  reach: "owner" | "group" | "all";
+  // What the row waits for. Empty is the row that attaches every turn without being asked.
+  condition: string;
+  // The event the row waits on instead of a condition, and when it first came.
+  event: { kind: "deployed" | "job-ended" | "queue-changed"; item: number | null } | null;
+  eventMetAt: number | null;
+  action: string;
+  // Whom the row is for, where it is for one person.
+  forUser: number | null;
+  active: boolean;
+  lastHitAt: number | null;
+  hits: number;
+  setBy: number | null;
+  setAt: number;
+  messageId: number | null;
+  todoId: number | null;
+  // When the errand was finished and how it ended. Being finished is not being taken down: a kept promise was
+  // never retired, and a withered rule was never finished.
+  doneAt: number | null;
+  doneText: string | null;
+  downReason: string | null;
+  downAt: number | null;
+  candidateWhy: string | null;
+  candidateAt: number | null;
+  // When a state last moved, and null for every other type and for a state that has not moved yet.
+  movedAt: number | null;
+}
+
+// The latest watch linked to a memory: by number and short name, with how it stands, and how many other
+// watches served the same row before it.
+export interface MemoryWatchView {
+  id: number;
+  name: string;
+  state: WatchState;
+  others: number;
+}
+
+// One memory as the console shows it: the row as the brain answers it, with the names the console reads its
+// agent, its room and its people by, the message it was set from, and the watch serving it.
+export interface MemoryRowView extends MemoryRecord {
+  // What the owner calls the agent whose memory it is.
+  agentLabel: string;
+  // The room's name, or null where the row is global.
+  room: string | null;
+  // The person's latest name, where the row is for one person; their number where no name is known.
+  forName: string | null;
+  // Who set it, by the same name; null where the row does not say.
+  setByName: string | null;
+  // The message it was set from, in the row's room; null where the row names none, is global and so keeps no
+  // room, or the receiver does not keep it.
+  message: MemorySourceView | null;
+  // The watch serving it; null where none is known.
+  watch: MemoryWatchView | null;
+}
+
+export interface MemorySourceView {
+  senderName: string;
+  sentAt: number;
+  text: string;
+}
+
+export interface MemoriesView {
+  memories: MemoryRowView[];
+}
+
+export interface MemoryChanged {
+  ok: true;
+  memory: MemoryRowView;
+}
+
+// The document viewer (`docs/documents-viewer.md`). A document is named by its root and its path inside that
+// root; the absolute path never leaves the server.
+
+// One root as the viewer's list shows it: its label, who writes the documents under it, and whether it is read
+// at all. A root kept by a unit that serves no route for its documents stands in the list unread.
+export interface DocumentRootView {
+  key: string;
+  label: string;
+  writer: string;
+  available: boolean;
+}
+
+// What a document's group is: a person's common book, or one room's books and rules.
+export type DocumentGroupKind = "person" | "room";
+
+export interface DocumentGroup {
+  key: string;
+  kind: DocumentGroupKind;
+  name: string;
+}
+
+// What the brain's fragment row says about a document that is a piece a reference gate may attach (the
+// brain's `docs/fragments.md`). A document with no row of its own carries none of this.
+export interface DocumentFragmentView {
+  // The library it is a piece of, as the brain names it, and what that kind is called on a screen.
+  kind: string;
+  kindLabel: string;
+  // The room it belongs to, and the name that room is known by; both null where it belongs to every room.
+  chatId: number | null;
+  room: string | null;
+  owner: number | null;
+  // The agent whose row it is, by its registration name.
+  agent: string | null;
+  // The name its gate answers under.
+  slug: string;
+  // What the index entry says the piece is about: the words a gate picks it by.
+  title: string;
+  // The words it is asked for by beyond its title.
+  keywords: string[];
+  active: boolean;
+  // When a turn last attached it, and how many turns have.
+  lastHitAt: number | null;
+  hits: number;
+  // When a person set the standing themselves, and null where none has.
+  handAt: number | null;
+}
+
+export interface DocumentEntry {
+  root: string;
+  path: string;
+  title: string;
+  size: number;
+  group: DocumentGroup | null;
+  // The row behind this document, where it is a reference fragment. Its title is what the list shows the
+  // document by, since that is the line a gate picks it by.
+  fragment: DocumentFragmentView | null;
+}
+
+export interface DocumentList {
+  roots: DocumentRootView[];
+  documents: DocumentEntry[];
+  // Whether a document can be read translated: the translator is a unit's that serves the viewer no route yet.
+  translation: boolean;
+}
+
+export interface DocumentView {
+  root: string;
+  path: string;
+  label: string;
+  writer: string;
+  title: string;
+  text: string;
+  // The SHA-256 of the document's bytes.
+  version: string;
+  size: number;
+  language: DocumentLanguage;
+}
+
+// One place a search of the documents found its words: the name, the title, or a line of the body with the
+// text around it.
+export interface DocumentMatch {
+  root: string;
+  path: string;
+  title: string;
+  where: "name" | "title" | "body";
+  line: number | null;
+  snippet: string | null;
+}
+
+// Where a question is answered: a document, and the mark of the heading inside it where one was found.
+export interface DocumentSeekPick {
+  root: string;
+  path: string;
+  title: string;
+  heading: string | null;
+}
+
+export interface DocumentSeekResult {
+  picks: DocumentSeekPick[];
+}
+
 // What the bot answers a launch with. The unit is up; the run itself is watched in the log.
 export interface LaunchResult {
   ok: true;

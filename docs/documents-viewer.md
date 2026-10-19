@@ -25,9 +25,11 @@
 
 ### The roots a deployment names
 
-- **A checkout's documents.** Each root of this kind is a setting: a label and the top of a checkout. Its
-  documents are the `.md` files under its `docs/` and the upper-case `.md` files at its top, and they are
-  written by people. A deployment names as many as it wants read, one to a checkout.
+- **A checkout's documents.** Each root of this kind is an entry of the `DOCUMENT_ROOTS` setting
+  (`docs/boundary.md`, 「Settings」): a key, which the root's document names begin with, a label and the top of a
+  checkout. Its documents are the `.md` files under its `docs/` and the upper-case `.md` files at its top, and
+  they are written by people. A deployment names as many as it wants read, one to a checkout, and an entry
+  that is not a key, a label and an absolute top, or whose key is taken, names no root.
 - **The base directory is only a fence.** What is a document is decided by the root's document rule, as a closed
   list. A checkout's top also holds code and configuration, and none of it is a document.
 - **Which tree is read:** the tree the setting names, as it stands. A deployment that names a deploy tree shows
@@ -87,13 +89,14 @@ Some of the documents the viewer lists are pieces a reference gate may attach to
 the brain's fragments before they are files (the brain's `docs/fragments.md`). What the row says about such a
 document is shown beside it, since the row is the original there and the file tree says only that a file exists.
 
-- **Where the rows come from:** the brain's `GET /fragments`, every row with `down`, and `POST /fragments/active`
-  for the switch (`docs/boundary.md`).
+- **Where the rows come from:** the brain's `GET /fragments`, every row with `down`, the word each kind is called
+  by from `GET /fragments/kinds`, and `POST /fragments/active` for the switch (`docs/boundary.md`).
 - **A document is matched to its row by where its body sits.** A row names its body as a path, and the viewer
-  resolves every document it lists to a real file; the document whose file the row names under a root the viewer
-  reads is that fragment. Nothing turns on a root's name or a kind's name to make the match, and a row whose body
+  resolves every document it lists to a real file; the document whose file the row's path names under the top of
+  a root the viewer reads is that fragment. Nothing turns on a root's name or a kind's name to make the match, and a row whose body
   is under no root the viewer reads matches nothing and so is not listed.
-- **What comes from the row:** the fragment's kind, under the name its own library declares; the room it belongs
+- **What comes from the row:** the fragment's kind, under the word the brain calls it by, or its own name where
+  the brain gives none; the room it belongs
   to, or every room; the slug a gate answers under; the title the index entry carries, which is what the list
   shows the document by; whether it is offered; when a turn last attached it and how many have.
 - **What still comes from the file:** the body, its version, its size and its language. Nothing of the text is
@@ -176,6 +179,9 @@ document is shown beside it, since the row is the original there and the file tr
   selected then.
 - **The console writes it:** the owner's words as soon as they are sent, the agent's answer when `POST /talks`
   answers. A talk that comes back with nothing writes no answer, and its refusal is shown under the words.
+- **Where a talk stands** — whether its last words are being answered, and why they came back with nothing — is
+  held by the console's server, and every tab hears that a document's talk moved as the words are written and as
+  the turn ends.
 
 ### What an answer never touches
 
@@ -191,6 +197,12 @@ The seek gate, which takes a question to the place in the documents that answers
 renders a document into the other language, are the gate unit's. That unit is not yet split, so the viewer's
 question box searches the documents' text alone, and its translation toggle stands as unavailable (`docs/boundary.md`,
 「Screens of units not yet split」).
+
+- **Asked of one document,** a question goes to the section holding most of its words, the heading that opens
+  it, or the document's top where the lines before its first heading hold most.
+- **Asked of every document,** the documents holding most of its words stand as candidates, most first, each at
+  its own such section. Its words are what a word segmenter cuts it into, lowered; a document's title counts
+  toward each of its sections.
 
 ## Where editing would attach
 

@@ -1989,10 +1989,11 @@ Two ways, split because the running places differ.
   its file name, and the file name itself is in the properties. Documents of one branch that would read the same
   stand by their whole titles, which name the person or room the group left out, and where those are the same too,
   with their file names after them. Each document wears the file explorer's file mark and each branch its folder
-  mark, as in the code review. They stand as a per-branch folding tree — person book (common), person book (room-only),
-  room rules, knowledge, rulebooks, personas, agent instructions, system prompts, lore, operating documents.
-  The person book is bundled once more per person, the room-only per room, and a person and room stand by the
-  name the archive knows, not a number. The search box above the list searches document name, title and body
+  mark, as in the code review. They stand as a per-branch folding tree, a branch per root: the checkouts the
+  deployment names, in its order, then the roots other units keep — person book (common), person book (room-only),
+  room rules, knowledge, rulebooks, personas, agent instructions, system prompts — each marked 읽을 수 없음 with a
+  tooltip saying why, and holding nothing, since neither unit serves its documents whole
+  (`docs/documents-viewer.md`, 「The roots kept by other units」). The search box above the list searches document name, title and body
   text. While searching, the tree unfolds only the matched documents and their ancestors, and if matched in
   the body the line's context stands in one line. Pressing a matched line opens the document at that line.
   The search box takes the section's padding; the tree and the found lines below it reach the section's
@@ -2016,7 +2017,7 @@ Two ways, split because the running places differ.
   again and the properties, and last the contents' fold on a wide screen. On a phone the actions and the contents fold into one vertical-dots menu, the view switch shows its
   icons alone, and the toolbar is one compact row.
 - **The fragment toggle.** Where the open document is a reference fragment, the toolbar carries a switch named
-  조각 that takes it out of what the gates are offered and puts it back. It spins while the bot writes the row,
+  조각 that takes it out of what the gates are offered and puts it back. It spins while the brain writes the row,
   and a refusal stands as a message. A document that is no fragment has no switch at all.
 - **One document.** Nothing stands above the body but the toolbar. Its path, branch, writer, size, original
   language and translation language are in the properties (「Tab bar and toolbar」), and a fragment's properties
@@ -2029,8 +2030,8 @@ Two ways, split because the running places differ.
 - **Contents.** The document's headings stand beside the document as a list indented by depth, scrolling
   within itself. The heading at the reading place is marked, and pressing goes to it. The address is changed
   to point at that heading so the place can be handed over. A document with no heading has no contents.
-- **Asking to be taken somewhere.** Asking in the question box above the contents goes to the heading the seek
-  gate chose. A dropdown at the head of the box chooses 「이 문서」 or 「모든 문서」. Asking over all documents stands the chosen
+- **Asking to be taken somewhere.** Asking in the question box above the contents goes to the heading whose
+  section holds most of the question's words (`docs/documents-viewer.md`, 「Asking to be taken somewhere」). A dropdown at the head of the box chooses 「이 문서」 or 「모든 문서」. Asking over all documents stands the chosen
   documents as candidates and opens the first, going to its heading. The remaining candidates stay as chips,
   pressing one going to that document's place. While seeking, the box says 찾는 중, and if it does not find,
   찾은 위치 없음.
@@ -2042,9 +2043,11 @@ Two ways, split because the running places differ.
   A word unanswered because of a 휴식 상태 is marked so. The drawer opens without a passage too, to ask about
   the whole document. It stands at the side on a wide screen and rises from the bottom on a phone, and back
   closes it.
-- **Translation.** The translation toggle — named by the target language on a wide screen, 번역 on a phone — shows
+- **Translation.** The translation toggle — named by the target language on a wide screen, 번역 on a phone — stands
+  dimmed while no unit serves the viewer a translation, with a tooltip saying so, and an address asking for the
+  translated reading opens the original. Where a translator is served, it shows
   the text carried into the language that is not the original's. The carried parts are kept per version of the
-  document, so a version already carried stands at once with no request and without the bot, and a document
+  document, so a version already carried stands at once with no request and without the translator, and a document
   changed on disk is a new version and is carried again. Otherwise the carried parts fill in one by one with a
   waiting mark on the original above the not-yet ones, and the toolbar counts them as `n/m p%`. Parts that could
   not be carried are counted as 번역 실패 in a band above the body with a re-request button, and if the translator
