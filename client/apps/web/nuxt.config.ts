@@ -116,6 +116,18 @@ export default defineNuxtConfig({
     rollupConfig: { external: [/^bun$/, /^bun:/], plugins: [yamlData] },
     typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } }
   },
+  // The four units the console calls publish a client whose entry is TypeScript. Nitro's esbuild pass skips
+  // node_modules, so its bundler would read that entry as JavaScript and stop; the filter is stated whole here,
+  // because one given through `nitro.esbuild` has Nuxt's node_modules exclusion merged into it. TypeScript is
+  // handed to esbuild wherever it comes from, and JavaScript in node_modules is still left alone.
+  hooks: {
+    "nitro:config"(nitroConfig) {
+      nitroConfig.esbuild ??= {};
+      nitroConfig.esbuild.options ??= {};
+      nitroConfig.esbuild.options.include = /\.(?:ts|tsx)$/;
+      nitroConfig.esbuild.options.exclude = [];
+    }
+  },
   $production: {
     nitro: { preset: "bun" }
   },
