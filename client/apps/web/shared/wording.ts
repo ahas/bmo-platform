@@ -16,10 +16,13 @@ export type Translate = (key: string, params?: WordingParams) => string;
 // The pack as it stands in the file: groups of groups, ending in the words.
 export type Pack = { [key: string]: string | Pack };
 
+// The merged locale types are far wider than this instance, which answers one code: the engine is
+// typed to the one shape a caller uses.
 const i18n = createI18n({
   legacy: false,
   locale: "ko",
-  messages: { ko: pack as Pack },
+  // The merged locale list names every code the bundles carry; this instance writes Korean alone.
+  messages: { ko: pack as Pack } as never,
   // A key the pack does not hold is a fault in the code that asked, never a word to show: left to
   // itself the engine would answer with the key, and a reader would see `mail.error.…` on a screen.
   missing: (_locale: string, key: string) => {
@@ -27,7 +30,7 @@ const i18n = createI18n({
   },
   missingWarn: false,
   fallbackWarn: false
-});
+}) as unknown as { global: { t: (key: string, params?: WordingParams) => string } };
 
 export const wording: Translate = (key, params) => i18n.global.t(key, params ?? {});
 

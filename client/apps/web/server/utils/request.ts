@@ -35,57 +35,11 @@ export function requireTodoId(event: H3Event): number {
   return id;
 }
 
-export function requireSearchId(event: H3Event): number {
-  const id = Number(getRouterParam(event, "id") ?? "");
-
-  if (!Number.isSafeInteger(id) || id < 1) {
-    throw fail(400, wording("archive.error.bad_id"));
-  }
-
-  return id;
-}
-
-// The number of one attachment of a document, as its road names it.
-export function requireAttachmentId(event: H3Event): number {
-  const id = Number(getRouterParam(event, "attachment") ?? "");
-
-  if (!Number.isSafeInteger(id) || id < 1) {
-    throw fail(400, wording("archive.error.bad_attachment_id"));
-  }
-
-  return id;
-}
-
 // The clock every road reads, in the unit this console stores: unix seconds. A road that took
 // milliseconds here would write a link ending a thousand times further off than the span it was
 // given.
 export function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
-}
-
-// A share link's token as the road carries it. Anything not shaped like one issued here opens
-// nothing, and it is refused as not found rather than as malformed: to whoever holds the address,
-// a token that was never a token and one that names no link are the same thing.
-const SHARE_TOKEN = /^[A-Za-z0-9_-]{22,128}$/;
-
-export function isShareToken(token: string): boolean {
-  return SHARE_TOKEN.test(token);
-}
-
-export function requireShareToken(event: H3Event): string {
-  const token = getRouterParam(event, "token") ?? "";
-
-  if (!isShareToken(token)) {
-    throw fail(404, wording("common.error.share_not_found"));
-  }
-
-  return token;
-}
-
-// Which picture of a page is wanted: its own, its representative image, or its icon. Anything
-// else is the page's own, since a request never chooses more than one of the three.
-export function pictureOf(value: unknown): "self" | "thumb" | "favicon" {
-  return value === "thumb" || value === "favicon" ? value : "self";
 }
 
 // A cursor is the id of the row the caller already has; the page ends just before it.

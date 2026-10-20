@@ -26,11 +26,13 @@ const yamlData = {
 const baseURL = process.env.BMO_WEB_BASE_URL || "/bmo/";
 
 export default defineNuxtConfig({
-  // The archive screen's bundle, which brings the bmo-ui layer under it; bmo-ui is named too, as the
-  // base every screen of the console stands on (bmo-ui's `docs/boundary.md`, 「How a host takes it」;
-  // bmo-artifact's `docs/layout.md`, 「The console plugin bundle」).
-  extends: ["bmo-artifact-client", "bmo-ui"],
-  modules: ["nuxt-auth-utils", "@nuxtjs/i18n"],
+  // Every unit's console bundle, each a layer the console extends, and bmo-ui under them all as the
+  // base every screen stands on. What a bundle brings is read from its declaration alone
+  // (`modules/console-bundles.ts`); bmo-ui's `docs/console-bundles.md` is the contract.
+  extends: ["bmo-artifact-client", "bmo-mail-client", "bmo-review-client", "bmo-drive-client", "bmo-remote-client", "bmo-ui"],
+  // The bundles are read before the i18n module gathers the packs, since each bundle's words are
+  // registered with that module.
+  modules: ["./modules/console-bundles", "nuxt-auth-utils", "@nuxtjs/i18n"],
   // The console's own styles, stated after the layers' (the conversation's measures and colours, its
   // documents and its interface faces); what bmo-ui's stylesheet carries is the layer's.
   css: ["~/assets/css/main.css"],
@@ -68,7 +70,9 @@ export default defineNuxtConfig({
   // as in the browser (bmo-ui's `docs/boundary.md`, 「What the host owes」). The dayjs locale is loaded
   // by the app's own plugin.
   appConfig: {
-    bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" }
+    // Where a bundle's screens call its service: the console's relay base, then the service's name
+    // and the path the service's own API writes (bmo-ui's `docs/console-bundles.md`).
+    bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko", relayBase: "/api" }
   },
   // The chat agent's names, the deployment's to set and no code file's (docs/web.md, 「Settings」): the name its
   // messages stand under and the label rooms call it by, set at run time as `NUXT_PUBLIC_CHAT_AGENT_NAME` and
@@ -100,6 +104,9 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    // A console bundle whose screen opens a socket has it relayed like any other call: the console
+    // hands the upgrade on to the service the bundle declares (bmo-ui's `docs/console-bundles.md`).
+    experimental: { websocket: true },
     // A deployment builds a release of its own beside the one being served and only then moves onto it,
     // because nitro splits the build by route and a running server reads a route's chunk off disk the
     // first time that route is asked for (docs/web.md, 「Running as a service」). Whoever is deploying

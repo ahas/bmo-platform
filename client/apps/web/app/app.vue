@@ -3,7 +3,7 @@
        (`~/domain/island`), so the component library's own toaster is not stood up at all. Left
        standing it would be a second road for news, and a road nobody watches is a road news is
        lost down. -->
-  <UApp :locale="locale" :tooltip="TOOLTIPS" :toaster="null">
+  <UApp :locale="locale" :tooltip="TOOLTIP_PROVIDER" :toaster="null">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { ko } from "@nuxt/ui/locale";
+import { TOOLTIP_PROVIDER } from "bmo-ui/app/domain/tooltip";
 import { consoleName } from "#shared/agent-names";
 
 import type { Messages } from "@nuxt/ui";
@@ -47,8 +48,4 @@ useHead({
   link: INTERFACE_FACES.map((href) => ({ rel: "preload", as: "font", type: "font/woff2", crossorigin: "anonymous", href }))
 });
 
-// A tooltip answers hover and the keyboard. Focus handed back by a closing sheet or dialog to the
-// button that opened it is neither, and on a phone it would leave the button's name standing over
-// what the sheet had just opened.
-const TOOLTIPS = { ignoreNonKeyboardFocus: true };
 </script>

@@ -53,8 +53,6 @@ fn every_part_reads_as_its_type() {
   assert!(!deployment::DEPLOYMENT.rollback.reason.is_empty());
   assert!(!dev_servers::DEV_SERVER_WORDS.pane.head.is_empty());
   assert!(!files::FILES.mp3_title.is_empty());
-  assert!(!news_brief::NEWS_BRIEF.line.is_empty());
-  assert!(!news_page::NEWS_PAGE.weekdays[0].is_empty());
   assert!(!remote_browser::REMOTE_BROWSER.run_title.is_empty());
   assert!(!reference_benches::REFERENCE_BENCHES.compare.front.is_empty());
   assert!(!tool_probe::TOOL_PROBE.columns.line.is_empty());

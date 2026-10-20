@@ -4,23 +4,17 @@ import { join } from "node:path";
 import ts from "typescript";
 import { parse } from "vue/compiler-sfc";
 
-import { WORDING_KEYS } from "../../apps/web/node_modules/bmo-ui/shared/wording-keys";
+import { WORDING_KEYS } from "bmo-ui/shared/wording-keys";
 import { packEntries, wording } from "../../apps/web/shared/wording";
-import ARTIFACT_KINDS from "../fixtures/artifact-kinds.json";
 
 // The language pack holds the console's words, and this is what keeps it so (`docs/web.md`,
 // "Wording and the language pack"): no word left standing in a screen, a server route, the shared
 // code or a script; no key asked for that the pack does not hold; no key the pack holds that nothing
-// asks for, the keys the bmo-ui layer and the bmo-artifact bundle read counted as asked, and so the
-// label keys bmo-artifact's kind catalogue names in its answers (`docs/language-pack.md`); and every
-// value one the engine can read.
-
-// The keys bmo-artifact names a kind's label by, which no code here spells out and which stand under
-// bmo-artifact's name for them.
-const KIND_LABEL_KEYS = ARTIFACT_KINDS.kinds.map((kind) => kind.labelKey);
+// asks for, the keys the bmo-ui layer reads counted as asked; and every value one the engine can
+// read. A console bundle's words stand in the bundle's own pack, which the console merges and this
+// test does not hold.
 
 const clientRoot = join(import.meta.dir, "..", "..", "apps", "web");
-const bundleRoot = join(clientRoot, "node_modules", "bmo-artifact-client");
 
 // The roles a key's second part names. A key is `<domain>.<role>.<key>`.
 const ROLES = ["title", "label", "action", "placeholder", "aria", "status", "message", "error"];
@@ -187,15 +181,10 @@ function scanTemplate(path: string, source: string, node: TemplateNode, scan: Sc
 }
 
 // The console's own source, its scripts and the service worker: the one script the browser runs
-// outside the app, which puts a notification on the screen. The bmo-artifact bundle's screens are read
-// for the keys they ask of this pack.
+// outside the app, which puts a notification on the screen.
 async function* sourcePaths(): AsyncGenerator<[string, string]> {
   for (const pattern of ["{app,server,shared,scripts}/**/*.{ts,vue}", "public/**/*.js"]) {
     for await (const path of new Bun.Glob(pattern).scan({ cwd: clientRoot })) yield [clientRoot, path];
-  }
-
-  for await (const path of new Bun.Glob("{app,shared}/**/*.{ts,vue}").scan({ cwd: bundleRoot, followSymlinks: true })) {
-    yield [bundleRoot, `bundle/${path}`];
   }
 }
 
@@ -263,23 +252,17 @@ describe("the console's words", () => {
   test("answers every key the bmo-ui layer reads", () => {
     expect(WORDING_KEYS.filter((key) => !packKeys.has(key))).toEqual([]);
   });
-
-  test("answers the label of every kind bmo-artifact's catalogue holds", () => {
-    expect(KIND_LABEL_KEYS.filter((key) => !packKeys.has(key))).toEqual([]);
-  });
 });
 
 describe("the language pack", () => {
   test("holds no key that nothing asks for", () => {
-    const asked = new Set<string>([...scan.keys.map((one) => one.text), ...WORDING_KEYS, ...KIND_LABEL_KEYS]);
+    const asked = new Set<string>([...scan.keys.map((one) => one.text), ...WORDING_KEYS]);
 
     expect([...packKeys].filter((key) => !asked.has(key))).toEqual([]);
   });
 
-  test("names every key `<domain>.<role>.<key>` in lower snake case, but the keys another unit names", () => {
+  test("names every key `<domain>.<role>.<key>` in lower snake case", () => {
     const misnamed = [...packKeys].filter((key) => {
-      if (KIND_LABEL_KEYS.includes(key)) return false;
-
       const parts = key.split(".");
 
       return parts.length < 3 || !parts.every((part) => SEGMENT.test(part)) || !ROLES.includes(parts[1]!);

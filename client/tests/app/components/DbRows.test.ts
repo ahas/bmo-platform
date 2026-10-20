@@ -5,8 +5,8 @@ import { describe, expect, test } from "bun:test";
 // report: a name that has scrolled out of sight is still in the document.
 
 const rows = await Bun.file(new URL("../../../apps/web/app/components/DbRows.vue", import.meta.url)).text();
-const table = await Bun.file(new URL("../../../apps/web/node_modules/bmo-ui/app/components/DataTable.vue", import.meta.url)).text();
-const handle = await Bun.file(new URL("../../../apps/web/node_modules/bmo-ui/app/components/ColumnResizeHandle.vue", import.meta.url)).text();
+const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
+const handle = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/ColumnResizeHandle.vue"))).text();
 
 describe("the rows of a table on the DB screen", () => {
   test("stand on the shared table, dense, each row pressed as a whole", () => {

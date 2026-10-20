@@ -28,7 +28,8 @@ alone over Nuxt and Nuxt UI, extending the bmo-ui layer and the bmo-artifact con
     colour. Its sidebar entry lights on its address and on the addresses below it where the unit's screen had
     pages of its own, and the console search finds it as it finds any screen.
 - **The archive screen and the share page are the bmo-artifact bundle's** (bmo-artifact's `docs/layout.md`),
-  which this app extends and whose roads it hands on.
+  which this app extends and whose calls it relays. That bundle's share page stands at `/archive/share/` and is
+  the one path outside the login (「Access」).
 
 ## Layout fundamentals
 
@@ -456,20 +457,22 @@ and files, which wait in the browser until the bot answers again (the room scree
 - **A call refused for the login says nothing of the bot either.** It leaves the reading where it
   stood, and the tab goes to the login screen instead.
 
-One path stands outside the login: the share link of a document of the 아카이브, a page of the bmo-artifact
-bundle answered by bmo-artifact itself (bmo-artifact's `docs/api.md`, 「Share links」). A link the owner made — or one the bot made for a long search answer in a room other than their own — opens that one
-document to whoever holds it, with no account and no session.
+One kind of path stands outside the login: a console bundle's share page, below its screen path at
+`share/<token>`. A link opens one document or file to whoever holds it, with no account and no session.
+The page and the one read of its token through the relay are the only paths that answer without one.
 
-- **The link is the whole key.** Its address carries a token and nothing besides. The search's own
-  number is never in it and the page never asks for one, so a link reaches the document it was made for
-  and can be pointed at no other.
-- **What it opens is the document alone** — the title, the findings, the sources and the pages the
-  search opened. Not the state, not the properties, not the document file, and nothing of the room the
-  search came from.
+- **The link is the whole key.** Its address carries a token and nothing besides, and the relayed read
+  of it is `shares/<token>`, which the service answers for a live token alone.
+- **What it opens is that one thing** — a document and the pages it refers to, or a file and its
+  download — and nothing of the console it came from.
 - **It ends by itself.** Every link carries an expiry chosen when it is made, and past that time it
   opens nothing. The owner takes it away earlier where they want it gone sooner.
-- **It leads nowhere else.** No other search, no screen of this console and no room stands within reach
-  of it, and the page carries none of the console's own frame to reach them by.
+- **It leads nowhere else.** No other screen of this console stands within reach of it, and the page
+  carries none of the console's own frame to reach them by.
+- **A bundle's share page that reads more than its token's own resource** is a gap in bmo-ui's
+  console-bundle contract, which has no field for it: the artifact bundle reads the document its token
+  names by that document's id, and the relay does not open a document without a session
+  (`docs/boundary.md`, 「Calls the console makes」).
 
 ## Wording and the language pack
 
@@ -525,9 +528,10 @@ edit to that file alone.
 - **No Korean stands in the code.** A string compared against a value, used as an id or a key, sent to
   a unit or matched against what a unit answers is not wording, and stands in the data file beside the pack,
   `client/apps/web/i18n/data/ko.yaml`, read by name; a code file holds none.
-- **The pack answers the layers it extends.** The bmo-ui layer and bmo-artifact's console plugin bundle read
-  keys of their own from the host's pack (bmo-ui's `docs/boundary.md`, 「Wording keys」; bmo-artifact's
-  `docs/api.md`, 「Wording」), so a key either of them reads counts as asked for, and the pack holds every one.
+- **The pack answers the layer under it.** The bmo-ui layer reads keys of its own from the host's pack
+  (bmo-ui's `docs/boundary.md`, 「Wording keys」), so a key it reads counts as asked for, and the pack holds
+  every one. A console bundle carries its own pack under its namespace, and the console merges the packs
+  of every bundle it extends (bmo-ui's `docs/console-bundles.md`, 「Words」); no bundle's word stands here.
 - **Words a unit answers with as codes are rendered here.** A label the console shows of another unit's
   state — a held item's label, a queue place, the parts of a TODO row — comes to it as that unit's code and
   fields, and is rendered from the server's pack (`docs/language-pack.md`), the same words a room is told.
@@ -536,11 +540,12 @@ edit to that file alone.
     vue-i18n and the server's is read as plain text with its marks filled.
 - **A guard keeps it so** (`client/tests/i18n/wording.test.ts`). It fails on Korean standing in the source of
   `app`, `server`, `shared`, `scripts` or the service worker under `public` of `client/apps/web`, on a key
-  asked for that the pack does not hold, on a key the pack holds that nothing asks for — the console, the
-  bmo-ui layer or the artifact bundle — on a key the bmo-ui layer reads that the pack lacks, on a key built
-  out of pieces, on a key not named by the rule above, on a value the engine cannot read, and on client
-  app code taking anything but a type from `shared/wording.ts`, which would carry the pack into
-  the browser's bundle where the development server cannot serve it.
+  asked for that the pack does not hold, on a key the pack holds that nothing asks for — the console or the
+  bmo-ui layer — on a key the bmo-ui layer reads that the pack lacks, on a key built out of pieces, on a key
+  not named by the rule above, on a value the engine cannot read, and on client app code taking anything but
+  a type from `shared/wording.ts`, which would carry the pack into the browser's bundle where the development
+  server cannot serve it. A bundle's own pack is not held to this: it is the bundle's, and the console only
+  merges it.
 - **The pack is large and is opened by its group.** A change opens the one top-level domain it is
   about rather than the whole file.
 
@@ -1058,15 +1063,16 @@ edit to that file alone.
     phone, the drawer. The palette is a layer: the back gesture closes it. It carries no theme group — the
     screen mode is the user menu's.
   - The screens and their tabs are one list in the code, read by both the sidebar and the search, so a screen
-    added to one is in the other.
+    added to one is in the other. A screen a console bundle declares takes that bundle's own name and icon,
+    merged into the list from the declaration (bmo-ui's `docs/console-bundles.md`).
 
 Four groups.
 
 - **Live status** — always one at the top. Below it stand **mail**, **cache siren**, **DB**, **파일**,
   **아카이브**, **document viewer**, **code graph**, **code review**, **agent management**, **monitor** and
-  **remote** together. The mail entry carries the unread mark while any account's inbox holds unread mail
-  (the mail unit's documents). This group does not fold — it is a flat list of screens with no branch to fold, and the fold
-  the sidebar remembers is only the agent group's below.
+  **remote** together. A screen of a unit not yet split stands under its own name and icon as a placeholder.
+  This group does not fold — it is a flat list of screens with no branch to fold, and the fold the sidebar
+  remembers is only the agent group's below.
 - **Rooms** — the rooms stand in the order the receiver's room list gives them, the pinned first. A room with no name comes up as a chat
   number. A room the console made itself — one made for companions — stands from the moment it is made, before any
   word is said in it; until then it stands after every room that has words. Choosing a room shows that room's
@@ -5272,7 +5278,8 @@ dialog open at 계정.
 - **Each kind declares itself.** A kind carries its own name, its note in the settings' 알림 section, whether a new device
   receives it, and the path that rings it; the 알림 section and the delivery filter read the list of kinds and
   nothing else, so a kind added later changes no file but its own and that list. The two kinds of the bot's stream
-  are rung by the plugin that listens to it; mail is rung by the mail watcher.
+  are rung by the plugin that listens to it; a bundle's notice kind is rung by the plugin that reads the stream
+  the bundle declares, in the bundle's own words.
 - **A device receives a kind unless it was turned off there.** What a device stores is what it refused, so a kind added
   after the device subscribed reaches it too.
 - **The test button rings a test of its own,** not one of the kinds, and reaches every device of the account whatever
@@ -5343,8 +5350,13 @@ dialog open at 계정.
   and the browser calls only this app's paths (`docs/boundary.md`, 「Calls the console makes」). The server is
   reached for the session, the users and the grants; the agency for agents, sessions, runs and roads; bmo-job for
   the TODO queue, its work orders, its questions and its workers; the receiver for rooms, their messages, the
-  owner's words and the live board; the brain for memories and fragments; bmo-artifact for its archive screen;
-  the cache siren and the cache warmer for their screens.
+  owner's words and the live board; the brain for memories and fragments; each console bundle for its own
+  screen, its share page and its notices; the cache siren and the cache warmer for their screens.
+- **A bundle's screen reaches its service through one relay.** The bundle calls the console's relay base, the
+  service's name and the path the service's own API writes; the console hands it on to the address the
+  service's setting names with the service's token, and hands the answer back as it came. Nothing here
+  re-exposes a unit's API under a name of its own, so a route a service changes reaches its screen with no
+  change in this console (bmo-ui's `docs/console-bundles.md`).
 - **The stream.** The receiver, bmo-job and the agency each publish a stream of events. The console's server holds
   one stream to each, and relays them into one stream per browser tab, event by event: an event cut across two
   reads waits here until the rest of it comes, so the frames this app writes into the same stream of its own — the

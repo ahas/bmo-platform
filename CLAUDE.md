@@ -15,9 +15,10 @@ bundle; a screen of a unit not yet split is a placeholder.
   match. `docs/boundary.md` states every route this repository serves, every call it makes on another unit
   and every code it answers with; `docs/inventory.md` states where each member of the old repository stands.
 - **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, and the console
-  plugin bundle `bmo-artifact-client` the console extends. Another unit is reached over HTTP at the address a
-  setting names; its code, its tables and its files are never read. A helper an old shared package held is
-  copied in. The testbed's dependency sweep and the repository's own tests fail on any other.
+  bundles the console extends: `bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client`
+  and `bmo-remote-client`. Another unit is reached over HTTP at the address a setting names; its code, its
+  tables and its files are never read. A helper an old shared package held is copied in. The testbed's
+  dependency sweep and the repository's own tests fail on any other.
 - **A base never knows its consumers.** The account service, the language packs and the console's shell supply
   the mechanism and a safe default; no code here names the unit or agent that calls it, and nothing branches
   on a unit's or a chat service's name.

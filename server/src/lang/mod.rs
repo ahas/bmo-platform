@@ -34,8 +34,6 @@ pub mod laya_agreement;
 pub mod machine_stand_in;
 pub mod memory_verbs;
 pub mod models;
-pub mod news_brief;
-pub mod news_page;
 pub mod node_land;
 pub mod nodes;
 pub mod outside_hosting;

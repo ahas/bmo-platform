@@ -7,6 +7,7 @@ import { unreadLabel, unreadShown } from "./room-list";
 
 import type { AvatarIndex } from "./avatars";
 import type { RoomReading } from "./room-list";
+import type { ConsoleBundleView } from "#shared/console-bundles";
 import type { ListedRoom } from "#shared/types";
 import type { Translate } from "#shared/wording";
 import type { NavigationMenuItem } from "@nuxt/ui";
@@ -56,19 +57,20 @@ export interface ScreenTab {
 
 // The screens that stand in this console now, in the order the sidebar shows them. A screen's group
 // puts its entry here as it brings the screen; a unit not yet split stands as its placeholder's entry.
+// A screen a bundle declares takes the bundle's own name and icon (`screensWithBundles`).
 export const SCREENS: readonly Screen[] = [
   // The live status screen stands on its own above the rest. A section of it is a tab kept in the address, so the
   // console search lands on the section rather than on the screen.
   { label: "screens.label.live", to: "/live", icon: "i-material-symbols-monitor-heart-outline", nested: false, tabs: LIVE_TABS },
-  // The mailboxes, bmo-mail's. Its screen had places below its address, so they light it too.
-  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true, placeholder: true },
+  // The mailboxes, bmo-mail's bundle. Its screen had places below its address, so they light it too.
+  { label: "screens.label.mail", to: "/mail", icon: "i-material-symbols-mail-outline", nested: true },
   // The cache siren: what the agents' requests did to the provider's prompt cache, as the siren on this machine sees
   // it. It stands under the live board because it is the other thing worth glancing at while something runs.
   { label: "screens.label.siren", to: "/siren", icon: "i-material-symbols-e911-emergency-outline", nested: false },
   // The console's own database, read as tables and rows.
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false },
-  // A machine's drives walked as files, bmo-drive's.
-  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false, placeholder: true },
+  // A machine's drives walked as files, bmo-drive's bundle.
+  { label: "screens.label.files", to: "/files", icon: "i-material-symbols-folder-open-outline", nested: false },
   // The Archive: the documents kept for reading, each with its attachments. Its pages are the
   // bmo-artifact bundle's, and its pages below the address light it.
   { label: "screens.label.archive", to: "/archive", icon: "i-material-symbols-archive-outline", nested: true },
@@ -81,8 +83,8 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.memories", to: "/memories", icon: "i-material-symbols-rule-folder-outline", nested: false },
   // A checkout's code as its graph, bmo-graph's.
   { label: "screens.label.graph", to: "/graph", icon: "i-material-symbols-hub-outline", nested: false, placeholder: true },
-  // A checkout read at a commit with reviews pinned to its lines, bmo-review's.
-  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false, placeholder: true },
+  // A checkout read at a commit with reviews pinned to its lines, bmo-review's bundle.
+  { label: "screens.label.code", to: "/code", icon: "i-material-symbols-rate-review-outline", nested: false },
   // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
   // its address are the agents' own, so they do not light it.
   { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS },
@@ -94,10 +96,37 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.gates", to: "/gates", icon: "i-material-symbols-shield-outline", nested: true, placeholder: true },
   // The voice briefing, bmo-voice's.
   { label: "screens.label.briefing", to: "/briefing", icon: "i-material-symbols-record-voice-over-outline", nested: false, placeholder: true },
-  // A machine's terminals and desktop, bmo-remote's. It stands last because it reaches the machine rather
-  // than reading anything kept; its full-screen pages stood below its address.
-  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true, placeholder: true }
+  // A machine's terminals and desktop, bmo-remote's bundle. It stands last because it reaches the machine
+  // rather than reading anything kept; its full-screen pages stand below its address.
+  { label: "screens.label.remote", to: "/remote", icon: "i-material-symbols-devices-outline", nested: true }
 ];
+
+/**
+ * The screens with every console bundle's screen in its place: a bundle's declaration gives the
+ * screen the name it is called by, the icon beside it and its pages below it, so the console carries
+ * no bundle's words or marks of its own (bmo-ui's `docs/console-bundles.md`). A bundle whose screen
+ * stands nowhere in the list is added after it.
+ */
+export function screensWithBundles(bundles: readonly ConsoleBundleView[]): Screen[] {
+  const declared = new Map(bundles.map((bundle) => [bundle.screenPath, bundle]));
+  const screens = SCREENS.map((screen): Screen => {
+    const bundle = declared.get(screen.to);
+
+    if (bundle === undefined) return screen;
+
+    const { placeholder: _placeholder, ...rest } = screen;
+
+    return { ...rest, label: bundle.title, icon: bundle.icon, nested: true };
+  });
+
+  for (const bundle of bundles) {
+    if (SCREENS.some((screen) => screen.to === bundle.screenPath)) continue;
+
+    screens.push({ label: bundle.title, to: bundle.screenPath, icon: bundle.icon, nested: true });
+  }
+
+  return screens;
+}
 
 export function isScreenActive(screen: Screen, path: string): boolean {
   return path === screen.to || (screen.nested && path.startsWith(`${screen.to}/`));
@@ -111,8 +140,8 @@ export function tabAddress(screen: Screen, tab: ScreenTab): string {
 // colour the status names.
 export const FOLDED_MARK = "relative after:absolute after:top-1 after:end-1 after:size-2 after:rounded-full after:content-['']";
 
-export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false): NavigationMenuItem[] {
-  return SCREENS.map((screen) => {
+export function screenItems(t: Translate, path: string, live: ScreenLive = QUIET, folded = false, screens: readonly Screen[] = SCREENS): NavigationMenuItem[] {
+  return screens.map((screen) => {
     const status = screen.status?.(live) ?? null;
     const entry = {
       label: t(screen.label),

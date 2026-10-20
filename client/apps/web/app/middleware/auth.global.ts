@@ -5,10 +5,13 @@ import { loginRoute, returnPath } from "~/domain/login-end";
 // login screen carries the address asked for, so the next login returns there, and says the login
 // ended where a page drawn on the server found its session gone (docs/web.md, 「Access」).
 export default defineNuxtRouteMiddleware((to) => {
-  // A share link is the one road with no session behind it. What stands there is one search
-  // document and nothing else: the page reaches its own document by the token in the address, and
-  // the roads under it answer that token alone.
-  if (to.path.startsWith("/share/")) return;
+  // A share link is the one road with no session behind it. Each bundle's share page stands below its
+  // own screen path, and the page reaches what it opens by the token in the address alone; the relay
+  // lets that one read through without a session.
+  const bundles = useAppConfig().consoleBundles ?? [];
+
+  if (bundles.some((bundle) => to.path.startsWith(`${bundle.screenPath}/share/`))) return;
+
   const { loggedIn, session } = useUserSession();
 
   if (to.path === "/login") {

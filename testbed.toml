@@ -20,9 +20,9 @@ setup = ["cd client && bun install --frozen-lockfile"]
 # name being allowed none; no code file of this repository holds any.
 quick = ["korean", "layout", "dependencies"]
 korean_ledger = "korean-ledger.json"
-# The base libraries, the console plugin bundle the console extends (docs/boundary.md), and sumida, the
-# server's base, a git dependency.
-base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client", "sumida"]
+# The base libraries, the console bundles the console extends (docs/boundary.md), and sumida, the server's
+# base, a git dependency.
+base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client", "bmo-mail-client", "bmo-review-client", "bmo-drive-client", "bmo-remote-client", "sumida"]
 
 [[check.step]]
 id = "check"

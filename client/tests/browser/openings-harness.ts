@@ -1,6 +1,6 @@
 import { createApp, defineComponent, h, ref, Teleport } from "vue";
 
-import { useOpenings } from "../../apps/web/node_modules/bmo-ui/app/domain/openings";
+import { useOpenings } from "bmo-ui/app/domain/openings";
 
 // Two floating things drawn into the page's body the way the component library draws them, and
 // nothing else on the page: a dialog mounted with the app, ahead of everything, and a drawer

@@ -292,31 +292,39 @@
     "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
   },
   {
-    "id": "console/archive-screen",
-    "title": "Archive screen (bmo-artifact's bundle)",
-    "what": "The archive screen is bmo-artifact's console plugin bundle, which the console extends in nuxt.config.ts; the console keeps the document design the bundle's pages and the share page read, and hands their roads on to bmo-artifact.",
+    "id": "console/console-bundles",
+    "title": "Console bundles",
+    "what": "The console attaches every unit's console bundle by its declaration alone: its screen and words, the service relayed under /api/, its event stream, sockets and notice kinds, with no bundle or service named in code.",
     "files": [
-      "client/apps/web/shared/document-design.ts",
-      "client/tests/shared/document-design.test.ts",
-      "client/apps/web/server/utils/artifact.ts",
-      "client/apps/web/server/api/archive/index.ts",
-      "client/apps/web/server/api/archive/[...path].ts",
-      "client/apps/web/server/api/share/[...path].ts",
-      "client/tests/server/api/archive-roads.test.ts"
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/app/composables/host.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/nuxt.config.ts",
+      "docs/boundary.md"
     ],
     "symbols": [
-      "DOCUMENT_PALETTE",
-      "LIGHT_PALETTE",
-      "DARK_PALETTE",
-      "pageSheet",
-      "DocumentScheme",
-      "SCHEME_COOKIE",
-      "ARTIFACT_CODES",
-      "ArtifactAsk",
-      "forwardToArtifact",
-      "artifactPath",
-      "artifactAsk"
+      "ConsoleBundleView"
     ],
+    "aliases": [],
+    "needs": [
+      "console/language-pack",
+      "console/login",
+      "console/unit-calls"
+    ],
+    "base": "036db5d470ee7bebedd4aae79278ea4a86abb1e6"
+  },
+  {
+    "id": "console/archive-screen",
+    "title": "Archive screen (bmo-artifact's bundle)",
+    "what": "The archive screen is bmo-artifact's console bundle, which the console extends and attaches by its declaration; its pages call bmo-artifact through the console's relay, and its share page opens one document without a session.",
+    "files": [
+      "client/apps/web/nuxt.config.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
     "aliases": [
       "검색 결과를 열람할 수 있는 페이지",
       "검색 문서 페이지",
@@ -336,7 +344,7 @@
       "opengraph"
     ],
     "needs": [
-      "console/audio-player",
+      "console/console-bundles",
       "console/documents-viewer",
       "console/language-pack",
       "console/list-place",
@@ -1225,8 +1233,7 @@
       "client/apps/web/shared/yaml.d.ts",
       "client/tests/i18n/wording.test.ts",
       "client/tests/server/utils/resolved-words.test.ts",
-      "docs/language-pack.md",
-      "client/tests/fixtures/artifact-kinds.json"
+      "docs/language-pack.md"
     ],
     "symbols": [
       "wording",
@@ -1773,13 +1780,9 @@
   {
     "id": "console/placeholders",
     "title": "Screens of units not yet split",
-    "what": "The placeholder standing in each screen of a unit not yet split (mail, files, code review, remote, code graph, monitor, cards, gates, voice briefing): its entry and route stand, and the page says the feature is not available here.",
+    "what": "The placeholder standing in each screen of a unit that ships no console bundle (code graph, monitor, cards, gates, voice briefing): its entry and route stand, and the page says the feature is not available here.",
     "files": [
       "client/apps/web/app/components/ScreenPlaceholder.vue",
-      "client/apps/web/app/pages/mail/[...path].vue",
-      "client/apps/web/app/pages/files.vue",
-      "client/apps/web/app/pages/code.vue",
-      "client/apps/web/app/pages/remote/[...path].vue",
       "client/apps/web/app/pages/graph.vue",
       "client/apps/web/app/pages/monitor/[...path].vue",
       "client/apps/web/app/pages/cards.vue",

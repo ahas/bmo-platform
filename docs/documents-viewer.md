@@ -122,8 +122,8 @@ document is shown beside it, since the row is the original there and the file tr
 - **Per heading it produces:** the depth, the text, an anchor unique within the document, and the original line
   number.
 - **Duplicate text:** when two headings have the same text, the later anchor gets a number.
-- **It is `DocumentToc`,** which the bmo-artifact bundle's archive screen also asks of the console, where a
-  document kind's outline becomes the contents.
+- **It is `DocumentToc`,** the console's own, where a document kind's outline becomes the contents. The
+  bmo-artifact bundle draws its own outline inside its own bundle.
 
 ### The rendered text remembers the original lines
 

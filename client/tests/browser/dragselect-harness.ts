@@ -1,8 +1,8 @@
 import { createApp, defineComponent, h, ref } from "vue";
 
-import { useDragSelect } from "../../apps/web/node_modules/bmo-ui/app/domain/dragselect";
+import { useDragSelect } from "bmo-ui/app/domain/dragselect";
 
-import type { PressKind } from "../../apps/web/node_modules/bmo-ui/app/domain/dragselect";
+import type { PressKind } from "bmo-ui/app/domain/dragselect";
 
 // A list of bare rows driven by the console's own choosing gesture, and nothing else on the page.
 // What is under test is the gesture rather than a screen, so a row here is a key, a height and a

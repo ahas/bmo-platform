@@ -49,7 +49,6 @@ common:
     depth_exhaustive: 초정밀
     depth_thorough: 정밀
     expired: 만료됨
-    expires_at: "{time}까지"
     expiry: 만료 시간
     forever: 무기한
     hours: "{h}시간"
@@ -65,7 +64,6 @@ common:
     model: 모델
     name: 이름
     no_effort: effort 없음
-    no_expiry: 만료 없음
     no_reason: 사유 없음
     no_record: 기록 없음
     none: 없음
@@ -86,6 +84,8 @@ common:
     rendered: 렌더링
     room: 방
     seconds: "{n}초"
+    share_until: "{date}까지"
+    short_day_format: YY.MM.DD
     size: 크기
     span_1h: 1시간
     span_24h: 24시간
@@ -133,7 +133,6 @@ common:
     previous_picture: 이전 사진
     refresh: 새로고침
     save: 저장
-    share: 공유
     unpin: 고정 해제
     unshare: 공유 해제
     zoom_in: 확대
@@ -180,7 +179,6 @@ common:
     attachments_too_many: "한 번에 {n}개까지 보낼 수 있습니다."
     bad_action: 요청한 동작이 올바르지 않습니다.
     bad_cursor: 커서 값이 올바르지 않습니다.
-    bad_expiry: 만료 시간이 올바르지 않습니다.
     bad_limit: 개수 값이 올바르지 않습니다.
     copy_failed: 복사하지 못했습니다.
     editor_failed: 코드 편집기를 불러오지 못했습니다.
@@ -190,115 +188,15 @@ common:
     not_saved_named: "{name} 저장 안 됨"
     not_sent: 보내지 못했습니다.
     picture_failed: 사진을 불러오지 못했습니다.
-    read_only_road: 이 주소는 읽기만 할 수 있습니다.
     rooms_failed: 방 목록을 불러오지 못했습니다.
     save_failed: 저장하지 못했습니다.
     say_to_bmo_empty: 채팅 에이전트에게 보낼 메시지를 입력해 주세요.
     send_failed: 메시지를 보내지 못했습니다.
     share_create_failed: 공유 링크를 만들지 못했습니다.
-    share_expired: 만료된 공유 링크입니다.
-    share_not_found: 공유 링크를 찾을 수 없습니다.
     share_read_failed: 공유 링크를 읽지 못했습니다.
     too_long: "메시지가 너무 깁니다. {n}자까지 보낼 수 있습니다."
     unshare_failed: 공유를 해제하지 못했습니다.
     video_failed: 영상을 불러오지 못했습니다.
-
-archive:
-  title:
-    body_links: "본문의 링크 · {n}"
-    cited_sources: 인용한 출처
-    document: "문서 {id}"
-    opened_pages: "열어 본 페이지 · {n}"
-    sources_count: "출처 {n}"
-  label:
-    attachments: 첨부
-    body: 본문
-    branch: "브랜치 · {branch}"
-    branch_run: "브랜치 · {branch} · 실행 {run}"
-    end: 끝
-    findings_pages: "조사 {findings} · 페이지 {pages}"
-    head_depth: 깊이
-    head_description: 설명
-    head_keywords: 키워드
-    head_question: 질문
-    head_request: 요청
-    head_rule: 적용 룰
-    head_topic: 주제
-    link_map: 지도
-    listen: 들으며 보세요
-    option_exclude: 제외
-    option_period: 기간
-    option_region: 지역
-    option_shape: 결과 모양
-    option_source: 가져온 원문
-    picture_address: 주소
-    shared_only: 공유 중인 문서만
-    sharing: "공유 중 · {left}"
-    show_all: 전체 보기
-    snippet_only: 요약문만 확인
-    sources: 출처
-    start: 시작
-    started_at: "{time} 시작"
-    state: 상태
-    value_brief: 요약만
-    value_domestic: 국내
-    value_full: 전체 문서
-    value_global: 해외 포함
-    value_learning: 학습자료
-    value_table: 표 포함
-  action:
-    back_to_list: 목록으로
-    details: 자세히
-    document_original: 문서 원문
-    download: 내려받기
-    open_new_tab: 새 탭에서 열기
-    open_page: 페이지 열기
-    original: 원본
-  # Each kind's label, under the key bmo-artifact's kind catalogue names it by (`labelKey`).
-  kind:
-    import: 원문
-    learning: 학습자료
-    page: 페이지
-    record: 기록
-    search: 검색
-  aria:
-    kind: 종류
-    opens_new_tab: (새 탭에서 열림)
-    search: 문서 검색
-  placeholder:
-    search: 검색
-  status:
-    attachment_loading: 첨부 불러오는 중…
-    cut_short: 중간에 끊김
-    document_loading: 문서 불러오는 중…
-    done: 완료
-    empty: 내용 없음
-    end: 끝
-    failed: 실패
-    map_loading: 지도 불러오는 중…
-    more_loading: 더 불러오는 중…
-    no_documents: 문서 없음
-    no_match: "‘{phrase}’ 검색 결과 없음"
-    no_shared: 공유 중인 문서 없음
-    no_sources: 출처 없음
-    open: 실행 중
-    refreshing: 목록 갱신 중…
-    stopped: 중지됨
-    unanswered: 답을 찾지 못함
-    value_only: 답이 값 하나뿐인 검색이라 문서가 없습니다
-  error:
-    already_shared: 이미 공유 링크가 있습니다.
-    attachment_not_found: 첨부를 찾을 수 없습니다.
-    attachment_read_failed: 첨부를 읽지 못했습니다.
-    bad_attachment_id: 첨부 번호가 올바르지 않습니다.
-    bad_id: 문서 번호가 올바르지 않습니다.
-    bad_maker: 공유 링크를 만든 사람을 알 수 없습니다.
-    document_not_found: 문서를 찾을 수 없습니다.
-    list_failed: 목록을 읽지 못했습니다.
-    no_such_source: 출처를 찾을 수 없습니다.
-    nothing_to_share: 문서를 남기지 않은 검색은 공유할 수 없습니다.
-    open_failed: 문서를 열지 못했습니다.
-    read_failed: 문서를 읽지 못했습니다.
 
 control:
   status:

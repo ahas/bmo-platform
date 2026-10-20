@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { DEFAULT_THEME, THEMES } from "../../../../apps/web/node_modules/bmo-ui/shared/themes";
+import { DEFAULT_THEME, THEMES } from "bmo-ui/shared/themes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readTheme, saveTheme } from "../../../../apps/web/server/utils/themes";
 import { scratchWebDatabase } from "../../../support/web-database";

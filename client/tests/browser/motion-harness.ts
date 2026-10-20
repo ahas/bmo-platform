@@ -1,7 +1,7 @@
 import { createApp, defineComponent, h, ref, Transition, TransitionGroup } from "vue";
 
-import { foldItem, settleItem, unfoldItem } from "../../apps/web/node_modules/bmo-ui/app/domain/moving-list";
-import { useSlideDirection } from "../../apps/web/node_modules/bmo-ui/app/domain/tab-slide";
+import { foldItem, settleItem, unfoldItem } from "bmo-ui/app/domain/moving-list";
+import { useSlideDirection } from "bmo-ui/app/domain/tab-slide";
 
 // A moving list and a tab's panel, wired the way MovingList and TabSlide wire them, and nothing else
 // on the page. What is under test is how the two move under the console's own stylesheet, frame by

@@ -35,8 +35,8 @@ discord:
     unconfigured: "디스코드로 보낼 수 없어요: {why}."
     unknown_room: "디스코드에 {chat} 방이 없어요."
     voice_unconfigured: "디스코드에서 그 계정으로 보낼 수 없어요: {why}."
-    message_missing: "디스코드에서 {message} 메시지를 찾을 수 없어요."
-    sticker_missing: "디스코드에 {emoji} 스티커가 등록되어 있지 않아요."
+    message_missing: "디스코드에서 메시지 {message}를 찾을 수 없어요."
+    sticker_missing: "디스코드에 {emoji} 스티커가 없어요."
 
 # The Teams road's refusals of a send in the {owner}'s own account: anything but words, where the account's
 # values are missing ({why}), and to a room it does not know ({chat}).

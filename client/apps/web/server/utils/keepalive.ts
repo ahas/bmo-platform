@@ -60,9 +60,13 @@ interface Target {
   last_warmed_at?: number | null;
 }
 
-/** What the warmer holds of each agent's keepalive, laid over the agents' rows; the rows as they came where it holds nothing. */
+/**
+ * What the warmer holds of each agent's keepalive, laid over the agents' rows. The switch is the
+ * warmer's alone; the agency's answer still carries the old switch's field, and it is not read here,
+ * since a warmer that holds no subject holds no switch to show.
+ */
 export async function withKeepalive(agents: AgentSummary[], consumer: string | null): Promise<AgentSummary[]> {
-  if (consumer === null) return agents;
+  if (consumer === null) return agents.map((agent) => ({ ...agent, keepaliveStopped: false, keepalivePausedAt: null }));
 
   try {
     const named = encodeURIComponent(consumer);
@@ -84,14 +88,14 @@ export async function withKeepalive(agents: AgentSummary[], consumer: string | n
 
       return {
         ...agent,
-        keepaliveStopped: subject === undefined ? agent.keepaliveStopped : subject.switch === "off",
-        keepalivePausedAt: subject === undefined ? agent.keepalivePausedAt : seconds(subject.paused_at ?? null),
+        keepaliveStopped: subject?.switch === "off",
+        keepalivePausedAt: seconds(subject?.paused_at ?? null),
         lastKeepaliveAt: lastWarmed === undefined ? agent.lastKeepaliveAt : seconds(lastWarmed)
       };
     });
   } catch {
-    // A warmer that does not answer leaves the rows as the agency gave them.
-    return agents;
+    // A warmer that does not answer leaves every switch down, since the switch is the warmer's.
+    return agents.map((agent) => ({ ...agent, keepaliveStopped: false, keepalivePausedAt: null }));
   }
 }
 

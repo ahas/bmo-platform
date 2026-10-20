@@ -62,9 +62,10 @@ describe("the console search in the sidebar", () => {
     expect(layout).not.toContain("useBackClose");
   });
 
-  test("lists the screens the search lists", () => {
+  test("lists the screens the search lists, one list of them both", () => {
     expect(layout).toContain("screenItems(t, route.path, ");
-    expect(layout).toContain("screenGroup(t)");
+    expect(layout).toContain("screenGroup(t, screens)");
+    expect(layout).toContain("screensWithBundles(useAppConfig().consoleBundles");
   });
 });
 

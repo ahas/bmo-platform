@@ -205,7 +205,7 @@ states them.
 | bmo-job (`docs/api.md`) | the TODO panel: every item's line, each item opened, the verbs on an item, its talk and its work order; the items at work, from the pool board; answering a question and stopping its clock; the queue's holds, its pause and the deployment's hold let go; a runner's launch; the workers and a word to one; a run's stop; a worker's job line and its prompt; the jobs that have just run, on the live board | `GET /todos?all`, `GET /todos?all&held`, `GET /todos?all&merged` (each with `&chat=` where the panel stands in a room), `GET /todos/{item}`, `POST /todo`, `GET`/`POST /todo-talk`, `GET /work-orders/{item}`, `POST /work-order`, `GET /coworker-pool`, `POST /question`, `POST /question-pause`, `GET /queue/holds` (the deployment mark reads the deployment's hold from it too), `POST /queue-pause`, `POST /deploy-hold-release`, `POST /launch`, `POST /worker`, `POST /worker-word`, `POST /run/stop`, `GET /events?after=&run=` (relayed to each tab from that tab's cursor), `GET /workers/{name}/job` and `GET /workers/{name}/job/prompt` (each with `?run=` where the screen was opened at a run), `GET /jobs/recent?limit=` |
 | the receiver (`docs/boundary-api.md`) | the room list, a room's title and its line, page by page, past a message, one message and where a day begins; a message's files, their bytes, its picture and the metadata it arrived with, for a message that carries files; a room's pictures, its figures and the chat agent's window there; whether a message is an agent's; the senders each room has, for which rooms a user reads; the owner's private chat; the owner's words and files; the event stream and the live board; removing a room; the rooms' pinned order, a room pinned and let go; what opened a turn; the voice briefing's switch read and moved, and a line's reading; companions with a room; the names people last spoke under, for the memories screen; a turn of the talk about a document | `GET /console/rooms`, `GET /console/rooms/{chat}/title`, `GET /console/rooms/{chat}/agent-message/{message}`, `GET /console/rooms/{chat}/messages`, `GET /console/rooms/{chat}/day-start`, `GET /console/rooms/{chat}/messages/after`, `GET /console/rooms/{chat}/messages/{message}`, `GET /console/rooms/{chat}/messages/{message}/files`, `GET /console/rooms/{chat}/messages/{message}/files/{place}` (with `download=true` for a file to keep, and the `Range` the browser asked with), `GET /console/rooms/{chat}/messages/{message}/picture`, `GET /console/rooms/{chat}/messages/{message}/metadata`, `GET /console/rooms/{chat}/pictures`, `GET /console/rooms/{chat}/figures?zone=` (the zone the console shows every time in), `GET /console/rooms/{chat}/window`, `POST /rooms/titles`, `GET /owner`, `POST /say`, `POST /say-file`, `GET /events`, `GET /live`, `GET`/`POST /rooms/remove`, `POST /console/pinned-rooms/add`, `POST /console/pinned-rooms/remove`, `GET /rounds/openings`, `GET /rounds/instruction`, `GET`/`POST /voice-briefing`, `POST /voice-briefing/line`, `POST /companions/add`, `POST /companions/remove`, `POST /people/names`, `POST /talks` (with a `document` topic, the earlier turns and the words just said), `GET /health` |
 | the brain (`docs/boundary-api.md`) | the memories screen; the fragments behind the document viewer's documents, the word each kind is called by, and a fragment's standing | `GET /memories` (with `?chat=` where the screen names a room), `POST /memories/active`, `GET /fragments?down=true`, `GET /fragments/kinds`, `POST /fragments/active`, `GET /health` |
-| bmo-artifact (`docs/api.md`, `docs/layout.md`) | the archive screen of its console plugin bundle, the share page, the research settings | every road under `/api/archive` and `/api/share/`, and `/searches` and `/collected` as moved screens, handed on whole behind the console's sign-in (the share page's roads take none, and only read) — the method, the query, the body and the headers that say what is asked, to `ARTIFACT_ADDRESS` with `ARTIFACT_TOKEN`, and the answer handed back as it came, a file as its bytes; `POST /api/archive/{id}/share` names the signed-in user as `by`, whatever the browser sent; `GET`/`POST /research-settings` |
+| the console bundles (`bmo-ui`'s `docs/console-bundles.md`; each unit's `docs/api.md`) | each bundle's own screen: its calls to the one service its declaration names | every path under `/api/<service>/`, handed on as it came to `<SERVICE>_ADDRESS` with `<SERVICE>_TOKEN`, behind the console's sign-in, its status, bytes and headers as the service gave them; a `GET` or `HEAD` of `shares/<token>` is relayed with no session, since the token is the whole of the permission. The services and their bundles are bmo-artifact (`artifact`), bmo-mail (`mail`), bmo-review (`review`), bmo-drive (`drive`) and bmo-remote (`remote`); a bundle's screen, its words, its event stream, its sockets and its notice kinds come from the bundle's declaration, and no code here names one. The artifact bundle's share page reads the document its link names, which the relay does not open without a session: that is a gap in bmo-ui's contract, written in `docs/inventory.md`. |
 | the cache siren (`docs/api.md`) | the cache siren screen | `GET /stats`, `GET /events?limit=` |
 | the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PUT /round`, `GET /targets?consumer=`, `GET /consumers/{consumer}/subjects`, `PUT /consumers/{consumer}/subjects/{subject}/switch`, `POST /consumers/{consumer}/subjects/{subject}/pause` |
 | the Telegram service (`docs/boundary-api.md`) | the profile photos of rooms and people | `GET /avatars/{kind}/{id}` |
@@ -256,6 +256,10 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `RECEIVER_ADDRESS`, `RECEIVER_TOKEN` | the receiver |
 | console | `BRAIN_ADDRESS`, `BRAIN_TOKEN` | the brain |
 | console | `ARTIFACT_ADDRESS`, `ARTIFACT_TOKEN` | bmo-artifact |
+| console | `MAIL_ADDRESS`, `MAIL_TOKEN` | bmo-mail |
+| console | `REVIEW_ADDRESS`, `REVIEW_TOKEN` | bmo-review |
+| console | `DRIVE_ADDRESS`, `DRIVE_TOKEN` | bmo-drive |
+| console | `REMOTE_ADDRESS`, `REMOTE_TOKEN` | bmo-remote |
 | console | `CACHE_SIREN_ADDRESS` | the cache siren |
 | console | `CACHE_WARMER_ADDRESS` | the cache warmer |
 | console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
@@ -341,19 +345,14 @@ for it, and no file or table of that unit is read meanwhile.
 
 ## Screens of units not yet split
 
-The screens of the mail, the drive, the code review, the remote access, the code graph, the nodes and the
-monitor, the card arbiter, the gates and the voice briefing belong to units whose own repositories are not yet
-split. Until each unit's own item carries its screen as a plugin bundle, the console shows a placeholder in
-that screen's place: its navigation entry and its route stand, and the page says, through the language pack,
-that the feature is not available in this console. The placeholder makes no call, and no file of the unit's
-screen is carried. `docs/inventory.md` lists every file of those screens.
+The screens of the code graph, the nodes and the monitor, the card arbiter, the gates and the voice briefing
+belong to units whose own repositories carry no console bundle yet. Until each unit publishes one, the console
+shows a placeholder in that screen's place: its navigation entry and its route stand, and the page says,
+through the language pack, that the feature is not available in this console. The placeholder makes no call,
+and no file of the unit's screen is carried. `docs/inventory.md` lists every file of those screens.
 
 | Unit | Address | Below it |
 |---|---|---|
-| bmo-mail | `/mail` | every address, as the mail screen's places stood |
-| bmo-drive | `/files` | none |
-| bmo-review | `/code` | none |
-| bmo-remote | `/remote` | every address, as its terminal and desktop stood |
 | bmo-graph | `/graph` | none |
 | bmo-node | `/monitor` | every address, as this machine's own monitor stood |
 | bmo-arbiter | `/cards` | none |
@@ -380,8 +379,7 @@ shown as.
 | the receiver | its refusals, each by the table beside its calls — every route's, the owner's sends, the voice briefing, removing a room and the companions'; a file a send did not take, by its kind; the fixed lines through `POST /words/render`. Its facts are an agent's to say, and no screen shows them | the receiver's `docs/codes.md` |
 | bmo-job | its refusals, each by the table beside its calls; the answers a screen says, a queue told and an unanswered turn; the kinds a row is laid out by, the held words, the line and model marks, and the phases a job's time is divided into | bmo-job's `docs/api.md`, 「Codes」 and 「Routes」; its `docs/jobs.md`, 「Where a job's time went」 |
 | the brain | its refusals, by the table beside its calls: its error shape's codes, the refusals a row's state answers with, and every code of its memory, fragment, document, digest and agent refusals, a code it carries in `refusal` said before the answer's own | the brain's `docs/boundary-api.md`, 「The error shape」, 「Memory rows」 and 「Codes the brain answers with」 |
-| bmo-artifact | the document wording file's keys; the label of each kind its catalogue names by `labelKey`, `archive.kind.<id>`, kept beside the console's tests as a fixture; its refusals on the archive's and the share page's roads, by the table beside its calls, a refusal with any other code handed on as it came | bmo-artifact's `docs/api.md`, 「Wording」, 「Documents (HTTP)」 and 「Share links (HTTP)」; its kind catalogue, `GET /api/archive/kinds` |
-| bmo-ui | the 76 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
+| bmo-ui | the 90 keys the layer reads | bmo-ui's `docs/boundary.md`, 「Wording keys」 |
 
 ## The public address
 
@@ -393,7 +391,7 @@ public name stand in the console's settings (「Settings」) and are not written
 |---|---|
 | every road | the console, at the port its settings name, the base path handed on as it is |
 | `/api/events` and every other event stream | the console, unbuffered, the connection kept open while it idles |
-| `/api/archive` and every road under it, every road under `/api/share/` | the console, which hands each on whole to bmo-artifact (「Calls the console makes」), behind its sign-in but for the share page's roads |
+| `/api/<service>` and every road under it | the console, which hands each on whole to the service the bundle declares (「Calls the console makes」), behind its sign-in but for a share token's own read |
 
 The server answers on its own listen address to the console and the other units on the machine, and no road of
 the proxy reaches it.

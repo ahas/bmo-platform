@@ -1,6 +1,6 @@
 {
   "name": "bmo-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,8 +14,11 @@
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@web/accounts": "workspace:*",
-    "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0.tgz",
-    "bmo-ui": "file:../../vendor/bmo-ui-0.1.0.tgz",
+    "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0-rev.2.tgz",
+    "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.1.tgz",
+    "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",
+    "bmo-remote-client": "file:../../vendor/bmo-remote-client-0.1.0-rev.2.tgz",
+    "bmo-review-client": "file:../../vendor/bmo-review-client-0.1.0-rev.1.tgz",
     "dayjs": "^1.11.23",
     "dompurify": "3.4.8",
     "eventsource-parser": "4.1.1",

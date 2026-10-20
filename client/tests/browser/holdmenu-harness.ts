@@ -1,6 +1,6 @@
 import { createApp, defineComponent, h, ref } from "vue";
 
-import { useHoldMenu } from "../../apps/web/node_modules/bmo-ui/app/domain/holdmenu";
+import { useHoldMenu } from "bmo-ui/app/domain/holdmenu";
 
 // A scrolling list of bare rows whose menu a held finger asks for, and nothing else on the page.
 // What is under test is the console's one long press as a menu reads it, so the menu here is only

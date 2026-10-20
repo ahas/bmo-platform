@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { DEFAULT_PALETTE, PALETTES } from "../../../../apps/web/node_modules/bmo-ui/shared/palettes";
+import { DEFAULT_PALETTE, PALETTES } from "bmo-ui/shared/palettes";
 import { useWebSql } from "../../../../apps/web/server/utils/db";
 import { readPalette, savePalette } from "../../../../apps/web/server/utils/palettes";
 import { scratchWebDatabase } from "../../../support/web-database";

@@ -58,10 +58,11 @@ bmo-testbed cargo test --manifest-path server/Cargo.toml --test repository
 They read every file git tracks or would track, the new ones it does not ignore among them.
 
 - **Dependencies.** No package depends on a `bmo-*` package but the base libraries `bmo-chat`, `bmo-chat-client`
-  and `bmo-ui`, and the console plugin bundle `bmo-artifact-client` the console extends (`docs/boundary.md`): not
-  the Cargo workspace's packages, as Cargo's metadata answers them, and not a `package.json` of the console. No
-  Rust file names another `bmo_` crate at the head of a path but the server's own and those four, and no console
-  file imports another `bmo-*` or `@bmo/` package. Another unit is reached over HTTP alone.
+  and `bmo-ui`, and the console bundles the console extends: `bmo-artifact-client`, `bmo-mail-client`,
+  `bmo-review-client`, `bmo-drive-client` and `bmo-remote-client` (`docs/boundary.md`): not the Cargo workspace's
+  packages, as Cargo's metadata answers them, and not a `package.json` of the console. No Rust file names another
+  `bmo_` crate at the head of a path but the server's own and the base libraries, and no console file imports
+  another `bmo-*` or `@bmo/` package outside a bundle. Another unit is reached over HTTP alone.
 - **Korean.** No code or test file holds a Hangul character: the Korean a person reads stands in the language
   packs (`server/lang/`, `client/apps/web/i18n/`), and the Korean a test reads in the tests' fixtures
   (`server/tests/fixtures/`, `client/tests/fixtures/`). The testbed's Korean ledger, `korean-ledger.json`, stays

@@ -18,7 +18,16 @@ fn root() -> &'static Path {
 
 /// The only `bmo-*` packages anything here may depend on: the base libraries and the console plugin bundle the
 /// console extends (docs/boundary.md).
-const ALLOWED: [&str; 4] = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client"];
+const ALLOWED: [&str; 8] = [
+  "bmo-chat",
+  "bmo-chat-client",
+  "bmo-ui",
+  "bmo-artifact-client",
+  "bmo-mail-client",
+  "bmo-review-client",
+  "bmo-drive-client",
+  "bmo-remote-client",
+];
 
 /// The server's own crate, which its binary and its tests import by name.
 const OWN_CRATE: &str = "bmo_web_server";

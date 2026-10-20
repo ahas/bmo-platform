@@ -14,8 +14,6 @@ const pane = await read("../../../apps/web/app/components/DocumentPane.vue");
 const toc = await read("../../../apps/web/app/components/DocumentToc.vue");
 const talk = await read("../../../apps/web/app/components/DocumentTalk.vue");
 const tree = await read("../../../apps/web/app/components/DocumentTree.vue");
-// The archive screen is the bmo-artifact bundle's, which asks the console for its contents list.
-const searches = await read("../../../apps/web/node_modules/bmo-artifact-client/app/components/ArchiveSources.vue");
 
 describe("the page", () => {
   test("is one panel under one title", () => {
@@ -108,9 +106,6 @@ describe("the contents list", () => {
     expect(toc).toContain("border-primary");
   });
 
-  test("is shared with the archive page", () => {
-    expect(searches).toContain("<DocumentToc");
-  });
 });
 
 describe("the talk", () => {

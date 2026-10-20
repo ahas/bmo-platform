@@ -2,14 +2,14 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 import tailwind from "tailwindcss/colors";
 
-import { DEFAULT_PALETTE, PALETTES, paletteDeclarations } from "../../apps/web/node_modules/bmo-ui/shared/palettes";
-import { DEFAULT_THEME, THEMES, themeDeclarations } from "../../apps/web/node_modules/bmo-ui/shared/themes";
+import { DEFAULT_PALETTE, PALETTES, paletteDeclarations } from "bmo-ui/shared/palettes";
+import { DEFAULT_THEME, THEMES, themeDeclarations } from "bmo-ui/shared/themes";
 import { measureSource } from "./measure-source";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, Page } from "playwright-core";
-import type { Palette } from "../../apps/web/node_modules/bmo-ui/shared/palettes";
-import type { Theme } from "../../apps/web/node_modules/bmo-ui/shared/themes";
+import type { Palette } from "bmo-ui/shared/palettes";
+import type { Theme } from "bmo-ui/shared/themes";
 import KO from "../fixtures/browser/bubble-contrast.test.ko.json";
 
 // What the measuring module calls itself once it is loaded into the page.

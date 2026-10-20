@@ -2,9 +2,10 @@ import { expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { isScreenActive, namedWhenFolded, SCREENS, screenItems, tabAddress } from "../../../apps/web/app/domain/screens";
+import { isScreenActive, namedWhenFolded, SCREENS, screenItems, screensWithBundles, tabAddress } from "../../../apps/web/app/domain/screens";
 
 import type { Screen } from "../../../apps/web/app/domain/screens";
+import type { ConsoleBundleView } from "../../../apps/web/shared/console-bundles";
 
 // The console's own screens, the flat group at the top of the sidebar (docs/web.md, 「Sidebar」): each named
 // from the pack, lit on its own address and, where it is nested, on the pages below it.
@@ -14,8 +15,31 @@ test("every screen standing in this console is listed, named from the pack", () 
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));
 });
 
-test("the screens this console carries stand whole; every other screen is its unit's placeholder", () => {
-  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/siren", "/db", "/archive", "/documents", "/memories", "/agents"]);
+test("the screens this console carries stand whole and the units not yet split are placeholders", () => {
+  expect(SCREENS.filter((screen) => screen.placeholder !== true).map((screen) => screen.to)).toEqual(["/live", "/mail", "/siren", "/db", "/files", "/archive", "/documents", "/memories", "/code", "/agents", "/remote"]);
+  expect(SCREENS.filter((screen) => screen.placeholder === true).map((screen) => screen.to)).toEqual(["/graph", "/monitor", "/cards", "/gates", "/briefing"]);
+});
+
+test("a bundle's screen takes the bundle's own name and icon, and stands where the console lists it", () => {
+  const mail = {
+    name: "mail",
+    title: "mail.title.screen",
+    icon: "i-material-symbols-mail-outline",
+    screenPath: "/mail",
+    serviceName: "mail",
+    languagePack: "i18n/locales",
+    events: true,
+    websocket: false,
+    pushKinds: ["message.created"]
+  } satisfies ConsoleBundleView;
+
+  const screens = screensWithBundles([mail]);
+  const screen = screens.find((entry) => entry.to === "/mail")!;
+
+  expect(screen.label).toBe("mail.title.screen");
+  expect(screen.icon).toBe("i-material-symbols-mail-outline");
+  expect(screen.placeholder).toBeUndefined();
+  expect(screens.map((entry) => entry.to)).toEqual(SCREENS.map((entry) => entry.to));
 });
 
 test("a nested screen is lit on its own address and on the pages below it, and nowhere else", () => {

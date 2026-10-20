@@ -1,12 +1,15 @@
 {
   "name": "bmo-web-client",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "typecheck": "bun run --cwd apps/web typecheck && tsc -p packages/accounts",
     "check": "bun run typecheck && bun test"
+  },
+  "dependencies": {
+    "bmo-ui": "file:./vendor/bmo-ui-0.3.0.tgz"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "20.14.5",
@@ -21,5 +24,9 @@
   },
   "patchedDependencies": {
     "reka-ui@2.10.4": "patches/reka-ui@2.10.4.patch"
+  },
+  "overrides": {
+    "bmo-markup": "file:../../../base/text/package",
+    "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp"
   }
 }
