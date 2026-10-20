@@ -11,7 +11,7 @@
     :disabled="props.disabled || saving"
     :aria-label="props.label"
     :content="{ align: 'start', side: 'bottom', sideOffset: 0 }"
-    :ui="{ base: `${CELL_BUTTON} pe-8`, trailing: saving ? undefined : 'hidden', group: 'w-auto', itemDescription: 'whitespace-normal' }"
+    :ui="{ base: `${CELL_BUTTON} pe-8 text-sm focus-visible:bg-elevated`, trailing: saving ? undefined : 'hidden', group: 'w-auto', itemDescription: 'whitespace-normal' }"
     class="w-full"
     @update:model-value="pick"
   >

@@ -37,7 +37,7 @@
           <span class="flex min-w-0 items-start gap-2">
             <UIcon
               :name="row.original.warning === null ? 'i-material-symbols-check-circle-outline' : 'i-material-symbols-warning-outline'"
-              class="mt-0.5 size-4 shrink-0"
+              class="badge-ink mt-0.5 size-4 shrink-0"
               :class="row.original.warning === null ? 'text-success' : 'text-warning'"
             />
             <span class="flex min-w-0 flex-col">
@@ -96,7 +96,7 @@
           @update:open="(now: boolean) => now && (acceptConflicts = false)"
         >
           <SearchText class="text-highlighted" :text="cellText(row.original, 'tier')" :query="props.query" />
-          <span class="text-warning">{{ $t("agents.title.previous_check") }}</span>
+          <span class="badge-ink text-warning">{{ $t("agents.title.previous_check") }}</span>
 
           <template #content>
             <div class="flex flex-col gap-1 text-sm">
@@ -194,7 +194,7 @@
         <SettingsChoiceCell
           v-if="row.original.profile?.gateOptions?.layaProbe && !onLaya(row.original)"
           :value="row.original.profile.gateOptions.layaTau ?? NO_TAU"
-          :items="tauItems"
+          :items="tauItemsOf(row.original)"
           :label="$t('agents.aria.tau_of', { name: row.original.label })"
           :save="(tau) => saveTau(row.original, tau)"
         >
@@ -308,7 +308,7 @@ const SWITCH_OFF = "off";
 
 const columns = computed<TableColumn<RouteRow>[]>(() => [
   ...(ordered.value ? [{ id: "step", header: HEADERS.step, meta: { class: { th: "w-20" } } }] : []),
-  { accessorKey: "label", header: props.gates ? t("agents.label.column_gate") : t("agents.label.column_work"), meta: { class: { th: "w-[30%]" } } },
+  { accessorKey: "label", header: props.gates ? t("agents.label.column_gate") : t("agents.label.column_work"), meta: { class: { th: "w-full" } } },
   ...DATA_COLUMNS.value.map((column) => ({ id: column, header: HEADERS[column] }))
 ]);
 
@@ -608,11 +608,18 @@ const switchItems = computed<CellChoice[]>(() => [
   { value: SWITCH_OFF, label: t("agents.label.gate_off") },
 ]);
 
-// The tau a gate may be given: the grid its agreement is counted at, so each has its figure beside it.
-const tauItems = computed<CellChoice[]>(() => [
-  { value: NO_TAU, label: tauText(t, null) },
-  ...laya.value.taus.map((tau) => ({ value: tau, label: tauText(t, tau) })),
-]);
+// The taus a gate may be given: the grid its agreement is counted at, each with its figure beside it,
+// and the value the row already holds where that is none of them, so the cell always offers what it
+// shows. A tau is cleared only by choosing none.
+function tauItemsOf(row: RouteRow): CellChoice[] {
+  const held = row.profile?.gateOptions?.layaTau ?? null;
+  const values = held === null || laya.value.taus.includes(held) ? [...laya.value.taus] : [...laya.value.taus, held].sort((a, b) => a - b);
+
+  return [
+    { value: NO_TAU, label: tauText(t, null) },
+    ...values.map((tau) => ({ value: tau, label: tauText(t, tau) })),
+  ];
+}
 
 function conflictsOf(row: RouteRow) {
   return tiers.value?.conflicts.filter((one) => one.key === row.key) ?? [];
