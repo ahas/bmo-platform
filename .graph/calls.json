@@ -1,0 +1,277 @@
+[
+  {
+    "id": "calls/agency",
+    "title": "bmo-agency API",
+    "what": "The agency's HTTP API as the console reaches it through the published @agency/client: the agents and workers with their gates and reasoning, base prompts, companions, sessions, models, tiers, the fallback, the co-worker pool and a run's log lines.",
+    "files": [
+      "client/apps/web/package.json",
+      "client/apps/web/server/utils/agency.ts",
+      "client/apps/web/server/utils/agentlog.ts",
+      "client/apps/web/server/utils/job-runs.ts",
+      "client/vendor/agency-client-0.1.0-rev.7.tgz",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360736,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-agency",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/artifact",
+    "title": "bmo-artifact API (relayed)",
+    "what": "The artifact service's own HTTP paths, handed on whole under /api/artifact/ by the console's bundle relay, with the address and token its setting names.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/.env.example",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360760,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-artifact",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/brain",
+    "title": "bmo-brain API",
+    "what": "The brain's HTTP API as the console reaches it through bmo-brain-client: the memories and their conditions, the fragments behind the document viewer's documents, the kinds they are called by and a fragment's standing.",
+    "files": [
+      "client/apps/web/package.json",
+      "client/apps/web/server/utils/brain.ts",
+      "client/apps/web/server/utils/memories.ts",
+      "client/apps/web/server/utils/document-fragments.ts",
+      "client/vendor/bmo-brain-client-0.1.0-rev.3.tgz",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360745,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-brain",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/cache-siren",
+    "title": "bmo-cache-siren API",
+    "what": "The cache siren's HTTP API as the console's siren screen reaches it: the current stats and the event stream that shows the cache and its limits per mode and model.",
+    "files": [
+      "client/apps/web/server/utils/siren.ts",
+      "client/apps/web/server/api/siren.get.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360749,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-cache-siren",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/cache-warmer",
+    "title": "bmo-cache-warmer API",
+    "what": "The cache warmer's HTTP API as the console's keepalive view reaches it: the round, and each target's switch and pause under the consumer the console's settings name.",
+    "files": [
+      "client/apps/web/server/utils/keepalive.ts",
+      "client/apps/web/server/api/keepalive.get.ts",
+      "client/apps/web/server/api/keepalive.post.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360752,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-cache-warmer",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/drive",
+    "title": "bmo-drive API (relayed)",
+    "what": "The drive service's own HTTP paths, handed on whole under /api/drive/ by the console's bundle relay, with the address and token its setting names.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/.env.example",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360772,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-drive",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/job",
+    "title": "bmo-job API",
+    "what": "The TODO service's HTTP API as the console reaches it through bmo-job-client: every item, its notes and reports, its work order and tasks, the questions and their replies, the queues and their holds, and the event stream.",
+    "files": [
+      "client/apps/web/package.json",
+      "client/apps/web/server/utils/job.ts",
+      "client/apps/web/server/utils/job-codes.ts",
+      "client/apps/web/server/utils/todos.ts",
+      "client/apps/web/server/utils/work-order-view.ts",
+      "client/vendor/bmo-job-client-0.1.0-rev.5.tgz",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360739,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-job",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/mail",
+    "title": "bmo-mail API (relayed)",
+    "what": "The mail service's own HTTP paths, handed on whole under /api/mail/ by the console's bundle relay, with the address and token its setting names.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/.env.example",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360763,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-mail",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/receiver",
+    "title": "bmo-receiver API",
+    "what": "The receiver's HTTP API as this repository reaches it: the console's rooms, messages, files, pictures, people, companions and events through @bmo/receiver-client, and the server's holder declaration and message-sender read.",
+    "files": [
+      "client/apps/web/package.json",
+      "client/apps/web/server/utils/receiver.ts",
+      "client/apps/web/server/utils/companions.ts",
+      "client/vendor/bmo-receiver-client-0.14.0.tgz",
+      "server/src/receiver.rs",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360742,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-receiver",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/remote",
+    "title": "bmo-remote API (relayed)",
+    "what": "The remote service's own HTTP paths, handed on whole under /api/remote/ by the console's bundle relay, with the address and token its setting names.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/.env.example",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360775,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-remote",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/review",
+    "title": "bmo-review API (relayed)",
+    "what": "The review service's own HTTP paths, handed on whole under /api/review/ by the console's bundle relay, with the address and token its setting names.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/.env.example",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360768,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-review",
+      "api": "api/http"
+    }
+  },
+  {
+    "id": "calls/telegram",
+    "title": "bmo-telegram avatars API",
+    "what": "The Telegram service's avatar route as the console reaches it: one room's or person's profile picture by kind and id, served on by the console behind its sign-in.",
+    "files": [
+      "client/apps/web/server/utils/avatars.ts",
+      "client/apps/web/server/api/avatars.get.ts",
+      "client/apps/web/server/api/avatars/[kind]/[id].get.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360756,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-telegram",
+      "api": "api/http"
+    }
+  }
+]

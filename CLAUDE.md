@@ -10,6 +10,9 @@ bundle; a screen of a unit not yet split is a placeholder.
 
 ## Rules
 
+- **`.graph/` is the code dependency graph, and only `bmo graph` writes it.** Its nodes name the features of
+  this repository and the APIs it exposes and calls; a change to a feature's files, symbols or edges rewrites
+  its nodes in the same commit, never by hand and never by a script.
 - **`docs/` is canonical.** Read the document covering a change before changing code. A change that would
   make it wrong or incomplete repairs it first, stating what is true now, and the code is then written to
   match. `docs/boundary.md` states every route this repository serves, every call it makes on another unit

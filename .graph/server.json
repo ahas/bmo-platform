@@ -4,7 +4,6 @@
     "title": "Account service",
     "what": "The account service on sumida: the server binary and its verbs, its routes and settings, the users and senders, the account model, the receiver port and the migrations of its tables, the OpenAPI contract under docs/openapi.json and the client crate generating it (docs/accounts.md).",
     "files": [
-      "server/src/lib.rs",
       "server/src/bin/bmo-web-server.rs",
       "server/src/routes.rs",
       "server/src/users.rs",
@@ -17,7 +16,6 @@
       "server/src/migration/m20261019_000001_tables.rs",
       "server/src/migration/m20261019_000002_document_talk.rs",
       "server/client/Cargo.toml",
-      "server/client/src/lib.rs",
       "server/client/src/types.rs",
       "server/client/src/wire.rs",
       "server/client/src/openapi.rs",
@@ -33,8 +31,11 @@
     ],
     "symbols": [],
     "aliases": [],
-    "needs": [],
-    "base": "4613ac56969ed57186ea0133dd5b8ae66b46d80f"
+    "needs": [
+      "calls/receiver"
+    ],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414326
   },
   {
     "id": "server/data-move",
@@ -49,7 +50,8 @@
       "server/account-service",
       "server/grants-and-checks"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414329
   },
   {
     "id": "server/document-wording",
@@ -64,7 +66,8 @@
     "needs": [
       "server/language-pack"
     ],
-    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414332
   },
   {
     "id": "server/fixed-lines",
@@ -81,7 +84,8 @@
     "needs": [
       "server/language-pack"
     ],
-    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414336
   },
   {
     "id": "server/grants-and-checks",
@@ -98,9 +102,11 @@
     "symbols": [],
     "aliases": [],
     "needs": [
-      "server/account-service"
+      "server/account-service",
+      "calls/receiver"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414340
   },
   {
     "id": "server/language-pack",
@@ -250,7 +256,8 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500360730
   },
   {
     "id": "server/phone-keys",
@@ -264,6 +271,7 @@
     "needs": [
       "server/account-service"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500414343
   }
 ]

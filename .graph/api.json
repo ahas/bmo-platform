@@ -1,0 +1,55 @@
+[
+  {
+    "id": "api/client",
+    "title": "Published clients",
+    "what": "The Rust crate bmo-web-client and the TypeScript package @web/server-client, generated from the service's OpenAPI document: every body as a type and one typed call for every route.",
+    "files": [
+      "docs/boundary.md",
+      "docs/openapi.json",
+      "server/client/src/client.rs",
+      "server/client/src/types.rs",
+      "server/client/src/wire.rs",
+      "server/client/src/openapi.rs",
+      "client/packages/server-client/src/index.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "api/http",
+      "server/account-service"
+    ],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500370347,
+    "boundary": {
+      "side": "exposes"
+    }
+  },
+  {
+    "id": "api/http",
+    "title": "Account service HTTP API",
+    "what": "Every route the account service serves on sumida: the users and senders, the checks and grants, phone keys, a room's holdings, the account model's move, the fixed lines and sumida's own routes, as docs/boundary.md and the OpenAPI document state them.",
+    "files": [
+      "docs/boundary.md",
+      "docs/openapi.json",
+      "docs/accounts.md",
+      "server/src/routes.rs",
+      "server/client/src/client.rs",
+      "client/packages/server-client/src/index.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "server/account-service",
+      "server/grants-and-checks",
+      "server/phone-keys",
+      "server/data-move",
+      "server/fixed-lines",
+      "server/language-pack"
+    ],
+    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
+    "changed": 1792500370343,
+    "boundary": {
+      "side": "exposes"
+    }
+  }
+]
