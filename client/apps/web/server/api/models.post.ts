@@ -1,17 +1,18 @@
 import { wording } from "#shared/wording";
 
-import type { CatalogueView } from "#shared/agency";
+import type { ModelView } from "#shared/agency";
 
-// One change of the model catalogue, or a choice of an entry for its engine, carried to the agency under
-// the signed-in user (the agency's docs/model-catalogue.md). A choice asks the engine's health and stands a unit up
-// before it answers, so it is given longer than a save.
-export default defineEventHandler(async (event): Promise<CatalogueView> => {
-  const session = await requireUserSession(event);
+// A model registered with the agency (the agency's docs/api.md, 「providers, models, pin-checks, tiers and
+// fallback」): its key and the model behind it. The agency starts the registration under the key's own
+// name, at the registry's smallest sizes and with no address, and refuses a name already registered.
+export default defineEventHandler(async (event): Promise<ModelView> => {
+  await requireUserSession(event);
+
   const body = await readBody<Record<string, unknown>>(event);
+  const key = typeof body?.key === "string" ? body.key.trim() : "";
+  const model = typeof body?.model === "string" ? body.model.trim() : "";
 
-  if (typeof body !== "object" || body === null || typeof body.action !== "string") throw fail(400, wording("agents.error.catalogue_action"));
+  if (key === "" || model === "") throw fail(400, wording("agents.error.registry_value"));
 
-  const { by: _ignored, ...change } = body;
-
-  return await agencyChange<CatalogueView>("/models", change, session.user.name, body.action === "use" ? 20_000 : 8_000);
+  return await agencyPost<ModelView>("/models", { key, model });
 });

@@ -23,6 +23,9 @@ const accounts = await read("../../components/AgentsAccounts.vue");
 const drag = await read("../../domain/row-drag.ts");
 const workers = await read("../../components/AgentsWorkers.vue");
 const workerDialog = await read("../../components/WorkerSettingsDialog.vue");
+const companions = await read("../../components/AgentsCompanions.vue");
+const catalogue = await read("../../components/AgentsCatalogue.vue");
+const registry = await read("../../components/AgentsRegistry.vue");
 const tiers = await read("../../components/AgentsTierTable.vue");
 const routes = await read("../../components/AgentsRouteTable.vue");
 const gateDialog = await read("../../components/GateSettingsDialog.vue");
@@ -306,6 +309,46 @@ describe("the model tab", () => {
     expect(limits).not.toContain("set-role-enabled");
     for (const key of keysSaying(KO.line_305)) {
       expect(limits).not.toContain(key);
+    }
+  });
+});
+
+describe("the model screens", () => {
+  test("ask the agency for model files at /model-catalogue and registered models at /models, and nothing at /registry", () => {
+    expect(scriptOf(page)).toContain('useFetch<ModelPage>("/api/models"');
+    expect(scriptOf(catalogue)).toContain('"/api/model-catalogue"');
+    expect(catalogue).not.toContain("/api/models");
+    expect(scriptOf(registry)).toContain('$fetch<ModelView>("/api/models"');
+    expect(scriptOf(registry)).toContain("`/api/models/${encodeURIComponent(editedName.value)}`");
+    expect(scriptOf(registry)).toContain("`/api/models/${encodeURIComponent(name)}`");
+    expect(scriptOf(registry)).toContain('method: "DELETE"');
+
+    for (const source of [page, general, catalogue, registry, workerDialog, companions]) {
+      expect(source).not.toContain("/api/registry");
+    }
+  });
+
+  test("list each resource and add, change and remove its records", () => {
+    // The model files: every entry and each engine's latest choice, saved, chosen and removed.
+    expect(templateOf(catalogue)).toContain('v-for="one in catalogue.entries"');
+    expect(scriptOf(catalogue)).toContain("body: catalogueSave(form.value)");
+    expect(scriptOf(catalogue)).toContain('body: { action: "use", name: entry.name }');
+    expect(scriptOf(catalogue)).toContain('body: { action: "remove", name: entry.name }');
+
+    // The registered models: the list, a create, a change and a take-away.
+    expect(templateOf(registry)).toContain('v-for="row in rows"');
+    expect(scriptOf(registry)).toContain("body: modelCreate(form.value)");
+    expect(scriptOf(registry)).toContain("body: modelChange(form.value)");
+    expect(scriptOf(registry)).toContain('method: "DELETE"');
+    expect(scriptOf(registry)).toContain("defineExpose({ openAdd })");
+  });
+
+  test("keep the registered model's box to what the model resource holds: a name and a model", () => {
+    expect(templateOf(registry)).toContain('v-model="form.name"');
+    expect(templateOf(registry)).toContain('v-model="form.model"');
+
+    for (const gone of ["form.addresses", 'type="password"', "contextTokens", "waitSeconds", "keepsResearch", "form.walked"]) {
+      expect(registry).not.toContain(gone);
     }
   });
 });

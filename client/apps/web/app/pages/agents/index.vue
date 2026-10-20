@@ -151,9 +151,9 @@
             :fallback="fallback"
             :keepalive="keepalive"
             :voice-briefing="voiceBriefingStatus === 'error' ? null : voiceBriefing"
-            :registry="registry ?? null"
-            :registry-failed="!!registryError"
-            :registry-reading="registryStatus === 'pending'"
+            :models="models ?? null"
+            :models-failed="!!modelsError"
+            :models-reading="modelsStatus === 'pending'"
             :reread="rereadPart"
             :query="query"
           />
@@ -193,6 +193,7 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { useListPlace } from "bmo-ui/app/domain/list-place";
 import { useReadFailure } from "~/domain/events";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
+import { registrationName } from "~/domain/registry";
 import { PROFILE_LABELS, profileLabel } from "~/domain/research";
 import { useResearchSettings } from "~/domain/research-settings";
 import { useNarrow } from "bmo-ui/app/domain/screen";
@@ -203,8 +204,7 @@ import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary, VoiceBriefingView } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
-import type { TierSettingsView } from "#shared/agency";
-import type { RegistryView } from "#shared/agency";
+import type { ModelPage, TierSettingsView } from "#shared/agency";
 
 const route = useRoute();
 const router = useRouter();
@@ -260,7 +260,7 @@ const { data: keepalive, refresh: rereadKeepalive, status: keepaliveStatus } = u
 const { data: voiceBriefing, refresh: rereadVoiceBriefing, status: voiceBriefingStatus } = useFetch<VoiceBriefingView>("/api/voice-briefing", { key: "voice-briefing", lazy: true, server: false, default: emptyVoiceBriefingView });
 const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
 // The registered models, read apart from the rest of the tab: its section waits on its own read.
-const { data: registry, error: registryError, refresh: rereadRegistry, status: registryStatus } = useFetch<RegistryView>("/api/registry", { key: "registry", lazy: true, server: false });
+const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 
 const fallbackInitial = useInitialRead(fallbackStatus);
 const keepaliveInitial = useInitialRead(keepaliveStatus);
@@ -279,8 +279,8 @@ async function rereadPart(what: GeneralPart): Promise<void> {
   if (what === "fallback") await Promise.all([rereadFallback(), refreshNuxtData("execution-fallback"), refreshAgents()]);
   if (what === "keepalive") await rereadKeepalive();
   if (what === "voice-briefing") await rereadVoiceBriefing();
-  // A registration named in a tier or a pin is read back beside the registry itself.
-  if (what === "registry") await Promise.all([rereadRegistry(), refreshNuxtData("model-tiers"), refreshAgents()]);
+  // A registration named in a tier or a pin is read back beside the models themselves.
+  if (what === "registry") await Promise.all([rereadModels(), refreshNuxtData("model-tiers"), refreshAgents()]);
 }
 
 const rereading = ref(false);
@@ -289,7 +289,7 @@ async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), rereadVoiceBriefing(), refreshNuxtData("model-tiers"), rereadResearch(), rereadRegistry()]);
+    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), rereadVoiceBriefing(), refreshNuxtData("model-tiers"), rereadResearch(), rereadModels()]);
   } finally {
     rereading.value = false;
   }
@@ -323,16 +323,18 @@ const entries = computed<SettingsEntry[]>(() => {
     list.push({ id: "providers", tab: "general", label: t("agents.label.find_provider", { name: one.label }), fields: [{ label: t("agents.label.column_provider"), text: one.label, shown: true }, { label: t("agents.label.reason"), text: one.reason, shown: true }] });
   }
 
-  // Every registered model, found by its label, its name, its model and its nodes.
-  for (const one of registry.value?.registrations ?? []) {
+  // Every registered model, found by its name, its model and its tier.
+  for (const one of models.value?.items ?? []) {
+    const name = registrationName(one.key);
+
     list.push({
       id: "registry",
       tab: "general",
-      label: t("agents.label.find_registration", { name: one.label }),
+      label: t("agents.label.find_registration", { name }),
       fields: [
-        { label: t("common.label.name"), text: one.name, shown: true },
+        { label: t("common.label.name"), text: name, shown: true },
         { label: t("common.label.model"), text: one.model, shown: true },
-        { label: t("agents.label.registry_node"), text: one.addresses.map((address) => address.node).join(" "), shown: true }
+        { label: t("agents.label.tier"), text: one.tier, shown: true }
       ]
     });
   }

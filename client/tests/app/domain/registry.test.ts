@@ -2,44 +2,44 @@ import { describe, expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 import { mappingText } from "../../../apps/web/app/domain/agent-settings";
-import { emptyRegistrationForm, gatewayLine, keyStateLabel, pinValue, refusalPlace, registrationFigures, registrationForm, registryPinChoices, registrySaves } from "../../../apps/web/app/domain/registry";
+import {
+  answeringModels,
+  emptyModelForm,
+  healthMark,
+  healthText,
+  modelChange,
+  modelCreate,
+  modelForm,
+  modelRefusalPlace,
+  pinValue,
+  registrationKey,
+  registrationName,
+  registryPinChoices
+} from "../../../apps/web/app/domain/registry";
 
-import type { RegistrationView } from "../../../apps/web/shared/agency";
+import type { ModelView } from "../../../apps/web/shared/agency";
 import KO from "../../fixtures/app/domain/registry.test.ko.json";
 
-// The registered models as the agents screen reads and changes them (the agency's docs/own-llm.md, 「Registered
-// models」). A key is one word on the screen, typed once into the box and never read back.
+// The registered models as the agents screen reads and changes them (the agency's docs/api.md,
+// 「providers, models, pin-checks, tiers and fallback」): the model resource is one registration, its key
+// naming the registry's provider and the registration apart.
 
 const t = wording;
 
-const registration: RegistrationView = {
-  name: "model-a-0-1",
-  label: "Model A 0.1",
-  model: "RVN-model",
-  contextTokens: 1_048_576,
-  answerTokens: 4_096,
-  waitSeconds: 2_400,
-  thinking: false,
-  walked: false,
-  keepsResearch: true,
-  addresses: [
-    { node: "alpha", url: "http://127.0.0.1:18021/v1/chat/completions", key: "usable" },
-    { node: "bravo", url: "http://127.0.0.1:18023/v1/chat/completions", key: "none" },
-  ],
-  referrers: [KO.line_28],
-};
+const model: ModelView = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true };
 
 describe("what a row says", () => {
-  test("a key is one word, and the figures carry their separators and units", () => {
-    expect(["usable", "none", "unusable"].map((state) => keyStateLabel(t, state as "usable"))).toEqual([wording("agents.label.key_usable"), KO.line_33, wording("agents.label.key_unusable")]);
-    expect(registrationFigures(t, registration)).toBe(KO.line_34);
-    expect(registrationFigures(t, { ...registration, thinking: true, walked: true, keepsResearch: false })).toBe(KO.line_35);
+  test("a registration is named by the part of its key after the provider", () => {
+    expect(registrationName("registered::model-a-0-1")).toBe("model-a-0-1");
+    expect(registrationName("model-a-0-1")).toBe("model-a-0-1");
+    expect(registrationKey("model-a-0-1")).toBe("registered::model-a-0-1");
   });
 
-  test("the gateway is spoken of only while it starts a new table", () => {
-    expect(gatewayLine(t, null)).toBe("");
-    expect(gatewayLine(t, { serving: "a", starting: null, draining: 1, at: 1 })).toBe("");
-    expect(gatewayLine(t, { serving: "a", starting: "b", draining: 0, at: 1 })).toBe(wording("agents.status.gateway_starting"));
+  test("health is one word and one mark, and nothing where the agency has not answered", () => {
+    expect([true, false, null].map((healthy) => healthText(t, healthy))).toEqual([wording("agents.label.registry_healthy"), wording("agents.label.registry_unhealthy"), ""]);
+    expect(healthMark(true)).toEqual({ icon: "i-material-symbols-check-circle-outline", tone: "text-success" });
+    expect(healthMark(false)).toEqual({ icon: "i-material-symbols-error-outline", tone: "text-error" });
+    expect(healthMark(null)).toBeNull();
   });
 
   test("a tier cell of the registry leaves thinking to the registration where it names none", () => {
@@ -52,43 +52,31 @@ describe("what a row says", () => {
 });
 
 describe("what a save of the box asks", () => {
-  test("the registration first, every address with a key only where one was typed, and each address let go removed", () => {
-    const form = registrationForm(registration);
-
-    form.label = "";
-    form.addresses[0]!.key = "  new-key  ";
-    form.addresses[1]!.url = "http://127.0.0.1:18024/v1/chat/completions";
-    form.addresses.push({ node: "charlie", url: "http://127.0.0.1:18024/v1/chat/completions", key: "", clearKey: false, held: null });
-
-    expect(registrySaves(form, registration)).toEqual([
-      { action: "save", name: "model-a-0-1", label: "model-a-0-1", model: "RVN-model", contextTokens: 1_048_576, answerTokens: 4_096, waitSeconds: 2_400, thinking: false, walked: false, keepsResearch: true },
-      { action: "set-address", name: "model-a-0-1", node: "alpha", url: "http://127.0.0.1:18021/v1/chat/completions", key: "new-key" },
-      { action: "set-address", name: "model-a-0-1", node: "bravo", url: "http://127.0.0.1:18024/v1/chat/completions" },
-      { action: "set-address", name: "model-a-0-1", node: "charlie", url: "http://127.0.0.1:18024/v1/chat/completions" },
-    ]);
-
-    const dropped = registrationForm(registration);
-
-    dropped.addresses = [dropped.addresses[0]!];
-    dropped.addresses[0]!.clearKey = true;
-
-    expect(registrySaves(dropped, registration).slice(1)).toEqual([
-      { action: "set-address", name: "model-a-0-1", node: "alpha", url: "http://127.0.0.1:18021/v1/chat/completions", key: null },
-      { action: "remove-address", name: "model-a-0-1", node: "bravo" },
-    ]);
+  test("a new registration is its key and the model behind it, each trimmed", () => {
+    expect(modelCreate({ name: "  model-a-0-1 ", model: " RVN-model " })).toEqual({ key: "registered::model-a-0-1", model: "RVN-model" });
   });
 
-  test("a new box holds one empty address, and a refusal stands under the field the bot named", () => {
-    expect(emptyRegistrationForm().addresses).toHaveLength(1);
-    expect(refusalPlace("url")).toBe("url");
-    expect(refusalPlace("action")).toBe("form");
-    expect(refusalPlace(null)).toBe("form");
+  test("a change asks for the model alone, the name fixed once made", () => {
+    expect(modelChange({ name: "model-a-0-1", model: " RVN-model-2 " })).toEqual({ model: "RVN-model-2" });
+    expect(modelForm(model)).toEqual({ name: "model-a-0-1", model: "RVN-model" });
+    expect(emptyModelForm()).toEqual({ name: "", model: "" });
+  });
+
+  test("a refusal stands under the field the bot named, or at the box's foot", () => {
+    expect(modelRefusalPlace("name")).toBe("name");
+    expect(modelRefusalPlace("model")).toBe("model");
+    expect(modelRefusalPlace("key")).toBe("key");
+    expect(modelRefusalPlace("action")).toBe("form");
+    expect(modelRefusalPlace(null)).toBe("form");
   });
 });
 
 describe("a worker's pin", () => {
-  test("offers every registration with an address as a pin of its own, and reads one back", () => {
-    expect(registryPinChoices([registration, { ...registration, name: "bare", label: "Bare", addresses: [] }])).toEqual([{ label: "Model A 0.1", value: "registered::model-a-0-1" }]);
+  test("offers every registration whose addresses answer as a pin of its own, and reads one back", () => {
+    const held = [model, { ...model, key: "registered::bare", healthy: false }, { ...model, key: "registered::unknown", healthy: null }];
+
+    expect(answeringModels(held).map((one) => one.key)).toEqual(["registered::model-a-0-1"]);
+    expect(registryPinChoices(held)).toEqual([{ label: "model-a-0-1", value: "registered::model-a-0-1" }]);
     expect(pinValue("registered", "model-a-0-1", "auto")).toBe("registered::model-a-0-1");
     expect(pinValue("registered", null, "auto")).toBe("registered");
     expect(pinValue(null, null, "auto")).toBe("auto");

@@ -1,9 +1,9 @@
-import type { CatalogueView } from "#shared/agency";
+import type { ModelPage } from "#shared/agency";
 
-// The model files the deployment's own engines serve, and the latest choice of one for each engine
-// (the agency's docs/model-catalogue.md).
-export default defineEventHandler(async (event): Promise<CatalogueView> => {
+// The models the registry holds (the agency's docs/api.md, 「providers, models, pin-checks, tiers and
+// fallback」): each registration's key, the model behind it, its tier and whether its addresses answer.
+export default defineEventHandler(async (event): Promise<ModelPage> => {
   await requireUserSession(event);
 
-  return await agencyFetch<CatalogueView>("/models");
+  return await agencyFetch<ModelPage>("/models");
 });

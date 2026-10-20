@@ -2076,7 +2076,8 @@ Two ways, split because the running places differ.
   name as a title of its own.
 - **The settings search** looks over every section at once: section names, agent and work-key names
   and keys, the names the owner calls an agent by, providers and their reasons, Claude accounts by the
-  names they gave them and by the path each is reached by, tiers and the models they map to, co-worker limits, research profiles and engines. It uses the console's shared list
+  names they gave them and by the path each is reached by, registered model names and the models behind
+  them, tiers and the models they map to, co-worker limits, research profiles and engines. It uses the console's shared list
   search, so a hit on what a row shows is marked there and a hit only in what the row holds stands as
   one line under the result. Where the tab row has room the search is a box beside the tabs with its
   results under it; where it does not (a phone) it is a button opening the same search in a centred modal.
@@ -2151,26 +2152,18 @@ Two ways, split because the running places differ.
   off the last one is refused by the bot. The default is all on in that order, and 기본 순서로
   stands only when the order differs. While a stand-in is answering, its row carries 대신 답하는 중. The
   OpenRouter key is never read by this screen — the bot says only whether each provider is usable.
-- **등록 모델.** Under the provider order, every registered model (the agency's `docs/own-llm.md`, 「Registered
-  models」), one row each: its label and name, its model, its window, answer size and request wait in
-  tokens and seconds with thousands separators, 생각 켬 or 끔, 순회 or nothing, 서쳐 직접 or nothing, and one chip per address
-  with the node's label and a mark saying whether its key is usable — 키 있음, 키 없음 or, where a file
-  is named but unusable, 키 확인 필요. 추가 in the tab row opens a box for a new registration; a row's
-  more-menu opens the same box to change it or removes it, a removal asked first in the message pill
-  and a removal the bot refuses showing the bot's reason, which names what still uses the
-  registration, under the list. The box holds the
-  name (fixed once made), the label, the model, the window, the answer size, the wait in seconds, a
-  생각 기본값 switch, a 자동 순회 switch, a 서쳐도 이 모델로 switch (whether the registration keeps its research,
-  bmo-artifact's `docs/research-runs.md`), and the addresses, each a row of its node label, its chat
-  completions address and a password field for its key with 키 없음 beside it; an address already
-  holding a key shows the field empty with 키 유지 as its placeholder, so leaving it empty keeps the
-  key and 키 없음 takes it away. A save the bot refuses keeps the box open with the reason under the
-  field it names. While the gateway is starting its new table after a save, a line under the list says
-  so — 게이트웨이 반영 중 — and it goes once the gateway serves it (the agency's `docs/own-llm.md`, 「The gateway」).
-  **No cell, no box and no answer the bot
-  gives this screen carries a key** — a key goes from the box to the bot once and is never shown
-  again.
-- **모델 파일.** Under 등록 모델, every entry of the model catalogue (the agency's `docs/model-catalogue.md`), one
+- **등록 모델.** Under the provider order, every registered model the agency serves at `/models` (its
+  `docs/api.md`, 「providers, models, pin-checks, tiers and fallback」), one row each: its name, the model
+  behind it, the first tier it is mapped at, and a mark beside its name saying whether its addresses
+  answer — 응답함 or 응답 안 함. 추가 in the tab row opens a box for a new registration's name, fixed
+  once made and written with lowercase letters, digits and hyphens beginning with a letter, and the model
+  its addresses serve; the agency starts it at the registry's smallest window, answer and wait, and with no
+  address. A row's more-menu opens the same box to change the model behind the registration, the name
+  staying, or removes it, a removal asked first in the message pill and a removal the bot refuses showing
+  the bot's reason under the list. A save the bot refuses keeps the box open with the reason under the
+  field it names.
+- **모델 파일.** Under 등록 모델, every entry of the model catalogue, which the agency serves at
+  `/model-catalogue` (its `docs/model-catalogue.md`), one
   row each: its label and name, its file, its size in GB with one decimal, the first twelve characters
   of its SHA-256, its source — 내려받기 for an `https` address, the run's path for a training's — its
   engine and registration, its nodes as chips, its defaults (생각, temperature, top_p,
@@ -2304,7 +2297,7 @@ Two ways, split because the running places differ.
   characters and the command up to 1,000 without a line break; the bot refuses more.
 - **공급자** is 자동 by default, the worker key's road. Choosing a provider pins the worker to it: its
   automatic jobs and the words said to it on its own screen run there alone, on the worker key's tier
-  mapping for that provider; choosing a registered model, listed by its label under 등록 모델, pins the
+  mapping for that provider; choosing a registered model, listed by its name under 등록 모델, pins the
   worker to that registration with its own answer size and thinking default (the agency's `docs/own-llm.md`, 「A
   worker pinned to a provider」). The choices are those the worker key's own chooser offers, each shut
   with its reason where this machine cannot run it.

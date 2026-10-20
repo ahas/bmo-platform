@@ -119,15 +119,98 @@ function agent(name: string, kind: string, label: string, extra: Record<string, 
   };
 }
 
+// One model file as the agency's model resource serves it, and the catalogue as a whole.
+function catalogueEntry(name: string, engine: string, registration: string): Record<string, unknown> {
+  return {
+    name, label: `Entry ${name}`, file: `${name}.gguf`, bytes: 1_000_000_000, sha256: "a".repeat(64),
+    source: "https://example.invalid/model.gguf", engine, registration, nodes: ["node-a"], note: null,
+    thinking: false, temperature: 0.7, topP: 0.9, presencePenalty: 0, maxTokens: 4_096, serving: false
+  };
+}
+
+// The registered models and model files the agency's stand-in holds, so the two model sections of the
+// agents screen render their lists and their changes as they would against the service.
+const models = new Map<string, Record<string, unknown>>([
+  ["model-a", { key: "registered::model-a", provider: "registered", model: "model-a-7b", tier: "large", healthy: true }],
+  ["model-b", { key: "registered::model-b", provider: "registered", model: "model-b-7b", tier: null, healthy: false }]
+]);
+const entries = new Map<string, Record<string, unknown>>([
+  ["entry-a", catalogueEntry("entry-a", "engine-a", "model-a")],
+  ["entry-b", catalogueEntry("entry-b", "engine-b", "model-b")]
+]);
+const uses: Record<string, unknown>[] = [];
+
+const catalogueView = () => ({ entries: [...entries.values()], uses });
+const notFound = () => Response.json({ code: "not-found", error: "not served by this stand-in" }, { status: 404 });
+
 // What each unit's stand-in answers, read from that unit's documented routes; anything else is the unit's own
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
-const UNITS: Record<string, (path: string) => Response | null> = {
-  AGENCY: (path) => {
+const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
+  AGENCY: async (path, request) => {
     if (path === "/agents") {
       return Response.json({ agents: [agent("agent-a", "chat", "Agent A"), agent("worker", "worker", "Worker", { cwd: "/srv/checkouts/worker", checkout: true })], roles: [] });
     }
 
-    return path === "/events" ? silentStream() : null;
+    if (path === "/events") return silentStream();
+    if (path === "/fallback") {
+      return Response.json({ active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, codexPresent: false, keyPresent: false, services: [], since: null, order: [], orderIsDefault: true, accounts: [], profiles: [] });
+    }
+
+    if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
+
+    if (path === "/models" && request.method === "POST") {
+      const body = (await request.json()) as { key?: string; model?: string };
+      const key = body.key ?? "";
+      const name = key.slice(key.indexOf("::") + 2);
+
+      if (models.has(name)) return Response.json({ code: "conflict", error: "a model is already registered" }, { status: 409 });
+
+      const made = { key, provider: "registered", model: body.model ?? "", tier: null, healthy: false };
+
+      models.set(name, made);
+
+      return Response.json(made, { status: 201 });
+    }
+
+    const one = /^\/models\/([^/]+)$/.exec(path);
+
+    if (one !== null) {
+      const name = decodeURIComponent(one[1]!);
+      const held = models.get(name);
+
+      if (held === undefined) return notFound();
+
+      if (request.method === "PATCH") {
+        const body = (await request.json()) as { model?: string };
+
+        models.set(name, { ...held, model: body.model ?? held.model });
+
+        return Response.json(models.get(name));
+      }
+
+      if (request.method === "DELETE") {
+        models.delete(name);
+
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    if (path === "/model-catalogue" && request.method === "GET") return Response.json(catalogueView());
+
+    if (path === "/model-catalogue" && request.method === "POST") {
+      const body = (await request.json()) as Record<string, unknown>;
+      const name = String(body.name ?? "");
+
+      if (body.action === "save") entries.set(name, { ...catalogueEntry(name, String(body.engine ?? "engine-a"), String(body.registration ?? "model-a")), ...body, name });
+      if (body.action === "remove") entries.delete(name);
+      if (body.action === "use") {
+        uses.push({ id: uses.length + 1, entry: name, engine: entries.get(name)?.engine ?? "engine-a", chosenBy: "tester", startedAt: Math.floor(Date.now() / 1000), endedAt: Math.floor(Date.now() / 1000), state: "done", step: null, reason: null, log: null, logTail: [] });
+      }
+
+      return Response.json(catalogueView());
+    }
+
+    return null;
   },
   JOB: (path) => {
     if (path === "/events") return silentStream();
@@ -141,6 +224,7 @@ const UNITS: Record<string, (path: string) => Response | null> = {
     const now = Math.floor(Date.now() / 1000);
 
     if (path === "/owner") return Response.json({ chat: OWNER_CHAT });
+    if (path === "/voice-briefing") return Response.json({ on: true, autoplay: true });
     if (path === "/events") return silentStream();
     if (path === "/live") return Response.json({ at: now, compacting: [] });
     if (path === "/console/rooms") return Response.json({ rooms: [{ chatId: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false }] });
@@ -161,7 +245,7 @@ const UNITS: Record<string, (path: string) => Response | null> = {
   ARTIFACT: () => null,
   TELEGRAM: () => null,
   CACHE_SIREN: () => null,
-  CACHE_WARMER: () => null
+  CACHE_WARMER: (path) => path === "/round" ? Response.json({ stopped: false }) : null
 };
 
 let stopping = false;
@@ -210,7 +294,7 @@ try {
       port: 0,
       hostname: "127.0.0.1",
       idleTimeout: 0,
-      fetch: (request) => answer(new URL(request.url).pathname) ?? Response.json({ code: "not-found", error: "not served by this stand-in" }, { status: 404 })
+      fetch: async (request) => (await answer(new URL(request.url).pathname, request)) ?? notFound()
     });
 
     servers.push(server);

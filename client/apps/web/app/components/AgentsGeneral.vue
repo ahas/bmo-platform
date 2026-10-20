@@ -147,8 +147,8 @@
       <p v-if="orderFailed !== ''" role="alert" class="text-sm text-error">{{ orderFailed }}</p>
     </section>
 
-    <!-- The registered models, whose windows, answers and waits are theirs to hold. -->
-    <AgentsRegistry ref="registryRef" :registry="props.registry" :failed="props.registryFailed" :reading="props.registryReading" :reread="() => props.reread('registry')" :query="props.query" />
+    <!-- The registered models the agency's model resource holds. -->
+    <AgentsRegistry ref="registryRef" :models="props.models" :failed="props.modelsFailed" :reading="props.modelsReading" :reread="() => props.reread('registry')" :query="props.query" />
 
     <AgentsCatalogue ref="catalogueRef" :query="props.query" />
 
@@ -239,7 +239,7 @@ import { useRowDrag } from "~/domain/row-drag";
 
 import type { AgentList, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary, VoiceBriefingView } from "#shared/types";
 import type { AgentBlock, AgentGroup, GeneralPart } from "~/domain/agents";
-import type { RegistryView } from "#shared/agency";
+import type { ModelPage } from "#shared/agency";
 
 interface Props {
   agents: AgentList;
@@ -249,15 +249,15 @@ interface Props {
   // Null where the switch's route does not answer.
   voiceBriefing: VoiceBriefingView | null;
   // The registered models as the page last read them, null before the first read has landed.
-  registry: RegistryView | null;
-  registryFailed?: boolean;
-  registryReading?: boolean;
+  models: ModelPage | null;
+  modelsFailed?: boolean;
+  modelsReading?: boolean;
   // Every change is asked of the bot and then read back by the page, which this waits for.
   reread: (what: GeneralPart) => Promise<void>;
   query?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), { query: "", registryFailed: false, registryReading: false });
+const props = withDefaults(defineProps<Props>(), { query: "", modelsFailed: false, modelsReading: false });
 const { t } = useI18n();
 
 const busy = ref("");

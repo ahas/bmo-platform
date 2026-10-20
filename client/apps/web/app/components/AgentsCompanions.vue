@@ -106,9 +106,9 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useReadFailure } from "~/domain/events";
 import { useFormSave, useLeaveGuard } from "bmo-ui/app/domain/form-save";
 import { useIsland } from "bmo-ui/app/domain/island";
+import { answeringModels, REGISTRY_PROVIDER, registrationName } from "~/domain/registry";
 
-import type { CompanionAdded, CompanionView } from "#shared/agency";
-import type { RegistryView } from "#shared/agency";
+import type { CompanionAdded, CompanionView, ModelPage } from "#shared/agency";
 
 interface Props {
   // The workers a companion's items may go to, as the page lists them.
@@ -148,9 +148,6 @@ function replaced(saved: CompanionView): void {
   companions.value = (companions.value ?? []).map((one) => (one.agent === saved.agent ? saved : one));
 }
 
-// The pin a companion added on the console takes: a registration of the registry's (the agency's docs/companions.md,
-// 「Its settings」).
-const REGISTRY_PROVIDER = "registered";
 // The fields the dialog shows a refusal under; any other stands at its end.
 const ADD_FIELDS = new Set(["name", "label", "model", "provider", "worker", "room"]);
 
@@ -164,12 +161,14 @@ const draft = ref(emptyDraft());
 const addDirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(emptyDraft()));
 const addRefusal = ref<{ field: string; text: string } | null>(null);
 
-// The registrations with an address a companion may be pinned to, read off the registry, which shares the
-// page's own reading of it.
-const { data: registry } = useFetch<RegistryView>("/api/registry", { key: "registry", lazy: true, server: false });
-const modelItems = computed(() =>
-  (registry.value?.registrations ?? []).filter((one) => one.addresses.length > 0).map((one) => ({ label: one.label, value: one.name })),
-);
+// The registrations whose addresses answer, which a companion may be pinned to; the page reads the
+// same list, so this shares its reading of it.
+const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
+const modelItems = computed(() => answeringModels(models.value?.items ?? []).map((one) => {
+  const name = registrationName(one.key);
+
+  return { label: name, value: name };
+}));
 const workerItems = computed(() => props.workers.map((one) => ({ label: one.label ?? one.name, value: one.name })));
 
 function addErrorAt(field: string): string | undefined {

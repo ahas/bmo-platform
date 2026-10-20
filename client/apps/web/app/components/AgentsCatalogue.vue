@@ -151,7 +151,7 @@ const island = useIsland(t);
 const CATALOGUE_WAITING = GENERAL_SECTIONS.find((one) => one.id === "catalogue")?.waiting ?? 1;
 const WHOLE_NUMBER = { step: 1, formatOptions: { useGrouping: true, maximumFractionDigits: 0 }, locale: "en-US" } as const;
 
-const { data: catalogue, refresh, status } = useFetch<CatalogueView>("/api/models", { key: "models", lazy: true, server: false });
+const { data: catalogue, refresh, status } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false });
 
 // While a choice runs its progress is read again every few seconds; nothing is read once all have ended.
 const POLL_MS = 3_000;
@@ -234,7 +234,7 @@ async function save(): Promise<void> {
   refusal.value = null;
 
   try {
-    catalogue.value = await $fetch<CatalogueView>("/api/models", { method: "POST", body: catalogueSave(form.value) });
+    catalogue.value = await $fetch<CatalogueView>("/api/model-catalogue", { method: "POST", body: catalogueSave(form.value) });
     editing.value = false;
   } catch (error) {
     const { field, text } = refusalOf(error);
@@ -259,7 +259,7 @@ async function use(entry: CatalogueEntryView): Promise<void> {
   actionFailed.value = "";
 
   try {
-    catalogue.value = await $fetch<CatalogueView>("/api/models", { method: "POST", body: { action: "use", name: entry.name } });
+    catalogue.value = await $fetch<CatalogueView>("/api/model-catalogue", { method: "POST", body: { action: "use", name: entry.name } });
   } catch (error) {
     actionFailed.value = failureText(error, t("common.error.save_failed"));
   }
@@ -273,7 +273,7 @@ async function remove(entry: CatalogueEntryView): Promise<void> {
   actionFailed.value = "";
 
   try {
-    catalogue.value = await $fetch<CatalogueView>("/api/models", { method: "POST", body: { action: "remove", name: entry.name } });
+    catalogue.value = await $fetch<CatalogueView>("/api/model-catalogue", { method: "POST", body: { action: "remove", name: entry.name } });
   } catch (error) {
     actionFailed.value = failureText(error, t("common.error.save_failed"));
   }

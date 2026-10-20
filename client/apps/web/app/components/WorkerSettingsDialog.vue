@@ -139,7 +139,7 @@ import { useAgentCatalogue } from "~/domain/catalogue";
 import { generationChange, settingsDraft } from "~/domain/companions";
 
 import type { AgentSummary, FallbackView, NodeView } from "#shared/types";
-import type { RegistryView } from "#shared/agency";
+import type { ModelPage } from "#shared/agency";
 import type { BasePromptsView } from "#shared/agency";
 import type { AgentSamplingView } from "#shared/agency";
 
@@ -242,15 +242,15 @@ watch(savedBase, (now, before) => {
 });
 
 // The providers a worker may be pinned to are those the worker key's own chooser offers, each shut
-// with its reason where this machine cannot run it, and under the registered models every registration the
-// registry would run, each a pin of its own; a pin the offer does not carry yet still stands as its
+// with its reason where this machine cannot run it, and under the registered models every registration
+// whose addresses answer, each a pin of its own; a pin the offer does not carry yet still stands as its
 // own choice so the field never reads empty.
 const { data: fallback } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
-const { data: registry } = useFetch<RegistryView>("/api/registry", { key: "registry", lazy: true, server: false });
+const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 const pinChoices = computed(() => {
   const offered = fallback.value.profiles.find((profile) => profile.kind === "worker")?.offered ?? [];
   const registryShut = offered.find((one) => one.name === REGISTRY_PROVIDER)?.reason ?? null;
-  const registrations = registryPinChoices(registry.value?.registrations ?? []);
+  const registrations = registryPinChoices(models.value?.items ?? []);
   const choices = [
     { label: t("common.label.auto"), value: AUTO_PIN, disabled: false },
     ...offered.filter((one) => one.name !== "laya").map((one) => ({ label: one.label, value: one.name as string, disabled: one.reason !== null })),

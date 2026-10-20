@@ -247,71 +247,23 @@ export interface PoolBoard {
   workers: PoolBoardWorker[];
 }
 
-export interface AddressView {
-  node: string;
-  url: string;
-  key: KeyState;
-}
+// One registered model as the agency's model resource serves it (the agency's docs/api.md,
+// 「providers, models, pin-checks, tiers and fallback」): its key names the registry's provider and the
+// registration apart, `tier` is the first tier the registration is mapped at, and `healthy` says
+// whether its addresses answer.
 
-export interface RegistrationView extends Omit<Registration, "addresses"> {
-  addresses: AddressView[];
-  // What names the registration, so a screen can say why it may not be removed.
-  referrers: string[];
-}
-
-// The gateway as its launcher last wrote of it: the table it serves, whether a new one is starting
-// and how many old children are still finishing; null where it has written nothing.
-export interface GatewayView {
-  serving: string | null;
-  starting: string | null;
-  draining: number;
-  at: number;
-}
-
-export interface RegistryView {
-  registrations: RegistrationView[];
-  gateway: GatewayView | null;
-}
-
-// The keys of the registered models' addresses (the agency's docs/own-llm.md, 「The keys」): written, taken away and
-// checked by the harness-machine binary (the agency's docs/harness-machine.md, 「The keys」), which reads a key off
-// its standing input alone. Nothing here returns a key or writes one anywhere else.
-
-// What a screen is shown of an address's key: usable, none named, or named but not usable.
-export type KeyState = "usable" | "none" | "unusable";
-
-// The models the owner registers for the chat, the workers and the editors to run on (the agency's docs/own-llm.md,
-// 「Registered models」): each a name, a label, the model its addresses serve, its sizes, its wait,
-// its thinking default, whether the automatic walk asks it and whether the research its runs set off
-// runs on it, with one or more addresses, each a node
-// the same model is served on. A row holds where a key is kept and never a key.
-
-export interface RegisteredAddress {
-  // The node's label, unique within its registration.
-  node: string;
-  // The OpenAI-compatible chat completions address.
-  url: string;
-  // The key's file under the data root's `env/`, or null where the address takes no key.
-  keyFile: string | null;
-  // Whether the agency wrote that file, and so may take it away.
-  keyOwned: boolean;
-  // When the address was last given a new session, in seconds; null where it never was.
-  placedAt: number | null;
-}
-
-export interface Registration {
-  name: string;
-  label: string;
+export interface ModelView {
+  key: string;
+  provider: string;
   model: string;
-  contextTokens: number;
-  answerTokens: number;
-  waitSeconds: number;
-  thinking: boolean;
-  walked: boolean;
-  // Whether a search or a browse a run on it sets off runs on it as well, opening no branch
-  // (bmo-artifact's docs/research-runs.md, 「A research run set off on a registration」).
-  keepsResearch: boolean;
-  addresses: RegisteredAddress[];
+  tier: string | null;
+  healthy: boolean | null;
+}
+
+// A page of the registered models; the list is not paged, so `more` is false.
+export interface ModelPage {
+  items: ModelView[];
+  more: boolean;
 }
 
 export interface CompanionView {
