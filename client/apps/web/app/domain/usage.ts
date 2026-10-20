@@ -406,5 +406,5 @@ export function unsplitText(t: Translate, tallies: readonly UsageTally[]): strin
 }
 
 export function emptyUsage(): UsageView {
-  return { windows: [], fiveHour: [], weekly: [], agents: [], users: [], sessions: [] };
+  return { windows: [], fiveHour: [], agents: [], users: [], sessions: [] };
 }

@@ -2,8 +2,7 @@
   <UPopover :content="{ align: 'end' }" :ui="{ content: 'w-96 max-w-[calc(100vw-1rem)] flex flex-col gap-3 p-3' }">
     <!-- The selected mode's two limit windows, or an honest absence for OpenRouter, on every
          title bar and nothing else. One axis: a percentage is what a window is, and a count of
-         tokens set beside one is read as though it were another percentage. What a model burnt
-         is a count, so it stands with the counts in the popover.
+         tokens set beside one is read as though it were another percentage.
          A phone's bar has no room even for the two — the room's own name was being cut to fit
          them — so below that width they fold into the one mark that opens them, and the mark
          carries the louder of them in its colour: an icon standing in for a share at red says
@@ -124,27 +123,8 @@
              parts named along the line below it. None of the four is hidden behind the total —
              the total alone would be the cached prefix read again on every resumed turn as much
              as anything else, and it answers how much went past rather than what was bought.
-             Under the rows, where
-             any of them was written before the kinds were kept apart, stands what that leaves
-             unaccounted. -->
-        <div class="flex flex-col gap-2">
-          <p class="text-sm font-medium text-muted">{{ $t("usage.title.weekly_by_mode") }}</p>
-
-          <div v-for="model in usage.weekly" :key="`${model.mode}:${model.model}`" class="flex flex-col">
-            <div class="flex items-center gap-2 text-sm">
-              <span class="min-w-0 flex-1 truncate text-dimmed">
-                {{ modeLabel($t, model.mode) }} · {{ modelLabel(model.model) }}
-              </span>
-              <span class="tabular-nums text-muted">{{ totalText($t, model) }}</span>
-            </div>
-
-            <UsageSplit :tally="model" class="mt-1" />
-          </div>
-
-          <p v-if="weeklyUnsplit !== ''" class="text-sm text-dimmed">{{ weeklyUnsplit }}</p>
-          <p v-if="usage.weekly.length === 0" class="text-sm text-dimmed">{{ $t("usage.status.no_week_record") }}</p>
-        </div>
-
+             Under the rows, where any of them was written before the kinds were kept apart,
+             stands what that leaves unaccounted. -->
         <div v-if="gates.length > 0" class="flex flex-col gap-2">
           <p class="text-sm font-medium text-muted">{{ $t("usage.title.weekly_by_gate") }}</p>
 
@@ -334,10 +314,9 @@ usePolling(() => {
 const gateKeys = computed<ReadonlySet<string>>(() => new Set((fallbackRead.value?.profiles ?? []).filter((one) => one.kind === "gate").map((one) => one.key)));
 const gates = computed<AgentTokenUsage[]>(() => usage.value.agents.filter((agent) => gateKeys.value.has(agent.agent)));
 
-// What each list of rows leaves unaccounted, worked out once for the whole list rather than per
+// What the list of rows leaves unaccounted, worked out once for the whole list rather than per
 // row: the rows written before the kinds were kept apart are the same omission whichever row they
 // sat on, and a note on every row would say it a dozen times.
-const weeklyUnsplit = computed<string>(() => unsplitText(t, usage.value.weekly));
 const gatesUnsplit = computed<string>(() => unsplitText(t, gates.value));
 
 

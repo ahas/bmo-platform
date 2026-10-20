@@ -1329,7 +1329,6 @@ export interface UserTokenUsage extends UsageTally {
 export interface UsageView {
   windows: UsageWindow[];
   fiveHour: ModelUsage[];
-  weekly: ModelUsage[];
   // What each agent has cost over the week. The gates are in here with the rest: they keep no
   // session and leave no transcript, so these rows are the only record of what they burn.
   agents: AgentTokenUsage[];

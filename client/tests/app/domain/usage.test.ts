@@ -54,10 +54,6 @@ function view(windows: UsageWindow[]): UsageView {
   return {
     windows,
     fiveHour: [],
-    weekly: [
-      tally(),
-      tally({ model: "claude-fable-5-1", tokens: 450_000, cost: 1, runs: 4 }),
-    ],
     agents: [],
     users: [],
     sessions: [],
@@ -288,16 +284,8 @@ describe("what one agent has cost", () => {
   });
 });
 
-describe("what a model has cost", () => {
-  // Every model of the week stands as its own row wherever the rows stand, so the one the owner
-  // watches is read there like any other rather than being lifted onto the title bar, where a
-  // count of tokens would sit beside a percentage and be read as one.
-  test("a row of its own for each model the week recorded", () => {
-    expect(view([]).weekly.map((model) => model.model)).toEqual(["claude-opus-5", "claude-fable-5-1"]);
-    expect(totalText(wording, view([]).weekly[1] as ModelUsage)).toBe(KO.line_296);
-  });
-
-  test("tokens as a person reads them", () => {
+describe("tokens as a person reads them", () => {
+  test("shortened to a unit a row has room for", () => {
     expect(tokenText(940)).toBe("940");
     expect(tokenText(9_400)).toBe("9.4K");
     expect(tokenText(94_000)).toBe("94K");

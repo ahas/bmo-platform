@@ -2068,13 +2068,11 @@ usage:
     no_info: 받은 정보 없음
     no_saved_sessions: 저장된 세션 없음
     no_usage_yet: 아직 받은 사용량 정보 없음
-    no_week_record: 이번 주 기록 없음
   title:
     remaining: 남은 사용량
     remaining_of: "남은 사용량 · {name}"
     saved_sessions: 저장된 세션
     weekly_by_gate: 주간 게이트별
-    weekly_by_mode: 주간 모드·모델별
     weekly_by_user: 주간 사용자별
 job:
   error:

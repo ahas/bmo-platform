@@ -55,7 +55,7 @@ describe("the mark the figures fold into", () => {
 });
 
 // One axis on the bar and no second one. A count of tokens set beside a percentage is read as
-// another percentage, so what a model burnt stands with the counts in the popover instead.
+// another percentage, so the counts stand with the totals in the popover instead.
 describe("what the wide bar carries", () => {
   // The wide shape of the bar: what stands where the fold is not in force.
   const wide = template.slice(template.indexOf('<span v-else class="hidden sm:contents">'), template.indexOf("</button>"));
@@ -96,7 +96,7 @@ describe("what the wide bar carries", () => {
 
 describe("what the popover holds", () => {
   test("everything the folded bar no longer says, and the windows by name", () => {
-    for (const heading of ["usage.title.remaining", "usage.title.weekly_by_mode", "usage.title.saved_sessions"]) {
+    for (const heading of ["usage.title.remaining", "usage.title.weekly_by_gate", "usage.title.weekly_by_user", "usage.title.saved_sessions"]) {
       expect(template).toContain(heading);
     }
 
@@ -111,8 +111,8 @@ describe("what the popover holds", () => {
   // Every row says what it burnt in the kinds it burnt it in, and the total stands with them
   // rather than in front of them. A total alone is the same cached prefix read again on every
   // resumed turn as much as anything else, and it answers a different question.
-  test("a model's row and a gate's row hand their kinds to the one thing that draws them", () => {
-    for (const row of ['<UsageSplit :tally="model"', '<UsageSplit :tally="gate"']) {
+  test("a gate's row and a user's row hand their kinds to the one thing that draws them", () => {
+    for (const row of ['<UsageSplit :tally="gate"', '<UsageSplit :tally="user"']) {
       expect(template).toContain(row);
     }
 
@@ -120,8 +120,8 @@ describe("what the popover holds", () => {
     // two blocks of markup drawing one picture is how the two stop matching.
     expect(template).not.toContain("kindFigures(");
 
-    expect(template).toContain("totalText($t, model)");
     expect(template).toContain("totalText($t, gate)");
+    expect(template).toContain("totalText($t, user)");
   });
 
   // The room a popover has was worked out for it before it was drawn, and this console takes its
@@ -149,7 +149,6 @@ describe("what the popover holds", () => {
   });
 
   test("and what the kinds do not cover stands under them", () => {
-    expect(template).toContain("{{ weeklyUnsplit }}");
     expect(template).toContain("{{ gatesUnsplit }}");
   });
 

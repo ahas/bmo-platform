@@ -6,5 +6,5 @@ import type { UsageView } from "#shared/types";
 export default defineEventHandler(async (event): Promise<UsageView> => {
   await requireUserSession(event);
 
-  return { windows: [], fiveHour: [], weekly: [], agents: [], users: [], sessions: [] };
+  return { windows: [], fiveHour: [], agents: [], users: [], sessions: [] };
 });
