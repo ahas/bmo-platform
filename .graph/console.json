@@ -36,8 +36,8 @@
       "server/account-service",
       "api/http"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414091
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021805
   },
   {
     "id": "console/agent-list",
@@ -168,8 +168,8 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414094
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021809
   },
   {
     "id": "console/agent-logs",
@@ -269,8 +269,8 @@
       "console/usage-display",
       "calls/agency"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414099
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021812
   },
   {
     "id": "console/agent-roles-and-gates",
@@ -291,8 +291,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414102
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021816
   },
   {
     "id": "console/archive-screen",
@@ -333,8 +333,8 @@
       "console/message-island",
       "console/screen-fit"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414106
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021820
   },
   {
     "id": "console/audio-player",
@@ -377,8 +377,8 @@
       "console/language-pack",
       "console/loading"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414109
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021824
   },
   {
     "id": "console/avatars",
@@ -414,8 +414,8 @@
       "console/shared-config",
       "calls/telegram"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414112
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021828
   },
   {
     "id": "console/back-gesture",
@@ -433,8 +433,8 @@
       "오버레이 닫기 기능처럼 뒤로가기의 구현으로 묶는게"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360516
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021832
   },
   {
     "id": "console/base-prompts",
@@ -455,8 +455,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414115
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021836
   },
   {
     "id": "console/bmo-mark",
@@ -484,8 +484,8 @@
       "십자키"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360521
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021840
   },
   {
     "id": "console/bot-events",
@@ -550,8 +550,8 @@
       "console/language-pack",
       "console/login"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414118
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021843
   },
   {
     "id": "console/bot-progress",
@@ -608,8 +608,8 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414122
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021847
   },
   {
     "id": "console/cache-siren",
@@ -667,8 +667,8 @@
       "console/usage-display",
       "calls/cache-siren"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414126
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021851
   },
   {
     "id": "console/chat-agent-names",
@@ -683,8 +683,8 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360532
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021855
   },
   {
     "id": "console/companions",
@@ -723,8 +723,8 @@
       "console/unit-calls",
       "calls/receiver"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414129
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021859
   },
   {
     "id": "console/console-bundles",
@@ -754,8 +754,8 @@
       "calls/drive",
       "calls/remote"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414133
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021864
   },
   {
     "id": "console/control-api",
@@ -788,8 +788,8 @@
       "console/language-pack",
       "console/shared-config"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414137
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021867
   },
   {
     "id": "console/data-table",
@@ -810,8 +810,8 @@
       "console/language-pack",
       "console/message-island"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414141
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021871
   },
   {
     "id": "console/database",
@@ -849,8 +849,8 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414145
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021875
   },
   {
     "id": "console/deploy-mark",
@@ -900,8 +900,8 @@
       "console/bot-events",
       "console/tooltips"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414148
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021879
   },
   {
     "id": "console/documents-viewer",
@@ -982,8 +982,8 @@
       "console/translation",
       "calls/brain"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414152
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021883
   },
   {
     "id": "console/drag-select",
@@ -1006,8 +1006,8 @@
     "needs": [
       "console/long-press"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414155
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021886
   },
   {
     "id": "console/fallback",
@@ -1033,8 +1033,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414159
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021890
   },
   {
     "id": "console/focus",
@@ -1049,8 +1049,8 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360557
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021894
   },
   {
     "id": "console/forms",
@@ -1074,8 +1074,8 @@
       "console/language-pack",
       "console/message-island"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414163
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021898
   },
   {
     "id": "console/home-page",
@@ -1113,8 +1113,8 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414167
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021902
   },
   {
     "id": "console/job-launcher",
@@ -1143,8 +1143,8 @@
       "console/message-island",
       "console/prompt-box"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414170
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021905
   },
   {
     "id": "console/judgements",
@@ -1239,8 +1239,8 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414174
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021909
   },
   {
     "id": "console/keepalive",
@@ -1257,8 +1257,8 @@
       "console/agent-list",
       "calls/cache-warmer"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414177
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021913
   },
   {
     "id": "console/language-pack",
@@ -1284,8 +1284,8 @@
       "콘솔 문구"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360574
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021916
   },
   {
     "id": "console/list-place",
@@ -1305,8 +1305,8 @@
       "뒤로가면 내 마지막 메일리스트 상태가 유지되어야하는데"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360577
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021921
   },
   {
     "id": "console/live-board",
@@ -1386,8 +1386,8 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414181
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021925
   },
   {
     "id": "console/loading",
@@ -1408,8 +1408,8 @@
       "console/data-table",
       "console/language-pack"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414184
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021929
   },
   {
     "id": "console/login",
@@ -1453,8 +1453,8 @@
       "server/account-service",
       "api/http"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414188
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021932
   },
   {
     "id": "console/long-press",
@@ -1471,8 +1471,8 @@
       "컨텍스트 메뉴"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360587
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021936
   },
   {
     "id": "console/markdown",
@@ -1512,8 +1512,8 @@
       "console/language-pack",
       "console/palettes"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414192
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021940
   },
   {
     "id": "console/member-console",
@@ -1545,8 +1545,8 @@
       "console/unread-messages",
       "console/user-menu"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414196
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021944
   },
   {
     "id": "console/memories",
@@ -1587,8 +1587,8 @@
       "console/tooltips",
       "calls/brain"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414200
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021948
   },
   {
     "id": "console/message-attachments",
@@ -1642,8 +1642,8 @@
       "console/loading",
       "console/motion"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414203
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021952
   },
   {
     "id": "console/message-island",
@@ -1667,8 +1667,8 @@
       "console/number-format",
       "console/screen-fit"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414207
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021956
   },
   {
     "id": "console/message-media",
@@ -1692,8 +1692,8 @@
       "console/language-pack",
       "console/markdown"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414211
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021961
   },
   {
     "id": "console/model-catalogue",
@@ -1720,8 +1720,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414215
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021965
   },
   {
     "id": "console/model-tiers",
@@ -1746,8 +1746,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414219
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021968
   },
   {
     "id": "console/motion",
@@ -1764,8 +1764,8 @@
       "페이드"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360614
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021973
   },
   {
     "id": "console/number-format",
@@ -1788,8 +1788,8 @@
       "console/language-pack",
       "console/motion"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414223
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021976
   },
   {
     "id": "console/palettes",
@@ -1828,8 +1828,8 @@
       "console/room-screen",
       "console/themes"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414227
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021980
   },
   {
     "id": "console/placeholders",
@@ -1974,8 +1974,8 @@
       "console/language-pack",
       "console/sidebar-nav"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414231
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021983
   },
   {
     "id": "console/prompt-box",
@@ -2012,8 +2012,8 @@
       "console/message-island",
       "console/screen-fit"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414234
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021988
   },
   {
     "id": "console/push-notifications",
@@ -2093,8 +2093,8 @@
       "console/member-console",
       "console/todo-queue"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414238
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021992
   },
   {
     "id": "console/registered-models",
@@ -2127,8 +2127,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414242
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512021996
   },
   {
     "id": "console/room-screen",
@@ -2397,8 +2397,8 @@
       "console/unread-messages",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414246
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022000
   },
   {
     "id": "console/room-stats",
@@ -2428,8 +2428,8 @@
       "console/number-format",
       "console/usage-display"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414250
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022003
   },
   {
     "id": "console/room-work",
@@ -2464,8 +2464,8 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414254
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022007
   },
   {
     "id": "console/screen-fit",
@@ -2487,8 +2487,8 @@
     "needs": [
       "console/language-pack"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414258
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022011
   },
   {
     "id": "console/screen-measure",
@@ -2517,8 +2517,8 @@
       "접근성 스냅샷"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360647
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022015
   },
   {
     "id": "console/screen-shot",
@@ -2538,8 +2538,8 @@
       "shot()"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360651
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022019
   },
   {
     "id": "console/session-resets",
@@ -2560,8 +2560,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414263
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022022
   },
   {
     "id": "console/shared-config",
@@ -2600,8 +2600,8 @@
     "needs": [
       "console/language-pack"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414267
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022026
   },
   {
     "id": "console/sidebar-nav",
@@ -2660,8 +2660,8 @@
       "console/unread-messages",
       "console/user-menu"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414271
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022030
   },
   {
     "id": "console/tab-bar",
@@ -2705,8 +2705,8 @@
       "console/language-pack",
       "console/screen-fit"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414275
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022034
   },
   {
     "id": "console/themes",
@@ -2737,8 +2737,8 @@
     "needs": [
       "console/language-pack"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414279
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022038
   },
   {
     "id": "console/todo-questions",
@@ -2776,8 +2776,8 @@
       "console/todo-queue",
       "console/tooltips"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414284
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022042
   },
   {
     "id": "console/todo-queue",
@@ -2896,8 +2896,8 @@
       "console/usage-display",
       "calls/job"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414288
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022046
   },
   {
     "id": "console/todo-talk",
@@ -2916,8 +2916,8 @@
       "console/todo-queue",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414292
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022051
   },
   {
     "id": "console/tooltips",
@@ -2948,8 +2948,8 @@
       "console/motion",
       "console/todo-queue"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414296
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022055
   },
   {
     "id": "console/translation",
@@ -2973,8 +2973,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360683
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022059
   },
   {
     "id": "console/typefaces",
@@ -2990,8 +2990,8 @@
       "CaskaydiaCove nerd font + Pretendard"
     ],
     "needs": [],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500360687
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022063
   },
   {
     "id": "console/unit-calls",
@@ -3022,8 +3022,8 @@
       "calls/receiver",
       "calls/brain"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414300
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022067
   },
   {
     "id": "console/unread-messages",
@@ -3075,8 +3075,8 @@
       "console/number-format",
       "api/http"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414303
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022070
   },
   {
     "id": "console/usage-display",
@@ -3125,8 +3125,8 @@
       "console/language-pack",
       "console/loading"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414307
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022074
   },
   {
     "id": "console/user-account",
@@ -3171,8 +3171,8 @@
       "console/usage-display",
       "api/http"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414311
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022079
   },
   {
     "id": "console/user-menu",
@@ -3187,8 +3187,8 @@
       "console/language-pack",
       "console/user-account"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414314
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022083
   },
   {
     "id": "console/work-nodes",
@@ -3208,8 +3208,8 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414318
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022087
   },
   {
     "id": "console/work-orders",
@@ -3279,7 +3279,7 @@
       "console/unit-calls",
       "calls/job"
     ],
-    "base": "2a67ff7d10099f18dc98c19174848b79fa3ed115",
-    "changed": 1792500414322
+    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
+    "changed": 1792512022090
   }
 ]
