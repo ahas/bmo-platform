@@ -6,6 +6,7 @@ import { describe, expect, test } from "bun:test";
 
 const rows = await Bun.file(new URL("../../../apps/web/app/components/DbRows.vue", import.meta.url)).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
+const layout = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/domain/table-layout.ts"))).text();
 const handle = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/ColumnResizeHandle.vue"))).text();
 
 describe("the rows of a table on the DB screen", () => {
@@ -18,7 +19,8 @@ describe("the rows of a table on the DB screen", () => {
   test("scroll in both directions inside their own box, with the names held overhead", () => {
     // Sideways because a table is wider than a phone, and down because a stuck cell holds itself
     // against the nearest box that scrolls.
-    expect(table).toContain('dense: { root: "min-h-0 overflow-auto"');
+    expect(layout).toContain('dense: { root: "min-h-0 overflow-auto"');
+    expect(table).toContain("TABLE_BOX[props.layout]");
     expect(table).toContain("sticky");
     expect(table).toContain('thead: "bg-elevated');
   });
