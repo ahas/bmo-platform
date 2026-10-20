@@ -62,11 +62,12 @@ Stands here as its own place in the Bun workspace under `client/`, re-cut for `a
 | `patches/reka-ui@2.10.4.patch` | `client/patches/`, the same patch bmo-ui and the bmo-artifact bundle carry, applied in the workspace's lockfile, which holds the packages it shares with bmo-ui at bmo-ui's own versions |
 
 The packs under `client/vendor/` are made with `bun pm pack` in a scratch export (`git archive`) of each
-repository's committed tree, never in its checkout: bmo-ui at 0.3.0 (revision 0.1.0-rev.2) and the console
+repository's committed tree, never in its checkout: bmo-ui at 0.3.0 (revision 0.1.0-rev.2), the console
 bundles bmo-artifact-client, bmo-mail-client, bmo-review-client, bmo-drive-client and bmo-remote-client, each at
-its current revision. Two of the bundles reach their own files by a host alias, and one's `$fetch` type does not
-narrow in a host's typecheck, so their vendored copies correct the two paths and the cast; the gaps they stand
-for are written in `docs/boundary.md`.
+its current revision, and bmo-text at 0.1.0-rev.5, which the mail bundle imports as `bmo-markup`; the
+workspace's `overrides` points that name at the pack. Two of the bundles reach their own files by a host alias,
+and one's `$fetch` type does not narrow in a host's typecheck, so their vendored copies correct the two paths
+and the cast; the gaps they stand for are written in `docs/boundary.md`.
 
 ### The console shell (210 files)
 

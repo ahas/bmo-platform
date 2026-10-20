@@ -21,7 +21,7 @@
     },
     "apps/web": {
       "name": "bmo-web",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "dependencies": {
         "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.7.tgz",
         "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.14.0.tgz",
@@ -44,6 +44,7 @@
         "motion-v": "^2.6.0",
         "nuxt": "^4.5.2",
         "nuxt-auth-utils": "^0.5.30",
+        "openapi-fetch": "0.17.0",
         "tailwindcss": "^4.1.16",
         "ufo": "1.6.4",
         "vue": "^3.5.24",
@@ -63,7 +64,7 @@
     },
     "packages/server-client": {
       "name": "@web/server-client",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "dependencies": {
         "openapi-fetch": "0.17.0",
       },
@@ -78,7 +79,7 @@
   },
   "overrides": {
     "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp",
-    "bmo-markup": "file:../../../base/text/package",
+    "bmo-markup": "file:./vendor/bmo-text-0.1.0-rev.5.tgz",
   },
   "packages": {
     "@adonisjs/hash": ["@adonisjs/hash@9.1.1", "", { "dependencies": { "@phc/format": "^1.0.0", "@poppinss/utils": "^6.9.3" }, "peerDependencies": { "argon2": "^0.31.2 || ^0.41.0 || ^0.43.0", "bcrypt": "^5.1.1 || ^6.0.0" }, "optionalPeers": ["argon2", "bcrypt"] }, "sha512-ZkRguwjAp4skKvKDdRAfdJ2oqQ0N7p9l3sioyXO1E8o0WcsyDgEpsTQtuVNoIdMiw4sn4gJlmL3nyF4BcK1ZDQ=="],
@@ -984,6 +985,8 @@
     "bmo-job-client": ["bmo-job-client@../../vendor/bmo-job-client-0.1.0-rev.5.tgz", { "dependencies": { "openapi-fetch": "0.17.0" } }, "sha512-OPwAh7OB1cUFFPcSB8zFSL5lJCxbi0vXmJOpwb86pSyF6ogFl4XMP4AKcFosZ7vkPndI0J+fjqPZVb0VZzU/OQ=="],
 
     "bmo-mail-client": ["bmo-mail-client@../../vendor/bmo-mail-client-0.1.0-rev.1.tgz", { "dependencies": { "@nuxt/ui": "^4.11.2", "@tiptap/extension-table": "3.32.0", "@tiptap/extension-text-align": "3.32.0", "@tiptap/extension-text-style": "3.32.0", "@tiptap/vue-3": "3.32.0", "bmo-markup": "file:../../../base/markup/package", "dompurify": "3.4.8", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-C8TaE/rPM+6vTTGZ2SKasBTodacbQ1EIV14PyZyz0OGv2zoH9rS3YYEMjnDHPfHzLVBBcEfF/9VfFLFiv3Ensg=="],
+
+    "bmo-markup": ["bmo-text@./vendor/bmo-text-0.1.0-rev.5.tgz", {}, "sha512-f5TUTrKVAk3c9/i9NPdRRm4apjRx4zOdLoDvD9wAQ0Ej9AczyeFScwgnggKNklxSzje7f4KGZMc0Xoua4Aa7MA=="],
 
     "bmo-remote-client": ["bmo-remote-client@../../vendor/bmo-remote-client-0.1.0-rev.2.tgz", { "dependencies": { "@devolutions/iron-remote-desktop": "0.11.0", "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp", "@nuxt/ui": "^4.11.2", "@xterm/xterm": "5.5.0", "get-east-asian-width": "^1.7.0", "vue": "^3.5.24", "vue-router": "^5.2.0" }, "peerDependencies": { "@nuxtjs/i18n": "^10.6.0", "bmo-ui": "0.1.0-rev.2", "nuxt": "^4.5.2", "vue-i18n": "^11.4.8" }, "optionalPeers": ["bmo-ui"] }, "sha512-uuIn2hf6GCmGMeIBKLk4GhT1srN5DtMFLkwT8dAtthi3AriA7aMXWADIYGoQU4PwsT8VW4m00V9jDJI+HOWIXg=="],
 
@@ -2326,8 +2329,6 @@
     "archiver-utils/glob": ["glob@10.5.0", "", { "dependencies": { "foreground-child": "^3.1.0", "jackspeak": "^3.1.2", "minimatch": "^9.0.4", "minipass": "^7.1.2", "package-json-from-dist": "^1.0.0", "path-scurry": "^1.11.1" }, "bin": { "glob": "dist/esm/bin.mjs" } }, "sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg=="],
 
     "archiver-utils/is-stream": ["is-stream@2.0.1", "", {}, "sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg=="],
-
-    "bmo-mail-client/bmo-markup": ["bmo-markup@file:../../../base/text/package", {}],
 
     "bmo-remote-client/@devolutions/iron-remote-desktop-rdp": ["@devolutions/iron-remote-desktop-rdp@file:./vendor/iron-remote-desktop-rdp", {}],
 

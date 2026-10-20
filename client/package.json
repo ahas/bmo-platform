@@ -1,6 +1,6 @@
 {
   "name": "bmo-web-client",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -27,7 +27,7 @@
     "reka-ui@2.10.4": "patches/reka-ui@2.10.4.patch"
   },
   "overrides": {
-    "bmo-markup": "file:../../../base/text/package",
+    "bmo-markup": "file:./vendor/bmo-text-0.1.0-rev.5.tgz",
     "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp"
   }
 }
