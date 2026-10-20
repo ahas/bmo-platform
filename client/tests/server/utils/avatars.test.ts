@@ -1,7 +1,8 @@
 import { afterAll, describe, expect, test } from "bun:test";
 
-// A profile picture is the chat service's (docs/web.md, 「Profile photos」): the console reads it off the
-// Telegram service's `GET /avatars/{kind}/{id}` with that service's token, and serves it under its own path.
+// A profile picture is the chat service's (docs/web.md, 「Profile photos」): the console reads a room's off the
+// Telegram service's `GET /rooms/{roomId}/avatar` and a person's off `GET /people/{personId}/avatar`, with that
+// service's token, and serves it under its own path.
 
 const PICTURE = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
 const heard: { path: string; token: string | null }[] = [];
@@ -14,7 +15,7 @@ const telegram = Bun.serve({
 
     heard.push({ path, token: request.headers.get("authorization") });
 
-    return path === "/avatars/room/-100"
+    return path === "/rooms/-100/avatar"
       ? new Response(PICTURE, { headers: { "content-type": "image/jpeg" } })
       : Response.json({ error: "no picture is kept", code: "no-route" }, { status: 404 });
   }
@@ -32,12 +33,13 @@ describe("a profile picture", () => {
     process.env.TELEGRAM_TOKEN = "the service's token";
 
     expect(await avatarPicture("room", -100)).toEqual(PICTURE);
-    expect(heard.at(-1)).toEqual({ path: "/avatars/room/-100", token: "Bearer the service's token" });
+    expect(heard.at(-1)).toEqual({ path: "/rooms/-100/avatar", token: "Bearer the service's token" });
   });
 
   test("is none where the service keeps none, or where no service is named", async () => {
     process.env.TELEGRAM_ADDRESS = `http://127.0.0.1:${telegram.port}`;
     expect(await avatarPicture("person", 42)).toBeNull();
+    expect(heard.at(-1)?.path).toBe("/people/42/avatar");
 
     delete process.env.TELEGRAM_ADDRESS;
     expect(await avatarPicture("room", -100)).toBeNull();

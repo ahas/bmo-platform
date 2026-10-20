@@ -5599,8 +5599,8 @@ journalctl --user -u <unit> -f
 
 - A profile photo is the chat service's: the console reads it through the chat service that keeps it, a room's and
   a person's by their kind and id, and serves it under its own path behind the sign-in.
-- No unit serves the list of the pictures it keeps, so the console lists none and every face stands as its letter
-  (`docs/boundary.md`, 「Gaps the console meets」).
+- The Telegram service lists the pictures it keeps, each with when it was taken, but the console reads a picture
+  by its kind and id and not that list, so every face stands as its letter.
 - When a photo is added, changed or deleted the receiver's stream carries a refresh event and the left room list and
   conversation profiles re-read the common list. While disconnected it checks at one-minute intervals, and re-reads at
   once on reconnect. Opening a screen does not call the chat service's platform.

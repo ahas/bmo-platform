@@ -3,8 +3,9 @@ import { unitAt, unitHeaders } from "./units";
 import type { AvatarKind, AvatarRef } from "#shared/types";
 
 // A room's and a person's profile picture, which the chat service that keeps it serves by its kind and id
-// (docs/web.md, 「Profile photos」; the Telegram service's `docs/boundary-api.md`, `GET /avatars/{kind}/{id}`).
-// The console serves it under its own path behind the sign-in, so the browser never names the service.
+// (docs/web.md, 「Profile photos」; the Telegram service's `docs/api.md`, `GET /rooms/{roomId}/avatar` and
+// `GET /people/{personId}/avatar`). The console serves it under its own path behind the sign-in, so the
+// browser never names the service.
 
 const KINDS: readonly string[] = ["room", "person"];
 
@@ -25,8 +26,10 @@ export async function avatarPicture(kind: AvatarKind, subjectId: number): Promis
 
   if (unit === null) return null;
 
+  const path = kind === "room" ? `/rooms/${subjectId}/avatar` : `/people/${subjectId}/avatar`;
+
   try {
-    const response = await fetch(`${unit.address}/avatars/${kind}/${subjectId}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
+    const response = await fetch(`${unit.address}${path}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
 
     return response.ok ? new Uint8Array(await response.arrayBuffer()) : null;
   } catch {

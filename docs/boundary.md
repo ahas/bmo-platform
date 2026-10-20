@@ -216,7 +216,7 @@ unit carries. A browser call to one of them reaches its fixed path through the r
 | the console bundles (`bmo-ui`'s `docs/console-bundles.md`; each unit's `docs/api.md`) | each bundle's own screen: its calls to the one service its declaration names | every path under `/api/<service>/`, handed on as it came to `<SERVICE>_ADDRESS` with `<SERVICE>_TOKEN`, behind the console's sign-in, its status, bytes and headers as the service gave them; a `GET` or `HEAD` of `shares/<token>` is relayed with no session, since the token is the whole of the permission. The services and their bundles are bmo-artifact (`artifact`), bmo-mail (`mail`), bmo-review (`review`), bmo-drive (`drive`) and bmo-remote (`remote`); a bundle's screen, its words, its event stream, its sockets and its notice kinds come from the bundle's declaration, and no code here names one. The relay also hands on a unit the console calls directly — the agency, bmo-job, the receiver and the brain — at the address its setting names, so a browser call to `<unit>`'s own fixed path stands under `/api/<unit>/`. The artifact bundle's share page reads the document its link names, which the relay does not open without a session: that is a gap in bmo-ui's contract, written in `docs/inventory.md`. |
 | the cache siren (`docs/api.md`) | the cache siren screen | `GET /stats`, `GET /events?limit=` |
 | the cache warmer (`docs/api.md`) | the keepalive view: the round, each agent's switch, pause and last warming, an agent being the subject of its name under the consumer `KEEPALIVE_CONSUMER` names | `GET /round`, `PUT /round`, `GET /targets?consumer=`, `GET /consumers/{consumer}/subjects`, `PUT /consumers/{consumer}/subjects/{subject}/switch`, `POST /consumers/{consumer}/subjects/{subject}/pause` |
-| the Telegram service (`docs/boundary-api.md`) | the profile photos of rooms and people | `GET /avatars/{kind}/{id}` |
+| the Telegram service (`docs/api.md`) | the profile photos of rooms and people | `GET /rooms/{roomId}/avatar`, `GET /people/{personId}/avatar` |
 | the testbed (`docs/deploy.md`) | the deployment in the title bar | the progress record, `deploy-progress.json`, read at the path `DEPLOY_PROGRESS_FILE` names, in the shape the testbed writes it; the testbed writes it and a reader needs only the file and the run's process; the last lines of the deploy unit the record names, read from the machine's user journal with `journalctl` |
 
 - **The console's own tables** are read and written in the server's database directly, through the database
@@ -285,9 +285,6 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 What the console needs and no unit serves stands empty in the console until a unit's document states a route
 for it, and no file or table of that unit is read meanwhile.
 
-- **The list of profile pictures.** The Telegram service serves one picture by its kind and id, but no unit
-  serves the list of the pictures it keeps with the moment each was taken, so the console lists none and every
-  face stands as its letter.
 - **What a room's page does not carry.** The receiver's pages carry a message's words, its sender, its round and
   its files' names. The judgements beside a page are the gate's, which serves the console none, so a room shows no
   verdict and the openings that ride on them stand unread; what a round cost and what its turn did are the
