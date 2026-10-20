@@ -1,6 +1,5 @@
 import { wording } from "#shared/wording";
 
-import type { FragmentStanding } from "../../utils/document-fragments";
 import type { DocumentFragmentView } from "#shared/types";
 
 interface StandingBody {
@@ -36,14 +35,12 @@ export default defineEventHandler(async (event): Promise<DocumentFragmentView> =
   }
 
   // A row the brain cannot find is its refusal, said by its code.
-  const written = await brainPost<{ ok: true; fragment: FragmentStanding }>("/fragments/active", {
-    kind: standing.kind,
-    slug: standing.slug,
-    active: body.active,
-    chatId: standing.chatId,
-    owner: standing.owner,
-    agent: standing.agent
-  });
+  const written = await brainCall(
+    brain().PATCH("/fragments/{fragmentKey}", {
+      params: { path: { fragmentKey: standing.slug } },
+      body: { state: body.active ? "active" : "off" }
+    })
+  );
 
-  return await fragmentView(written.fragment);
+  return await fragmentView(standingOf(written));
 });

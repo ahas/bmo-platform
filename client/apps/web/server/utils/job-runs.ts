@@ -1,105 +1,76 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
-import { jobRead } from "./job";
 
+import { agency, agencyCall } from "./agency";
+
+import type { Job as AgencyJob } from "@agency/client";
 import type { JobLine, JobPrompt, JobRecord } from "#shared/types";
 
-// A worker's job and the jobs that have just run, as bmo-job reads them (bmo-job's `docs/api.md`, 「Readings」;
-// its `docs/reading.md`, "A worker's job line" and "The jobs that have just run"), into the shapes the worker's
-// screen and the live board draw. bmo-job's times are milliseconds and the console's seconds.
-
-interface ModelSpent {
-  model: string;
-  input_tokens: number | null;
-  output_tokens: number | null;
-  cache_read_tokens: number | null;
-  cache_write_tokens: number | null;
-}
-
-interface JobLineReading {
-  run: string;
-  item: number | null;
-  title: string | null;
-  purpose: string | null;
-  launched_at: number;
-  finished_at: number | null;
-  tools: number;
-  models: ModelSpent[];
-}
-
-type JobLabel = { kind: "item"; id: number; attempt?: number | null } | { kind: "itemless" };
-
-interface RecentJob {
-  id: number;
-  unit: string;
-  chat: number;
-  model: string | null;
-  launched_at: number;
-  finished_at: number | null;
-  outcome: string | null;
-  ok: boolean | null;
-  label: JobLabel;
-  purpose: string | null;
-  worker: string | null;
-}
+// A worker's job and the jobs that have just run, as the agency's fixed API reads them (the agency's `docs/api.md`,
+// 「assignments and jobs」), into the shapes the worker's screen and the live board draw. The agency's times are
+// milliseconds and the console's seconds.
 
 const seconds = (ms: number): number => Math.floor(ms / 1000);
 
-// The run the screen was opened at, where it names one, as the query bmo-job reads it by.
-function runQuery(run: string | null): string {
-  return run === null || run.trim() === "" ? "" : `?run=${encodeURIComponent(run.trim())}`;
-}
-
 /** The job a worker's screen keeps a line for, or null where the worker has none. */
 export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
-  const { job } = await jobRead<{ job: JobLineReading | null }>(`/workers/${encodeURIComponent(worker)}/job${runQuery(run)}`);
+  const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { workerName: worker, limit: 50 } } }));
+  const named = run === null || run.trim() === "" ? undefined : jobs.items.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
+  const live = jobs.items.find((job) => job.state === "running" || job.state === "starting");
+  const job = named ?? live ?? [...jobs.items].sort((one, other) => other.startedAt - one.startedAt)[0];
 
-  return job === null
-    ? null
-    : {
-        run: job.run,
-        todoId: job.item,
-        title: job.title,
-        purpose: job.purpose,
-        startedAt: seconds(job.launched_at),
-        finishedAt: job.finished_at === null ? null : seconds(job.finished_at),
-        tools: job.tools,
-        models: job.models.map((spent) => ({
-          model: spent.model,
-          inputTokens: spent.input_tokens,
-          outputTokens: spent.output_tokens,
-          cacheReadTokens: spent.cache_read_tokens,
-          cacheWriteTokens: spent.cache_write_tokens
-        }))
-      };
+  return job === undefined ? null : {
+    run: job.runName ?? String(job.runId ?? job.id),
+    todoId: job.itemId,
+    title: null,
+    purpose: null,
+    startedAt: seconds(job.startedAt),
+    finishedAt: job.endedAt === null ? null : seconds(job.endedAt),
+    tools: 0,
+    models: []
+  };
 }
 
 /** The prompt of the job that line speaks of, or null where the worker has none. */
 export async function readWorkerJobPrompt(worker: string, run: string | null): Promise<JobPrompt | null> {
-  const { prompt } = await jobRead<{ prompt: { text: string; english: string | null } | null }>(
-    `/workers/${encodeURIComponent(worker)}/job/prompt${runQuery(run)}`
-  );
+  const job = await jobNamed(worker, run);
 
-  return prompt === null ? null : { text: prompt.text, english: prompt.english ?? null };
+  if (job === null) return null;
+
+  try {
+    const prompt = await agencyCall(agency().GET("/jobs/{jobId}/prompt", { params: { path: { jobId: job.id } } }));
+
+    return { text: prompt.text, english: prompt.english ?? null };
+  } catch (error) {
+    if ((error as { statusCode?: number }).statusCode === 404) return null;
+    throw error;
+  }
+}
+
+async function jobNamed(worker: string, run: string | null): Promise<AgencyJob | null> {
+  const jobs = await agencyCall(agency().GET("/jobs", { params: { query: { workerName: worker, limit: 50 } } }));
+  const named = run === null || run.trim() === "" ? undefined : jobs.items.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
+  const live = jobs.items.find((job) => job.state === "running" || job.state === "starting");
+  const job = named ?? live ?? [...jobs.items].sort((one, other) => other.startedAt - one.startedAt)[0];
+
+  return job ?? null;
 }
 
 /** The jobs that have just run, newest first, as many as the live board shows of a kind. */
 export async function readRecentJobs(): Promise<JobRecord[]> {
-  const jobs = await jobRead<RecentJob[]>(`/jobs/recent?limit=${STATUS_HISTORY_LIMIT}`);
+  const page = await agencyCall(agency().GET("/jobs", { params: { query: { state: "ended,stopped", limit: STATUS_HISTORY_LIMIT } } }));
 
-  return jobs.map((job) => ({
+  return page.items.map((job) => ({
     id: job.id,
-    unit: job.unit,
-    chatId: job.chat,
-    model: job.model,
-    launchedAt: seconds(job.launched_at),
-    finishedAt: job.finished_at === null ? null : seconds(job.finished_at),
+    unit: "",
+    chatId: 0,
+    model: null,
+    launchedAt: seconds(job.startedAt),
+    finishedAt: job.endedAt === null ? null : seconds(job.endedAt),
     outcome: job.outcome,
-    ok: job.ok,
-    // A label names the run of its item past the first; the first names none.
-    todoId: job.label.kind === "item" ? job.label.id : null,
-    attempt: job.label.kind === "item" ? (job.label.attempt ?? 1) : 0,
-    purpose: job.purpose,
-    // A job that names no worker is the built-in worker's.
-    worker: job.worker ?? WORKER_AGENT
+    ok: job.outcome === "ok" ? true : job.outcome === null ? null : false,
+    todoId: job.itemId,
+    attempt: 1,
+    purpose: job.report,
+    worker: job.workerName
   }));
 }

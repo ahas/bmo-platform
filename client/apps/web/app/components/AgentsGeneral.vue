@@ -25,53 +25,12 @@
       </div>
     </section>
 
-    <!-- The voice briefing as a whole: off, nothing is spoken on any road, asked for or not; on, the
-         notice turns of the owner's private chat are spoken as well. Under it, whether a briefing
-         plays by itself on the island and the phone or waits for its chip to be pressed, which
-         stays switchable while the whole is off (the voice unit's docs/voice-briefing.md). -->
+    <!-- The voice briefing is the voice unit's, and the receiver's fixed API serves no route for its
+         switch, so the section says the settings cannot be read and offers none. -->
     <section :id="settingsAnchor('voice-briefing')" class="flex flex-col gap-3" aria-labelledby="voice-briefing-title">
       <h2 id="voice-briefing-title" class="text-lg font-semibold text-highlighted">{{ generalSectionTitle($t, "voice-briefing") }}</h2>
 
-      <p v-if="props.voiceBriefing === null" class="text-sm text-muted">{{ $t("agents.status.voice_briefing_unavailable") }}</p>
-      <div v-else class="flex flex-col divide-y divide-default rounded-lg border border-default">
-        <div class="flex items-center gap-3 px-4 py-3">
-          <UIcon
-            :name="props.voiceBriefing.on ? 'i-material-symbols-record-voice-over-outline' : 'i-material-symbols-voice-over-off-outline'"
-            class="size-5 shrink-0"
-            :class="props.voiceBriefing.on ? 'text-success' : 'text-warning'"
-          />
-          <span class="min-w-0 flex-1">
-            <SearchText class="block text-sm font-medium text-highlighted" :text="$t('agents.label.voice_briefing_all')" :query="props.query" />
-            <span class="block text-sm text-muted">{{ props.voiceBriefing.on ? $t("agents.label.voice_briefing_on") : $t("agents.label.voice_briefing_off") }}</span>
-          </span>
-          <USwitch
-            :model-value="props.voiceBriefing.on"
-            :aria-label="$t('agents.label.voice_briefing_all')"
-            :loading="busy === 'voice-briefing'"
-            :disabled="busy !== ''"
-            @update:model-value="switchVoiceBriefing($event as boolean)"
-          />
-        </div>
-        <div class="flex items-center gap-3 px-4 py-3">
-          <UIcon
-            :name="props.voiceBriefing.autoplay ? 'i-material-symbols-play-circle-outline' : 'i-material-symbols-touch-app-outline'"
-            class="size-5 shrink-0"
-            :class="props.voiceBriefing.autoplay ? 'text-success' : 'text-warning'"
-          />
-          <span class="min-w-0 flex-1">
-            <SearchText class="block text-sm font-medium text-highlighted" :text="$t('agents.label.voice_briefing_autoplay')" :query="props.query" />
-            <span class="block text-sm text-muted">{{ props.voiceBriefing.autoplay ? $t("agents.label.voice_briefing_autoplay_on") : $t("agents.label.voice_briefing_autoplay_off") }}</span>
-          </span>
-          <USwitch
-            :model-value="props.voiceBriefing.autoplay"
-            :aria-label="$t('agents.label.voice_briefing_autoplay')"
-            :loading="busy === 'voice-autoplay'"
-            :disabled="busy !== ''"
-            @update:model-value="switchVoiceAutoplay($event as boolean)"
-          />
-        </div>
-      </div>
-      <p v-if="voiceFailed !== ''" role="alert" class="text-sm text-error">{{ voiceFailed }}</p>
+      <p class="text-sm text-muted">{{ $t("agents.status.voice_briefing_unavailable") }}</p>
     </section>
 
     <!-- The owner's one provider order, which every key's walk follows. A row is carried by its
@@ -237,7 +196,7 @@ import { countText } from "~/domain/numbers";
 import { modeLabel, modelLabel } from "~/domain/status";
 import { useRowDrag } from "~/domain/row-drag";
 
-import type { AgentList, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary, VoiceBriefingView } from "#shared/types";
+import type { AgentList, AgentSummary, FallbackView, KeepaliveView, OrderedProvider, RoomSummary } from "#shared/types";
 import type { AgentBlock, AgentGroup, GeneralPart } from "~/domain/agents";
 import type { ModelPage } from "#shared/agency";
 
@@ -246,8 +205,6 @@ interface Props {
   rooms: RoomSummary[];
   fallback: FallbackView;
   keepalive: KeepaliveView;
-  // Null where the switch's route does not answer.
-  voiceBriefing: VoiceBriefingView | null;
   // The registered models as the page last read them, null before the first read has landed.
   models: ModelPage | null;
   modelsFailed?: boolean;
@@ -263,7 +220,6 @@ const { t } = useI18n();
 const busy = ref("");
 const failed = ref("");
 const orderFailed = ref("");
-const voiceFailed = ref("");
 
 const groups = computed<AgentGroup[]>(() => agentGroups(t, props.agents.agents, props.rooms, props.agents.gateOrder ?? []));
 
@@ -351,15 +307,6 @@ async function ask(path: string, body: Record<string, unknown>, mark: string, wh
 
 async function switchKeepalive(stopped: boolean): Promise<void> {
   await ask("/api/keepalive", { stopped }, "keepalive", "keepalive");
-}
-
-// A refusal stands under the switch it answers, and the switch shows the bot's own state again.
-async function switchVoiceBriefing(on: boolean): Promise<void> {
-  await ask("/api/voice-briefing", { on }, "voice-briefing", "voice-briefing", voiceFailed);
-}
-
-async function switchVoiceAutoplay(autoplay: boolean): Promise<void> {
-  await ask("/api/voice-briefing", { autoplay }, "voice-autoplay", "voice-briefing", voiceFailed);
 }
 
 async function switchAgent(name: string, stopped: boolean): Promise<void> {

@@ -2,7 +2,7 @@ import { createParser } from "eventsource-parser";
 
 import { roomLabel } from "#shared/config";
 
-import type { ArchivedMessage, BotEvent } from "#shared/types";
+import type { BotEvent } from "#shared/types";
 
 // The console's own ear on the receiver, held open for as long as this server runs. Every screen
 // reads the receiver's stream to keep itself current; this reads the same stream to ring the
@@ -21,10 +21,15 @@ const RETRY_CAP_MS = 30_000;
 const FIRST_OPEN_DELAY_MS = 2_000;
 
 // One message of a room where an agent filed it, and null for a person's or one the receiver does not
-// hold, read off the receiver's console route for it.
-async function agentMessage(chatId: number, messageId: number): Promise<ArchivedMessage | null> {
+// hold: the sender's number is one of the room's answerers' own numbers.
+async function agentMessage(chatId: number, messageId: number): Promise<{ senderName: string; text: string } | null> {
   try {
-    return await unitFetch<ArchivedMessage>("RECEIVER", `/console/rooms/${chatId}/agent-message/${messageId}`);
+    const [message, numbers] = await Promise.all([
+      receiverCall(receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } } })),
+      agentNumbers(chatId)
+    ]);
+
+    return message.senderId === null || !numbers.has(message.senderId) ? null : { senderName: message.senderName, text: message.text };
   } catch (error) {
     if ((error as { statusCode?: unknown }).statusCode === 404) return null;
 
@@ -35,7 +40,7 @@ async function agentMessage(chatId: number, messageId: number): Promise<Archived
 // A room's name as the room list gives it, and the owner's own room as the console names it.
 async function roomTitle(chatId: number): Promise<string> {
   const [{ title }, owner] = await Promise.all([
-    unitFetch<{ title: string | null }>("RECEIVER", `/console/rooms/${chatId}/title`),
+    receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } } })),
     ownerChat()
   ]);
 

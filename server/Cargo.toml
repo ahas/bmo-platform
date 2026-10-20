@@ -3,7 +3,7 @@
 [package]
 name = "bmo-web-server"
 description = "The web console's server: the account service on sumida, its routes and its migrations."
-version = "2.0.0"
+version = "2.0.1"
 edition.workspace = true
 publish.workspace = true
 

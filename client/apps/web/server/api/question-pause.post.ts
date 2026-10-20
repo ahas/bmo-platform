@@ -7,16 +7,8 @@ interface PauseBody {
   paused?: unknown;
 }
 
-// What bmo-job answers a stop or a start of the clock with: its code, what the wait had left while stopped and
-// when the question now settles, in milliseconds.
-interface PauseAnswer {
-  code: string;
-  paused_left?: number | null;
-  due_at?: number | null;
-}
-
 // Stopping a question's clock while he reads it, or starting it again. The row is bmo-job's to write, as the
-// answer is: a stop of a clock already stopped, or a start of one running, changes nothing and says so.
+// answer is: its fixed API moves a question between open and paused, and the time it settles by comes back with it.
 export default defineEventHandler(async (event): Promise<QuestionPauseResult> => {
   await requireUserSession(event);
 
@@ -31,14 +23,14 @@ export default defineEventHandler(async (event): Promise<QuestionPauseResult> =>
     throw fail(400, wording("question.error.pause_direction"));
   }
 
-  const answer = await jobPost<PauseAnswer>("/question-pause", { id, paused: body.paused });
-
-  if (answer.code === "question_paused_already") throw fail(409, wording("question.error.already_paused"));
-  if (answer.code === "question_not_paused") throw fail(409, wording("question.error.already_running"));
+  const question = await jobCall(job().PATCH("/questions/{questionId}", {
+    params: { path: { questionId: id } },
+    body: { state: body.paused ? "paused" : "open" }
+  }));
 
   return {
     ok: true,
-    pausedLeft: typeof answer.paused_left === "number" ? Math.floor(answer.paused_left / 1000) : null,
-    dueAt: typeof answer.due_at === "number" ? Math.floor(answer.due_at / 1000) : 0
+    pausedLeft: null,
+    dueAt: question.dueAt === null ? 0 : Math.floor(question.dueAt / 1000)
   };
 });

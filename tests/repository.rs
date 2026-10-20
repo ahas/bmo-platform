@@ -16,9 +16,9 @@ fn root() -> &'static Path {
     .expect("the server's crate stands in the repository")
 }
 
-/// The only `bmo-*` packages anything here may depend on: the base libraries and the console plugin bundle the
-/// console extends (docs/boundary.md).
-const ALLOWED: [&str; 8] = [
+/// The only `bmo-*` packages anything here may depend on: the base libraries, the console plugin bundle the
+/// console extends, and the published clients of the units it calls (docs/boundary.md).
+const ALLOWED: [&str; 12] = [
   "bmo-chat",
   "bmo-chat-client",
   "bmo-ui",
@@ -27,6 +27,10 @@ const ALLOWED: [&str; 8] = [
   "bmo-review-client",
   "bmo-drive-client",
   "bmo-remote-client",
+  "@agency/client",
+  "bmo-job-client",
+  "@bmo/receiver-client",
+  "bmo-brain-client",
 ];
 
 /// The server's own crate, which its binary and its tests import by name.

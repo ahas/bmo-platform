@@ -75,24 +75,8 @@ export default defineEventHandler(async (event): Promise<WorkerWordSent> => {
     throw fail(400, wording("common.error.too_long", { n: MAX_RUN_PROMPT_LENGTH }));
   }
 
-  // A worker bmo-job does not know is refused by its code.
-  if (files.length === 0) {
-    await jobPost("/worker-word", { worker, text });
-
-    return { ok: true };
-  }
-
-  const form = new FormData();
-
-  form.set("worker", worker);
-  form.set("text", text);
-
-  for (const file of files) {
-    form.append("file", new File([file.data], file.name, { type: file.type }));
-  }
-
-  // What bmo-job takes of the files is its own to judge, and a file it refuses as too large stays a 413.
-  await jobFetch("/worker-word", { method: "POST", body: form }, { timeoutMs: JOB_VERB_TIMEOUT_MS, passStatus: [413] });
-
-  return { ok: true };
+  // The words go to that worker's own session, which the agency keeps. The agency's fixed API sends a turn into a
+  // session, but starts none for a worker from a screen's words, so the words are refused as unavailable until that
+  // route stands (docs/boundary.md, 「Gaps the console meets」).
+  throw fail(503, wording("agents.error.word_unavailable"));
 });

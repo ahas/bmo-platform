@@ -8,14 +8,21 @@ interface SamplingBody {
   sampling?: unknown;
 }
 
-// One save of a worker's own sampling, each setting named with its value or null for the engine's
-// default (the agency's docs/own-llm.md, 「A worker pinned to a provider」). The bounds are the agency's to check, and a
-// refusal comes back with the setting it is about.
+// One save of a worker's own sampling, each setting named with its value or null for the engine's default (the
+// agency's `docs/api.md`, 「workers」). The bounds are the agency's to check, and a refusal comes back with the
+// setting it is about.
 export default defineEventHandler(async (event): Promise<AgentSamplingView> => {
-  const session = await requireUserSession(event);
+  await requireUserSession(event);
   const body = await readBody<SamplingBody>(event);
 
   if (!isAgentName(body?.agent)) throw fail(400, wording("agents.error.no_such_agent_name"));
 
-  return await agencyChange<AgentSamplingView>("/agent-sampling", { agent: body.agent, sampling: body.sampling }, session.user.name);
+  const worker = await agencyCall(
+    agency().PATCH("/workers/{workerName}", {
+      params: { path: { workerName: body.agent } },
+      body: { sampling: body.sampling, nodeName: null, node: null, label: null, cwd: null, icon: null, role: null, stand: null, bench: null }
+    })
+  );
+
+  return samplingView(worker.sampling, worker.name);
 });

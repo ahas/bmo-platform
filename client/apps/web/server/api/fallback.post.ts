@@ -1,8 +1,10 @@
 import { isFallbackRouteMode } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import type { components } from "@agency/client/schema";
+
+type FallbackChange = components["schemas"]["FallbackChange"];
 import type { FallbackChanged } from "#shared/types";
-import type { UnitCall } from "../utils/units";
 
 interface FallbackBody {
   action?: unknown;
@@ -165,19 +167,30 @@ export default defineEventHandler(async (event): Promise<FallbackChanged> => {
       codexModel: codexModel === "" ? undefined : codexModel,
       codexEffort: codexEffort === "" ? undefined : codexEffort,
       openrouterModel: openrouterModel === "" ? undefined : openrouterModel,
-    },
-    // Either provider choice asks its owner for a live catalogue before it writes, so this waits
-    // as long as that listing may take and carries the agency's useful refusal back to the screen.
-    { timeoutMs: LISTING_TIMEOUT_MS }
+    }
   );
 });
 
+const text = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
+const truth = (value: unknown): boolean | null => (typeof value === "boolean" ? value : null);
+
 // One change handed to the agency, which writes it, its refusal said on the screen by the pack's sentence for
-// its code.
-async function toAgency(sent: Record<string, unknown>, call: UnitCall = {}): Promise<FallbackChanged> {
-  return await agencyFetch<FallbackChanged>("/fallback", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(sent)
-  }, call);
+// its code. The agency's fixed API takes the change as one PATCH of the fallback's roads.
+async function toAgency(sent: Record<string, unknown>): Promise<FallbackChanged> {
+  const change: FallbackChange = {
+    action: text(sent.action),
+    order: sent.order ?? null,
+    provider: text(sent.provider),
+    enabled: truth(sent.enabled),
+    account: text(sent.account),
+    name: text(sent.name),
+    kind: text(sent.kind),
+    path: text(sent.path),
+    key: text(sent.key),
+    mode: text(sent.mode)
+  };
+
+  await agencyCall(agency().PATCH("/fallback", { body: change, signal: within(LISTING_TIMEOUT_MS) }));
+
+  return { ok: true };
 }

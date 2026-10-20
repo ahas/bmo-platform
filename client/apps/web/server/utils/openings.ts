@@ -1,7 +1,8 @@
 // What opened a room's turns, read by the receiver (the receiver's `docs/boundary-api.md`, 「What opened a turn」) and
 // worn by the judgements of those turns. One asking covers every round the judgements name; a receiver that cannot
 // be reached leaves them as they were.
-import { receiverRead } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
+import { within } from "./unit-answer";
 
 import type { Judgement, RoundOpening } from "#shared/types";
 
@@ -15,12 +16,17 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
     return judgements;
   }
 
-  let read: Record<string, RoundOpening>;
+  let read: Map<string, RoundOpening>;
 
   try {
-    const asked = new URLSearchParams({ chat: String(chatId), rounds: rounds.join(",") });
+    const page = await receiverCall(
+      receiver().GET("/rounds/openings", {
+        params: { query: { room: chatId, rounds: rounds.join(",") } },
+        signal: within(OPENINGS_TIMEOUT_MS)
+      })
+    );
 
-    read = (await receiverRead<{ rounds: Record<string, RoundOpening> }>(`/rounds/openings?${asked}`, { timeoutMs: OPENINGS_TIMEOUT_MS })).rounds;
+    read = new Map(page.items.map((opening) => [opening.round, { instructions: opening.instructions, offers: [] }]));
   } catch (error) {
     console.error(`openings of chat ${chatId} could not be read:`, error);
 
@@ -28,7 +34,7 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
   }
 
   return judgements.map((judgement) => {
-    const opening = judgement.round === null || judgement.round === undefined ? undefined : read[judgement.round];
+    const opening = judgement.round === null || judgement.round === undefined ? undefined : read.get(judgement.round);
 
     return opening === undefined ? judgement : { ...judgement, opening };
   });
@@ -36,7 +42,7 @@ export async function withOpenings(chatId: number, judgements: Judgement[]): Pro
 
 // One instruction's whole text, for the room whose turn it opened.
 export async function readInstructionText(chatId: number, id: number): Promise<{ id: number; text: string }> {
-  const asked = new URLSearchParams({ chat: String(chatId), id: String(id) });
-
-  return await receiverRead<{ id: number; text: string }>(`/rounds/instruction?${asked}`);
+  return await receiverCall(
+    receiver().GET("/rounds/openings/{instructionId}", { params: { path: { instructionId: id }, query: { room: chatId } } })
+  );
 }

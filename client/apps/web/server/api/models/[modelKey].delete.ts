@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-// One registered model taken away (the agency's docs/api.md, 「providers, models, pin-checks, tiers and
+// One registered model taken away (the agency's `docs/api.md`, 「providers, models, pin-checks, tiers and
 // fallback」), answered with nothing.
 export default defineEventHandler(async (event): Promise<null> => {
   await requireUserSession(event);
@@ -9,5 +9,7 @@ export default defineEventHandler(async (event): Promise<null> => {
 
   if (key === "") throw fail(400, wording("agents.error.registry_value"));
 
-  return await agencyFetch<null>(`/models/${encodeURIComponent(key)}`, { method: "DELETE" });
+  await agencyCall(agency().DELETE("/models/{modelKey}", { params: { path: { modelKey: key } } }));
+
+  return null;
 });

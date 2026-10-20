@@ -1,11 +1,42 @@
-import { unitFetch } from "./units";
+import createClient, { type Client } from "openapi-fetch";
 
-import type { UnitCall } from "./units";
+import { CONTROL_UNREACHABLE } from "#shared/config";
+import { wording } from "#shared/wording";
 
-// The receiver's own routes as its document states them (the receiver's `docs/boundary-api.md`, 「The receiver's own
-// routes」 and 「For the web unit's console」): JSON in camelCase, and a refusal answered with its code and an English
-// sentence for a caller, which the console says by the pack's sentence for the code (the receiver's
-// `docs/codes.md`). The companions' refusals are said by `companions.ts`, beside the form they are about.
+import { unitAt } from "./units";
+import { answered } from "./unit-answer";
+
+import type { components, paths } from "@bmo/receiver-client/schema";
+import type { UnitAnswerCall } from "./unit-answer";
+
+// The receiver's fixed API as its published package states it (the receiver's `docs/api.md`, 「The wire」): one
+// document, its types in `@bmo/receiver-client/schema` and one route for each thing it keeps. The package's own
+// `receiverClient` hands back a call for some of those routes; every route this console reads is made through
+// the same generated schema, so the ones its wrapper leaves out are made here from that schema alone. Its
+// refusals are the console's to say, by the pack's sentence for each code.
+
+type Schemas = components["schemas"];
+
+/** What the receiver answers: its health, and every row it keeps. */
+export type ReceiverHealth = Schemas["Health"];
+export type ReceiverOwner = Schemas["Owner"];
+export type ReceiverRoom = Schemas["Room"];
+export type ReceiverPage<T> = { items: T[]; more: boolean };
+export type ReceiverMessage = Schemas["Message"];
+export type ReceiverKeptFile = Schemas["KeptFile"];
+export type ReceiverFileEntry = Schemas["FileEntry"];
+export type ReceiverPicture = Schemas["Picture"];
+export type ReceiverPictures = Schemas["Pictures"];
+export type ReceiverFigures = Schemas["Figures"];
+export type ReceiverWindow = Schemas["Window"];
+export type ReceiverInstruction = Schemas["Instruction"];
+export type ReceiverOpening = Schemas["Opening"];
+export type ReceiverOpeningText = Schemas["OpeningText"];
+export type ReceiverPerson = Schemas["Person"];
+export type ReceiverTalkAnswer = Schemas["TalkAnswer"];
+
+/** The receiver's client, over the document its package publishes. */
+export type ReceiverClient = Client<paths>;
 
 // A send waits its turn on the road it goes by, which may do one thing at a time, before the words go.
 export const SEND_TIMEOUT_MS = 45_000;
@@ -14,6 +45,8 @@ export const SEND_TIMEOUT_MS = 45_000;
 export const SEND_LATE_MS = 120_000;
 // An upload travels twice — into this app, then into the receiver — and a file may be tens of megabytes.
 export const ATTACH_TIMEOUT_MS = 120_000;
+// A call that only reads the receiver answers at once; one that runs a model takes as long as the model takes.
+export const RECEIVER_TIMEOUT_MS = 5_000;
 
 export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   // Every route's.
@@ -21,23 +54,18 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   unauthorized: "room.error.receiver_unauthorized",
   forbidden: "room.error.receiver_forbidden",
   "not-found": "room.error.receiver_not_found",
+  "no-route": "room.error.receiver_not_found",
   "not-ready": "room.error.receiver_not_ready",
+  "outage": "room.error.receiver_unreachable",
+  "too-large": "room.error.file_too_large_named",
   conflict: "room.error.receiver_conflict",
-  "unit-failed": "room.error.receiver_unit_failed",
+  "upstream-failed": "room.error.receiver_unit_failed",
   unreachable: "room.error.receiver_unreachable",
   failed: "room.error.receiver_failed",
   // The owner's words from the console.
   "reply-missing": "room.error.reply_missing",
   "words-only": "room.error.words_only",
-  "too-large": "room.error.file_too_large_named",
   "none-sent": "room.error.none_sent",
-  // The voice briefing.
-  "switched-off": "room.error.briefing_switched_off",
-  voiceless: "room.error.briefing_voiceless",
-  unsigned: "room.error.briefing_unsigned",
-  wordless: "room.error.briefing_wordless",
-  "not-up": "room.error.briefing_not_up",
-  "one-switch": "room.error.briefing_one_switch",
   // Removing a room.
   "seeded-room": "room.error.removal_seeded_room",
   infrastructure: "room.error.removal_infrastructure",
@@ -46,17 +74,25 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   chat: "room.error.removal_chat"
 };
 
+/**
+ * The receiver at the address its setting names, asked with its token: a call that only reads answers at once,
+ * and one that runs a model waits as long as the model takes.
+ */
+export function receiver(): ReceiverClient {
+  const unit = unitAt("RECEIVER");
+
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  return createClient<paths>({
+    baseUrl: unit.address,
+    ...(unit.token === null ? {} : { headers: { Authorization: `Bearer ${unit.token}` } })
+  });
+}
+
 /** One call on the receiver, its refusals said in the pack's words. */
-export async function receiverFetch<T>(path: string, init?: RequestInit, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await unitFetch<T>("RECEIVER", path, init, { ...call, codes: RECEIVER_CODES });
-}
-
-/** A read of the receiver's. */
-export async function receiverRead<T>(path: string, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await receiverFetch<T>(path, undefined, call);
-}
-
-/** A POST of a JSON body to the receiver. */
-export async function receiverPost<T>(path: string, body: unknown, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await receiverFetch<T>(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, call);
+export async function receiverCall<T, E extends { code?: string; error?: string; field?: string }>(
+  asked: Promise<{ data?: T; error?: E; response: Response }>,
+  call: UnitAnswerCall = {}
+): Promise<T> {
+  return await answered(asked, { ...call, codes: RECEIVER_CODES });
 }

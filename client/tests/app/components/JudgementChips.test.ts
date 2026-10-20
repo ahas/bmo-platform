@@ -131,10 +131,10 @@ describe("the full reading of the line", () => {
     expect(script).toContain('mediaUrl("reading", props.chatId, props.messageId)');
   });
 
-  test("asks for the reading only where there is none to play, and the player plays the moment it stands", () => {
+  test("plays a reading that stands, and says one was never made where there is none", () => {
     expect(spread).toMatch(/<AudioPlayer[^>]*\n\s*autoplay\n/);
-    expect(script).toContain('briefingState.value === "making" || (briefingState.value === "ready" && briefingSound.value !== null)');
-    expect(script).toContain('$fetch<{ state: "making" | "ready" }>("/api/briefing/read"');
+    expect(script).not.toContain("/api/briefing/read");
+    expect(script).toContain('briefingRefused.value = t("briefing.error.not_made");');
   });
 
   test("says in the quiet colour that it is being made, and in the error colour only once it failed or was refused", () => {

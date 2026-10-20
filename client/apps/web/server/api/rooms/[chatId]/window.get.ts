@@ -1,7 +1,7 @@
 import type { RoomWindow } from "#shared/types";
 
 // How long the chat agent's window in the room has left, which its listening row stands by: the receiver's
-// `GET /console/rooms/{chat}/window`, 0 where the window stands closed.
+// `GET /rooms/{roomId}/window`, in whole seconds, none where the window stands closed.
 export default defineEventHandler(async (event): Promise<RoomWindow> => {
   await requireUserSession(event);
 
@@ -9,7 +9,9 @@ export default defineEventHandler(async (event): Promise<RoomWindow> => {
 
   await requireReadableRoom(event, chatId);
 
-  const { openFor } = await receiverRead<{ openFor: number; closesAt: number | null }>(`/console/rooms/${chatId}/window`);
+  const { openForMs } = await receiverCall(
+    receiver().GET("/rooms/{roomId}/window", { params: { path: { roomId: chatId } } })
+  );
 
-  return { openFor };
+  return { openFor: Math.floor(openForMs / 1000) };
 });

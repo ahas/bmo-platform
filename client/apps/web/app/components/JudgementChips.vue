@@ -46,11 +46,9 @@
           <RollingNumber :value="records.length" />
         </LineChip>
 
-        <!-- The line's full reading, which is made only when it is asked for. It comes after the
-             answer has gone out, so it stands last. Its mark spins while the reading is being made
-             and turns to the error colour where it could not be; pressing it asks for the reading
-             where there is none yet and spreads the player, which plays the moment the reading is
-             there. -->
+        <!-- The line's full reading, where one stands. It comes after the answer has gone out, so it
+             stands last. Its mark turns to the error colour where the reading could not be made;
+             pressing it spreads the player, or says no reading was made where there is none to play. -->
         <LineChip
           v-if="props.briefing !== null"
           :icon="briefingLook.icon"
@@ -271,29 +269,10 @@ const expanded = ref(false);
 const spendOpen = ref(false);
 const recordsOpen = ref(false);
 const briefingOpen = ref(false);
-// The press that asked for the reading, until the bot has answered it: the chip shows it being made
-// from the press on rather than from the room's next read.
-const briefingAsking = ref(false);
-// The bot's refusal of that press, in its own words.
+// What the press was told where the line carries no reading to play.
 const briefingRefused = ref("");
 
-// A press the bot took, until the room has read the line again and shows the reading moving.
-const briefingAsked = ref(false);
-
-const briefingState = computed<MessageBriefing["state"]>(() => {
-  const standing = props.briefing?.state ?? "idle";
-
-  return briefingAsking.value || (briefingAsked.value && standing === "idle") ? "making" : standing;
-});
-
-watch(
-  () => props.briefing?.state,
-  (standing) => {
-    if (standing !== "idle") {
-      briefingAsked.value = false;
-    }
-  }
-);
+const briefingState = computed<MessageBriefing["state"]>(() => props.briefing?.state ?? "idle");
 const briefingLook = computed<BriefingChip>(() => briefingChip(briefingState.value));
 const briefingSound = computed(() => (props.briefing?.sound?.available === true ? props.briefing.sound : null));
 // Where the reading is served from: the voice message a line was read out as before readings were
@@ -308,26 +287,14 @@ const briefingSrc = computed(() => {
   return briefing?.source === "kept" ? mediaUrl("reading", props.chatId, props.messageId) : null;
 });
 
-// Spreads the player, which plays the moment there is a sound to play — at once where the reading is
-// there, and as it lands where the press had to ask for it.
-async function toggleBriefing(): Promise<void> {
+// Spreads the player where a reading stands. No fixed API makes one, so a line without a reading
+// says it was never made instead of asking for it.
+function toggleBriefing(): void {
   briefingOpen.value = !briefingOpen.value;
   briefingRefused.value = "";
 
-  if (!briefingOpen.value || briefingState.value === "making" || (briefingState.value === "ready" && briefingSound.value !== null)) {
-    return;
-  }
-
-  briefingAsking.value = true;
-
-  try {
-    const answer = await $fetch<{ state: "making" | "ready" }>("/api/briefing/read", { method: "POST", body: { chatId: props.chatId, messageId: props.messageId } });
-
-    briefingAsked.value = answer.state === "making" && props.briefing?.state === "idle";
-  } catch (error) {
-    briefingRefused.value = failureText(error, t("briefing.error.not_made"));
-  } finally {
-    briefingAsking.value = false;
+  if (briefingOpen.value && briefingSound.value === null) {
+    briefingRefused.value = t("briefing.error.not_made");
   }
 }
 

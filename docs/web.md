@@ -429,9 +429,11 @@ asks for the same login reads them where they stand, and the console owes it tha
 
 Every screen reads through this app's server, which asks the unit the screen's data is that unit's: rooms and
 messages the receiver, verdicts and turns the receiver, execution records and agent logs the agency, the queue
-bmo-job (`docs/boundary.md`). When a unit does not answer, the screens that read it say so and the rest stand; a
-room whose receiver does not answer writes that fact as the input box's placeholder. The box still takes words
-and files, which wait in the browser until the bot answers again (the room screen's **대기**).
+bmo-job (`docs/boundary.md`). The server makes each of those calls through the unit's published TypeScript client,
+and the unit's fixed path reaches a browser as it stands under the relay, `/api/<unit>/`. When a unit does not
+answer, the screens that read it say so and the rest stand; a room whose receiver does not answer writes that fact
+as the input box's placeholder. The box still takes words and files, which wait in the browser until the bot
+answers again (the room screen's **대기**).
 
 - **What a screen knows of the control API is one of four things:** it is still asking, the bot took
   the call and did not answer in time, nothing took the call at all, or the bot answered. Not having
@@ -2140,13 +2142,9 @@ Two ways, split because the running places differ.
   this switch on, and neither is a Claude account turned off or resting — each account's prefixes are
   warmed on their own. Search and browse requests are outside the order, but that runner's Claude keepalive
   follows the off too (the agency's `docs/cache-fallback.md`).
-- **보이스브리핑.** Two lines in one box, parted by a divider, each with its switch. It saves as it is switched,
-  through the bot, and a refused save puts the switch back with the reason under it (the voice unit's documents,
-  「The switch」).
-  - **전체 보이스브리핑** — the whole voice briefing: off, no briefing is made on any road, asked for or not; on,
-    the notice turns of the owner's private chat are also heard as summaries.
-  - **자동 재생** — whether a briefing plays by itself when it arrives: on, the console's player plays it; off, it stands as its line's chip and plays when that is pressed. It stays switchable while
-    the whole briefing is off.
+- **보이스브리핑.** The section says the settings cannot be read now and offers no switch: the receiver's
+  fixed API serves no route for the voice briefing's switch, and a line's reading is the voice unit's
+  (`docs/boundary.md`, 「Gaps the console meets」).
 - **활성 공급자 및 우선순위.** Every provider — Claude Code, Codex, OpenRouter and 등록 모델 — in the
   order every automatic walk follows, one row each: a drag handle in a column of its own, the place in
   the order, a status mark, the name, the reason the provider cannot answer on this machine now (the

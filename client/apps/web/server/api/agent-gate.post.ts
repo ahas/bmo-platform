@@ -23,8 +23,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw fail(400, wording("agents.error.bad_agent_gate"));
   }
 
-  return await agencyFetch<{ ok: true }>(
-    "/agent-gate",
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ agent: body.agent, gate: body.gate, on: body.on }) }
+  await agencyCall(
+    agency().PATCH("/agents/{agentName}", {
+      params: { path: { agentName: body.agent } },
+      body: { gates: { [body.gate]: body.on }, reasoning: null, role: null, voice: null }
+    })
   );
+
+  return { ok: true };
 });

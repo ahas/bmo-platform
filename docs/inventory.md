@@ -206,8 +206,8 @@ The places in the agency screens that name a later group's file are cut here, an
 
 - **The receiver screens (build-11):** stand again — the rooms an agent's sessions are titled and ranked by, in the
   sidebar and on the agents screen; the read-now mark in a room's turn actions; and the room module and its page
-  take the polling and the feed's edges from `app/domain/polling.ts`. The voice briefing's switch is set through the
-  receiver, and its section still stands unavailable, since the receiver reads the switch by no route.
+  take the polling and the feed's edges from `app/domain/polling.ts`. The voice briefing's switch is the receiver's,
+  which reads it by no route, so its section stands unavailable.
 - **The job screens (build-10):** stand again — the TODO module and its panel take the row drag's pointer rules
   from `app/domain/row-drag.ts`.
 
@@ -271,8 +271,9 @@ How the receiver screens stand here:
   written new, with its refusal codes, each said by the pack's sentence for it. `server/utils/archive.ts` reads the
   rooms and a room's line from the receiver's console routes into the shapes the room screen draws, asking once a
   sender on a page whether it is an agent's; `server/utils/room-reads.ts` keeps the read marks in the console's own
-  `web_room_reads` and counts on the receiver's line past them; the sends, a room's removal, what opened a turn and
-  the voice briefing go to the receiver's own routes. No statement of theirs reads another unit's table.
+  `web_room_reads` and counts on the receiver's line past them; the sends, a room's removal and what opened a turn
+  go to the receiver's own routes. The voice briefing is served by no route, so its switch and a line's reading
+  stand unavailable. No statement of theirs reads another unit's table.
 - **A message's files and photos, a room's pictures, its figures and the chat agent's window there** come from the
   receiver's console routes: a file's bytes and a photo handed on whole through `unitBytes` in
   `server/utils/units.ts`, under the types `server/utils/media.ts` holds each kind to.

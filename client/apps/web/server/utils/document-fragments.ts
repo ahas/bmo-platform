@@ -2,8 +2,9 @@ import { realpathSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 
 import { listRooms } from "./archive";
-import { brainRead } from "./brain";
+import { brain, brainCall } from "./brain";
 
+import type { Fragment as BrainFragment } from "bmo-brain-client";
 import type { DocumentFragmentView } from "#shared/types";
 import type { DocumentRoot } from "./documents";
 
@@ -69,11 +70,54 @@ function fileUnder(roots: readonly DocumentRoot[], path: string): string | null 
   return null;
 }
 
+// A fragment as the brain's fixed API answers it, read into the row the viewer joins documents by. The room, the
+// person and the agent the viewer shows are the labels its caller wrote; a fragment with none stands as a shared
+// one (docs/boundary.md, 「Gaps the console meets」).
+export function standingOf(fragment: BrainFragment): FragmentStanding {
+  const labels = fragment.labels;
+  const number = (key: string): number | null => {
+    const value = Number(labels[key]);
+
+    return labels[key] !== undefined && Number.isSafeInteger(value) ? value : null;
+  };
+
+  return {
+    kind: fragment.kind,
+    chatId: number("chatId"),
+    owner: number("owner"),
+    agent: labels.agent ?? null,
+    slug: fragment.key,
+    title: fragment.title ?? fragment.key,
+    keywords: labels.keywords ?? "",
+    path: fragment.path ?? "",
+    active: fragment.state === "active",
+    lastHitAt: fragment.lastHitAt === null ? null : Math.floor(fragment.lastHitAt / 1000),
+    hits: fragment.hitCount,
+    handAt: number("handAt") === null ? null : Math.floor(Number(labels.handAt) / 1000)
+  };
+}
+
 // What each kind is called on a screen, as the brain names its kinds; a kind it does not name stands by itself.
 async function kindLabels(): Promise<Map<string, string>> {
-  const { kinds } = await brainRead<{ kinds: { kind: string; label: string }[] }>("/fragments/kinds");
+  const page = await brainCall(brain().GET("/fragment-kinds", { params: { query: { limit: 500 } } }));
 
-  return new Map(kinds.map((one) => [one.kind, one.label]));
+  return new Map(page.items.map((one) => [one.name, one.name]));
+}
+
+// Every fragment the brain holds, a page at a time.
+export async function readFragments(): Promise<BrainFragment[]> {
+  const found: BrainFragment[] = [];
+  let after: number | undefined;
+
+  for (;;) {
+    const page = await brainCall(brain().GET("/fragments", { params: { query: { limit: 500, ...(after === undefined ? {} : { after }) } } }));
+
+    found.push(...page.items);
+
+    if (!page.more || page.items.length === 0) return found;
+
+    after = page.items[page.items.length - 1]!.id;
+  }
 }
 
 // The names the rooms of the given fragments are known by.
@@ -121,7 +165,10 @@ export async function documentFragments(roots: readonly DocumentRoot[], document
   let kinds: Map<string, string>;
 
   try {
-    [{ fragments: standings }, kinds] = await Promise.all([brainRead<{ fragments: FragmentStanding[] }>("/fragments?down=true"), kindLabels()]);
+    const [fragments, labels] = await Promise.all([readFragments(), kindLabels()]);
+
+    standings = fragments.map(standingOf);
+    kinds = labels;
   } catch {
     return found;
   }

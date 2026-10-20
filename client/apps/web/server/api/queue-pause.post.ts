@@ -6,10 +6,10 @@ interface QueuePauseBody {
   paused?: unknown;
 }
 
-// The auto-progression stopped or started again. What it holds is the calling of what comes next — the
-// queue, the approvals and the order stand as they are, and a job or a co-work stage already under way runs
-// to its end — so the only thing refused here is a request that says neither yes nor no. bmo-job is the one
-// writer of the switch, as it is of the table.
+// The auto-progression stopped or started again. What it holds is the calling of what comes next — the queue, the
+// approvals and the order stand as they are, and a job or a co-work stage already under way runs to its end — so
+// the only thing refused here is a request that says neither yes nor no. bmo-job is the one writer of the switch,
+// as it is of the table; its fixed API keeps one state for each queue, so every queue is moved.
 export default defineEventHandler(async (event): Promise<QueuePauseChanged> => {
   await requireUserSession(event);
 
@@ -19,7 +19,12 @@ export default defineEventHandler(async (event): Promise<QueuePauseChanged> => {
     throw fail(400, wording("todo.error.queue_pause_direction"));
   }
 
-  const answer = await jobPost<{ paused: boolean; deploy_held: boolean; told?: QueueTold | null }>("/queue-pause", { paused: body.paused });
+  const queues = await readQueues();
 
-  return { ok: true, paused: answer.paused, queue: queueToldText(answer.told), deployHold: answer.deploy_held };
+  await Promise.all(queues.map((queue) => jobCall(job().PATCH("/queues/{queueName}", {
+    params: { path: { queueName: queue.name } },
+    body: { state: body.paused === true ? "paused" : "open" }
+  }))));
+
+  return { ok: true, paused: body.paused, queue: null, deployHold: false } satisfies QueuePauseChanged;
 });

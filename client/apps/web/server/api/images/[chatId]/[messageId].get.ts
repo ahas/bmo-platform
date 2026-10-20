@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const range = getRequestHeader(event, "range");
-  const answer = await unitBytes("RECEIVER", `/console/rooms/${chatId}/messages/${messageId}/picture`, {
+  const answer = await unitBytes("RECEIVER", `/rooms/${chatId}/messages/${messageId}/picture`, {
     headers: range === undefined ? {} : { range },
     codes: { "not-found": "room.error.photo_not_found" }
   });

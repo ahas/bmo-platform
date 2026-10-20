@@ -7,9 +7,10 @@ export default defineEventHandler(async (event): Promise<ControlStatus> => {
   await requireUserSession(event);
 
   try {
-    const health = await unitFetch<{ ok: boolean; ownerId?: number }>("RECEIVER", "/health");
+    const health = await receiverCall(receiver().GET("/health"));
+    const owner = await ownerChat().catch(() => null);
 
-    return { reachable: health.ok === true, ownerChatId: health.ownerId ?? null };
+    return { reachable: health.ready === true, ownerChatId: owner };
   } catch (error) {
     return { reachable: false, slow: unitSlow(error), ownerChatId: null };
   }

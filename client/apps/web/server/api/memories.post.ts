@@ -1,6 +1,6 @@
 import { wording } from "#shared/wording";
 
-import type { MemoryChanged, MemoryRecord } from "#shared/types";
+import type { MemoryChanged } from "#shared/types";
 
 interface ActiveBody {
   slug?: unknown;
@@ -8,8 +8,8 @@ interface ActiveBody {
   why?: unknown;
 }
 
-// One row taken down or put back. It is the only write this screen makes: a row is never deleted, so the flag is
-// the whole of what a person changes here, and taking one down says why.
+// One row taken down or put back. It is the only write this screen makes: a row is never deleted, so the state is
+// the whole of what a person changes here, and taking one down says why in its labels.
 export default defineEventHandler(async (event): Promise<MemoryChanged> => {
   await requireUserSession(event);
 
@@ -29,8 +29,20 @@ export default defineEventHandler(async (event): Promise<MemoryChanged> => {
     throw fail(400, wording("memories.error.reason_empty"));
   }
 
-  // A row that is not there, or one already in the state asked for, is the brain's refusal, said by its code.
-  const changed = await brainPost<{ ok: true; memory: MemoryRecord }>("/memories/active", { slug, active: body.active, ...(why === "" ? {} : { why }) });
+  const page = await brainCall(brain().GET("/memories", { params: { query: { label: `slug=${slug}`, limit: 1 } } }));
+  const row = page.items[0];
 
-  return { ok: true, memory: (await memoryViews([changed.memory]))[0]! };
+  if (row === undefined) throw fail(404, wording("memories.error.row_missing"));
+
+  const labels = body.active
+    ? Object.fromEntries(Object.entries(row.labels).filter(([key]) => key !== "downReason" && key !== "downAt"))
+    : { ...row.labels, downReason: why, downAt: String(Date.now()) };
+  const changed = await brainCall(
+    brain().PATCH("/memories/{memoryId}", {
+      params: { path: { memoryId: row.id } },
+      body: { state: body.active ? "standing" : "retired", labels }
+    })
+  );
+
+  return { ok: true, memory: (await memoryViews([memoryRecordOf(changed)]))[0]! };
 });

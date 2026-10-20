@@ -1,12 +1,19 @@
-import { unitFetch } from "./units";
+import { brainClient } from "bmo-brain-client";
 
-import type { UnitCall } from "./units";
+import { CONTROL_UNREACHABLE } from "#shared/config";
+import { wording } from "#shared/wording";
 
-// The brain's routes as its document states them (the brain's `docs/boundary-api.md`): JSON in camelCase, every
-// call with the brain's token, and a refusal answered with its code and an English sentence for a caller. A
-// refusal the brain carried out as an answer to a row's state holds its own code in `refusal` beside the
-// answer's, and that code is the one said. The console says each by the pack's sentence for it (「Codes the brain
-// answers with」).
+import { unitAt } from "./units";
+import { answered } from "./unit-answer";
+
+import type { BrainClient } from "bmo-brain-client";
+import type { RefusalBody, UnitAnswerCall } from "./unit-answer";
+
+// The brain's fixed API as its published package states it (the brain's `docs/boundary-api.md`): JSON in camelCase,
+// a page for a list, every call with the brain's token, and a refusal answered with its code and an English sentence.
+// A refusal the brain carried out as an answer to a row's state holds its own code in `refusal` beside the answer's,
+// and that code is the one said. The console says each by the pack's sentence for it (「Codes the brain answers
+// with」).
 
 export const BRAIN_CODES: Readonly<Record<string, string>> = {
   // Every route's.
@@ -67,24 +74,24 @@ export const BRAIN_CODES: Readonly<Record<string, string>> = {
   "no-reminder": "memories.error.no_reminder"
 };
 
-// The refusal a refusal body holds: the brain's own, where it carried one beside the answer's code.
-function heldRefusal(body: Record<string, unknown>): Record<string, unknown> {
-  const inner = body.refusal;
+/** The brain at the address its setting names, asked with its token. */
+export function brain(): BrainClient {
+  const unit = unitAt("BRAIN");
 
-  return typeof inner === "object" && inner !== null && typeof (inner as { code?: unknown }).code === "string" ? (inner as Record<string, unknown>) : body;
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  return brainClient(unit.address, unit.token ?? "");
+}
+
+// The refusal a refusal body holds: the brain's own, where it carried one beside the answer's code.
+function heldRefusal(body: RefusalBody): RefusalBody {
+  return body.refusal ?? body;
 }
 
 /** One call on the brain, its refusals said in the pack's words. */
-export async function brainFetch<T>(path: string, init?: RequestInit, call: Omit<UnitCall, "codes" | "refusal"> = {}): Promise<T> {
-  return await unitFetch<T>("BRAIN", path, init, { ...call, codes: BRAIN_CODES, refusal: heldRefusal });
-}
-
-/** A read of the brain's. */
-export async function brainRead<T>(path: string, call: Omit<UnitCall, "codes" | "refusal"> = {}): Promise<T> {
-  return await brainFetch<T>(path, undefined, call);
-}
-
-/** A POST of a JSON body to the brain. */
-export async function brainPost<T>(path: string, body: unknown, call: Omit<UnitCall, "codes" | "refusal"> = {}): Promise<T> {
-  return await brainFetch<T>(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, call);
+export async function brainCall<T, E extends RefusalBody>(
+  asked: Promise<{ data?: T; error?: E; response: Response }>,
+  call: UnitAnswerCall = {}
+): Promise<T> {
+  return await answered(asked, { ...call, codes: BRAIN_CODES, refusal: heldRefusal });
 }

@@ -1,6 +1,10 @@
 import { wording } from "#shared/wording";
 
+import type { components } from "@agency/client/schema";
 import type { WorkerChanged } from "#shared/types";
+
+type WorkerAdd = components["schemas"]["WorkerAdd"];
+type WorkerChange = components["schemas"]["WorkerChange"];
 
 interface WorkerBody {
   action?: unknown;
@@ -17,9 +21,9 @@ interface WorkerBody {
 
 const text = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
-// Adding, changing and removing a job worker. The workers are bmo-job's to keep, so this asks bmo-job rather
-// than writing a row of its own, and what each field may hold is bmo-job's to judge: a refusal is said in the
-// pack's words for its code.
+// Adding, changing and removing a job worker. The workers are the agency's to keep (the agency's `docs/api.md`,
+// 「workers」), so this asks it rather than writing a row of its own, and what each field may hold is the agency's to
+// judge: a refusal is said in the pack's words for its code.
 export default defineEventHandler(async (event): Promise<WorkerChanged> => {
   await requireUserSession(event);
 
@@ -35,18 +39,27 @@ export default defineEventHandler(async (event): Promise<WorkerChanged> => {
     throw fail(400, wording("agents.error.worker_name_empty"));
   }
 
-  await jobPost("/worker", {
-    action,
-    name,
-    label: text(body?.label),
-    path: text(body?.path),
-    preamble: text(body?.preamble),
-    dev_command: text(body?.devCommand),
-    keepalive_stopped: typeof body?.keepaliveStopped === "boolean" ? body.keepaliveStopped : undefined,
-    support_count: typeof body?.supportCount === "number" ? body.supportCount : undefined,
-    support_keepalive: typeof body?.supportKeepalive === "number" ? body.supportKeepalive : undefined,
-    pinned_provider: text(body?.pinnedProvider)
-  });
+  if (action === "add") {
+    const added: WorkerAdd = { name, label: text(body?.label) ?? null, cwd: text(body?.path) ?? null, icon: null, role: null, nodeName: null };
+
+    await agencyCall(agency().POST("/workers", { body: added }));
+  } else if (action === "update") {
+    const change: WorkerChange = {
+      sampling: null,
+      nodeName: null,
+      node: null,
+      label: text(body?.label) ?? null,
+      cwd: text(body?.path) ?? null,
+      icon: null,
+      role: null,
+      stand: null,
+      bench: null
+    };
+
+    await agencyCall(agency().PATCH("/workers/{workerName}", { params: { path: { workerName: name } }, body: change }));
+  } else {
+    await agencyCall(agency().DELETE("/workers/{workerName}", { params: { path: { workerName: name } } }));
+  }
 
   return { ok: true };
 });

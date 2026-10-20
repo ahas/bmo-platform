@@ -16,7 +16,19 @@ afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 let holding: unknown = null;
 
-standIn("JOB", (one) => (one.path === "/queue/holds" ? answer({ paused: false, ...(holding === null ? {} : { deploy_hold: holding }), deploy_waits_on: [] }) : answer({ code: "not_found" }, 404)));
+standIn("JOB", (one) => (one.path.startsWith("/queues")
+  ? answer({
+      items: [{
+        name: "default",
+        state: "open",
+        holds: holding === null ? [] : [{ actorName: "deploy", reason: "a job", until: 9_000 }],
+        leasedCount: 0,
+        openCount: 0,
+        changedAt: 0
+      }],
+      more: false
+    })
+  : answer({ code: "not_found" }, 404)));
 
 const { deployProgressPath, deployViewFor, readDeployHoldRow, readDeployReading } = await import("../../../apps/web/server/utils/deploy");
 
@@ -100,8 +112,8 @@ describe("the hold", () => {
   test("is bmo-job's, read as the TODO board reads it, and none where none stands", async () => {
     expect(await readDeployHoldRow()).toBeNull();
 
-    holding = { since: 5, until: 9, commits: [{ commit: "c1", todoId: 7 }], waitingFor: [7], waitingOn: ["a job"], passing: [] };
+    holding = { actorName: "deploy", reason: "a job", until: 9_000 };
 
-    expect(await readDeployHoldRow()).toEqual({ since: 5, until: 9, commits: [{ commit: "c1", todoId: 7 }], breaks: null, waitingOn: ["a job"], waitingFor: [7], passing: [] });
+    expect(await readDeployHoldRow()).toEqual({ since: 0, until: 9, commits: [], breaks: null, waitingOn: ["a job"], waitingFor: null, passing: [] });
   });
 });

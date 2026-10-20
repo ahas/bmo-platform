@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const range = getRequestHeader(event, "range");
-  const answer = await unitBytes("RECEIVER", `/console/rooms/${chatId}/messages/${messageId}/files/${file.place}${out.keep ? "?download=true" : ""}`, {
+  const answer = await unitBytes("RECEIVER", `/rooms/${chatId}/messages/${messageId}/files/${file.place}${out.keep ? "?download=true" : ""}`, {
     headers: range === undefined ? {} : { range },
     codes: { "not-found": "room.error.file_not_found" }
   });

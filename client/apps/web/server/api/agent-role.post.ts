@@ -22,8 +22,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw fail(400, wording("agents.error.bad_role"));
   }
 
-  return await agencyFetch<{ ok: true }>(
-    "/agent-role",
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ agent: body.agent, role: body.role }) }
+  await agencyCall(
+    agency().PATCH("/agents/{agentName}", {
+      params: { path: { agentName: body.agent } },
+      body: { gates: null, reasoning: null, role: body.role, voice: null }
+    })
   );
+
+  return { ok: true };
 });

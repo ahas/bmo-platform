@@ -13,5 +13,9 @@ export default defineEventHandler(async (event): Promise<PinnedRooms> => {
     throw fail(400, wording("room.error.pin_direction"));
   }
 
-  return await receiverPost<PinnedRooms>(body.pinned ? "/console/pinned-rooms/add" : "/console/pinned-rooms/remove", { chat: chatId });
+  const order = body.pinned
+    ? await receiverCall(receiver().POST("/pinned-rooms", { body: { room: chatId } }))
+    : await receiverCall(receiver().DELETE("/pinned-rooms/{roomId}", { params: { path: { roomId: chatId } } }));
+
+  return { rooms: order.roomIds } satisfies PinnedRooms;
 });

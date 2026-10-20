@@ -10,6 +10,7 @@ import {
 } from "#shared/config";
 import { wording } from "#shared/wording";
 
+import type { Item } from "bmo-job-client";
 import type { TodoAction, TodoActionResult } from "#shared/types";
 
 interface TodoBody {
@@ -161,32 +162,117 @@ export default defineEventHandler(async (event): Promise<TodoActionResult> => {
     throw fail(400, wording("todo.error.bad_cowork"));
   }
 
-  // Raising answers with the number of the row it made, and the console names it back to him: a row he
-  // cannot find is a row he has to go looking for. A refusal — an order read before the queue moved, a row
-  // that no longer stands as the press read it — is said in the pack's words for its code. The note a taking
-  // back names goes by its number where an approval's note is words.
-  const answer = await jobPost<{ moved: boolean; stopped?: number | null; raised?: number | null }>(
-    "/todo",
-    {
-      action,
-      id,
-      direction,
-      order,
-      note: action === "unappend" ? noteId : note,
-      why,
-      title,
-      said,
-      text,
-      sources,
-      worker,
-      cowork,
-      by: signed.name
-    },
-    action === "stop" ? { timeoutMs: JOB_VERB_TIMEOUT_MS } : {}
-  );
+  // Each verb is one write on the item, its notes or its queue, as bmo-job's fixed API takes it. A verb the fixed
+  // item has no place for — an unfinished note resolved — is refused as one this item cannot take.
+  switch (action) {
+    case "approve":
+      await patchItem(id, { approval: { actorName: signed.name } });
+      break;
+    case "unapprove":
+      await patchItem(id, { approval: null });
+      break;
+    case "drop":
+      await patchItem(id, { state: "dropped" });
+      break;
+    case "done":
+      await patchItem(id, { state: "done" });
+      break;
+    case "hold":
+      await patchItem(id, { state: "held" });
+      break;
+    case "release":
+      await patchItem(id, { state: "open" });
+      break;
+    case "worker":
+      await patchItem(id, { assigneeName: worker === null ? null : String(worker) });
+      break;
+    case "cowork":
+      await patchItem(id, { cowork: cowork === true });
+      break;
+    case "append":
+      await jobCall(job().POST("/items/{itemId}/notes", {
+        params: { path: { itemId: id } },
+        body: { text: text as string, actorName: signed.name },
+        signal: within(JOB_TIMEOUT_MS)
+      }));
+      break;
+    case "unappend":
+      await jobCall(job().DELETE("/items/{itemId}/notes/{noteId}", {
+        params: { path: { itemId: id, noteId: noteId as number } },
+        signal: within(JOB_TIMEOUT_MS)
+      }));
+      break;
+    case "stop":
+      await jobCall(job().POST("/items/{itemId}/notes", {
+        params: { path: { itemId: id } },
+        body: { text: why as string, actorName: signed.name, labels: { kind: "stop" } },
+        signal: within(JOB_TIMEOUT_MS)
+      }));
+      await patchItem(id, { state: "held" });
 
-  return { ok: true, raised: answer.raised ?? undefined, stopped: answer.stopped ?? undefined };
+      return { ok: true, stopped: 1 };
+    case "raise": {
+      const queues = await readQueues();
+      const queue = queues[0];
+
+      if (queue === undefined) throw fail(503, wording("todo.error.queue_unknown"));
+
+      const raised = await jobCall(job().POST("/items", {
+        body: { title: title as string, brief: said as string, queueName: queue.name, requesterName: signed.name },
+        signal: within(JOB_TIMEOUT_MS)
+      }));
+
+      return { ok: true, raised: raised.id };
+    }
+    case "move":
+    case "top":
+    case "bottom":
+    case "reorder":
+      await reposition(action, id, direction, order);
+      break;
+    default:
+      throw fail(400, wording("todo.error.bad_action"));
+  }
+
+  return { ok: true };
 });
+
+async function patchItem(id: number, change: { state?: "open" | "held" | "done" | "dropped"; approval?: { actorName: string } | null; assigneeName?: string | null; cowork?: boolean; position?: number }): Promise<void> {
+  await jobCall(job().PATCH("/items/{itemId}", {
+    params: { path: { itemId: id } },
+    body: change,
+    signal: within(JOB_VERB_TIMEOUT_MS)
+  }));
+}
+
+// Where a row stands among its queue's others: a step, the head, the foot, or the whole order the drag leaves.
+async function reposition(action: "move" | "top" | "bottom" | "reorder", id: number, direction: unknown, order: unknown): Promise<void> {
+  const items = await readTodoBoardItems();
+  const positions = new Map(items.map((item) => [item.id, item.position]));
+
+  if (action === "reorder") {
+    await Promise.all((order as number[]).map(async (itemId, at) => {
+      if (positions.get(itemId) !== at) await patchItem(itemId, { position: at });
+    }));
+
+    return;
+  }
+
+  const current = positions.get(id);
+
+  if (current === undefined) return;
+
+  const next = action === "move" ? current + (direction === "up" ? -1 : 1) : action === "top" ? Math.min(0, ...positions.values()) - 1 : Math.max(0, ...positions.values()) + 1;
+
+  await patchItem(id, { position: next });
+}
+
+// Every item as the queue orders it, read for the positions a move changes.
+async function readTodoBoardItems(): Promise<Item[]> {
+  const page = await jobCall(job().GET("/items", { params: { query: { limit: 500 } }, signal: within(JOB_TIMEOUT_MS) }));
+
+  return page.items;
+}
 
 function isOrder(value: unknown): value is number[] {
   return Array.isArray(value) && value.every((entry) => typeof entry === "number" && Number.isInteger(entry));

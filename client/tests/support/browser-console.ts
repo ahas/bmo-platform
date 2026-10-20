@@ -152,6 +152,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
 
     if (path === "/events") return silentStream();
+    if (path === "/pool") return Response.json({ readAt: Date.now(), workers: [], buckets: [] });
     if (path === "/fallback") {
       return Response.json({ active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, codexPresent: false, keyPresent: false, services: [], since: null, order: [], orderIsDefault: true, accounts: [], profiles: [] });
     }
@@ -216,7 +217,6 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (path === "/events") return silentStream();
     if (path === "/todos" || path === "/jobs/recent") return Response.json([]);
     if (path === "/queue/holds") return Response.json({ paused: false });
-    if (path === "/coworker-pool") return Response.json({ workers: [], buckets: [] });
 
     return null;
   },
@@ -224,7 +224,6 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     const now = Math.floor(Date.now() / 1000);
 
     if (path === "/owner") return Response.json({ chat: OWNER_CHAT });
-    if (path === "/voice-briefing") return Response.json({ on: true, autoplay: true });
     if (path === "/events") return silentStream();
     if (path === "/live") return Response.json({ at: now, compacting: [] });
     if (path === "/console/rooms") return Response.json({ rooms: [{ chatId: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false }] });

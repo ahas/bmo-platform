@@ -79,9 +79,6 @@
       "client/apps/web/app/components/LayaStatusLine.vue",
       "client/apps/web/app/domain/laya.ts",
       "client/tests/app/domain/laya.test.ts",
-      "client/apps/web/server/api/voice-briefing.get.ts",
-      "client/apps/web/server/api/voice-briefing.post.ts",
-      "client/tests/server/api/voice-briefing.post.test.ts",
       "client/apps/web/app/components/AgentsReasoning.vue",
       "client/apps/web/server/api/agent-reasoning.post.ts",
       "client/apps/web/app/components/AgentsGates.vue",
@@ -91,8 +88,7 @@
       "client/apps/web/shared/agency.ts",
       "client/apps/web/shared/research.ts",
       "client/apps/web/server/utils/research.ts",
-      "client/apps/web/app/domain/model-face.ts",
-      "client/tests/server/api/voice-briefing.get.test.ts"
+      "client/apps/web/app/domain/model-face.ts"
     ],
     "symbols": [
       "AgentMeta",
@@ -171,7 +167,7 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "838fc825205119291eda6427a072961e123cd49b"
+    "base": "901719892d563cbefcade3918b1a7d264fc5042c"
   },
   {
     "id": "console/agent-logs",
@@ -714,7 +710,7 @@
   {
     "id": "console/console-bundles",
     "title": "Console bundles",
-    "what": "The console attaches every unit's console bundle by its declaration alone: its screen and words, the service relayed under /api/, its event stream, sockets and notice kinds, with no bundle or service named in code.",
+    "what": "The console attaches every unit's console bundle by its declaration alone: its screen and words, the service relayed under /api/, its event stream, sockets and notice kinds, with no bundle or service named in code; the relay also hands on a unit the settings name.",
     "files": [
       "client/apps/web/modules/console-bundles.ts",
       "client/apps/web/shared/console-bundles.ts",
@@ -734,7 +730,7 @@
       "console/login",
       "console/unit-calls"
     ],
-    "base": "036db5d470ee7bebedd4aae79278ea4a86abb1e6"
+    "base": "901719892d563cbefcade3918b1a7d264fc5042c"
   },
   {
     "id": "console/control-api",
@@ -1132,7 +1128,6 @@
       "client/apps/web/server/api/rooms/[chatId]/judgements.get.ts",
       "client/apps/web/app/components/RunProgress.vue",
       "client/apps/web/app/domain/working.ts",
-      "client/apps/web/server/api/briefing/read.post.ts",
       "client/apps/web/app/components/TurnOpening.vue",
       "client/tests/app/components/TurnOpening.test.ts",
       "client/apps/web/server/utils/openings.ts",
@@ -1207,7 +1202,7 @@
       "console/number-format",
       "console/tooltips"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "901719892d563cbefcade3918b1a7d264fc5042c"
   },
   {
     "id": "console/keepalive",
@@ -1295,7 +1290,6 @@
       "client/apps/web/app/components/PoolTile.vue",
       "client/apps/web/app/domain/pool-board.ts",
       "client/tests/app/domain/pool-board.test.ts",
-      "client/apps/web/server/api/coworker-pool.get.ts",
       "client/apps/web/app/components/LiveRunSkeleton.vue",
       "client/apps/web/app/components/MachineRoom.vue",
       "client/apps/web/app/domain/machine.ts",
@@ -1351,7 +1345,7 @@
       "console/tooltips",
       "console/usage-display"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "901719892d563cbefcade3918b1a7d264fc5042c"
   },
   {
     "id": "console/loading",
@@ -2923,21 +2917,28 @@
   {
     "id": "console/unit-calls",
     "title": "Calls on the other units",
-    "what": "Each unit the console's server calls, by the address and token its settings name: the agency, bmo-job, the receiver and the brain, each with its refusal codes said by the pack's sentence (docs/boundary.md).",
+    "what": "How the console server calls the agency, bmo-job, the receiver and the brain through the TypeScript clients those units publish, reading each answer into the shape its screen stands on and saying each refusal in the pack.",
     "files": [
+      "client/apps/web/server/utils/unit-answer.ts",
       "client/apps/web/server/utils/units.ts",
       "client/apps/web/server/utils/agency.ts",
       "client/apps/web/server/utils/job.ts",
       "client/apps/web/server/utils/job-codes.ts",
       "client/apps/web/server/utils/receiver.ts",
       "client/apps/web/server/utils/brain.ts",
-      "docs/boundary.md",
-      "client/tests/server/utils/units.test.ts"
+      "client/tests/server/utils/units.test.ts",
+      "docs/boundary.md"
     ],
-    "symbols": [],
+    "symbols": [
+      "unitAt",
+      "answered",
+      "agencyCall",
+      "jobCall",
+      "brainCall"
+    ],
     "aliases": [],
     "needs": [],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "901719892d563cbefcade3918b1a7d264fc5042c"
   },
   {
     "id": "console/unread-messages",

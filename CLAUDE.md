@@ -16,10 +16,12 @@ bundle; a screen of a unit not yet split is a placeholder.
   and every code it answers with; `docs/inventory.md` states where each member of the old repository stands.
 - **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, the console
   bundles the console extends (`bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client`
-  and `bmo-remote-client`), and the repository's own crates `bmo-web-server` and `bmo-web-client`. Another unit
-  is reached over HTTP at the address a setting names; its code, its tables and its files are never read. A
-  helper an old shared package held is copied in. The testbed's dependency sweep and the repository's own tests
-  fail on any other.
+  and `bmo-remote-client`), the published clients of the units the console calls (`@agency/client`,
+  `bmo-job-client`, `@bmo/receiver-client` and `bmo-brain-client`), and the repository's own crates
+  `bmo-web-server` and `bmo-web-client`. Each of those clients is installed as the vendored tarball under
+  `client/vendor/`. Another unit is reached over HTTP at the address a setting names; its code, its tables and
+  its files are never read. A helper an old shared package held is copied in. The testbed's dependency sweep and
+  the repository's own tests fail on any other.
 - **A base never knows its consumers.** The account service, the language packs and the console's shell supply
   the mechanism and a safe default; no code here names the unit or agent that calls it, and nothing branches
   on a unit's or a chat service's name.

@@ -114,7 +114,7 @@ export const GENERAL_SECTIONS: readonly { id: string; title: string; waiting: nu
 ];
 
 // What a change on the general tab has the page read again.
-export type GeneralPart = "agents" | "fallback" | "keepalive" | "voice-briefing" | "registry";
+export type GeneralPart = "agents" | "fallback" | "keepalive" | "registry";
 
 export function generalSectionTitle(t: Translate, id: string): string {
   const title = GENERAL_SECTIONS.find((section) => section.id === id)?.title;

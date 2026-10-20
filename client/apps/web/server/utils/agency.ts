@@ -1,13 +1,25 @@
+import { agencyClient } from "@agency/client";
+
+import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import { unitFetch } from "./units";
+import { unitAt } from "./units";
+import { answered } from "./unit-answer";
 
-import type { UnitCall } from "./units";
+import type { Agent as AgencyAgent, AgencyClient, Provider, Session, Tier, Worker } from "@agency/client";
+import type { components } from "@agency/client/schema";
+import type { AgentSamplingView, BasePromptView, BasePromptsView, GenerationSetting, GenerationValue, SessionView, TierProviderView, TierSettingsView } from "#shared/agency";
+import type { AgentSummary, RoleView } from "#shared/types";
+import type { UnitAnswerCall } from "./unit-answer";
 
-// The agency's routes as its document states them (the agency's `docs/api.md`, 「The control port」): JSON in
-// camelCase under its token, a refusal answered with the status's kebab-case code and an English `error`, and a
-// refusal about one field answered 400 with the `field` beside its `error`. The English is for an agent to read,
-// so a person is told the code's sentence from the pack, and a refused field is said under that field.
+type Schemas = components["schemas"];
+type PromptDocument = Schemas["PromptDocument"];
+type Role = Schemas["Role"];
+
+// The agency's fixed API as its published package states it (the agency's `docs/api.md`, 「The control port」):
+// JSON in camelCase, a page for a list, and a refusal answered with the status's kebab-case code and an English
+// sentence. The English is for an agent to read, so a person is told the code's sentence from the pack, and a
+// refused field is said under that field.
 
 // The agency's codes, each with the pack's key for its sentence.
 const AGENCY_CODES: Readonly<Record<string, string>> = {
@@ -22,40 +34,177 @@ const AGENCY_CODES: Readonly<Record<string, string>> = {
 
 // A listing the agency reads from a provider's own catalogue takes as long as that provider answers.
 export const LISTING_TIMEOUT_MS = 20_000;
+// A call that only reads the agency answers at once; one that runs a model takes as long as the model takes.
+export const AGENCY_TIMEOUT_MS = 5_000;
 
-/** One call on the agency, its refusals said in the pack's words. */
-export async function agencyFetch<T>(path: string, init?: RequestInit, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
+/** The agency at the address its setting names, asked with its token. */
+export function agency(): AgencyClient {
+  const unit = unitAt("AGENCY");
+
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  return agencyClient(unit.address, unit.token ?? "");
+}
+
+/** One call on the agency, its refusals said in the pack's words and a refused field said under that field. */
+export async function agencyCall<T, E extends { code?: string; error?: string; field?: string }>(
+  asked: Promise<{ data?: T; error?: E; response: Response }>,
+  call: UnitAnswerCall = {}
+): Promise<T> {
   try {
-    return await unitFetch<T>("AGENCY", path, init, { ...call, codes: AGENCY_CODES });
+    return await answered(asked, { ...call, codes: AGENCY_CODES });
   } catch (error) {
-    throw fieldRefusal(error);
+    throw error instanceof Error ? fieldRefusal(error) : error;
   }
 }
 
-/** A read of the agency's. */
-export async function agencyRead<T>(path: string, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await agencyFetch<T>(path, undefined, call);
+const seconds = (ms: number | null): number | null => (ms === null ? null : Math.floor(ms / 1000));
+
+// The row an agent's screen stands on: what the agency's own agent list does not carry — its runs, its checkout
+// and the session's loads — stands empty (docs/boundary.md, 「Gaps the console meets」).
+function agentSummary(agent: AgencyAgent): AgentSummary {
+  return {
+    name: agent.name,
+    kind: "chat",
+    role: agent.role,
+    sessionScope: null,
+    turnShape: null,
+    defaultAnswerer: false,
+    model: null,
+    configuredMode: null,
+    configuredLabel: null,
+    modelLabel: null,
+    lastMode: null,
+    lastModel: null,
+    lastEffort: null,
+    label: agent.label,
+    aliases: null,
+    icon: null,
+    cwd: null,
+    builtin: false,
+    chatId: null,
+    runs: 0,
+    lastRunAt: null,
+    lastKeepaliveAt: null,
+    contextTokens: null,
+    keepaliveStopped: false,
+    keepalivePausedAt: null
+  };
 }
 
-/**
- * One change carried to the agency, which checks it and writes it, recorded under the signed-in user: the name
- * the change is kept under is this app's word for who is signed in, never one the browser sends.
- */
-export async function agencyChange<T>(path: string, body: Record<string, unknown>, user: string, timeoutMs = 5_000): Promise<T> {
-  return await agencyPost<T>(path, { ...body, by: user }, { timeoutMs });
+function workerSummary(worker: Worker): AgentSummary {
+  return {
+    name: worker.name,
+    kind: "worker",
+    role: worker.role,
+    sessionScope: null,
+    turnShape: null,
+    defaultAnswerer: false,
+    model: null,
+    configuredMode: null,
+    configuredLabel: null,
+    modelLabel: null,
+    lastMode: null,
+    lastModel: null,
+    lastEffort: null,
+    label: worker.label,
+    aliases: null,
+    icon: worker.icon,
+    cwd: worker.cwd,
+    builtin: worker.builtin,
+    chatId: null,
+    runs: worker.runCount,
+    lastRunAt: seconds(worker.lastRunAt),
+    lastKeepaliveAt: null,
+    contextTokens: null,
+    keepaliveStopped: false,
+    keepalivePausedAt: null,
+    node: worker.nodeName
+  };
 }
 
-/** A POST of a JSON body to the agency. */
-export async function agencyPost<T>(path: string, body: unknown, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await agencyFetch<T>(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, call);
+/** Every agent and worker as the agent list stands them. */
+export function agentSummaries(agents: readonly AgencyAgent[], workers: readonly Worker[]): AgentSummary[] {
+  return [...agents.map(agentSummary), ...workers.map(workerSummary)];
+}
+
+/** A role as the agent list names it; the agency keeps no label or bundle list for one. */
+export function roleView(role: Role): RoleView {
+  return { name: role.name, label: role.name, bundles: [] };
+}
+
+/** A worker's sampling, as the worker's own screen reads it; the agency's document holds it as the worker gives it. */
+export function samplingView(sampling: unknown, agent: string): AgentSamplingView {
+  const held = (typeof sampling === "object" && sampling !== null ? sampling : {}) as { settings?: GenerationSetting[]; values?: Record<string, GenerationValue> };
+
+  return { agent, settings: held.settings ?? [], values: held.values ?? {} };
+}
+
+/** A session as the console's session screen stands it; what the agency does not carry stands empty. */
+export function sessionView(session: Session, label: string | null = null): SessionView {
+  return {
+    agent: session.agentName,
+    chatId: session.roomId,
+    kind: session.scope,
+    title: null,
+    generation: session.generation,
+    models: [session.model],
+    running: session.holder !== null,
+    label: label ?? session.agentName,
+    icon: null,
+    waiting: null,
+    lastDoneAt: null
+  };
+}
+
+/** The tiers and providers as the tier screen reads them; a tier's mapping and a work key's assignment are the
+ * agency's own shapes and stand empty here (docs/boundary.md, 「Gaps the console meets」). */
+export function tierSettingsOf(tiers: readonly Tier[], providers: readonly Provider[]): TierSettingsView {
+  const views: TierProviderView[] = providers.map((provider) => ({
+    provider: provider.name as TierProviderView["provider"],
+    label: provider.name,
+    capsAnswerTokens: false,
+    efforts: [],
+    enabled: provider.enabled
+  }));
+
+  return { tiers: tiers.map((tier) => tier.name), providers: views, mappings: [], conflicts: [], assignments: [] };
+}
+
+// The base prompts the agency deploys and each agent's choice of one. A base prompt is a prompt document of the
+// base kind; an agent's choice is a document of that kind naming the agent.
+export function basePromptsOf(documents: readonly PromptDocument[]): BasePromptsView {
+  const bases = documents.filter((document) => document.kind === "base" && document.agentName === null);
+  const choices: Record<string, string> = {};
+
+  for (const document of documents) {
+    if (document.kind === "base" && document.agentName !== null) choices[document.agentName] = document.name;
+  }
+
+  const choosers = (name: string): { agent: string; label: string }[] =>
+    Object.entries(choices).flatMap(([agent, prompt]) => (prompt === name ? [{ agent, label: agent }] : []));
+
+  return {
+    prompts: bases.map((document): BasePromptView => ({
+      name: document.name,
+      label: document.name,
+      text: document.text,
+      updatedAt: null,
+      updatedBy: null,
+      characters: document.text.length,
+      choosers: choosers(document.name)
+    })),
+    choices,
+    values: []
+  };
 }
 
 // A refusal about one field is said by the one sentence for a refused value; the screen puts it under the
 // field the refusal names.
-function fieldRefusal(error: unknown): unknown {
-  const asked = error as { statusCode?: unknown; data?: { field?: unknown } } | null;
+function fieldRefusal(error: Error): Error {
+  const asked = error as Error & { statusCode?: number; data?: { field?: string } };
 
-  return asked?.statusCode === 400 && typeof asked.data?.field === "string"
+  return asked.statusCode === 400 && typeof asked.data?.field === "string"
     ? createError({ statusCode: 400, message: wording("agents.error.field_refused"), data: { field: asked.data.field } })
     : error;
 }

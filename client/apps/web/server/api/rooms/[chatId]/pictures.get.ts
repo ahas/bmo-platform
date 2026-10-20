@@ -20,7 +20,25 @@ export default defineEventHandler(async (event): Promise<RoomPicturePage> => {
     if (query[name] !== undefined && Number.isSafeInteger(value)) asked.set(name, String(value));
   }
 
-  const search = asked.size === 0 ? "" : `?${asked}`;
+  const cursors = Object.fromEntries([...asked].map(([name, value]) => [name, Number(value)])) as {
+    at?: number;
+    before?: number;
+    after?: number;
+    limit?: number;
+  };
+  const page = await receiverCall(receiver().GET("/rooms/{roomId}/pictures", { params: { path: { roomId: chatId }, query: cursors } }));
 
-  return await receiverRead<RoomPicturePage>(`/console/rooms/${chatId}/pictures${search}`);
+  return {
+    pictures: page.items.map((picture) => ({
+      messageId: picture.id,
+      album: picture.album,
+      senderName: picture.senderName,
+      sentAt: picture.sentAt,
+      text: picture.text,
+      file: picture.file === null ? null : { name: picture.file.name ?? "", bytes: picture.file.bytes, type: picture.file.type ?? "" }
+    })),
+    hasMore: page.more,
+    before: page.before,
+    total: page.total
+  };
 });

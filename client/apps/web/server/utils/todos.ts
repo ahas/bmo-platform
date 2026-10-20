@@ -2,17 +2,17 @@ import { DONE_MAX, DONE_PAGE_SIZE, TODO_SEARCH_LIMIT, WORKER_AGENT } from "#shar
 import { filterRecords } from "bmo-ui/shared/search";
 import { wording } from "#shared/wording";
 import { NO_CONDITIONS, NO_ROOM, todoSearchFields } from "../../app/domain/todos";
-import { jobRead } from "./job";
+import { job, jobCall, JOB_TIMEOUT_MS } from "./job";
+import { within } from "./unit-answer";
 
-import type { DeployHold, RanOn, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoSpan, TodoStanding } from "#shared/types";
+import type { Note, Item, Report, Queue } from "bmo-job-client";
+import type { DeployHold, TodoBoard, TodoChoices, TodoItem, TodoNote, TodoStanding } from "#shared/types";
 import type { TodoConditions } from "../../app/domain/todos";
 
-// The TODO as bmo-job reads it (bmo-job's `docs/api.md`, 「Readings」; its `docs/reading.md`): a listing of every
-// item's line, and each item opened on its own, read into the rows the panel shows. A reading carries no
-// sentence; its kinds become the row's own fields, and the panel lays them out in the pack's words. What no
-// reading carries stands empty on the row (docs/boundary.md, 「Gaps the console meets」): when an item was filed
-// and finished, the room it came from, its brief, the progress and stand of its work order and the wait its job
-// marked.
+// The TODO as bmo-job reads it in its fixed API (bmo-job's `docs/api.md`): the items it keeps, the queues they
+// wait in, and each item's notes and reports, read into the rows the panel shows. The item carries its own title,
+// brief, priority, state, assignee and approvals; what its job ran, what it spent and the long wait it marked are
+// no part of an item and stand empty (docs/boundary.md, 「Gaps the console meets」).
 
 // What a caller asked to find, or null for the ordinary list. Whitespace alone is not a search: it would match
 // every row and read as the list having been filtered to itself.
@@ -30,223 +30,179 @@ export function doneLimit(value: unknown): number {
   return Number.isInteger(asked) && asked > 0 ? Math.min(asked, DONE_MAX) : DONE_PAGE_SIZE;
 }
 
-// ## The readings as bmo-job answers them
-
-type LineMark =
-  | { kind: "merged_into"; id: number }
-  | { kind: "merging_into"; id: number }
-  | { kind: "done" | "cowork" | "owner_note" | "report" | "unfinished" | "unfinished_resolved" }
-  | { kind: "pending_approval"; requester: string };
-
-type HeldWord = "stop" | "stopping" | "pause" | "pausing" | "failure" | "plain" | "pending";
-
-type ModelMark = { kind: "fallback" | "changed" } | { kind: "requested"; model: string };
-
-interface ItemLine {
-  id: number;
-  title: string;
-  state: LineMark | null;
-  status: string;
-  marks: LineMark[];
-  model: { shown: string; marks: ModelMark[] } | null;
-  worker: string | null;
-  hold: { word: HeldWord; reason: string | null } | null;
-}
-
-type RowState = "done" | "open" | "merged" | "held" | "opened";
-
-interface LinkedRow {
-  id: number;
-  title: string;
-  state: RowState;
-}
-
-interface NoteReading {
-  id: number;
-  author: string;
-  text: string;
-  added_at: number;
-}
-
-interface SpanReading {
-  kind: string;
-  name: string;
-  seconds: number;
-  times: number;
-  tokens: number | null;
-}
-
-interface ItemReading {
-  line: ItemLine;
-  held_at: number | null;
-  merged_into: { id: number; title: string | null; at: number | null; follows: boolean } | null;
-  merged_here: LinkedRow[];
-  requester: string;
-  requester_id: number | null;
-  approved: boolean;
-  priority: number;
-  worker: string;
-  worker_assigned: boolean;
-  cowork: boolean;
-  instruction: string;
-  owner_note: string | null;
-  notes: NoteReading[];
-  time: { attempts: { job: number; took_ms: number | null; outcome: string | null }[]; total_ms: number; finished: number; phases: SpanReading[]; inside: SpanReading[] } | null;
-  report: string | null;
-  unfinished: { text: string; resolved_at: number | null; resolution: string | null } | null;
-}
-
-// The pool board's work, which names the item a turn or a co-work branch is at work for.
-interface PoolWork {
-  item?: number | null;
-}
-
-interface PoolBoard {
-  buckets: { tiles: { work?: PoolWork | null }[] }[];
-  workers: { tile: { work?: PoolWork | null } }[];
-}
-
 const seconds = (ms: number | null | undefined): number | null => (ms === null || ms === undefined ? null : Math.floor(ms / 1000));
 
-// The held words of a row whose run is still ending.
-const ENDING: readonly HeldWord[] = ["stopping", "pausing", "pending"];
+// Every item, a page at a time, in the queue's order.
+async function allItems(query: { q?: string } = {}): Promise<Item[]> {
+  const found: Item[] = [];
+  let after: number | undefined;
 
-const HELD_KINDS: Record<HeldWord, TodoItem["heldKind"]> = {
-  stop: "stop",
-  stopping: "stop",
-  pause: "pause",
-  pausing: "pause",
-  failure: "failure",
-  plain: null,
-  pending: null
-};
+  for (;;) {
+    const page = await jobCall(
+      job().GET("/items", {
+        params: { query: { limit: 500, ...(after === undefined ? {} : { after }), ...(query.q === undefined ? {} : { q: query.q }) } },
+        signal: within(JOB_TIMEOUT_MS)
+      })
+    );
 
-// The road an item last went out on and the model it asked for, read back from the reading's model: a road is
-// `provider/model`, and where it marks no request of its own the request was that road itself, or `auto` where the
-// road was the order's fallback.
-function modelOf(line: ItemLine): { model: string | null; ranOn: RanOn | null } {
-  const reading = line.model;
+    found.push(...page.items);
 
-  if (reading === null) return { model: null, ranOn: null };
+    if (!page.more || page.items.length === 0) return found;
 
-  const at = reading.shown.indexOf("/");
-  const requested = reading.marks.find((mark): mark is { kind: "requested"; model: string } => mark.kind === "requested");
-
-  if (at === -1) return { model: reading.shown, ranOn: null };
-
-  const ranOn: RanOn = { provider: reading.shown.slice(0, at), model: reading.shown.slice(at + 1), changed: reading.marks.some((mark) => mark.kind === "changed") };
-  const fallback = reading.marks.some((mark) => mark.kind === "fallback");
-
-  return { model: requested?.model ?? (fallback ? "auto" : `${ranOn.provider}::${ranOn.model}`), ranOn };
+    after = page.items[page.items.length - 1]!.id;
+  }
 }
 
-function spanOf(span: SpanReading, kind: TodoSpan["kind"]): TodoSpan {
-  return { kind, name: span.name, seconds: span.seconds, times: span.times, tokens: span.tokens };
+/** Every queue and how it stands, which is where the panel reads its pause and the deployment's hold. */
+export async function readQueues(): Promise<Queue[]> {
+  const found: Queue[] = [];
+  let after: string | undefined;
+
+  for (;;) {
+    const page = await jobCall(
+      job().GET("/queues", { params: { query: { limit: 500, ...(after === undefined ? {} : { after }) } }, signal: within(JOB_TIMEOUT_MS) })
+    );
+
+    found.push(...page.items);
+
+    if (!page.more || page.items.length === 0) return found;
+
+    after = page.items[page.items.length - 1]!.name;
+  }
 }
 
-/** One item opened, as the row the panel shows. */
-export function itemOf(reading: ItemReading, running: ReadonlySet<number>): TodoItem {
-  const line = reading.line;
-  const has = (kind: LineMark["kind"]) => line.marks.some((mark) => mark.kind === kind) || line.state?.kind === kind;
-  const held = line.hold;
-  const { model, ranOn } = modelOf(line);
-  const time = reading.time;
+// A deployment's hold as the queue keeps it: a hold whose reason says what it waits for. A hold that does not
+// read as one is still a hold.
+export function holdOf(value: unknown): DeployHold | null {
+  if (value === null || value === undefined) return null;
+
+  const hold = (typeof value === "object" ? value : {}) as { since?: number; until?: number | null; reason?: string; actorName?: string };
 
   return {
-    id: line.id,
-    title: line.title,
-    instruction: reading.instruction,
-    brief: null,
+    since: typeof hold.since === "number" ? Math.floor(hold.since / 1000) : 0,
+    until: typeof hold.until === "number" ? Math.floor(hold.until / 1000) : 0,
+    commits: [],
+    breaks: null,
+    waitingOn: typeof hold.reason === "string" && hold.reason !== "" ? [hold.reason] : null,
+    waitingFor: null,
+    passing: []
+  };
+}
+
+// What the panel reads of an item's own reports: the account of the work when there is one, and the reason a
+// held item was set aside.
+function reportsOf(reports: readonly Report[]): { report: string | null; heldReason: string | null; heldAt: number | null } {
+  const final = reports.filter((report) => report.kind === "final").at(-1);
+  const held = reports.filter((report) => report.kind === "held").at(-1);
+
+  return {
+    report: final?.body ?? null,
+    heldReason: held?.body ?? null,
+    heldAt: held === undefined ? null : Math.floor(held.createdAt / 1000)
+  };
+}
+
+function listOf(item: Item): "queue" | "pending" | "held" | "done" {
+  if (item.state === "draft") return "pending";
+  if (item.state === "held") return "held";
+  if (item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null) return "done";
+
+  return "queue";
+}
+
+// One item as the row the panel shows; its notes and reports are read where a screen opens it.
+function itemOf(item: Item, reports: readonly Report[] = [], note: string | null = null): TodoItem {
+  const said = reportsOf(reports);
+
+  return {
+    id: item.id,
+    title: item.title,
+    instruction: item.brief,
+    brief: item.brief,
     briefKorean: null,
-    requester: reading.requester,
-    requesterId: reading.requester_id,
+    requester: item.requesterName ?? "",
+    requesterId: null,
     chatId: null,
-    approved: reading.approved,
-    done: has("done") || line.marks.some((mark) => mark.kind === "merged_into"),
-    running: running.has(line.id) || (held !== null && ENDING.includes(held.word)),
-    priority: reading.priority,
-    status: line.status,
-    model,
-    ranOn,
-    worker: reading.worker_assigned ? reading.worker : null,
-    cowork: reading.cowork,
-    attempts: time?.attempts.length ?? 0,
+    approved: item.approvals.length > 0,
+    done: item.state === "done" || item.state === "dropped" || item.state === "merged" || item.mergedInto !== null,
+    running: item.state === "leased",
+    priority: item.priority,
+    status: item.state,
+    model: null,
+    ranOn: null,
+    worker: item.assigneeName,
+    cowork: item.cowork,
+    attempts: 1,
     progress: null,
     stopped: null,
     holding: null,
     waiting: null,
     deployWaits: false,
-    holdPending: held !== null && ENDING.includes(held.word),
+    holdPending: item.state === "held",
     orderActive: false,
-    seconds: time === null || time.finished === 0 ? null : Math.floor(time.total_ms / 1000),
-    spans: time === null ? [] : [...time.phases.map((span) => spanOf(span, "phase")), ...time.inside.map((span) => spanOf(span, span.kind === "agent" ? "agent" : "tool"))],
-    note: reading.owner_note,
-    report: reading.report,
-    unfinished: reading.unfinished?.text ?? null,
-    unfinishedResolvedAt: seconds(reading.unfinished?.resolved_at),
-    unfinishedResolution: reading.unfinished?.resolution ?? null,
-    heldAt: seconds(reading.held_at),
-    heldReason: held?.reason ?? null,
-    heldKind: held === null ? null : HELD_KINDS[held.word],
-    mergedInto: reading.merged_into?.id ?? null,
-    mergedAt: seconds(reading.merged_into?.at),
-    mergedIntoTitle: reading.merged_into?.title ?? null,
-    mergedFrom: reading.merged_here.map((row) => ({ id: row.id, title: row.title, done: row.state === "done" })),
-    createdAt: 0,
-    doneAt: null
+    seconds: null,
+    spans: [],
+    note,
+    report: said.report,
+    unfinished: null,
+    unfinishedResolvedAt: null,
+    unfinishedResolution: null,
+    heldAt: said.heldAt,
+    heldReason: said.heldReason,
+    heldKind: item.state === "held" ? "pause" : null,
+    mergedInto: item.mergedInto,
+    mergedAt: null,
+    mergedIntoTitle: null,
+    mergedFrom: [],
+    createdAt: Math.floor(item.createdAt / 1000),
+    doneAt: seconds(item.endedAt)
   };
 }
 
-// The items a turn or a co-work branch is at work for now, as the pool board names them.
-async function runningItems(): Promise<Set<number>> {
+/** One item by its number, or null where there is no such item. */
+export async function readTodoItem(id: number): Promise<TodoItem | null> {
   try {
-    const board = await jobRead<PoolBoard>("/coworker-pool");
-    const works = [...board.workers.map((worker) => worker.tile.work), ...board.buckets.flatMap((bucket) => bucket.tiles.map((tile) => tile.work))];
+    const [item, notes, reports] = await Promise.all([
+      jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } }, signal: within(JOB_TIMEOUT_MS) })),
+      notesOf(id),
+      reportsOfItem(id)
+    ]);
 
-    return new Set(works.flatMap((work) => (typeof work?.item === "number" ? [work.item] : [])));
-  } catch {
-    return new Set();
-  }
-}
-
-async function readingOf(id: number): Promise<ItemReading | null> {
-  try {
-    return await jobRead<ItemReading>(`/todos/${id}`);
+    return itemOf(item, reports, notes.map((note) => note.text).at(-1) ?? null);
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
     throw error;
   }
 }
 
-// Several items opened, in number order, against the items at work as the pool board named them.
-async function itemsOf(ids: readonly number[], running: ReadonlySet<number>): Promise<TodoItem[]> {
-  const wanted = [...new Set(ids)].sort((one, other) => one - other);
-  const readings = await Promise.all(wanted.map(readingOf));
-
-  return readings.flatMap((reading) => (reading === null ? [] : [itemOf(reading, running)]));
-}
-
-/** Several items by their numbers, each opened, in number order; a number with no item behind it is left out. */
+/** Several items by their numbers, in number order; a number with no item behind it is left out. */
 export async function readTodoItems(ids: readonly number[]): Promise<TodoItem[]> {
-  return ids.length === 0 ? [] : await itemsOf(ids, await runningItems());
+  if (ids.length === 0) return [];
+
+  const page = await jobCall(
+    job().GET("/items", { params: { query: { ids: [...new Set(ids)].sort((one, other) => one - other).join(","), limit: 500 } }, signal: within(JOB_TIMEOUT_MS) })
+  );
+
+  return page.items.map((item) => itemOf(item));
 }
 
-/** One item by its number, or null where there is no such item. */
-export async function readTodoItem(id: number): Promise<TodoItem | null> {
-  return (await readTodoItems([id]))[0] ?? null;
+async function notesOf(todoId: number): Promise<Note[]> {
+  return (await jobCall(job().GET("/items/{itemId}/notes", { params: { path: { itemId: todoId }, query: { limit: 500 } }, signal: within(JOB_TIMEOUT_MS) }))).items;
 }
 
-/** The words added to one item, oldest first, as its reading carries them. */
+async function reportsOfItem(todoId: number): Promise<Report[]> {
+  return (await jobCall(job().GET("/items/{itemId}/reports", { params: { path: { itemId: todoId }, signal: within(JOB_TIMEOUT_MS) } }))).items;
+}
+
+/** The words added to one item, oldest first, as its notes carry them. */
 export async function readTodoNotes(todoId: number): Promise<TodoNote[]> {
-  const reading = await readingOf(todoId);
-
-  return (reading?.notes ?? []).map((note) => ({
+  return (await notesOf(todoId)).map((note) => ({
     id: note.id,
     todoId,
-    author: note.author,
+    author: note.actorName,
     authorId: null,
     text: note.text,
-    addedAt: Math.floor(note.added_at / 1000),
+    addedAt: Math.floor(note.createdAt / 1000),
     jobId: null,
     deliveredAt: null,
     carried: false,
@@ -256,82 +212,33 @@ export async function readTodoNotes(todoId: number): Promise<TodoNote[]> {
   }));
 }
 
-// ## The board
-
-// Where a line stands among the panel's lists.
-type ListName = "queue" | "pending" | "held" | "merged" | "done";
-
-function listOf(line: ItemLine): ListName {
-  if (line.state?.kind === "done" || line.marks.some((mark) => mark.kind === "merged_into")) return "done";
-  if (line.state?.kind === "merging_into") return "merged";
-  if (line.state?.kind === "pending_approval") return "pending";
-  // A held item still running stays in the queue, where it stood, until its run has ended; one wound down stays
-  // there for good, since it is work asked to be resumed rather than put away.
-  if (line.hold !== null && !ENDING.includes(line.hold.word) && line.hold.word !== "pause") return "held";
-
-  return "queue";
-}
-
-// Whether a line meets the conditions a line carries enough to judge; the requester is judged once an item is
-// opened, and the room by the listing's own narrowing.
-function meets(line: ItemLine, conditions: TodoConditions): boolean {
-  const worker = line.worker ?? WORKER_AGENT;
-  const unfinished = line.marks.some((mark) => mark.kind === "unfinished");
-  const resolved = line.marks.some((mark) => mark.kind === "unfinished_resolved");
-  const cowork = line.marks.some((mark) => mark.kind === "cowork");
+// Whether a line meets the conditions a line carries enough to judge. What the fixed item does not carry — an
+// unfinished note's state and the room it came from — is met by no line where a condition names it.
+function meets(item: Item, conditions: TodoConditions): boolean {
+  const worker = item.assigneeName ?? WORKER_AGENT;
 
   if (conditions.worker !== null && worker !== conditions.worker) return false;
-  if (conditions.unfinished === "open" && !unfinished) return false;
-  if (conditions.unfinished === "resolved" && !resolved) return false;
-  if (conditions.cowork !== null && cowork !== (conditions.cowork === "on")) return false;
+  if (conditions.cowork !== null && item.cowork !== (conditions.cowork === "on")) return false;
+  if (conditions.requester !== null && (item.requesterName ?? "") !== conditions.requester) return false;
+  if (conditions.unfinished !== null) return false;
 
   return true;
 }
 
-function standingOf(lines: readonly ItemLine[], running: ReadonlySet<number>): TodoStanding {
-  const of = (name: ListName) => lines.filter((line) => listOf(line) === name);
-  const queue = of("queue");
-
+function standingOf(items: readonly Item[]): TodoStanding {
   return {
-    queue: queue.length,
-    running: queue.filter((line) => running.has(line.id) || ENDING.includes(line.hold?.word ?? "plain")).length,
-    pending: of("pending").length,
-    held: of("held").length,
-    merged: of("merged").length
+    queue: items.filter((item) => listOf(item) === "queue").length,
+    running: items.filter((item) => item.state === "leased").length,
+    pending: items.filter((item) => listOf(item) === "pending").length,
+    held: items.filter((item) => listOf(item) === "held").length,
+    merged: 0
   };
-}
-
-// A deployment's hold as its deploy wrote it, kept as it stands; a hold that does not read as one is still a hold.
-export function holdOf(value: unknown): DeployHold | null {
-  if (value === null || value === undefined) return null;
-
-  const hold = (typeof value === "object" ? value : {}) as Partial<DeployHold>;
-
-  return {
-    since: typeof hold.since === "number" ? hold.since : 0,
-    until: typeof hold.until === "number" ? hold.until : 0,
-    commits: Array.isArray(hold.commits) ? hold.commits : [],
-    breaks: Array.isArray(hold.breaks) ? hold.breaks : null,
-    waitingOn: Array.isArray(hold.waitingOn) ? hold.waitingOn : null,
-    waitingFor: Array.isArray(hold.waitingFor) ? hold.waitingFor.filter((item) => Number.isInteger(item)) : null,
-    passing: Array.isArray(hold.passing) ? hold.passing : []
-  };
-}
-
-// Every line, finished ones included: a listing leaves out what is set aside and what is merged unless it is
-// asked for those alone, so the three are read and put together, each item once, in the queue's order.
-async function listing(room: number | null): Promise<ItemLine[]> {
-  const chat = room === null ? "" : `&chat=${room}`;
-  const read = await Promise.all(["", "&held", "&merged"].map((only) => jobRead<ItemLine[]>(`/todos?all${only}${chat}`)));
-
-  return [...new Map(read.flat().map((line) => [line.id, line])).values()];
 }
 
 /**
- * The lists the panel stands on, read from bmo-job: the queue, what waits on the owner, what is set aside, what is
- * merged, and the finished as far back as the panel asked, narrowed by its conditions and its room. A search
- * reaches every open item whole and the finished by what their lines carry, since opening every finished item
- * to read it whole is a read per item.
+ * The lists the panel stands on, read from bmo-job: the queue, what waits on the owner, what is set aside and what
+ * is finished, narrowed by its conditions and its search. The items are read whole in one walk; a finished item
+ * beyond the page in hand is not read at all.
  */
 export async function readTodoBoard(
   input: { limit?: number; query?: string | null; conditions?: TodoConditions; room?: number | null } = {}
@@ -339,41 +246,34 @@ export async function readTodoBoard(
   const limit = input.limit ?? DONE_PAGE_SIZE;
   const query = input.query ?? null;
   const conditions = input.conditions ?? NO_CONDITIONS;
-  const room = input.room ?? (conditions.chat !== null && conditions.chat !== NO_ROOM ? Number(conditions.chat) : null);
-  const [all, holds, running] = await Promise.all([
-    listing(room),
-    jobRead<{ paused: boolean; deploy_hold?: unknown }>("/queue/holds"),
-    runningItems()
-  ]);
-  const lines = all.filter((line) => meets(line, conditions));
-  const open = lines.filter((line) => listOf(line) !== "done");
-  // The finished stand newest first, by number, which is the order they were filed in.
-  const finished = lines.filter((line) => listOf(line) === "done").sort((one, other) => other.id - one.id);
-  const finishedFound =
-    query === null ? finished : filterRecords(finished, (line) => [{ label: "", text: `#${line.id} ${line.title} ${line.status}`, shown: true }], query);
-  const items = await itemsOf([...open.map((line) => line.id), ...finishedFound.slice(0, limit).map((line) => line.id)], running);
-  const byId = new Map(items.map((item) => [item.id, item]));
-  const requested = (item: TodoItem) => conditions.requester === null || item.requester === conditions.requester;
-  const found = (item: TodoItem) => query === null || filterRecords([item], (one) => todoSearchFields(wording, one, []), query).length > 0;
-  const listed = (name: ListName, from: readonly ItemLine[]) =>
-    from.filter((line) => listOf(line) === name).flatMap((line) => byId.get(line.id) ?? []).filter(requested);
+  const [items, queues] = await Promise.all([allItems(), readQueues()]);
+  const matching = items.filter((item) => meets(item, conditions));
+  const finished = matching.filter((item) => listOf(item) === "done").sort((one, other) => other.id - one.id);
+  const finishedFound = query === null
+    ? finished
+    : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
+  const rows = new Map(matching.map((item) => [item.id, itemOf(item)]));
+  const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
+  const listed = (name: "queue" | "pending" | "held", from: readonly Item[]) =>
+    from.filter((item) => listOf(item) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
   const choices: TodoChoices = {
-    workers: [...new Set(all.map((line) => line.worker ?? WORKER_AGENT))],
+    workers: [...new Set(items.map((item) => item.assigneeName ?? WORKER_AGENT))],
     chats: [],
-    requesters: [...new Set(items.map((item) => item.requester))]
+    requesters: [...new Set(items.flatMap((item) => (item.requesterName === null ? [] : [item.requesterName])))]
   };
+  const holds = queues.flatMap((queue) => queue.holds);
 
   return {
-    queue: listed("queue", open).filter(found),
-    pending: listed("pending", open).filter(found),
-    held: listed("held", open).sort((one, other) => (other.heldAt ?? 0) - (one.heldAt ?? 0)).filter(found),
-    merged: listed("merged", open).sort((one, other) => (other.mergedAt ?? 0) - (one.mergedAt ?? 0)).filter(found),
-    done: listed("done", finishedFound.slice(0, limit)),
+    queue: listed("queue", matching),
+    pending: listed("pending", matching),
+    held: listed("held", matching),
+    merged: [],
+    done: finishedFound.slice(0, limit).flatMap((item) => rows.get(item.id) ?? []),
     doneTotal: finishedFound.length,
-    standingNotes: all.filter((line) => line.marks.some((mark) => mark.kind === "unfinished")).map((line) => ({ id: line.id, title: line.title })).sort((one, other) => other.id - one.id),
+    standingNotes: [],
     choices,
-    standing: standingOf(all, running),
-    paused: holds.paused,
-    deployHold: holdOf(holds.deploy_hold)
+    standing: standingOf(matching),
+    paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),
+    deployHold: holds.length === 0 ? null : holdOf(holds[0])
   };
 }

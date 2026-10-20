@@ -1,24 +1,43 @@
-import { JOB_CODES } from "./job-codes";
-import { unitFetch } from "./units";
+import { jobClient } from "bmo-job-client";
+
+import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import type { UnitCall } from "./units";
+import { JOB_CODES } from "./job-codes";
+import { unitAt } from "./units";
+import { answered } from "./unit-answer";
 
-// bmo-job's routes as its document states them (bmo-job's `docs/api.md`, 「Routes」): JSON in snake_case both ways,
-// times in epoch milliseconds, and a refusal answered with its code and an English sentence, which the console
-// says by the pack's sentence for the code.
+import type { Client } from "openapi-fetch";
+import type { paths } from "bmo-job-client/schema";
+import type { UnitAnswerCall } from "./unit-answer";
 
+// bmo-job's fixed API as its published package states it (bmo-job's `docs/api.md`): one document, its types in
+// `bmo-job-client/schema`, and one call for each route over them. A refusal is answered with its code and an
+// English sentence, which the console says by the pack's sentence for the code.
+
+/** The job service's client, over the document its package publishes. */
+export type JobClient = Client<paths>;
+
+// A call that only reads bmo-job answers at once; a verb that starts work waits on what it asks.
+export const JOB_TIMEOUT_MS = 5_000;
 // A verb that stops runs or starts a work order waits on what it asks of the agency.
 export const JOB_VERB_TIMEOUT_MS = 180_000;
 
-/** One call on bmo-job, its refusals said in the pack's words. */
-export async function jobFetch<T>(path: string, init?: RequestInit, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await unitFetch<T>("JOB", path, init, { ...call, codes: JOB_CODES });
+/** bmo-job at the address its setting names, asked with its token. */
+export function job(): JobClient {
+  const unit = unitAt("JOB");
+
+  if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
+
+  return jobClient(unit.address, unit.token ?? "");
 }
 
-/** A read of bmo-job's. */
-export async function jobRead<T>(path: string, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await jobFetch<T>(path, undefined, call);
+/** One call on bmo-job, its refusals said in the pack's words. */
+export async function jobCall<T, E extends { code?: string; error?: string; field?: string }>(
+  asked: Promise<{ data?: T; error?: E; response: Response }>,
+  call: UnitAnswerCall = {}
+): Promise<T> {
+  return await answered(asked, { ...call, codes: JOB_CODES });
 }
 
 /** What came of telling the agent how the queue stands, by its kind (bmo-job's `docs/api.md`, 「A queue told」). */
@@ -41,9 +60,4 @@ export function queueToldText(told: QueueTold | null | undefined): string | null
   const key = QUEUE_TOLD[told];
 
   return key === undefined ? told : wording(key);
-}
-
-/** A POST of a JSON body to bmo-job. */
-export async function jobPost<T>(path: string, body: unknown, call: Omit<UnitCall, "codes"> = {}): Promise<T> {
-  return await jobFetch<T>(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, call);
 }

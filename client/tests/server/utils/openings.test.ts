@@ -6,15 +6,16 @@ import { answer, standIn } from "../../support/units";
 import type { Judgement, RoundOpening } from "../../../apps/web/shared/types";
 
 // What opened a room's turns, asked of the receiver once for every round a page's judgements name and worn by
-// each judgement of those rounds. A stand-in answers for the receiver.
+// each judgement of those rounds. A stand-in answers for the receiver. The gate's offers are no part of the
+// receiver's answer, so an opening wears none.
 
 const opening: RoundOpening = {
   instructions: [{ id: 5, sort: "run_state", summary: "#12 · queue-waiting", createdAt: 1 }],
-  offers: [{ stage: "people-search", held: 745, asked: 0, kept: { item: 0, keyword: 0, person: 0 }, capped: 0, rules: ["item"] }]
+  offers: []
 };
 
 const receiver = standIn("RECEIVER", (one) =>
-  one.path.startsWith("/rounds/instruction") ? answer({ id: 5, text: "the instruction whole" }) : answer({ rounds: { "round:-7:1:1": opening } })
+  one.path.startsWith("/rounds/openings/5") ? answer({ id: 5, text: "the instruction whole" }) : answer({ items: [{ round: "round:-7:1:1", instructions: opening.instructions }], more: false })
 );
 
 const { readInstructionText, withOpenings } = await import("../../../apps/web/server/utils/openings");
@@ -28,7 +29,7 @@ describe("the openings a page's judgements wear", () => {
 
     const worn = await withOpenings(-7, [judgement(1, "round:-7:1:1"), judgement(2, "round:-7:1:1"), judgement(3, "round:-7:2:1"), judgement(4, null)]);
 
-    expect(receiver.asked.map((one) => one.path)).toEqual([`/rounds/openings?${new URLSearchParams({ chat: "-7", rounds: "round:-7:1:1,round:-7:2:1" })}`]);
+    expect(receiver.asked.map((one) => one.path)).toEqual([`/rounds/openings?${new URLSearchParams({ room: "-7", rounds: "round:-7:1:1,round:-7:2:1" })}`]);
     expect(worn.map((one) => one.opening ?? null)).toEqual([opening, opening, null, null]);
   });
 
@@ -55,6 +56,6 @@ describe("the openings a page's judgements wear", () => {
     receiver.asked.length = 0;
 
     expect(await readInstructionText(-7, 5)).toEqual({ id: 5, text: "the instruction whole" });
-    expect(receiver.asked.map((one) => one.path)).toEqual([`/rounds/instruction?${new URLSearchParams({ chat: "-7", id: "5" })}`]);
+    expect(receiver.asked.map((one) => one.path)).toEqual([`/rounds/openings/5?${new URLSearchParams({ room: "-7" })}`]);
   });
 });

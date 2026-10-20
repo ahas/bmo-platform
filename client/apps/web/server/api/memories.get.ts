@@ -7,9 +7,19 @@ export default defineEventHandler(async (event): Promise<MemoriesView> => {
   await requireUserSession(event);
 
   const chat = getQuery(event).chat;
-  const where = typeof chat === "string" && chat.trim() !== "" ? `?chat=${encodeURIComponent(chat.trim())}` : "";
+  const room = typeof chat === "string" && chat.trim() !== "" ? Number(chat.trim()) : null;
+  const found: MemoryRecord[] = [];
+  let after: number | undefined;
 
-  const { memories } = await brainRead<{ memories: MemoryRecord[] }>(`/memories${where}`);
+  for (;;) {
+    const page = await brainCall(brain().GET("/memories", { params: { query: { limit: 500, ...(after === undefined ? {} : { after }) } } }));
 
-  return { memories: await memoryViews(memories) };
+    found.push(...page.items.map(memoryRecordOf));
+
+    if (!page.more || page.items.length === 0) break;
+
+    after = page.items[page.items.length - 1]!.id;
+  }
+
+  return { memories: await memoryViews(room === null || Number.isNaN(room) ? found : found.filter((memory) => memory.chatId === room)) };
 });

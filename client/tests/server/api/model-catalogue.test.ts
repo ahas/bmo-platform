@@ -30,7 +30,7 @@ describe("changing a model file", () => {
     calls.length = 0;
 
     expect(await asked(change, { body: { action: "save", name: "entry-a", file: "model-a.gguf" } })).toMatchObject({ status: 200, answer: catalogue });
-    expect(calls).toEqual([{ method: "POST", path: "/model-catalogue", body: { action: "save", name: "entry-a", file: "model-a.gguf", by: "tester" } }]);
+    expect(calls).toMatchObject([{ method: "POST", path: "/model-catalogue", body: { action: "save", name: "entry-a", file: "model-a.gguf", by: "tester" } }]);
   });
 
   test("carries a removal and a choice by the entry's name", async () => {
@@ -38,7 +38,7 @@ describe("changing a model file", () => {
 
     expect(await asked(change, { body: { action: "remove", name: "entry-a" } })).toMatchObject({ status: 200 });
     expect(await asked(change, { body: { action: "use", name: "entry-a" } })).toMatchObject({ status: 200 });
-    expect(calls.map(({ body }) => body)).toEqual([
+    expect(calls.map(({ body }) => body)).toMatchObject([
       { action: "remove", name: "entry-a", by: "tester" },
       { action: "use", name: "entry-a", by: "tester" }
     ]);

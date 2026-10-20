@@ -1,7 +1,7 @@
 import { userOf } from "./account-service";
 
 import { useWebSql } from "./db";
-import { receiverRead } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
 import type { SignedIn } from "./accounts";
 import type { ReadPlace } from "#shared/types";
@@ -68,9 +68,12 @@ function placeOf(sentAt: number): ReadPlace {
 
 // The room's newest message, the place a room is read up to when the account first meets it.
 async function newest(chatId: number): Promise<Received | null> {
-  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages?limit=1`);
+  const { items } = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId: chatId }, query: { limit: 1 } } })
+  );
+  const last = items.at(-1);
 
-  return messages.at(-1) ?? null;
+  return last === undefined ? null : { messageId: last.id, senderId: last.senderId, sentAt: last.sentAt };
 }
 
 async function marksOf(signed: SignedIn): Promise<Map<number, Mark>> {
@@ -101,7 +104,10 @@ async function writeMark(signed: SignedIn, chatId: number, mark: Mark, now: numb
 async function unreadAfter(chatId: number, mark: Mark, own: ReadonlySet<number>): Promise<Unread> {
   if (mark.messageId === null) return { count: 0, first: null, from: placeOf(mark.sentAt) };
 
-  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages/after?after=${mark.messageId}&limit=${COUNTED}`);
+  const { items } = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages", { params: { path: { roomId: chatId }, query: { after: mark.messageId, limit: COUNTED } } })
+  );
+  const messages: Received[] = items.map((message) => ({ messageId: message.id, senderId: message.senderId, sentAt: message.sentAt }));
   const lastOwn = messages.findLastIndex((message) => message.senderId !== null && own.has(message.senderId));
   const past = messages.slice(lastOwn + 1);
   const from = lastOwn === -1 ? placeOf(mark.sentAt) : placeOf(messages[lastOwn]!.sentAt);
@@ -146,10 +152,11 @@ export async function unreadCounts(signed: SignedIn, own: readonly number[], roo
  * room does not hold moves nothing; a place behind the mark leaves the mark where it is.
  */
 export async function markRead(signed: SignedIn, own: readonly number[], chatId: number, messageId: number, now: number): Promise<Unread> {
-  const { messages } = await receiverRead<{ messages: Received[] }>(`/console/rooms/${chatId}/messages/${messageId}`);
-  const read = messages[0];
+  const message = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages/{messageId}", { params: { path: { roomId: chatId, messageId } } })
+  );
 
-  if (read !== undefined) await writeMark(signed, chatId, { messageId, sentAt: read.sentAt }, now);
+  await writeMark(signed, chatId, { messageId, sentAt: message.sentAt }, now);
 
   const last = await newest(chatId);
 

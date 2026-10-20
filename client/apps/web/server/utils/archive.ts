@@ -4,9 +4,11 @@ import { wording } from "#shared/wording";
 
 import { ownerChat } from "./owner";
 import { carriesFiles, messageMedia } from "./message-media";
-import { receiverRead } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
+import { within } from "./unit-answer";
 
 import type { ArchivedMessage, JudgementPage, MessageAttachment, MessagePage, ReplyQuote, RoomSummary, TelegramExpression } from "#shared/types";
+import type { ReceiverMessage, ReceiverRoom } from "./receiver";
 
 // A room as the receiver keeps it (the receiver's `docs/boundary-api.md`, 「For the web unit's console: reading a
 // room」): the rooms, a room's name, and its line walked by a cursor the reader holds, read into the shapes the room
@@ -14,15 +16,6 @@ import type { ArchivedMessage, JudgementPage, MessageAttachment, MessagePage, Re
 // pages do not carry stands empty (docs/boundary.md, 「Gaps the console meets」): the judgements beside a page, which
 // are the gate's; what a round cost and what its turn did; and a line's voice briefing. A message that carries files
 // is read again for them and for the metadata it arrived with (`server/utils/message-media.ts`).
-
-interface RoomLine {
-  chatId: number;
-  title: string | null;
-  messageCount: number;
-  lastMessageAt: number | null;
-  pinned: boolean;
-  companions?: string[];
-}
 
 // A file a message carried, as the receiver's store keeps it.
 interface KeptFile {
@@ -49,30 +42,53 @@ interface ReceivedMessage {
   files: KeptFile[];
 }
 
-interface ReceivedPage {
-  messages: ReceivedMessage[];
-  hasMore: boolean;
+// A message as the receiver's own document answers it, read into the names the room screen stands on: its
+// number is the message's, and the room it stands in is its own.
+function receivedOf(message: ReceiverMessage): ReceivedMessage {
+  return {
+    chatId: message.room,
+    messageId: message.id,
+    senderId: message.senderId,
+    senderName: message.senderName,
+    sentAt: message.sentAt,
+    text: message.text,
+    imagePath: message.imagePath,
+    replyToMessageId: message.replyToMessageId,
+    answerSeconds: message.answerSeconds,
+    round: message.round,
+    album: message.album,
+    via: message.via,
+    files: message.files
+  };
 }
 
 const ATTACHED: readonly MessageAttachment["kind"][] = ["audio", "video", "document", "sticker"];
 
+// Every room the receiver shows, the pinned ones first in the owner's order: one page, as its route answers.
+async function everyRoom(): Promise<ReceiverRoom[]> {
+  return (await receiverCall(receiver().GET("/rooms", { signal: within(5_000) }))).items;
+}
+
 /** Every room, the pinned ones first in the owner's order, each under the name it is called by. */
 export async function listRooms(): Promise<RoomSummary[]> {
-  const [{ rooms }, owner] = await Promise.all([receiverRead<{ rooms: RoomLine[] }>("/console/rooms"), ownerChat()]);
+  const [rooms, owner] = await Promise.all([everyRoom(), ownerChat()]);
 
   return rooms.map((room) => ({
-    chatId: room.chatId,
-    title: roomLabel(room.chatId, room.title, owner),
+    chatId: room.id,
+    title: roomLabel(room.id, room.title, owner),
     messageCount: room.messageCount,
     lastMessageAt: room.lastMessageAt,
     pinned: room.pinned,
-    ...(room.companions !== undefined ? { madeForCompanions: true as const, companions: room.companions } : {})
+    ...(room.companions.length > 0 ? { madeForCompanions: true as const, companions: room.companions } : {})
   }));
 }
 
 /** One room by the name it is called by, the same name the room list gives it. */
 export async function roomTitleOf(chatId: number): Promise<string> {
-  const [{ title }, owner] = await Promise.all([receiverRead<{ title: string | null }>(`/console/rooms/${chatId}/title`), ownerChat()]);
+  const [{ title }, owner] = await Promise.all([
+    receiverCall(receiver().GET("/rooms/{roomId}/title", { params: { path: { roomId: chatId } }, signal: within(5_000) })),
+    ownerChat()
+  ]);
 
   return roomLabel(chatId, title, owner);
 }
@@ -102,30 +118,38 @@ async function mediaOf(chatId: number, message: ReceivedMessage): Promise<{ atta
   }
 }
 
-// Whether each sender of a page is an agent, asked of the receiver once a sender on one of its messages: the
-// receiver answers a message an agent filed and refuses one a person said.
-async function agentSenders(chatId: number, messages: readonly ReceivedMessage[]): Promise<Map<string, boolean>> {
-  const firstOf = new Map<string, number>();
-
-  for (const message of messages) {
-    const sender = senderKey(message);
-
-    if (!firstOf.has(sender)) firstOf.set(sender, message.messageId);
-  }
-
-  const asked = await Promise.all(
-    [...firstOf].map(async ([sender, messageId]) => {
+// The numbers an agent's own words stand under in a room, as the receiver gives each of the room's answerers
+// its own number: a message whose sender is one of them is an agent's.
+export async function agentNumbers(chatId: number): Promise<Set<number>> {
+  const answerers = await receiverCall(
+    receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId: chatId } }, signal: within(5_000) })
+  );
+  const names = [...new Set([answerers.default, answerers.voice, ...answerers.items.map((answerer) => answerer.agentName)])].filter((name) => name !== "");
+  const numbers = await Promise.all(
+    names.map(async (agentName) => {
       try {
-        await receiverRead(`/console/rooms/${chatId}/agent-message/${messageId}`);
+        const answer = await receiverCall(
+          receiver().GET("/rooms/{roomId}/own-number", {
+            params: { path: { roomId: chatId }, query: { agentName } },
+            signal: within(5_000)
+          })
+        );
 
-        return [sender, true] as const;
+        return answer.number;
       } catch {
-        return [sender, false] as const;
+        return null;
       }
     })
   );
 
-  return new Map(asked);
+  return new Set(numbers.filter((number): number is number => number !== null));
+}
+
+// Whether each sender of a page is an agent, by the number its words stand under.
+async function agentSenders(chatId: number, messages: readonly ReceivedMessage[]): Promise<Map<string, boolean>> {
+  const numbers = await agentNumbers(chatId).catch(() => new Set<number>());
+
+  return new Map(messages.map((message) => [senderKey(message), message.senderId !== null && numbers.has(message.senderId)]));
 }
 
 function senderKey(message: ReceivedMessage): string {
@@ -135,7 +159,12 @@ function senderKey(message: ReceivedMessage): string {
 // The message a reply answers, as the reply shows it; one the receiver does not hand over stands with nothing.
 async function replyQuoteOf(chatId: number, messageId: number): Promise<ReplyQuote> {
   try {
-    const answered = (await receiverRead<ReceivedPage>(`/console/rooms/${chatId}/messages/${messageId}`)).messages[0];
+    const answered = receivedOf(await receiverCall(
+      receiver().GET("/rooms/{roomId}/messages/{messageId}", {
+        params: { path: { roomId: chatId, messageId } },
+        signal: within(5_000)
+      })
+    ));
 
     if (answered !== undefined) {
       return {
@@ -198,36 +227,54 @@ async function messagesOf(chatId: number, received: readonly ReceivedMessage[]):
   );
 }
 
-async function pageOf(chatId: number, path: string): Promise<MessagePage> {
-  const page = await receiverRead<ReceivedPage>(path);
-
-  return { messages: await messagesOf(chatId, page.messages), judgements: [], hasMore: page.hasMore };
+async function pageOf(chatId: number, page: { items: ReceiverMessage[]; more: boolean }): Promise<MessagePage> {
+  return { messages: await messagesOf(chatId, page.items.map(receivedOf)), judgements: [], hasMore: page.more };
 }
 
 /** One page of a room, oldest first, ending just before `before` when it is given. */
 export async function readMessagePage(chatId: number, before: number | null, limit: number): Promise<MessagePage> {
-  const asked = new URLSearchParams({ limit: String(Math.min(limit, PAGING.maxSize)) });
+  const page = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages", {
+      params: {
+        path: { roomId: chatId },
+        query: { limit: Math.min(limit, PAGING.maxSize), ...(before === null ? {} : { before }) }
+      },
+      signal: within(5_000)
+    })
+  );
 
-  if (before !== null) asked.set("before", String(before));
-
-  return await pageOf(chatId, `/console/rooms/${chatId}/messages?${asked}`);
+  return await pageOf(chatId, page);
 }
 
 /** The messages of a room past a message the reader already holds, oldest first. */
 export async function readMessagesAfter(chatId: number, after: number, limit: number): Promise<MessagePage> {
-  const asked = new URLSearchParams({ after: String(after), limit: String(Math.min(limit, PAGING.maxSize)) });
+  const page = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages", {
+      params: { path: { roomId: chatId }, query: { after, limit: Math.min(limit, PAGING.maxSize) } },
+      signal: within(5_000)
+    })
+  );
 
-  return await pageOf(chatId, `/console/rooms/${chatId}/messages/after?${asked}`);
+  return await pageOf(chatId, page);
 }
 
 /** One message of a room by its own number, as a page of one, or an empty page where the screen stands none. */
 export async function readOneMessage(chatId: number, messageId: number): Promise<MessagePage> {
-  return await pageOf(chatId, `/console/rooms/${chatId}/messages/${messageId}`);
+  const message = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages/{messageId}", {
+      params: { path: { roomId: chatId, messageId } },
+      signal: within(5_000)
+    })
+  );
+
+  return await pageOf(chatId, { items: [message], more: false });
 }
 
 /** Where a day begins in a room: the first message a person said at or after a moment, or null. */
 export async function readDayStart(chatId: number, from: number): Promise<{ messageId: number } | null> {
-  const { messageId } = await receiverRead<{ messageId: number | null }>(`/console/rooms/${chatId}/day-start?from=${from}`);
+  const { messageId } = (await receiverCall(
+    receiver().GET("/rooms/{roomId}/day-start", { params: { path: { roomId: chatId }, query: { from } }, signal: within(5_000) })
+  )) as { messageId: number | null };
 
   return messageId === null ? null : { messageId };
 }

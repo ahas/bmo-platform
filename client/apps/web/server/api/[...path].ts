@@ -58,9 +58,12 @@ export default defineEventHandler(async (event) => {
   const rest = path.map(encodeURIComponent).join("/");
   const declarations = (useAppConfig().consoleBundles ?? []) as { serviceName: string }[];
   const declared = declarations.find((bundle) => bundle.serviceName === service);
+  const unit = unitAt(service.replaceAll("-", "_").toUpperCase());
 
-  // A name no bundle declares is this console's own absence, not a unit's.
-  if (declared === undefined) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  // A name neither a bundle declares nor a setting names is this console's own absence, not a unit's. A unit the
+  // console calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own
+  // paths are handed on as they are.
+  if (declared === undefined && unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
 
   const method = getMethod(event).toUpperCase();
   const reading = method === "GET" || method === "HEAD";
@@ -69,8 +72,6 @@ export default defineEventHandler(async (event) => {
   if (session.user === undefined && !(reading && SHARE_READ.test(rest))) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
-
-  const unit = unitAt(service.replaceAll("-", "_").toUpperCase());
 
   if (unit === null) throw fail(503, wording(CONTROL_UNREACHABLE));
 

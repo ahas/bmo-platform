@@ -150,7 +150,6 @@
             :rooms="rooms"
             :fallback="fallback"
             :keepalive="keepalive"
-            :voice-briefing="voiceBriefingStatus === 'error' ? null : voiceBriefing"
             :models="models ?? null"
             :models-failed="!!modelsError"
             :models-reading="modelsStatus === 'pending'"
@@ -187,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, emptyVoiceBriefingView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
+import { AGENT_TABS, emptyFallbackView, emptyKeepaliveView, isAgentTab, mappingText, routeModeText, searchSettings, settingsAnchor } from "~/domain/agent-settings";
 import { agentGroups, GENERAL_SECTIONS, keepaliveMarkOf, NOT_CHECKOUT_LABEL } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
 import { useListPlace } from "bmo-ui/app/domain/list-place";
@@ -202,7 +201,7 @@ import { modeLabel } from "~/domain/status";
 import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
-import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary, VoiceBriefingView } from "#shared/types";
+import type { AgentSummary, FallbackView, KeepaliveView, RoomSummary } from "#shared/types";
 import type { GeneralPart } from "~/domain/agents";
 import type { ModelPage, TierSettingsView } from "#shared/agency";
 
@@ -257,18 +256,14 @@ const rooms = computed<RoomSummary[]>(() => roomList.value ?? []);
 
 const { data: fallback, refresh: rereadFallback, status: fallbackStatus } = useFetch<FallbackView>("/api/fallback", { key: "fallback", lazy: true, server: false, default: emptyFallbackView });
 const { data: keepalive, refresh: rereadKeepalive, status: keepaliveStatus } = useFetch<KeepaliveView>("/api/keepalive", { key: "keepalive", lazy: true, server: false, default: emptyKeepaliveView });
-const { data: voiceBriefing, refresh: rereadVoiceBriefing, status: voiceBriefingStatus } = useFetch<VoiceBriefingView>("/api/voice-briefing", { key: "voice-briefing", lazy: true, server: false, default: emptyVoiceBriefingView });
 const { data: tiers } = useFetch<TierSettingsView>("/api/model-tiers", { key: "model-tiers", lazy: true, server: false });
 // The registered models, read apart from the rest of the tab: its section waits on its own read.
 const { data: models, error: modelsError, refresh: rereadModels, status: modelsStatus } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
 
 const fallbackInitial = useInitialRead(fallbackStatus);
 const keepaliveInitial = useInitialRead(keepaliveStatus);
-const voiceBriefingInitial = useInitialRead(voiceBriefingStatus);
 
-// The voice briefing's switch is the receiver's to answer; where it does not, its section says so and the rest of
-// the tab stands.
-const generalReady = computed(() => !agentsInitial.value && !fallbackInitial.value && !keepaliveInitial.value && !voiceBriefingInitial.value
+const generalReady = computed(() => !agentsInitial.value && !fallbackInitial.value && !keepaliveInitial.value
   && fallbackStatus.value !== "error" && keepaliveStatus.value !== "error");
 const generalFailed = computed(() => agentsFailed.value || fallbackStatus.value === "error" || keepaliveStatus.value === "error");
 
@@ -278,7 +273,6 @@ async function rereadPart(what: GeneralPart): Promise<void> {
   if (what === "agents") await refreshAgents();
   if (what === "fallback") await Promise.all([rereadFallback(), refreshNuxtData("execution-fallback"), refreshAgents()]);
   if (what === "keepalive") await rereadKeepalive();
-  if (what === "voice-briefing") await rereadVoiceBriefing();
   // A registration named in a tier or a pin is read back beside the models themselves.
   if (what === "registry") await Promise.all([rereadModels(), refreshNuxtData("model-tiers"), refreshAgents()]);
 }
@@ -289,7 +283,7 @@ async function reread(): Promise<void> {
   rereading.value = true;
 
   try {
-    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), rereadVoiceBriefing(), refreshNuxtData("model-tiers"), rereadResearch(), rereadModels()]);
+    await Promise.all([refreshAgents(), rereadFallback(), rereadKeepalive(), refreshNuxtData("model-tiers"), rereadResearch(), rereadModels()]);
   } finally {
     rereading.value = false;
   }
@@ -311,7 +305,7 @@ function keyLabel(key: string): string {
 const entries = computed<SettingsEntry[]>(() => {
   const list: SettingsEntry[] = [
     { id: "keepalive", tab: "general", label: t("agents.label.keepalive_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_keepalive_all"), shown: true }] },
-    { id: "voice-briefing", tab: "general", label: t("agents.label.voice_briefing_all"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_voice_briefing"), shown: true }] },
+    { id: "voice-briefing", tab: "general", label: t("agents.title.section_voice_briefing"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_voice_briefing"), shown: true }] },
     { id: "providers", tab: "general", label: t("agents.title.section_providers"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_fallback"), shown: true }] },
     { id: "roles", tab: "general", label: t("agents.title.section_roles"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_roles"), shown: true }] },
     { id: "reasoning", tab: "general", label: t("agents.title.section_reasoning"), fields: [{ label: t("agents.label.settings"), text: t("agents.label.find_reasoning"), shown: true }] },

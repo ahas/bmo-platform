@@ -39,13 +39,14 @@ export default defineEventHandler(async (event): Promise<SentMessage> => {
     chatId,
     sendKeyOf(body?.key),
     async () => {
-      const said = await receiverPost<{ ok: true; messageId: number }>(
-        "/say",
-        { chatId, text, replyTo: replyTo ?? undefined },
-        { timeoutMs: SEND_TIMEOUT_MS + SEND_LATE_MS }
+      const said = await receiverCall(
+        receiver().POST("/owner/messages", {
+          body: { chatId, text, replyTo },
+          signal: within(SEND_TIMEOUT_MS + SEND_LATE_MS)
+        })
       );
 
-      return { messageId: said.messageId };
+      return { messageId: said.id };
     },
     () => {
       throw fail(504, wording(CONTROL_SLOW));

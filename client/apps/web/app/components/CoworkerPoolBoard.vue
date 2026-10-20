@@ -121,7 +121,7 @@ async function load(): Promise<void> {
   reading.value = true;
 
   try {
-    board.value = await $fetch<PoolBoard>("/api/coworker-pool");
+    board.value = await $fetch<PoolBoard>("/api/agency/pool");
     failed.value = "";
     // A place the pool no longer holds is work that ended, and what stood on that tile goes with it.
     stops.seen([

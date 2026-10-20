@@ -9,8 +9,8 @@ export default defineEventHandler(async (event): Promise<StatusView> => {
   await requireUserSession(event);
 
   const [snapshot, jobs] = await Promise.all([
-    unitFetch<Pick<LiveSnapshot, "at" | "compacting">>("RECEIVER", "/live").then(
-      (read) => ({ read, error: null }),
+    receiverCall(receiver().GET("/live")).then(
+      (read) => ({ read: { at: read.at, compacting: read.compacting.map((one) => ({ chatId: one.room, since: one.since })) }, error: null }),
       (error: unknown) => ({ read: null, error })
     ),
     // A job not finished yet is under way rather than run, and the board tells what has run from what runs by

@@ -1,7 +1,8 @@
-import { agencyRead } from "./agency";
+import { agency, agencyCall } from "./agency";
 import { listRooms, readOneMessage } from "./archive";
-import { receiverPost } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
+import type { Memory as BrainMemory } from "bmo-brain-client";
 import type { AgentSummary, MemoryRecord, MemoryRowView, MemorySourceView } from "#shared/types";
 
 // The memories as the memories screen shows them: the rows the brain answers (the brain's `docs/boundary-api.md`,
@@ -10,6 +11,52 @@ import type { AgentSummary, MemoryRecord, MemoryRowView, MemorySourceView } from
 // is the agency's to say, and the room, the people and the message the receiver's. A unit that does not answer
 // leaves the row standing by its numbers. The watch serving a row is served by no route, so none stands beside
 // it (docs/boundary.md, 「Gaps the console meets」).
+
+// A label the caller wrote on a row, as a number.
+function numberLabel(labels: Record<string, string>, key: string): number | null {
+  const value = Number(labels[key]);
+
+  return labels[key] !== undefined && Number.isSafeInteger(value) ? value : null;
+}
+
+/**
+ * A memory row as the memories screen reads it. The brain's fixed API keeps one generic row — its scope, kind,
+ * text, state, labels and conditions — and the console's own row was a thing of its kind: its agent, its room, the
+ * event it waited on and what it was for. Whatever the caller wrote of those into the row's labels is read back;
+ * what is not there stands at its default (docs/boundary.md, 「Gaps the console meets」).
+ */
+export function memoryRecordOf(memory: BrainMemory): MemoryRecord {
+  const labels = memory.labels;
+  const type = labels.type;
+
+  return {
+    id: memory.id,
+    agent: labels.agent ?? memory.subjectKey ?? "",
+    slug: labels.slug ?? String(memory.id),
+    type: type === "promise" || type === "check" || type === "followup" || type === "situation" || type === "state" ? type : "check",
+    chatId: numberLabel(labels, "chatId"),
+    reach: labels.reach === "owner" || labels.reach === "group" ? labels.reach : "all",
+    condition: labels.condition ?? "",
+    event: null,
+    eventMetAt: null,
+    action: labels.action ?? memory.text,
+    forUser: numberLabel(labels, "forUser"),
+    active: memory.state !== "retired" && memory.state !== "off",
+    lastHitAt: memory.lastMatchedAt === null ? null : Math.floor(memory.lastMatchedAt / 1000),
+    hits: memory.matchCount,
+    setBy: numberLabel(labels, "setBy"),
+    setAt: Math.floor(memory.createdAt / 1000),
+    messageId: numberLabel(labels, "messageId"),
+    todoId: numberLabel(labels, "todoId"),
+    doneAt: memory.state === "done" ? Math.floor(memory.changedAt / 1000) : null,
+    doneText: labels.doneText ?? null,
+    downReason: labels.downReason ?? null,
+    downAt: numberLabel(labels, "downAt"),
+    candidateWhy: labels.candidateWhy ?? null,
+    candidateAt: numberLabel(labels, "candidateAt"),
+    movedAt: Math.floor(memory.changedAt / 1000)
+  };
+}
 
 // The names the given rooms are known by, as the room list names them; a room the list does not hold stands as
 // its number.
@@ -25,9 +72,10 @@ async function roomNames(chatIds: readonly number[]): Promise<Map<number, string
 // What the owner calls each agent, as the agency labels it, and its own name where it gives none.
 async function agentLabels(): Promise<Map<string, string>> {
   try {
-    const { agents } = await agencyRead<{ agents?: AgentSummary[] }>("/agents");
+    const [agents, workers] = await Promise.all([agencyCall(agency().GET("/agents")), agencyCall(agency().GET("/workers"))]);
+    const rows: AgentSummary[] = agentSummaries(agents.items, workers.items);
 
-    return new Map((agents ?? []).map((agent) => [agent.name, agent.label ?? agent.name]));
+    return new Map(rows.map((agent) => [agent.name, agent.label ?? agent.name]));
   } catch {
     return new Map();
   }
@@ -38,9 +86,9 @@ async function personNames(people: readonly number[]): Promise<Map<number, strin
   if (people.length === 0) return new Map();
 
   try {
-    const { names } = await receiverPost<{ names: { person: number; name: string | null }[] }>("/people/names", { people });
+    const { items } = await receiverCall(receiver().GET("/people", { params: { query: { ids: people.join(",") } } }));
 
-    return new Map(names.flatMap((one) => (one.name === null ? [] : [[Number(one.person), one.name] as const])));
+    return new Map(items.flatMap((one) => (one.name === null ? [] : [[one.id, one.name] as const])));
   } catch {
     return new Map();
   }

@@ -12,11 +12,13 @@ import { answer, standIn } from "../../support/units";
 const held = { key: "registered::model-a-0-1", provider: "registered", model: "RVN-model", tier: "large", healthy: true };
 
 const agency = standIn("AGENCY", (call) =>
-  call.method === "POST" && call.body?.key === "registered::taken"
+  call.method === "POST" && call.body?.name === "registered::taken"
     ? answer({ code: "conflict", error: "a model is already registered as taken" }, 409)
     : call.method === "DELETE"
       ? new Response(null, { status: 204 })
-      : answer(held)
+      : call.method === "GET" && call.path === "/models"
+        ? answer({ items: [held], more: false })
+        : answer(held)
 );
 const calls = agency.asked;
 
@@ -29,7 +31,7 @@ describe("listing the registered models", () => {
   test("reads the agency's model resource and answers its page as it came", async () => {
     calls.length = 0;
 
-    expect(await asked(list, {})).toMatchObject({ status: 200, answer: held });
+    expect(await asked(list, {})).toMatchObject({ status: 200, answer: { items: [held], more: false } });
     expect(calls).toEqual([{ method: "GET", path: "/models", body: null }]);
   });
 });
@@ -39,7 +41,7 @@ describe("registering a model", () => {
     calls.length = 0;
 
     expect(await asked(create, { body: { key: " registered::model-a-0-1 ", model: " RVN-model " } })).toMatchObject({ status: 200, answer: held });
-    expect(calls).toEqual([{ method: "POST", path: "/models", body: { key: "registered::model-a-0-1", model: "RVN-model" } }]);
+    expect(calls).toMatchObject([{ method: "POST", path: "/models", body: { action: "add", name: "registered::model-a-0-1", model: "RVN-model" } }]);
   });
 
   test("says the agency's conflict when the name already stands", async () => {
@@ -66,7 +68,7 @@ describe("changing a model", () => {
     calls.length = 0;
 
     expect(await asked(patch, { params: { modelKey: "model-a-0-1" }, body: { model: " RVN-model-2 " } })).toMatchObject({ status: 200, answer: held });
-    expect(calls).toEqual([{ method: "PATCH", path: "/models/model-a-0-1", body: { model: "RVN-model-2" } }]);
+    expect(calls).toMatchObject([{ method: "PATCH", path: "/models/model-a-0-1", body: { action: "change", model: "RVN-model-2" } }]);
   });
 
   test("refuses a change that names no model, or no registration in the path", async () => {

@@ -28,8 +28,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw fail(400, wording("agents.error.bad_effort"));
   }
 
-  return await agencyFetch<{ ok: true }>(
-    "/agent-reasoning",
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ agent: body.agent, thinking: body.thinking, effort: body.effort }) }
+  await agencyCall(
+    agency().PATCH("/agents/{agentName}", {
+      params: { path: { agentName: body.agent } },
+      body: { gates: null, reasoning: { thinking: body.thinking, effort: body.effort }, role: null, voice: null }
+    })
   );
+
+  return { ok: true };
 });

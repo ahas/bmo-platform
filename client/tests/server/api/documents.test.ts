@@ -31,15 +31,37 @@ afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
 process.env.DOCUMENT_ROOTS = JSON.stringify([{ key: "first", label: "First", checkout }]);
 
+function fragmentOf(state: string): Record<string, unknown> {
+  return {
+    id: 1,
+    key: "readme",
+    kind: "system-document",
+    scope: null,
+    subjectKey: null,
+    title: "What the checkout is",
+    path: "README.md",
+    text: "",
+    state,
+    switchedOff: [],
+    labels: { agent: "agent-a", keywords: "", handAt: "300000" },
+    hitCount: 0,
+    lastHitAt: null,
+    createdAt: 0,
+    changedAt: 0,
+    version: "v1",
+    libraryName: null
+  };
+}
+
 const brain = standIn("BRAIN", (one) => {
   const path = one.path.split("?")[0]!;
 
-  if (path === "/fragments/kinds") return answer({ kinds: [{ kind: "system-document", label: "System document" }] });
+  if (path === "/fragment-kinds") return answer({ items: [{ name: "system-document", description: "", fragmentCount: 1 }], more: false });
   if (path === "/fragments") {
-    return answer({ fragments: [{ kind: "system-document", chatId: null, owner: null, agent: "agent-a", slug: "readme", title: "What the checkout is", path: "README.md", keywords: [], active: true, lastHitAt: null, hits: 0, handAt: null }] });
+    return answer({ items: [fragmentOf("active")], more: false });
   }
-  if (path === "/fragments/active") {
-    return answer({ ok: true, fragment: { kind: "system-document", chatId: null, owner: null, agent: "agent-a", slug: "readme", title: "What the checkout is", path: "README.md", keywords: [], active: one.body?.active, lastHitAt: null, hits: 0, handAt: 300 } });
+  if (one.method === "PATCH" && path === "/fragments/readme") {
+    return answer(fragmentOf(one.body?.state === "active" ? "active" : "off"));
   }
 
   return answer({ code: "no-route", error: "no route" }, 404);
@@ -127,8 +149,8 @@ describe("a document", () => {
   test("that is a fragment is switched on the brain's row, and one that is none has no switch", async () => {
     const written = await fragment({ body: { root: "first", path: "README.md", active: false } });
 
-    expect(brain.asked.findLast((one) => one.path === "/fragments/active")).toMatchObject({ path: "/fragments/active", body: { kind: "system-document", slug: "readme", active: false, chatId: null, owner: null, agent: "agent-a" } });
-    expect(written).toMatchObject({ active: false, kindLabel: "System document", handAt: 300 });
+    expect(brain.asked.findLast((one) => one.path === "/fragments/readme")).toMatchObject({ method: "PATCH", body: { state: "off" } });
+    expect(written).toMatchObject({ active: false, kindLabel: "system-document", handAt: 300 });
     expect(await asked(fragment, { body: { ...deploy, active: false } })).toMatchObject({ status: 404, message: wording("documents.error.not_fragment") });
   });
 });

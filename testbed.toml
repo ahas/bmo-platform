@@ -22,7 +22,7 @@ quick = ["korean", "layout", "dependencies"]
 korean_ledger = "korean-ledger.json"
 # The base libraries, the console bundles the console extends (docs/boundary.md), and sumida, the server's
 # base, a git dependency.
-base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client", "bmo-mail-client", "bmo-review-client", "bmo-drive-client", "bmo-remote-client", "sumida"]
+base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-artifact-client", "bmo-mail-client", "bmo-review-client", "bmo-drive-client", "bmo-remote-client", "@agency/client", "bmo-job-client", "@bmo/receiver-client", "bmo-brain-client", "sumida"]
 
 [[check.step]]
 id = "check"

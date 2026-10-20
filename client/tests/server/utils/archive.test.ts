@@ -6,17 +6,17 @@ import { wording } from "../../../apps/web/shared/wording";
 import { answer, standIn } from "../../support/units";
 
 // A room as the receiver keeps it, read from a stand-in receiver into the shapes the room screen draws: the rooms
-// with the owner's own named by the chat agent, a page with each sender asked once whether it is an agent, the files
-// a message carried with whether each can be received and the expressions its words drew, asked only of a message
-// that carries files, a reply carrying what it answers, and no judgements beside a page.
+// with the owner's own named by the chat agent, a page whose senders are matched against the room's answering
+// agents, the files a message carried with whether each can be received and the expressions its words drew, asked
+// only of a message that carries files, a reply carrying what it answers, and no judgements beside a page.
 
-const message = (messageId: number, over: Record<string, unknown> = {}) => ({
-  chatId: -7,
-  messageId,
+const message = (id: number, over: Record<string, unknown> = {}) => ({
+  id,
+  room: -7,
   senderId: 11,
   senderName: "person-a",
-  sentAt: 1_790_000_000 + messageId,
-  text: `words ${messageId}`,
+  sentAt: 1_790_000_000 + id,
+  text: `words ${id}`,
   imagePath: null,
   replyToMessageId: null,
   answerSeconds: null,
@@ -45,7 +45,7 @@ const page = [
 const EMOJI = "\u{1F600}";
 const drawn = [
   message(6, {
-    chatId: -8,
+    room: -8,
     text: `hi ${EMOJI} there`,
     files: [
       { kind: "sticker", source: "emoji-123.webp", storedPath: "/kept/e.webp", summary: null, collectedAt: 1 },
@@ -53,22 +53,28 @@ const drawn = [
       { kind: "video", source: "clip.mp4", storedPath: "/kept/c.mp4", summary: null, collectedAt: 3 }
     ]
   }),
-  message(7, { chatId: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] })
+  message(7, { room: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] })
 ];
 const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
+
+function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
+  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], companions: [], ownerRoom: false, registered: true, workRoom: 0, ...over };
+}
 
 const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0]!;
 
-  if (path === "/console/rooms/-7/messages/4/files") {
-    return answer({ files: [keptFile(0, "audio", "bmo:voice", "audio/ogg", 1200), keptFile(1, "document", "notes.pdf", "application/pdf", null, false), keptFile(2, "photo", "p.jpg", "image/jpeg", 50)] });
+  if (path === "/rooms/-7/messages/4/files") {
+    return answer({ items: [keptFile(0, "audio", "bmo:voice", "audio/ogg", 1200), keptFile(1, "document", "notes.pdf", "application/pdf", null, false), keptFile(2, "photo", "p.jpg", "image/jpeg", 50)], more: false });
   }
-  if (path === "/console/rooms/-7/messages/4/metadata") return answer({ metadata: null });
-  if (path === "/console/rooms/-8/messages") return answer({ messages: drawn, hasMore: false });
-  if (path === "/console/rooms/-8/messages/6/files") {
-    return answer({ files: [keptFile(0, "sticker", "emoji-123.webp", "image/webp", 40), keptFile(1, "sticker", "sticker.webp", "image/webp", 90), keptFile(2, "video", "clip.mp4", "video/mp4", 5000)] });
+  if (path === "/rooms/-7/messages/4/metadata") return answer({ metadata: null });
+  if (path === "/rooms/-7/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", companion: false }], more: false });
+  if (path === "/rooms/-7/own-number") return answer({ number: 22 });
+  if (path === "/rooms/-8/messages") return answer({ items: drawn, more: false });
+  if (path === "/rooms/-8/messages/6/files") {
+    return answer({ items: [keptFile(0, "sticker", "emoji-123.webp", "image/webp", 40), keptFile(1, "sticker", "sticker.webp", "image/webp", 90), keptFile(2, "video", "clip.mp4", "video/mp4", 5000)], more: false });
   }
-  if (path === "/console/rooms/-8/messages/6/metadata") {
+  if (path === "/rooms/-8/messages/6/metadata") {
     return answer({
       metadata: {
         text: `hi ${EMOJI} there`,
@@ -78,28 +84,28 @@ const receiver = standIn("RECEIVER", (one) => {
       }
     });
   }
-  if (path === "/console/rooms/-8/messages/7/files") return answer({ code: "unit-failed", error: "the store did not answer" }, 503);
+  if (path === "/rooms/-8/messages/7/files") return answer({ code: "upstream-failed", error: "the store did not answer" }, 503);
+  if (path === "/rooms/-8/answerers") return answer({ default: "", voice: "", items: [], more: false });
 
-  if (path === "/console/rooms") {
+  if (path === "/rooms") {
     return answer({
-      rooms: [
-        { chatId: 5, title: null, messageCount: 3, lastMessageAt: 100, pinned: true },
-        { chatId: -7, title: "Room A", messageCount: 4, lastMessageAt: 200, pinned: false, companions: ["companion-a"] }
-      ]
+      items: [
+        room(5, { messageCount: 3, lastMessageAt: 100, pinned: true }),
+        room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200, companions: ["companion-a"] })
+      ],
+      more: false
     });
   }
 
-  if (path === "/owner") return answer({ chat: 5 });
-  if (path === "/console/rooms/-7/title") return answer({ title: "Room A" });
-  if (path === "/console/rooms/-7/messages") return answer({ messages: page, hasMore: true });
-  if (path === "/console/rooms/-7/messages/after") return answer({ messages: [message(5)], hasMore: false });
-  if (path === "/console/rooms/-7/messages/1") return answer({ messages: [page[0]], hasMore: false });
-  if (path === "/console/rooms/-7/day-start") return answer({ messageId: 2 });
-  if (path.startsWith("/console/rooms/-7/agent-message/")) {
-    const id = Number(path.split("/").at(-1));
+  if (path === "/owner") return answer({ room: 5, senderId: 5 });
+  if (path === "/rooms/-7/title") return answer({ title: "Room A" });
+  if (path === "/rooms/-7/messages") {
+    const after = new URL(one.path, "http://receiver").searchParams.get("after");
 
-    return id === 2 ? answer(page[1]) : answer({ code: "not-found", error: "no such message an agent filed" }, 404);
+    return answer(after === null ? { items: page, more: true } : { items: [message(5)], more: false });
   }
+  if (path === "/rooms/-7/messages/1") return answer(page[0]);
+  if (path === "/rooms/-7/day-start") return answer({ messageId: 2 });
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });
@@ -120,15 +126,15 @@ describe("the rooms", () => {
 });
 
 describe("a page of a room", () => {
-  test("is asked by its cursor, and each sender is asked once whether it is an agent", async () => {
+  test("is asked by its cursor, and its senders are matched against the room's answering agents", async () => {
     receiver.asked.length = 0;
 
     const read = await readMessagePage(-7, 9, 50);
 
-    expect(receiver.asked.filter((one) => one.path.startsWith("/console/rooms/-7/messages?")).map((one) => one.path)).toEqual(["/console/rooms/-7/messages?limit=50&before=9"]);
-    expect(receiver.asked.filter((one) => one.path.includes("agent-message")).map((one) => one.path).sort()).toEqual([
-      "/console/rooms/-7/agent-message/1",
-      "/console/rooms/-7/agent-message/2"
+    expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/messages?")).map((one) => one.path)).toEqual(["/rooms/-7/messages?limit=50&before=9"]);
+    expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/answerers") || one.path.startsWith("/rooms/-7/own-number")).map((one) => one.path).sort()).toEqual([
+      "/rooms/-7/answerers",
+      "/rooms/-7/own-number?agentName=agent-a"
     ]);
     expect(read.hasMore).toBe(true);
     expect(read.judgements).toEqual([]);
@@ -154,8 +160,8 @@ describe("a page of a room", () => {
     expect(reply.replyQuote).toEqual({ messageId: 1, senderName: "person-a", text: "words 1", pictured: false, attachment: null });
     // Only the message that carries files is asked about them.
     expect(receiver.asked.filter((one) => /\/(files|metadata)$/.test(one.path)).map((one) => one.path).sort()).toEqual([
-      "/console/rooms/-7/messages/4/files",
-      "/console/rooms/-7/messages/4/metadata"
+      "/rooms/-7/messages/4/files",
+      "/rooms/-7/messages/4/metadata"
     ]);
   });
 

@@ -1,7 +1,7 @@
-import { ANSWER_LIMIT, questionSettledNotice } from "#shared/config";
+import { ANSWER_LIMIT } from "#shared/config";
 import { wording } from "#shared/wording";
 
-import type { QuestionAnswerResult, QuestionSettler } from "#shared/types";
+import type { QuestionAnswerResult } from "#shared/types";
 
 interface AnswerBody {
   id?: unknown;
@@ -9,19 +9,11 @@ interface AnswerBody {
   answer?: unknown;
 }
 
-// What bmo-job answers an answer with: its code, and what the question was settled on where it was settled
-// before this answer landed.
-interface QuestionAnswer {
-  code: string;
-  settled_by?: QuestionSettler | null;
-  answer?: string | null;
-}
-
 // Answering a question a job put to the owner. The row is bmo-job's to write, and its own conditional write
-// decides it: an answer that arrives after the chat's or the deadline's changes nothing and comes back saying
-// what the question was settled on instead.
+// decides it: an answer that arrives after the chat's or the deadline's changes nothing and is refused 409. The
+// fixed API takes a reply with the choice it names and the words beside it.
 export default defineEventHandler(async (event): Promise<QuestionAnswerResult> => {
-  await requireUserSession(event);
+  const signed = await signedInUser(event);
 
   const body = await readBody<AnswerBody>(event);
   const id = body?.id;
@@ -45,11 +37,16 @@ export default defineEventHandler(async (event): Promise<QuestionAnswerResult> =
     throw fail(400, wording("question.error.bad_own_answer"));
   }
 
-  const settled = await jobPost<QuestionAnswer>("/question", { id, chosen, answer });
+  const question = await jobCall(job().GET("/questions/{questionId}", { params: { path: { questionId: id } } }));
+  const option = typeof chosen === "number" ? question.choices[chosen] : undefined;
+  const text = typeof answer === "string" ? answer.trim() : (option ?? "");
 
-  if (settled.code === "question_settled_already") {
-    throw fail(409, questionSettledNotice(wording, settled.settled_by ?? null, settled.answer ?? ""));
-  }
+  if (text === "") throw fail(400, wording("question.error.bad_option"));
+
+  await jobCall(job().POST("/questions/{questionId}/replies", {
+    params: { path: { questionId: id } },
+    body: { text, actorName: signed.name, choice: option ?? null, settles: true }
+  }));
 
   return { ok: true };
 });

@@ -35,6 +35,7 @@ globals.sendWebResponse = (_event: RouteEvent, response: Response) => response;
 
 for (const module of [
   await import("../../apps/web/server/utils/units"),
+  await import("../../apps/web/server/utils/unit-answer"),
   await import("../../apps/web/server/utils/agency"),
   await import("../../apps/web/server/utils/keepalive"),
   await import("../../apps/web/server/utils/research"),

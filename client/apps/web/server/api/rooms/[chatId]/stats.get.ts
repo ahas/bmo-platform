@@ -10,6 +10,33 @@ export default defineEventHandler(async (event): Promise<RoomStats> => {
   await requireReadableRoom(event, chatId);
 
   const { zone } = useAppConfig().bmoUi as { zone: string };
+  const figures = await receiverCall(receiver().GET("/rooms/{roomId}/figures", { params: { path: { roomId: chatId }, query: { zone } } }));
 
-  return await receiverRead<RoomStats>(`/console/rooms/${chatId}/figures?zone=${encodeURIComponent(zone)}`);
+  return {
+    chatId: figures.room,
+    messages: figures.messages,
+    fromPeople: figures.fromPeople,
+    speakers: figures.speakers,
+    firstAt: figures.firstAt,
+    lastAt: figures.lastAt,
+    lastAnswerAt: figures.lastAnswerAt,
+    top: figures.top,
+    byHour: figures.byHour,
+    agents: figures.agents.map((agent) => ({
+      agent: agent.agentName,
+      label: agent.label,
+      messages: agent.messages,
+      lastAnswerAt: agent.lastAnswerAt,
+      sessionMode: agent.sessionMode as RoomStats["agents"][number]["sessionMode"],
+      model: agent.model,
+      lastMode: agent.lastMode as RoomStats["agents"][number]["lastMode"],
+      lastModel: agent.lastModel,
+      lastEffort: typeof agent.lastEffort === "string" ? agent.lastEffort : null,
+      runs: agent.runs,
+      contextTokens: typeof agent.contextTokens === "number" ? agent.contextTokens : null,
+      lastRunAt: agent.lastRunAt,
+      weekTokens: agent.weekTokens,
+      totalTokens: agent.totalTokens
+    }))
+  };
 });

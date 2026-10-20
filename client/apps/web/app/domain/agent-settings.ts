@@ -3,7 +3,7 @@ import { agentProviderNames } from "#shared/types";
 import { modeLabel } from "./status";
 
 import type { SearchField, SearchMatch } from "bmo-ui/shared/search";
-import type { AgentMode, FallbackProfile, FallbackView, KeepaliveView, OfferedProvider, VoiceBriefingView } from "#shared/types";
+import type { AgentMode, FallbackProfile, FallbackView, KeepaliveView, OfferedProvider } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // The agent management screen's sections, each a tab of its own (docs/web.md, 「Agent management
@@ -38,10 +38,6 @@ export function emptyFallbackView(): FallbackView {
 
 export function emptyKeepaliveView(): KeepaliveView {
   return { stopped: false };
-}
-
-export function emptyVoiceBriefingView(): VoiceBriefingView {
-  return { on: true, autoplay: true };
 }
 
 // Every provider the bot carries, in the order every table stands them.

@@ -16,16 +16,39 @@ let line: { messageId: number; senderId: number | null; sentAt: number }[] = [{ 
 
 const after = (id: number) => line.slice(line.findIndex((one) => one.messageId === id) + 1);
 
+const received = (one: { messageId: number; senderId: number | null; sentAt: number }) => ({
+  id: one.messageId,
+  room: -7,
+  senderId: one.senderId,
+  senderName: one.senderId === null ? "" : `sender-${one.senderId}`,
+  sentAt: one.sentAt,
+  text: "",
+  imagePath: null,
+  replyToMessageId: null,
+  answerSeconds: null,
+  round: null,
+  album: null,
+  via: null,
+  files: []
+});
+
 standIn("RECEIVER", (one) => {
   const url = new URL(one.path, "http://receiver");
   const path = url.pathname;
 
-  if (path === "/console/rooms/-7/messages") return answer({ messages: line.slice(-1), hasMore: false });
-  if (path === "/console/rooms/-7/messages/after") return answer({ messages: after(Number(url.searchParams.get("after"))), hasMore: false });
+  if (path === "/rooms/-7/messages") {
+    const afterMark = url.searchParams.get("after");
 
-  const single = /^\/console\/rooms\/-7\/messages\/(-?\d+)$/.exec(path);
+    return answer({ items: (afterMark === null ? line.slice(-1) : after(Number(afterMark))).map(received), more: false });
+  }
 
-  if (single !== null) return answer({ messages: line.filter((one) => one.messageId === Number(single[1])), hasMore: false });
+  const single = /^\/rooms\/-7\/messages\/(-?\d+)$/.exec(path);
+
+  if (single !== null) {
+    const found = line.find((one) => one.messageId === Number(single[1]));
+
+    return found === undefined ? answer({ code: "not-found", error: "no message" }, 404) : answer(received(found));
+  }
 
   return answer({ code: "no-route", error: "no route" }, 404);
 });

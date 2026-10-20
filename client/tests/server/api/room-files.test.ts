@@ -33,8 +33,8 @@ const receiver = Bun.serve({
 
     heard.push({ path: `${url.pathname}${url.search}`, range: request.headers.get("range") });
 
-    if (url.pathname === "/console/rooms/-7/messages/9/files") return Response.json({ files });
-    if (url.pathname === "/console/rooms/-7/messages/9/files/1") {
+    if (url.pathname === "/rooms/-7/messages/9/files") return Response.json({ items: files, more: false });
+    if (url.pathname === "/rooms/-7/messages/9/files/1") {
       const ranged = request.headers.get("range") === "bytes=0-3";
 
       return new Response(ranged ? SOUND.slice(0, 4) : SOUND, {
@@ -42,19 +42,19 @@ const receiver = Bun.serve({
         headers: { "content-type": "audio/ogg", "accept-ranges": "bytes", ...(ranged ? { "content-range": "bytes 0-3/10" } : {}), "x-stored-at": "/kept" }
       });
     }
-    if (url.pathname === "/console/rooms/-7/messages/9/files/2") {
+    if (url.pathname === "/rooms/-7/messages/9/files/2") {
       return new Response("pdf", { headers: { "content-type": "application/pdf", "content-disposition": "attachment; filename*=UTF-8''notes.pdf" } });
     }
-    if (url.pathname === "/console/rooms/-7/messages/9/picture") return new Response(PHOTO, { headers: { "content-type": "image/jpeg" } });
-    if (url.pathname === "/console/rooms/-7/pictures") {
-      return Response.json({ pictures: [{ messageId: 9, album: null, senderName: "person-a", sentAt: 10, text: "a picture", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }], hasMore: false, before: 2, total: 3 });
+    if (url.pathname === "/rooms/-7/messages/9/picture") return new Response(PHOTO, { headers: { "content-type": "image/jpeg" } });
+    if (url.pathname === "/rooms/-7/pictures") {
+      return Response.json({ items: [{ id: 9, album: null, senderName: "person-a", sentAt: 10, text: "a picture", file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }], more: false, before: 2, total: 3 });
     }
-    if (url.pathname === "/console/rooms/-7/window") return Response.json({ openFor: 161, closesAt: 1_790_000_161 });
-    if (url.pathname === "/console/rooms/-7/figures") {
+    if (url.pathname === "/rooms/-7/window") return Response.json({ openForMs: 161_000, closesAt: 1_790_000_161 });
+    if (url.pathname === "/rooms/-7/figures") {
       return Response.json({
-        chatId: -7, messages: 4, fromPeople: 3, speakers: 2, firstAt: 1, lastAt: 4, lastAnswerAt: 4, top: [{ name: "person-a", messages: 2 }],
+        room: -7, messages: 4, fromPeople: 3, speakers: 2, firstAt: 1, lastAt: 4, lastAnswerAt: 4, top: [{ name: "person-a", messages: 2 }],
         byHour: Array.from({ length: 24 }, (_, hour) => (hour === 9 ? 4 : 0)),
-        agents: [{ agent: "agent-a", messages: 1, lastAnswerAt: 4, session: null, label: "Agent A", lastMode: null, lastModel: null, lastEffort: null,
+        agents: [{ agentName: "agent-a", messages: 1, lastAnswerAt: 4, session: null, label: "Agent A", lastMode: null, lastModel: null, lastEffort: null,
           sessionMode: null, model: null, contextTokens: null, runs: null, lastRunAt: null, weekTokens: null, totalTokens: null }]
       });
     }
@@ -91,7 +91,7 @@ describe("a message's file", () => {
   test("is the receiver's bytes of the file at its place, under the type this console decides, and seekable", async () => {
     const answer = await media(at("audio", { item: "1" }));
 
-    expect(last()).toEqual({ path: "/console/rooms/-7/messages/9/files/1", range: null });
+    expect(last()).toEqual({ path: "/rooms/-7/messages/9/files/1", range: null });
     expect(answer.status).toBe(200);
     expect(new Uint8Array(await answer.arrayBuffer())).toEqual(SOUND);
     expect(answer.headers.get("content-type")).toBe("audio/ogg");
@@ -104,7 +104,7 @@ describe("a message's file", () => {
   test("hands on the stretch a player asked for, and the stretch the receiver answered", async () => {
     const answer = await media(at("audio", { item: "1" }, { range: "bytes=0-3" }));
 
-    expect(last()).toEqual({ path: "/console/rooms/-7/messages/9/files/1", range: "bytes=0-3" });
+    expect(last()).toEqual({ path: "/rooms/-7/messages/9/files/1", range: "bytes=0-3" });
     expect(answer.status).toBe(206);
     expect(answer.headers.get("content-range")).toBe("bytes 0-3/10");
     expect(new Uint8Array(await answer.arrayBuffer())).toEqual(SOUND.slice(0, 4));
@@ -113,12 +113,12 @@ describe("a message's file", () => {
   test("leaves as a file to keep for a document, and for a sound asked for to keep", async () => {
     const document = await media(at("document", { item: "2" }));
 
-    expect(last().path).toBe("/console/rooms/-7/messages/9/files/2?download=true");
+    expect(last().path).toBe("/rooms/-7/messages/9/files/2?download=true");
     expect(document.headers.get("content-type")).toBe("application/octet-stream");
     expect(document.headers.get("content-disposition")).toBe("attachment; filename*=UTF-8''notes.pdf");
 
     await media(at("audio", { item: "1", as: "download" }));
-    expect(last().path).toBe("/console/rooms/-7/messages/9/files/1?download=true");
+    expect(last().path).toBe("/rooms/-7/messages/9/files/1?download=true");
   });
 
   test("is refused, without asking for its bytes, where its type is not its kind's or its place holds none of the kind", async () => {
@@ -126,7 +126,7 @@ describe("a message's file", () => {
       heard.length = 0;
 
       expect(await askedFile(asked)).toMatchObject({ status: 404, message: wording("room.error.file_not_found") });
-      expect(heard.map((one) => one.path)).toEqual(["/console/rooms/-7/messages/9/files"]);
+      expect(heard.map((one) => one.path)).toEqual(["/rooms/-7/messages/9/files"]);
     }
   });
 
@@ -143,7 +143,7 @@ describe("a message's photo", () => {
   test("is the picture the receiver kept for it, as its bytes", async () => {
     const answer = await photo({ params: { chatId: "-7", messageId: "9" } });
 
-    expect(last().path).toBe("/console/rooms/-7/messages/9/picture");
+    expect(last().path).toBe("/rooms/-7/messages/9/picture");
     expect(answer.headers.get("content-type")).toBe("image/jpeg");
     expect(answer.headers.get("x-content-type-options")).toBe("nosniff");
     expect(new Uint8Array(await answer.arrayBuffer())).toEqual(PHOTO);
@@ -158,14 +158,14 @@ describe("a room's pictures, figures and window", () => {
   test("the pictures are the receiver's stretch, asked by the cursor the viewer holds", async () => {
     const page = await pictures({ params: { chatId: "-7" }, query: { before: "9", limit: "30", other: "x" } });
 
-    expect(last().path).toBe("/console/rooms/-7/pictures?before=9&limit=30");
+    expect(last().path).toBe("/rooms/-7/pictures?before=9&limit=30");
     expect(page).toMatchObject({ hasMore: false, before: 2, total: 3, pictures: [{ messageId: 9, file: { name: "p.jpg", bytes: 5, type: "image/jpeg" } }] });
   });
 
   test("the figures are counted in the console's zone, an agent's runs and tokens left as none where no unit counts them", async () => {
     const counted = await stats({ params: { chatId: "-7" } });
 
-    expect(last().path).toBe("/console/rooms/-7/figures?zone=Asia%2FSeoul");
+    expect(last().path).toBe("/rooms/-7/figures?zone=Asia%2FSeoul");
     expect(counted).toMatchObject({ chatId: -7, messages: 4, fromPeople: 3, speakers: 2, top: [{ name: "person-a", messages: 2 }] });
     expect(counted.byHour[9]).toBe(4);
     expect(counted.agents[0]).toMatchObject({ agent: "agent-a", label: "Agent A", runs: null, weekTokens: null, totalTokens: null });
@@ -173,6 +173,6 @@ describe("a room's pictures, figures and window", () => {
 
   test("the window is how long the chat agent's window has left", async () => {
     expect(await window({ params: { chatId: "-7" } })).toEqual({ openFor: 161 });
-    expect(last().path).toBe("/console/rooms/-7/window");
+    expect(last().path).toBe("/rooms/-7/window");
   });
 });

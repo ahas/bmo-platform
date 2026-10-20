@@ -1,17 +1,17 @@
 import { checkRoom, userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
-import { unitFetch } from "./units";
+import { receiver, receiverCall } from "./receiver";
 
 import type { H3Event } from "h3";
 
-// The rooms any of the senders has stood as a sender in, as the receiver's room titles say
-// (the receiver's `docs/boundary-api.md`, `POST /rooms/titles`).
+// The rooms any of the senders has stood as a sender in, as the receiver's room list names each room's senders
+// (the receiver's `docs/api.md`, 「The rooms」).
 async function roomsSpokenIn(senders: readonly number[]): Promise<number[]> {
-  const { rooms } = await unitFetch<{ rooms: { chatId: number; senders: number[] }[] }>("RECEIVER", "/rooms/titles", { method: "POST" });
+  const page = await receiverCall(receiver().GET("/rooms"));
   const ours = new Set(senders);
 
-  return rooms.filter((room) => room.senders.some((sender) => ours.has(sender))).map((room) => room.chatId);
+  return page.items.filter((room) => room.senders.some((sender) => ours.has(sender))).map((room) => room.id);
 }
 
 // The rooms a signed-in user reads on the console (docs/web.md, 「Access」): every

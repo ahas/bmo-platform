@@ -125,7 +125,7 @@ describe("every table of the screen", () => {
 });
 
 describe("the general tab", () => {
-  test("holds the warming switch, the voice briefing switch, the provider order and each agent's own switch", () => {
+  test("holds the warming switch, the voice briefing's unavailable notice, the provider order and each agent's own switch", () => {
     const template = templateOf(general);
 
     // Each section is named in one place, so the screen stands the same titles before the
@@ -136,11 +136,10 @@ describe("the general tab", () => {
     expect(GENERAL_SECTIONS.map((section) => wording(section.title)))
       .toEqual([wording("agents.title.section_keepalive"), KO.line_132, wording("agents.title.section_providers"), wording("agents.title.registry"), wording("agents.title.catalogue"), KO.line_132_2, wording("agents.title.section_agents"), wording("agents.title.section_roles"), wording("agents.title.section_reasoning"), wording("agents.title.section_agent_gates"), KO.line_132_3]);
     expect(template).toContain(':model-value="!props.keepalive.stopped"');
-    // The voice briefing's switch shows the bot's own state and asks the bot to change it; a refusal
-    // stands under that switch rather than at the foot of the tab.
-    expect(template).toContain(':model-value="props.voiceBriefing.on"');
-    expect(template).toContain('@update:model-value="switchVoiceBriefing($event as boolean)"');
-    expect(scriptOf(general)).toContain('ask("/api/voice-briefing", { on }, "voice-briefing", "voice-briefing", voiceFailed)');
+    // The voice briefing's switch is the receiver's, and its fixed API serves no route for it, so
+    // the section says so and the screen asks nothing.
+    expect(template).toContain(`$t("agents.status.voice_briefing_unavailable")`);
+    expect(scriptOf(general)).not.toContain("/api/voice-briefing");
     expect(template).toContain("switchAgent(agent.name, !($event as boolean))");
     expect(scriptOf(general)).toContain("keepaliveMarkOf(t, agentOf(name), props.keepalive.stopped)");
     expect(template).toContain(`v-if="isWorker(agent.name)" :text="$t('agents.action.pause_until_job')"`);

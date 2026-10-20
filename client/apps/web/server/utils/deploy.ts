@@ -2,8 +2,7 @@ import { readFileSync, statSync } from "node:fs";
 
 import { deployPhase, readDeployProgress } from "#shared/deploy-progress";
 
-import { jobRead } from "./job";
-import { holdOf } from "./todos";
+import { holdOf, readQueues } from "./todos";
 
 import type { DeployLogLine, DeployRunView, DeployView } from "#shared/types";
 import type { DeployProgress } from "#shared/deploy-progress";
@@ -99,7 +98,9 @@ export function deployViewFor(reading: DeployReading, hold: DeployView["hold"], 
 /** The deployment's hold as bmo-job keeps it; none where bmo-job does not answer, since the mark then knows of none. */
 export async function readDeployHoldRow(): Promise<DeployView["hold"]> {
   try {
-    return holdOf((await jobRead<{ deploy_hold?: unknown }>("/queue/holds")).deploy_hold);
+    const holds = (await readQueues()).flatMap((queue) => queue.holds);
+
+    return holds.length === 0 ? null : holdOf(holds[0]);
   } catch {
     return null;
   }

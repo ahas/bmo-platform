@@ -1,10 +1,22 @@
 import type { TodoApproval } from "#shared/types";
 
-// Every approval of one item and every approval taken back, newest first. bmo-job keeps them but reads them
-// out by no route, so the item stands with none listed (docs/boundary.md, 「Gaps the console meets」).
+// Every approval of one item, newest first, as the item carries them (bmo-job's `docs/api.md`, 「Items」). An
+// approval taken back is no part of the item, so only the approvals standing are listed.
 export default defineEventHandler(async (event): Promise<TodoApproval[]> => {
   await requireUserSession(event);
-  requireTodoId(event);
 
-  return [];
+  const id = requireTodoId(event);
+  const item = await jobCall(job().GET("/items/{itemId}", { params: { path: { itemId: id } } }));
+
+  return item.approvals
+    .map((approval, at) => ({
+      id: at + 1,
+      approved: true,
+      via: "owner" as const,
+      whoKind: "person" as const,
+      who: approval.actorName,
+      road: "console" as const,
+      at: Math.floor(approval.at / 1000)
+    }))
+    .sort((one, other) => other.at - one.at);
 });

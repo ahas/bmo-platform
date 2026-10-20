@@ -18,20 +18,27 @@ const service = standInAccountService({
   ]
 });
 
-// The receiver's room titles: the member has spoken in the room and in -300, someone else in -200, and the
+// The receiver's room list: the member has spoken in the room and in -300, someone else in -200, and the
 // member's own private room is theirs.
 const receiver = Bun.serve({
   hostname: "127.0.0.1",
   port: 0,
   fetch: (request) =>
-    new URL(request.url).pathname === "/rooms/titles" && request.method === "POST"
+    new URL(request.url).pathname === "/rooms"
       ? Response.json({
-          rooms: [
-            { chatId: ROOM_ID, title: "a room", senders: [member] },
-            { chatId: -300, title: "another room", senders: [member] },
-            { chatId: -200, title: "a third room", senders: [5] },
-            { chatId: member, title: null, senders: [member] }
-          ]
+          items: [ROOM_ID, -300, -200, member].map((id) => ({
+            id,
+            title: null,
+            messageCount: 1,
+            lastMessageAt: 1,
+            pinned: false,
+            senders: id === -200 ? [5] : [member],
+            companions: [],
+            ownerRoom: id === member,
+            registered: true,
+            workRoom: 0
+          })),
+          more: false
         })
       : Response.json({ error: "no such route", code: "not-found" }, { status: 404 })
 });

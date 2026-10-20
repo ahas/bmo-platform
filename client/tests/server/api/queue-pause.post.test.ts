@@ -8,28 +8,26 @@ import type { QueuePauseChanged } from "../../../apps/web/shared/types";
 
 // What the route refuses before bmo-job is ever called: a request that says neither yes nor no. Everything else
 // about the switch — writing it, telling the queue on a resume — is bmo-job's, so what is checked here is that a
-// good press reaches it unchanged and that what came of it is said in the pack's words.
+// good press reaches every queue as its new state.
 
 const job = standIn("JOB", (one) =>
-  answer({ paused: one.body?.paused, deploy_held: true, told: one.body?.paused === true ? null : "nothing_waiting" })
+  one.method === "GET"
+    ? answer({ items: [{ name: "default", state: "open", holds: [], leasedCount: 0, openCount: 0, changedAt: 0 }, { name: "jobs", state: "open", holds: [], leasedCount: 0, openCount: 0, changedAt: 0 }], more: false })
+    : answer({ name: one.path.split("/")[2] ?? "default", state: one.body?.state, holds: [], leasedCount: 0, openCount: 0, changedAt: 0 })
 );
 
 const handler = await routeOf<QueuePauseChanged>("../../apps/web/server/api/queue-pause.post");
 
 describe("pausing the auto-progression", () => {
-  test("a press reaches bmo-job exactly as it was made, and what came of it is said", async () => {
+  test("a press reaches every queue as its new state", async () => {
     job.asked.length = 0;
 
-    expect((await asked(handler, { body: { paused: true } })).answer).toEqual({ ok: true, paused: true, queue: null, deployHold: true });
-    expect(job.asked[0]).toMatchObject({ method: "POST", path: "/queue-pause", body: { paused: true } });
+    expect((await asked(handler, { body: { paused: true } })).answer).toEqual({ ok: true, paused: true, queue: null, deployHold: false });
+    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.path)).toEqual(["/queues/default", "/queues/jobs"]);
+    expect(job.asked.filter((one) => one.method === "PATCH").map((one) => one.body)).toEqual([{ state: "paused" }, { state: "paused" }]);
 
-    expect((await asked(handler, { body: { paused: false } })).answer).toEqual({
-      ok: true,
-      paused: false,
-      queue: wording("todo.message.queue_nothing_waiting"),
-      deployHold: true
-    });
-    expect(job.asked[1]?.body).toEqual({ paused: false });
+    expect((await asked(handler, { body: { paused: false } })).answer).toEqual({ ok: true, paused: false, queue: null, deployHold: false });
+    expect(job.asked.filter((one) => one.method === "PATCH").at(-1)?.body).toEqual({ state: "open" });
   });
 
   test("a request that switches nothing is refused here, and bmo-job never hears it", async () => {

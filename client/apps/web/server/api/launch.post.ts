@@ -13,9 +13,9 @@ interface LaunchBody {
 // is said to that worker's own session and launches nothing (`worker-word.post.ts`).
 const RUNNERS = ["search", "browse"];
 
-// Launching a runner on the owner's own words, the same way a chat session launches one. bmo-job answers as
-// soon as the runner is started and the run's own result goes to the owner's private chat; what the run is
-// doing meanwhile is in its log.
+// Launching a runner on the owner's own words. The units' fixed APIs serve no route that launches a free runner
+// any more — the agency's jobs run an item on its worker, and bmo-job launches nothing — so a launch is refused
+// as unavailable (docs/boundary.md, 「Gaps the console meets」).
 export default defineEventHandler(async (event): Promise<LaunchResult> => {
   await requireUserSession(event);
 
@@ -35,13 +35,9 @@ export default defineEventHandler(async (event): Promise<LaunchResult> => {
     throw fail(400, wording("common.error.too_long", { n: MAX_RUN_PROMPT_LENGTH }));
   }
 
-  const depth = agent === "search" ? body.depth : undefined;
-
-  if (depth !== undefined && !isSearchDepth(depth)) {
+  if (agent === "search" && body.depth !== undefined && !isSearchDepth(body.depth)) {
     throw fail(400, wording("agents.error.bad_depth"));
   }
 
-  await jobPost("/launch", { agent, text, depth });
-
-  return { ok: true };
+  throw fail(503, wording("agents.error.launch_failed"));
 });

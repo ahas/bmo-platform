@@ -92,12 +92,14 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
     async () => {
       try {
         // Each file is given the time one sent alone would be, since the receiver uploads them one after another.
-        const answer = await receiverFetch<ReceivedAttachments>("/say-file", { method: "POST", body }, { timeoutMs: ATTACH_TIMEOUT_MS * going.length });
+        const answer = (await receiverCall(
+          receiver().POST("/owner/message-files", { body, signal: within(ATTACH_TIMEOUT_MS * going.length) })
+        )) as ReceivedAttachments;
 
         return {
-          sent: answer.sent,
+          sent: answer.sent.map((one) => ({ name: one.name, messageId: one.id })),
           failed: [...failed, ...answer.failed.map((one) => ({ name: one.name, reason: unsentReason(one) }))],
-          checking: answer.checking
+          checking: answer.checking.map((one) => ({ name: one.name }))
         };
       } catch (error) {
         if (unitSlow(error)) {
@@ -122,8 +124,8 @@ export default defineEventHandler(async (event): Promise<SentAttachments> => {
 // What the receiver answers a send of files with: each file that went, each it is still drawing on, and each
 // that did not go with why, as a `FileUnsent` kind (the receiver's `docs/codes.md`) or a reason the road gave.
 interface ReceivedAttachments {
-  sent: SentAttachments["sent"];
-  checking: SentAttachments["checking"];
+  sent: { name: string; id: number }[];
+  checking: { name: string }[];
   failed: { name: string; reason: unknown }[];
 }
 

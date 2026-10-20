@@ -3,7 +3,8 @@ import { wording } from "#shared/wording";
 import { publishConsoleEvent } from "./console-events";
 import { useWebSql } from "./db";
 import { fail } from "./fail";
-import { receiverPost } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
+import { within } from "./unit-answer";
 
 import type { DocumentTalkTurn, TalkSpeaker } from "#shared/types";
 
@@ -120,8 +121,10 @@ async function answer(about: TalkedDocument, over: SaidOver, earlier: DocumentTa
   const turns = earlier.map((turn) => ({ owner: turn.speaker === "owner", text: turn.text }));
 
   try {
-    const answered = await receiverPost<{ answer?: string | null } | null>("/talks", { topic, turns, said }, { timeoutMs: TALK_TIMEOUT_MS });
-    const words = answered?.answer?.trim() ?? "";
+    const answered = await receiverCall(
+      receiver().POST("/talks", { body: { topic, turns, said }, signal: within(TALK_TIMEOUT_MS) })
+    );
+    const words = answered.answer?.trim() ?? "";
 
     if (words === "") {
       failures.set(about.document, wording("documents.message.unanswered_silent"));

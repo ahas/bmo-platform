@@ -7,18 +7,17 @@ import { toolOf } from "../../../apps/web/server/utils/agentlog";
 
 import type { AgentLogPage } from "../../../apps/web/shared/types";
 
-// An agent's log as the agency's run log holds it (the agency's docs/api.md, 「Run log and run records」): read
-// by its run, after the last line a reader has, five hundred lines a read. A page of the log across an agent's
-// runs is a read the agency serves no route for, and answers as unavailable.
+// An agent's log as the agency's fixed API holds it (the agency's `docs/api.md`, 「log-lines」): read by its run,
+// after the last line a reader has. A page of the log across an agent's runs is a read the agency serves no route
+// for, and answers as unavailable.
 
-function line(id: number, agent: string, kind: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
-  return { id, agent, run: "run-a", chatId: null, at: 1_000 + id, kind, name: null, parent: null, ref: null, text: `line ${id}`, jobId: null, state: null, truncated: false, detail: null, ...extra };
+function line(id: number, agentName: string, kind: string, fields: Record<string, unknown> = {}, text = `line ${id}`): Record<string, unknown> {
+  return { id, runId: 7, jobId: null, agentName, kind, text, at: 1_000 + id, fields };
 }
 
-// The run's lines: the agent's own, a co-worker's branch written under the same run, and a prompt whose whole
-// stands beside its preview.
+// The run's lines: the agent's own, a co-worker's branch written under the same run, and a prompt standing whole.
 const LINES = [
-  line(1, "agent-a", "prompt", { text: "preview", detail: "the whole prompt" }),
+  line(1, "agent-a", "prompt", {}, "the whole prompt"),
   line(2, "agent-b", "text"),
   line(3, "agent-a", "tool", { name: "mcp__toolbook__call" }),
   line(4, "agent-a", "tool-result", { name: "Read" })
@@ -26,9 +25,13 @@ const LINES = [
 
 const agency = standIn("AGENCY", (call) => {
   const url = new URL(call.path, "http://agency");
-  const after = Number(url.searchParams.get("after") ?? "0");
 
-  return answer({ lines: url.searchParams.get("run") === "run-a" ? LINES.filter((one) => (one.id as number) > after) : [] });
+  if (url.pathname === "/runs") return answer({ items: [{ id: 7, name: "run-a", agentName: "agent-a", unitName: "unit", workerName: null, jobId: null, state: "ended", startedAt: 1_000, endedAt: null, outcome: null, capEndsAt: null, keptUntil: null }], more: false });
+
+  const after = Number(url.searchParams.get("after") ?? "0");
+  const agent = url.searchParams.get("agentName");
+
+  return answer({ items: LINES.filter((one) => (one.id as number) > after && (agent === null || one.agentName === agent)), more: false });
 });
 const handler = await routeOf<AgentLogPage>("../../apps/web/server/api/agents/[name]/log.get");
 
@@ -39,7 +42,7 @@ describe("an agent's log read by its run", () => {
     expect(page.lines.map((one) => one.id)).toEqual([1, 3, 4]);
     expect(page.lines[0]).toMatchObject({ kind: "prompt", text: "the whole prompt", patches: [], patchesMore: 0 });
     expect(page.hasMore).toBe(false);
-    expect(agency.asked.at(-1)?.path).toBe("/run-log?run=run-a&after=0");
+    expect(agency.asked.at(-1)?.path).toBe("/log-lines?runId=7&agentName=agent-a&after=0&limit=500");
   });
 
   test("is followed from the last line a reader has", async () => {

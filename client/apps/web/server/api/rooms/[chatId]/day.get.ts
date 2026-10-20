@@ -15,7 +15,7 @@ export default defineEventHandler(async (event): Promise<RoomDayStart> => {
     throw createError({ statusCode: 400, statusMessage: "date must be YYYY-MM-DD" });
   }
 
-  const from = Math.floor(Date.parse(`${date}T00:00:00+09:00`) / 1000);
+  const from = Date.parse(`${date}T00:00:00+09:00`);
 
   if (!Number.isFinite(from)) {
     throw createError({ statusCode: 400, statusMessage: "date must be a real day" });

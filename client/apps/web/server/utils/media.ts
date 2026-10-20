@@ -1,6 +1,6 @@
 import { extname } from "node:path";
 
-import { receiverRead } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
 // A file that came with a room's message, served by the message it belongs to. A browser never names
 // a path: it names a room, a message, a kind and the file's place among the message's files, and the file
@@ -95,7 +95,13 @@ const KEPT_AS_FILE = "application/octet-stream";
 
 /** A message's files, in the order a page's files stand. */
 export async function messageFiles(chatId: number, messageId: number): Promise<ReceivedFile[]> {
-  return (await receiverRead<{ files: ReceivedFile[] }>(`/console/rooms/${chatId}/messages/${messageId}/files`)).files;
+  const page = await receiverCall(
+    receiver().GET("/rooms/{roomId}/messages/{messageId}/files", {
+      params: { path: { roomId: chatId, messageId } }
+    })
+  );
+
+  return page.items;
 }
 
 // The kinds of file a kind is asked for under: a sound or a video may stand as a document, its name saying which.

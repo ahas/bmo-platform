@@ -5,13 +5,13 @@ interface TalkBody {
   text?: unknown;
 }
 
-// One turn of the talk about an item. bmo-job writes the words down at once and hands the turn to the chat
-// agent, which answers when its place in line comes — so this only carries the words over, and the answer
-// arrives as news of the talk moving rather than as this request's reply.
+// One turn of the talk about an item. The unit that kept an item's talk is bmo-job, whose fixed API keeps no talk
+// of an item; the receiver's talks answer one turn and keep none, so a turn cannot be written down and answered as
+// the screen reads it. The words are refused as unavailable (docs/boundary.md, 「Gaps the console meets」).
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   await requireUserSession(event);
 
-  const id = requireTodoId(event);
+  requireTodoId(event);
   const body = await readBody<TalkBody>(event);
   const text = typeof body?.text === "string" ? body.text.trim() : "";
 
@@ -23,8 +23,5 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw fail(400, wording("common.error.too_long", { n: TALK_LIMIT }));
   }
 
-  // A second word while the first is still being answered is refused by its code.
-  await jobPost("/todo-talk", { id, text });
-
-  return { ok: true };
+  throw fail(503, wording("todo.error.talk_unavailable"));
 });

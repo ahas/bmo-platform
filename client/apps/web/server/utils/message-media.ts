@@ -1,7 +1,7 @@
 import { wording } from "#shared/wording";
 
 import { fileOut, messageFiles, playedKind } from "./media";
-import { receiverRead } from "./receiver";
+import { receiver, receiverCall } from "./receiver";
 
 import type { ReceivedFile } from "./media";
 import type { MessageAttachment, TelegramExpression, VideoShape } from "#shared/types";
@@ -53,7 +53,11 @@ function assetOf(file: ReceivedFile): Asset {
 export async function messageMedia(chatId: number, messageId: number, text: string): Promise<{ attachments: MessageAttachment[]; expressions: TelegramExpression[] }> {
   const [files, metadata] = await Promise.all([
     messageFiles(chatId, messageId),
-    receiverRead<{ metadata: unknown }>(`/console/rooms/${chatId}/messages/${messageId}/metadata`)
+    receiverCall(
+      receiver().GET("/rooms/{roomId}/messages/{messageId}/metadata", {
+        params: { path: { roomId: chatId, messageId } }
+      })
+    )
       .then((answer) => answer.metadata)
       .catch(() => null)
   ]);
