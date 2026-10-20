@@ -1242,6 +1242,7 @@ agents:
     settings_sections: 설정 섹션
     switch_of: "{name} 사용"
     switch_on: "{name} 켜기"
+    tau_of: "{name} τ"
     thinking_of: "{name} 생각"
     tier_of: "{name} 등급"
     timeout_of: "{name} 제한시간"
@@ -1360,6 +1361,7 @@ agents:
     column_recent: 최근
     column_step: 순서
     column_switch: 사용
+    column_tau: τ
     column_thinking: 생각
     column_timeout: 제한시간
     column_work: 작업

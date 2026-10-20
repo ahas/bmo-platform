@@ -38,7 +38,7 @@ export function layaModeLabel(view: LayaView, mode: LayaMode): string {
   return view.modes.find((one) => one.value === mode)?.label ?? mode;
 }
 
-// A gate's own line of the view: the mode and τ it runs on and its agreement, or null for a gate that
+// A gate's own line of the view: the mode and tau it runs on and its agreement, or null for a gate that
 // has no Laya probe.
 export function layaGateOf(view: LayaView, stage: string): LayaGateView | null {
   return view.gates.find((gate) => gate.stage === stage) ?? null;
@@ -54,7 +54,7 @@ export function agreementText(agreement: LayaAgreement | null): string {
 }
 
 // What stands under it: how many pairs the share rests on — questions, for a gate Laya settles one
-// question at a time, with the share of them it settled — and, at the gate's τ, the share Laya
+// question at a time, with the share of them it settled — and, at the gate's tau, the share Laya
 // would settle and how often it agrees there.
 export function agreementNote(t: Translate, agreement: LayaAgreement | null, tau: number | null): string {
   if (agreement === null) return t("common.label.no_record");

@@ -4,13 +4,13 @@
 // bracket that opened before the address — is the sentence's, not the address's. A pair of
 // brackets inside the address, as a wiki page's name carries, stays in it.
 
-// Korean letters: jamo, compatibility jamo, and the syllables with their extensions. An address
-// written straight into a Korean sentence ends where the sentence's own letters begin, the particle
-// after it among them.
-const HANGUL = "\\u1100-\\u11ff\\u3130-\\u318f\\ua960-\\ua97f\\uac00-\\ud7af\\ud7b0-\\ud7ff";
-const BARE = new RegExp(`https?:\\/\\/[^\\s<>"'\`${HANGUL}]+`, "iy");
-const SENTENCE_LETTER = new RegExp(`[\\s<>"'\`${HANGUL}]`);
-const GLUED = new RegExp(`^[)\\]}.,;:!?]*[${HANGUL}]`);
+// Korean letters: every letter of the Hangul script, named as the script's property so no Korean
+// character stands in the code. An address written straight into a Korean sentence ends where the
+// sentence's own letters begin, the particle after it among them.
+const HANGUL = "\\p{Script=Hangul}";
+const BARE = new RegExp(`https?:\\/\\/[^\\s<>"'\`${HANGUL}]+`, "iuy");
+const SENTENCE_LETTER = new RegExp(`[\\s<>"'\`${HANGUL}]`, "u");
+const GLUED = new RegExp(`^[)\\]}.,;:!?]*[${HANGUL}]`, "u");
 const TRAILING = /[.,;:!?'"…。、」』》）]+$/;
 const BRACKETS = [
   ["(", ")"],

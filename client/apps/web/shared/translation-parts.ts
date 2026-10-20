@@ -6,11 +6,11 @@ import { halveText, markdownSections } from "./markdown-structure";
 
 export type TextLanguage = "ko" | "en";
 
-// Which language a text is written in, by its letters outside code: a text with few Hangul syllables
+// Which language a text is written in, by its letters outside code: a text with few Hangul letters
 // against its Latin letters is English, and every other text is Korean.
 export function textLanguage(text: string): TextLanguage {
   const prose = text.replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[ \t]*$/gm, "").replace(/`[^`\n]*`/g, "");
-  const hangul = prose.match(/[\uAC00-\uD7A3]/g)?.length ?? 0;
+  const hangul = prose.match(/\p{Script=Hangul}/gu)?.length ?? 0;
   const latin = prose.match(/[A-Za-z]/g)?.length ?? 0;
 
   return hangul * 4 < latin ? "en" : "ko";

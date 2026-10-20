@@ -377,9 +377,9 @@ describe("the route and gate tabs", () => {
     expect(template).toContain(`:label="$t('agents.aria.provider_of', { name: row.original.label })"`);
     expect(template).toContain(`:label="$t('agents.aria.tier_of', { name: row.original.label })"`);
     expect(template).toContain(`:label="$t('agents.aria.timeout_of', { name: row.original.label })"`);
-    // The gate's Laya mode and τ are cells of their own, and its agreement is read, never pressed.
+    // The gate's Laya mode and tau are cells of their own, and its agreement is read, never pressed.
     expect(template).toContain(":label=\"`${row.original.label} Laya`\"");
-    expect(template).toContain(":label=\"`${row.original.label} τ`\"");
+    expect(template).toContain(`:label="$t('agents.aria.tau_of', { name: row.original.label })"`);
     expect(template).toContain("#agreement-cell");
     expect(template).toContain(`:label="$t('agents.action.previous_confirm')"`);
   });

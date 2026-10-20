@@ -110,7 +110,7 @@ export default defineEventHandler(async (event): Promise<FallbackChanged> => {
     if (body.answerTokens !== undefined && !ANSWER_TOKENS.includes(body.answerTokens as number)) throw fail(400, wording("agents.error.bad_answer_size"));
   }
 
-  // A gate's own wait, its Laya mode and τ, its switch and the LLM it asks on Laya, each sent on its own. Null clears a Laya field back
+  // A gate's own wait, its Laya mode and tau, its switch and the LLM it asks on Laya, each sent on its own. Null clears a Laya field back
   // to the gate's default and is refused for the wait, which is never cleared; a gate's thinking
   // and answer room are its tier's and are not written here. A gate's options are the gate unit's, which is
   // not split yet and is reached at no address, so a change that reads as one is refused as unavailable

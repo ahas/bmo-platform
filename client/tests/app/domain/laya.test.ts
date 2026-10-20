@@ -34,7 +34,7 @@ describe("a gate's agreement as a cell reads it", () => {
     expect(agreementText({ ...gate, pairs: 0, agreement: null })).toBe("—");
   });
 
-  test("stands over how many pairs it rests on, the failures beside them, and at the gate's τ the share Laya would settle", () => {
+  test("stands over how many pairs it rests on, the failures beside them, and at the gate's tau the share Laya would settle", () => {
     expect(agreementNote(wording, gate, null)).toBe(KO.line_37);
     expect(agreementNote(wording, gate, 0.9)).toBe(KO.line_38);
     expect(agreementNote(wording, { ...gate, failures: 0 }, null)).toBe(KO.line_39);
@@ -62,7 +62,7 @@ describe("a gate's agreement as a cell reads it", () => {
 });
 
 describe("the rest of what Laya shows", () => {
-  test("reads τ, shares, memory, the model and the mode", () => {
+  test("reads tau, shares, memory, the model and the mode", () => {
     expect(tauText(wording, 0.9)).toBe("0.90");
     expect(tauText(wording, null)).toBe(KO.line_66);
     expect(percentText(null)).toBe("—");

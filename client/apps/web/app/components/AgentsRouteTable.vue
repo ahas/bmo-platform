@@ -163,7 +163,7 @@
         <span v-else :class="CELL_TEXT" class="text-muted">—</span>
       </template>
 
-      <!-- The gate's Laya mode and τ, each edited in its own cell; a gate with no Laya probe takes
+      <!-- The gate's Laya mode and tau, each edited in its own cell; a gate with no Laya probe takes
            neither (the gate unit's docs/laya.md). -->
       <template #laya-cell="{ row }">
         <SettingsChoiceCell
@@ -195,7 +195,7 @@
           v-if="row.original.profile?.gateOptions?.layaProbe && !onLaya(row.original)"
           :value="row.original.profile.gateOptions.layaTau ?? NO_TAU"
           :items="tauItems"
-          :label="`${row.original.label} τ`"
+          :label="$t('agents.aria.tau_of', { name: row.original.label })"
           :save="(tau) => saveTau(row.original, tau)"
         >
           <SearchText class="tabular-nums text-highlighted" :text="cellText(row.original, 'tau')" :query="props.query" />
@@ -295,9 +295,9 @@ const DATA_COLUMNS = computed<DataColumn[]>(() => (props.gates
 // The columns that show what the bot worked out and are not pressed.
 const READ_COLUMNS = ["model", "recent"] as const;
 
-const HEADERS: Record<DataColumn, string> = { step: t("agents.label.column_step"), provider: t("agents.label.column_provider"), account: t("agents.label.column_account"), tier: t("agents.label.tier"), model: t("agents.label.column_model"), timeout: t("agents.label.column_timeout"), switch: t("agents.label.column_switch"), laya: "Laya", tau: "τ", agreement: t("agents.label.column_agreement"), recent: t("agents.label.column_recent") };
+const HEADERS: Record<DataColumn, string> = { step: t("agents.label.column_step"), provider: t("agents.label.column_provider"), account: t("agents.label.column_account"), tier: t("agents.label.tier"), model: t("agents.label.column_model"), timeout: t("agents.label.column_timeout"), switch: t("agents.label.column_switch"), laya: "Laya", tau: t("agents.label.column_tau"), agreement: t("agents.label.column_agreement"), recent: t("agents.label.column_recent") };
 
-// A cell's choice standing for "nothing chosen": the gate's own default mode, and no τ.
+// A cell's choice standing for "nothing chosen": the gate's own default mode, and no tau.
 const DEFAULT_CHOICE = "default";
 // What a gate on Laya's fallback setting says where it asks no LLM (the gate unit's docs/laya.md).
 const NO_LAYA_FALLBACK = "none";
@@ -429,7 +429,7 @@ function modeText(row: RouteRow): string {
   return routeModeText(t, row.profile);
 }
 
-// Whether the key stands on Laya, which reads no tier, account, wait, mode or τ of its own.
+// Whether the key stands on Laya, which reads no tier, account, wait, mode or tau of its own.
 function onLaya(row: RouteRow): boolean {
   return row.profile?.routeMode === LAYA_ROUTE_MODE;
 }
@@ -564,7 +564,7 @@ function timeoutItemsOf(row: RouteRow): CellChoice[] {
 }
 
 // The modes a gate may take, the gate's own default first under the name of the mode it is. A mode
-// the bot would refuse this gate stands greyed with why under it (the gate unit's docs/laya.md, 「Mode and τ per gate」).
+// the bot would refuse this gate stands greyed with why under it (the gate unit's docs/laya.md, 「Mode and tau per gate」).
 function layaModeItemsOf(row: RouteRow): CellChoice[] {
   const fallbackTo = row.profile?.gateOptions?.defaults.layaMode ?? "off";
   const refused = layaGateOf(laya.value, row.key)?.refused ?? {};
@@ -608,7 +608,7 @@ const switchItems = computed<CellChoice[]>(() => [
   { value: SWITCH_OFF, label: t("agents.label.gate_off") },
 ]);
 
-// The τ a gate may be given: the grid its agreement is counted at, so each has its figure beside it.
+// The tau a gate may be given: the grid its agreement is counted at, so each has its figure beside it.
 const tauItems = computed<CellChoice[]>(() => [
   { value: NO_TAU, label: tauText(t, null) },
   ...laya.value.taus.map((tau) => ({ value: tau, label: tauText(t, tau) })),

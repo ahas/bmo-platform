@@ -304,8 +304,9 @@ pub fn as_subject(name: &str) -> String {
   format!("{name}{particle}")
 }
 
-// The first and last Hangul syllables, and how many finals each initial and medial pair runs through.
-const SYLLABLES: std::ops::RangeInclusive<char> = '\u{AC00}'..='\u{D7A3}';
+// The first and last Hangul syllables as code points, and how many finals each initial and medial pair
+// runs through.
+const SYLLABLES: std::ops::RangeInclusive<u32> = 0xAC00..=0xD7A3;
 const FINALS: u32 = 28;
 
 // Whether a name's last sound closes on a consonant, past any closing bracket or quotation mark: a Hangul
@@ -319,8 +320,8 @@ fn final_sound(name: &str) -> Option<bool> {
     .last()?;
 
   match last {
-    syllable if SYLLABLES.contains(&syllable) => {
-      Some(!(syllable as u32 - *SYLLABLES.start() as u32).is_multiple_of(FINALS))
+    syllable if SYLLABLES.contains(&(syllable as u32)) => {
+      Some(!(syllable as u32 - *SYLLABLES.start()).is_multiple_of(FINALS))
     }
     '0' | '1' | '3' | '6' | '7' | '8' => Some(true),
     '0'..='9' => Some(false),

@@ -1544,7 +1544,7 @@ export interface FallbackProfile {
 // One gate's request options as a screen reads them.
 export interface GateOptionsView {
   timeoutMs: number;
-  // What the owner chose for the gate's Laya mode and τ, null where nothing, and whether the gate
+  // What the owner chose for the gate's Laya mode and tau, null where nothing, and whether the gate
   // has a Laya probe at all (the gate unit's docs/laya.md).
   layaMode: LayaMode | null;
   layaTau: number | null;
@@ -1764,7 +1764,7 @@ export interface LayaHealthView extends LayaHealth {
   node: string | null;
 }
 
-// One gate that declares a Laya probe: the mode and τ it runs on, and its agreement with its LLM, or
+// One gate that declares a Laya probe: the mode and tau it runs on, and its agreement with its LLM, or
 // none where no pair is recorded yet.
 export interface LayaGateView {
   stage: string;
@@ -1774,7 +1774,7 @@ export interface LayaGateView {
   // The checkpoint the server named for this gate in its latest health check, where it named one:
   // what answers the gate on Laya (the gate unit's docs/laya.md, 「A gate whose provider is Laya」).
   checkpoint: string | null;
-  // The modes the bot would refuse this gate, each with why (the gate unit's docs/laya.md, 「Mode and τ per gate」),
+  // The modes the bot would refuse this gate, each with why (the gate unit's docs/laya.md, 「Mode and tau per gate」),
   // so the screen offers them greyed rather than letting a choice be turned away.
   refused: Partial<Record<LayaMode, LayaModeRefusal>>;
 }
@@ -1782,8 +1782,8 @@ export interface LayaGateView {
 export interface LayaView {
   health: LayaHealthView;
   gates: LayaGateView[];
-  // The modes in the words a screen shows them in, and the τ a gate may be given — the grid its
-  // agreement is counted at, so every τ offered has a figure beside it.
+  // The modes in the words a screen shows them in, and the tau a gate may be given — the grid its
+  // agreement is counted at, so every tau offered has a figure beside it.
   modes: { value: LayaMode; label: string }[];
   taus: readonly number[];
 }
@@ -1802,16 +1802,16 @@ export type LayaMode = (typeof layaModes)[number];
 export type LayaFailure = "unreachable" | "timeout" | "refused" | "bad-answer" | "too-large";
 
 // Why the bot would not put a gate in a Laya mode, or null where it runs in it (the gate unit's docs/laya.md, 「Mode
-// and τ per gate」): no probe to ask with, no safe verdict for asymmetric, or no checkpoint on the
+// and tau per gate」): no probe to ask with, no safe verdict for asymmetric, or no checkpoint on the
 // server for a mode in which Laya decides. `checkpoints` are the gates the last health check named.
 export type LayaModeRefusal = "no-probe" | "no-safe-verdict" | "no-checkpoint";
 
 export interface LayaAgreementAt {
   tau: number;
-  // The share of pairs Laya would settle at this τ, and how often it agrees with the LLM on them.
+  // The share of pairs Laya would settle at this tau, and how often it agrees with the LLM on them.
   coverage: number | null;
   agreement: number | null;
-  // For a gate with a safe verdict: how many pairs Laya called safe at this τ, and how often the LLM
+  // For a gate with a safe verdict: how many pairs Laya called safe at this tau, and how often the LLM
   // called them safe too.
   safeCount: number | null;
   safeAgreement: number | null;
