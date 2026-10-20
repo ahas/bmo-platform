@@ -215,9 +215,24 @@ async function visit(page: Page): Promise<void> {
   await page.locator(`[data-message="m${FILES.at(-1)!.messageId}"] img`).waitFor({ state: "attached", timeout: 20_000 });
 
   // An agent's words are drawn by the markdown renderer, which loads after the row stands, so a web address
-  // in them is a link only once it has; the words are read when every address stands as one.
+  // in them is a link only once it has; the words are read when every address stands as one. The plain form
+  // the row first drew is replaced in the same pass, but a slower machine can be measured between the two,
+  // when the address still stands as text beside its link, so that form is waited out as well.
   for (const each of WORDS.filter((row) => row.text.includes(LONG))) {
     await page.locator(`[data-message="m${each.messageId}"] a[href="${LONG}"]`).first().waitFor({ state: "attached", timeout: 20_000 });
+    await page.waitForFunction(([messageId, address]) => {
+      const words = document.querySelector(`[data-message="m${messageId}"] [data-words]:not([data-name])`);
+
+      if (words === null) return false;
+
+      const walker = document.createTreeWalker(words, NodeFilter.SHOW_TEXT);
+
+      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+        if (node.textContent?.includes(address) === true && node.parentElement?.closest("a") === null) return false;
+      }
+
+      return true;
+    }, [each.messageId, LONG] as const, { timeout: 20_000 });
   }
   await page.waitForFunction(
     (count) => [...document.querySelectorAll("[data-attachment]")].filter((block) => /\d+:\d+/.test(block.textContent ?? "")).length === count,

@@ -109,13 +109,16 @@ function silentStream(): Response {
   });
 }
 
-function agent(name: string, kind: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+// One agent as the agency's own agent resource serves it, and one worker as its worker resource does: the
+// console reads these into the rows its sidebar lists.
+function agent(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { name, label, role: "role-a", gates: null, reasoning: null, voice: null, resetAt: null, standInAvailable: false, ...extra };
+}
+
+function worker(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    name, kind, label, role: null, sessionScope: kind === "chat" ? "agent" : null, turnShape: kind === "chat" ? "window" : null,
-    defaultAnswerer: kind === "chat", model: null, configuredMode: null, configuredLabel: null, modelLabel: null,
-    lastMode: null, lastModel: null, lastEffort: null, aliases: null, icon: null, cwd: null, builtin: true,
-    chatId: kind === "chat" ? OWNER_CHAT : null, runs: 0, lastRunAt: null, lastKeepaliveAt: null, contextTokens: null,
-    keepaliveStopped: false, keepalivePausedAt: null, ...extra
+    name, label, cwd: "/srv/checkouts/worker", icon: null, builtin: true, nodeName: "node-a", role: "role-a",
+    state: "resting", sampling: null, restingSince: null, sessionId: null, runCount: 0, lastRunAt: null, ...extra
   };
 }
 
@@ -147,22 +150,30 @@ const notFound = () => Response.json({ code: "not-found", error: "not served by 
 // not-found. The tests serve the rest of what they measure through the page's routes themselves.
 const UNITS: Record<string, (path: string, request: Request) => Response | null | Promise<Response | null>> = {
   AGENCY: async (path, request) => {
-    if (path === "/agents") {
-      return Response.json({ agents: [agent("agent-a", "chat", "Agent A"), agent("worker", "worker", "Worker", { cwd: "/srv/checkouts/worker", checkout: true })], roles: [] });
-    }
+    if (path === "/agents") return Response.json({ items: [agent("agent-a", "Agent A")], more: false });
+    if (path === "/workers") return Response.json({ items: [worker("worker", "Worker")], more: false });
+    if (path === "/roles") return Response.json({ items: [], more: false });
+    if (path === "/sessions") return Response.json({ items: [], more: false });
+    if (path === "/runs") return Response.json({ items: [], more: false });
+    if (path === "/jobs") return Response.json({ items: [], more: false });
+    if (path === "/log-lines") return Response.json({ items: [], more: false });
+    if (path === "/prompt-documents") return Response.json({ items: [], more: false });
+    if (path === "/companions") return Response.json({ items: [], more: false });
+    if (path === "/providers") return Response.json({ items: [], more: false });
+    if (path === "/tiers") return Response.json({ items: [], more: false });
 
     if (path === "/events") return silentStream();
     if (path === "/pool") return Response.json({ readAt: Date.now(), workers: [], buckets: [] });
-    if (path === "/fallback") {
-      return Response.json({ active: { provider: "claude-code", account: null, accountName: "", accounts: 0, session: null, week: null }, codexPresent: false, keyPresent: false, services: [], since: null, order: [], orderIsDefault: true, accounts: [], profiles: [] });
-    }
+    if (path === "/fallback") return Response.json({ routes: [], answering: false });
 
     if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
 
     if (path === "/models" && request.method === "POST") {
-      const body = (await request.json()) as { key?: string; model?: string };
-      const key = body.key ?? "";
-      const name = key.slice(key.indexOf("::") + 2);
+      const body = (await request.json()) as { name?: string; model?: string };
+      const asked = body.name ?? "";
+      const split = asked.indexOf("::");
+      const name = split === -1 ? asked : asked.slice(split + 2);
+      const key = split === -1 ? `registered::${asked}` : asked;
 
       if (models.has(name)) return Response.json({ code: "conflict", error: "a model is already registered" }, { status: 409 });
 
@@ -215,30 +226,51 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
   },
   JOB: (path) => {
     if (path === "/events") return silentStream();
-    if (path === "/todos" || path === "/jobs/recent") return Response.json([]);
+    if (path === "/items" || path === "/questions" || path === "/queues") return Response.json({ items: [], more: false });
     if (path === "/queue/holds") return Response.json({ paused: false });
 
     return null;
   },
   RECEIVER: (path) => {
-    const now = Math.floor(Date.now() / 1000);
+    const now = Date.now();
+    // One room: the owner's, with nothing said in it. Its moments are the receiver's milliseconds.
+    const room = {
+      id: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false, senders: [],
+      companions: [], ownerRoom: true, registered: true, workRoom: OWNER_CHAT
+    };
 
-    if (path === "/owner") return Response.json({ chat: OWNER_CHAT });
-    if (path === "/events") return silentStream();
-    if (path === "/live") return Response.json({ at: now, compacting: [] });
-    if (path === "/console/rooms") return Response.json({ rooms: [{ chatId: OWNER_CHAT, title: null, messageCount: 0, lastMessageAt: null, pinned: false }] });
-    if (/^\/console\/rooms\/-?\d+\/title$/.test(path)) return Response.json({ title: null });
-    if (/^\/console\/rooms\/-?\d+\/messages/.test(path)) return Response.json({ messages: [], hasMore: false });
-    if (/^\/console\/rooms\/-?\d+\/day-start$/.test(path)) return Response.json({ messageId: null });
+    if (path === "/owner") return Response.json({ room: OWNER_CHAT, senderId: 1 });
+    if (path === "/live") return Response.json({ at: now, compacting: [], queued: [], turns: [] });
+    if (path === "/rooms") return Response.json({ items: [room], more: false });
+    if (path === "/people") return Response.json({ items: [], more: false });
 
-    const figures = /^\/console\/rooms\/(-?\d+)\/figures$/.exec(path);
+    const at = /^\/rooms\/(-?\d+)(\/[^/]+(?:\/[^/]+)?)?$/.exec(path);
 
-    return figures === null
-      ? null
-      : Response.json({
-          chatId: Number(figures[1]), messages: 12, fromPeople: 7, speakers: 1, firstAt: now - 86_400, lastAt: now - 60, lastAnswerAt: now - 120,
+    if (at === null) return null;
+
+    switch (at[2] ?? "") {
+      case "/title":
+        return Response.json({ title: null });
+      case "/messages":
+        return Response.json({ items: [], more: false });
+      case "/day-start":
+        return Response.json({ messageId: null });
+      case "/answerers":
+        return Response.json({ default: "", items: [], more: false, voice: "" });
+      case "/own-number":
+        return Response.json({ number: null });
+      case "/window":
+        return Response.json({ closesAt: null, openForMs: 0 });
+      case "/pictures":
+        return Response.json({ items: [], more: false });
+      case "/figures":
+        return Response.json({
+          room: Number(at[1]), messages: 12, fromPeople: 7, speakers: 1, firstAt: now - 86_400_000, lastAt: now - 60_000, lastAnswerAt: now - 120_000,
           top: [], byHour: Array.from({ length: 24 }, (_, hour) => (hour % 6 === 0 ? 2 : 0)), agents: []
         });
+      default:
+        return null;
+    }
   },
   BRAIN: () => null,
   ARTIFACT: () => null,

@@ -36,7 +36,7 @@ const item = (id: number, title: string): TodoItem => ({
 
 // Re-reading a board that is already on the screen is announced to assistive technology and to
 // nobody else, so the notice is found by its role rather than by anything a reader would see.
-const refreshing = (within: Locator) => within.getByRole('status').filter({ hasText: wording('archive.status.refreshing') });
+const refreshing = (within: Locator) => within.getByRole('status').filter({ hasText: wording('todo.status.list_refreshing') });
 
 describe.skipIf(!origin || !touchReady())('skeletons in the isolated console', () => {
   for (const width of [1440, 390]) {
