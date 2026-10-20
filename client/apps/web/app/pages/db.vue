@@ -94,7 +94,7 @@
           </ToolBar>
 
           <p v-if="failed !== ''" class="px-4 py-3 text-sm text-error">{{ failed }}</p>
-          <DataTableSkeleton v-else-if="!tablesReady || (page === null && tables.length > 0)" class="px-4" :headers="browseHeaders" :rows="12" :label="$t('db.status.tables_loading')" />
+          <DataTableSkeleton v-else-if="!tablesReady || (page === null && tables.length > 0)" layout="dense" :headers="browseHeaders" :rows="12" :label="$t('db.status.tables_loading')" />
           <p v-if="tablesReady && tables.length === 0 && !failed" class="px-4 py-3 text-sm text-muted">{{ $t("db.status.no_tables") }}</p>
 
           <template v-if="page !== null">
@@ -157,7 +157,7 @@
           </div>
 
           <p v-if="failed !== ''" class="px-4 py-3 text-sm text-error">{{ failed }}</p>
-          <DataTableSkeleton v-else-if="reading && result === null" class="px-4" :headers="resultHeaders" :rows="8" :label="$t('db.status.result_loading')" />
+          <DataTableSkeleton v-else-if="reading && result === null" layout="dense" :headers="resultHeaders" :rows="8" :label="$t('db.status.result_loading')" />
 
           <template v-if="result !== null">
             <DbRows class="min-h-0 flex-1" :columns="resultColumns" :rows="result.rows" @open="openResultRow" />

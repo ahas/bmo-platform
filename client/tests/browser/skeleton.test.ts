@@ -506,3 +506,67 @@ describe.skipIf(!origin || !touchReady())('asking the bot is not a failure', () 
     }, 60000);
   }
 });
+
+// The database screen's two placeholders stand beside a table in the dense layout, so each keeps
+// that layout's own head and row heights rather than the own layout's taller ones.
+describe.skipIf(!origin || !touchReady())('the database screen keeps its dense table shape while it reads', () => {
+  const heights = async (within: Locator) => ({
+    head: (await within.locator('thead tr').first().boundingBox())!,
+    row: (await within.locator('tbody tr').first().boundingBox())!
+  });
+
+  for (const width of [1280, 360]) {
+    test(`browse and query placeholders match the dense table at ${width}px`, async () => {
+      let page: Page | undefined;
+      let release = () => {};
+      try {
+        page = await browser!.newPage({ serviceWorkers: 'block', viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+        const errors: string[] = [];
+        page.on('pageerror', error => errors.push(error.message));
+        const login = await fetch(`${origin}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'skeleton259', password: 'fixture-password-259' }) });
+        expect(login.ok).toBe(true);
+        const cookie = login.headers.get('set-cookie')!.split(';')[0]!;
+        await page.context().addCookies([{ name: cookie.slice(0, cookie.indexOf('=')), value: cookie.slice(cookie.indexOf('=') + 1), url: origin! }]);
+        // The fixture account's own row stands in web_users, so the screen opens on a table whose row can be measured.
+        await page.addInitScript(() => window.localStorage.setItem('bmo-web.db-view', JSON.stringify({ table: 'web_users', mode: 'table' })));
+
+        // Browsing: the table list is held, so the first placeholder is caught standing.
+        let hold = new Promise<void>(resolve => { release = resolve; });
+        await page.route('**/api/db/tables*', async route => { await hold; await route.continue(); });
+        await page.goto(`${origin}/db`, { waitUntil: 'domcontentloaded' });
+        await page.waitForFunction(() => (document.querySelector('#__nuxt') as any)?.__vue_app__?.$nuxt?.isHydrating === false);
+        const browse = page.getByRole('status', { name: wording('db.status.tables_loading'), exact: true });
+        await browse.waitFor();
+        const browsePlaceholder = await heights(browse);
+        release();
+        const rows = page.locator('table').filter({ hasText: 'skeleton259' }).filter({ visible: true }).first();
+        await rows.waitFor();
+        const browseTable = await heights(rows);
+        console.log(`db ${width} browse skeleton head=${browsePlaceholder.head.height} row=${browsePlaceholder.row.height} table head=${browseTable.head.height} row=${browseTable.row.height}`);
+        expect(Math.abs(browsePlaceholder.head.height - browseTable.head.height)).toBeLessThanOrEqual(1);
+        expect(Math.abs(browsePlaceholder.row.height - browseTable.row.height)).toBeLessThanOrEqual(1);
+        expect(Math.abs(browsePlaceholder.head.x - browseTable.head.x)).toBeLessThanOrEqual(1);
+
+        // Asking a question: the answer is held, so the second placeholder is caught standing.
+        hold = new Promise<void>(resolve => { release = resolve; });
+        await page.route('**/api/db/query*', async route => { await hold; await route.continue(); });
+        await page.goto(`${origin}/db?view=sql`, { waitUntil: 'domcontentloaded' });
+        await page.waitForFunction(() => (document.querySelector('#__nuxt') as any)?.__vue_app__?.$nuxt?.isHydrating === false);
+        await page.getByRole('textbox', { name: wording('db.aria.query'), exact: true }).fill('select 1 as one');
+        await page.getByRole('button', { name: wording('db.action.run'), exact: true }).click();
+        const answered = page.getByRole('status', { name: wording('db.status.result_loading'), exact: true });
+        await answered.waitFor();
+        const queryPlaceholder = await heights(answered);
+        release();
+        const answer = page.locator('table').filter({ hasText: 'one' }).filter({ visible: true }).first();
+        await answer.waitFor();
+        const queryTable = await heights(answer);
+        console.log(`db ${width} query skeleton head=${queryPlaceholder.head.height} row=${queryPlaceholder.row.height} table head=${queryTable.head.height} row=${queryTable.row.height}`);
+        expect(Math.abs(queryPlaceholder.head.height - queryTable.head.height)).toBeLessThanOrEqual(1);
+        expect(Math.abs(queryPlaceholder.row.height - queryTable.row.height)).toBeLessThanOrEqual(1);
+        expect(Math.abs(queryPlaceholder.head.x - queryTable.head.x)).toBeLessThanOrEqual(1);
+        expect(errors).toEqual([]);
+      } finally { release(); await page?.context().close(); }
+    }, 60000);
+  }
+});

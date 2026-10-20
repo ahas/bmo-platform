@@ -95,6 +95,8 @@ bmo-ui layer's (bmo-ui's `docs/components.md`); this says how the console uses t
   hydration ends, and from then until the last placeholder goes, every frame holds only what stood in the frame
   before it — no place changes its pieces or its height, and none stands after any other has turned into
   content.
+- **What it holds the database screen to,** at both widths: each of its two placeholders keeps the dense table's
+  own head and row heights, and its head shares the table's left edge.
 - **What it holds the units' line to:** the live screen's button and a room's box show the pack's loading words
   while the ask is held, then its failure words once the unreachable address has answered, and the button's
   colour differs between the two.
