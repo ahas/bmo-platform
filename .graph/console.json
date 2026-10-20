@@ -168,8 +168,8 @@
       "console/todo-queue",
       "console/usage-display"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021809
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655942
   },
   {
     "id": "console/agent-logs",
@@ -333,8 +333,8 @@
       "console/message-island",
       "console/screen-fit"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021820
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655953
   },
   {
     "id": "console/audio-player",
@@ -414,8 +414,8 @@
       "console/shared-config",
       "calls/telegram"
     ],
-    "base": "34622834b3204462d411c904d7bdecdb9a3286bc",
-    "changed": 1792539193618
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655965
   },
   {
     "id": "console/back-gesture",
@@ -754,8 +754,8 @@
       "calls/drive",
       "calls/remote"
     ],
-    "base": "be6e918342514c63d448dbfe511286091cbf8dbc",
-    "changed": 1792536114911
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655977
   },
   {
     "id": "console/control-api",
@@ -788,8 +788,8 @@
       "console/language-pack",
       "console/shared-config"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021867
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655988
   },
   {
     "id": "console/data-table",
@@ -1408,8 +1408,8 @@
       "console/data-table",
       "console/language-pack"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021929
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540657913
   },
   {
     "id": "console/login",
@@ -1453,8 +1453,8 @@
       "server/account-service",
       "api/http"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021932
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540655999
   },
   {
     "id": "console/long-press",
@@ -1974,8 +1974,8 @@
       "console/language-pack",
       "console/sidebar-nav"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512021983
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540656011
   },
   {
     "id": "console/prompt-box",
@@ -2705,8 +2705,8 @@
       "console/language-pack",
       "console/screen-fit"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512022034
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540656022
   },
   {
     "id": "console/themes",
@@ -2896,8 +2896,8 @@
       "console/usage-display",
       "calls/job"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512022046
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540656032
   },
   {
     "id": "console/todo-talk",
@@ -2948,8 +2948,8 @@
       "console/motion",
       "console/todo-queue"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512022055
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540656044
   },
   {
     "id": "console/translation",
@@ -3022,8 +3022,8 @@
       "calls/receiver",
       "calls/brain"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512022067
+    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
+    "changed": 1792540656056
   },
   {
     "id": "console/unread-messages",
