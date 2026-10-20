@@ -3,7 +3,7 @@
 [package]
 name = "bmo-web-server"
 description = "The web console's server: the account service on sumida, its routes and its migrations."
-version = "2.0.2"
+version = "2.0.3"
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
@@ -54,6 +54,8 @@ tower = { version = "0.5.2", features = ["util"] }
 url = "2.5.8"
 # The names list the repository's guard reads from outside the checkout.
 toml = "0.8.23"
+# The patterns the repository's guard reads its tracked files for.
+regex = "1.13.1"
 
 # The checks that span the repository (docs/checks.md) stand in the root's tests/; the root is a workspace and holds
 # no package, so this crate runs them.

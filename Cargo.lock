@@ -842,7 +842,7 @@ dependencies = [
 
 [[package]]
 name = "bmo-web-client"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "reqwest",
  "schemars 1.2.3",
@@ -853,7 +853,7 @@ dependencies = [
 
 [[package]]
 name = "bmo-web-server"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "argon2",
  "async-trait",
@@ -865,6 +865,7 @@ dependencies = [
  "http-body-util",
  "indexmap 2.14.2",
  "rand 0.9.5",
+ "regex",
  "reqwest",
  "sea-orm",
  "sea-orm-migration",

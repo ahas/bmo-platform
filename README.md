@@ -13,27 +13,29 @@ answers in English messages and codes, which these packs render.
 | `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the fixed lines' renderer, the document wording file, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the service's own contract and client crate under `client/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` with their fixtures under `tests/fixtures/` |
 | `client/` | the console, a Bun workspace of its own with its lockfile: the Nuxt app under `apps/web/`, the TypeScript package generated from the server's OpenAPI document under `packages/server-client/`, the console's tests under `tests/` with their support under `tests/support/`, the packed bmo-ui layer, the console bundles and bmo-text under `vendor/`, and the patch the install applies under `patches/` |
 | `.graph/` | the code dependency graph: one node per feature a person names, its files, its exported names, the owner's words for it and what it needs or calls, an area to a file (`api.json`, `calls.json`, `console.json`, `server.json`) with its `settings.toml` beside them, written only by `bmo graph` |
-| `tests/` | the checks that span the repository: its dependencies, Korean, layout and names (`docs/checks.md`), run by the server's crate as its test target `repository` |
+| `tests/` | the checks that span the repository: its dependencies, Korean, layout, names and personal-data patterns (`docs/checks.md`), run by the server's crate as its test target `repository` |
 | `deploy/` | the user units a deployment links: the server's, `bmo-web-server.service`, and the console's, `bmo-web.service` |
 | `.cargo/` | Cargo's configuration for this checkout: sumida, a git dependency, fetched through the git program |
 | `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
 
 At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile; the version in
 `VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
-deployed); `rustfmt.toml`; `LICENSE` (MIT); `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which the
-testbed's Korean sweep holds every file to; no code file of this repository holds any).
+deployed); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `CLAUDE.md`; and
+`korean-ledger.json` (the Korean left in a code file, which the testbed's Korean sweep holds every file to; no
+code file of this repository holds any).
 
 ## Documents
 
 | Document | States |
 |---|---|
+| `PERSONAL-DATA.md` | The personal data no file may hold: whose it is, what counts, where a value belongs instead, and the checks that hold it |
 | `docs/boundary.md` | The boundary: every route the server serves, its OpenAPI contract and its generated clients, every call the server and the console make on another unit, the settings that name those units, and the codes the packs render |
 | `docs/accounts.md` | The account service: what it holds, where it answers, when the model is in force, its routes, its command and its tables |
 | `docs/language-pack.md` | The language packs: the server's and the console's, how each is read, and what other units read of them |
 | `docs/web.md` | The console: its layout, motion, access, wording, every screen, notifications, how it talks to the units, its settings and how it runs |
 | `docs/documents-viewer.md` | The document viewer: its roots, names and versions, path boundaries, fragments, the contents, and asking about a passage |
 | `docs/skeleton-loading.md` | How the console keeps the place of content it is still fetching |
-| `docs/checks.md` | How the suite runs the tests, the browser tests among them; the checks that span the repository: what its packages and code may depend on, no Korean in code or tests, its layout, and the names no tracked file may hold |
+| `docs/checks.md` | How the suite runs the tests, the browser tests among them; the checks that span the repository: what its packages and code may depend on, no Korean in code or tests, its layout, the personal-data patterns no tracked file may match, and the names no tracked file may hold |
 | `docs/inventory.md` | Every member of the single repository this one was separated from: where it stands here, the task that carried it, and the unit that owns the ones that did not come |
 
 ## Version

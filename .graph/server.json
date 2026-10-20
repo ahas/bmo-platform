@@ -34,8 +34,8 @@
     "needs": [
       "calls/receiver"
     ],
-    "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
-    "changed": 1792512022094
+    "base": "f292930a7ac2ee1fa480ead88da1d822e0c91f4f",
+    "changed": 1792515584489
   },
   {
     "id": "server/data-move",
@@ -273,5 +273,20 @@
     ],
     "base": "5f9a55a7f94cd4185ba46e863ad8ec9a30c72ef9",
     "changed": 1792512022116
+  },
+  {
+    "id": "server/repository-checks",
+    "title": "Repository-wide checks",
+    "what": "The checks that span the repository, run by the server crate as its repository test target: the packages and imports it may use, Korean in code, the layout, listed names and personal-data patterns, as docs/checks.md states them.",
+    "files": [
+      "tests/repository.rs",
+      "docs/checks.md",
+      "PERSONAL-DATA.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "f292930a7ac2ee1fa480ead88da1d822e0c91f4f",
+    "changed": 1792515581607
   }
 ]
