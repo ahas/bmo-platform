@@ -6,4 +6,5 @@ members = ["server", "server/client"]
 
 [workspace.package]
 edition = "2024"
+license = "MIT"
 publish = false

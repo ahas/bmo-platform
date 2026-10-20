@@ -10,7 +10,7 @@ import KO from "../../fixtures/app/domain/avatars.test.ko.json";
 const refs: AvatarRef[] = [
   { kind: "room", id: 10000001, url: "/api/avatars/room/10000001?v=100" },
   { kind: "person", id: 10000001, url: "/api/avatars/person/10000001?v=200" },
-  { kind: "person", id: 10000001, url: "/api/avatars/person/10000001?v=300" }
+  { kind: "person", id: 10000003, url: "/api/avatars/person/10000003?v=300" }
 ];
 
 const index = avatarIndex(refs, (path) => `/bmo${path}`);
@@ -47,8 +47,8 @@ describe("what a name stands as when there is no picture", () => {
 
 describe("what one room or one person wears", () => {
   test("the picture, where there is one", () => {
-    expect(avatarFor(index, "person", 10000001, "agent-a")).toEqual({
-      src: "/bmo/api/avatars/person/10000001?v=300",
+    expect(avatarFor(index, "person", 10000003, "agent-a")).toEqual({
+      src: "/bmo/api/avatars/person/10000003?v=300",
       alt: "agent-a"
     });
   });
@@ -75,8 +75,8 @@ describe("what one room or one person wears", () => {
     registerChatAgent({ name: "agent-a", label: "Agent A" });
 
     try {
-      expect(avatarFor(new Map(), "person", 10000001, "agent-a")).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
-      expect(avatarFor(new Map(), "person", 10000001, "agent-b").icon).toBeUndefined();
+      expect(avatarFor(new Map(), "person", 10000003, "agent-a")).toEqual({ icon: "i-material-symbols-smart-toy-outline", alt: "agent-a" });
+      expect(avatarFor(new Map(), "person", 10000003, "agent-b").icon).toBeUndefined();
     } finally {
       registerChatAgent({ name: "", label: "" });
     }

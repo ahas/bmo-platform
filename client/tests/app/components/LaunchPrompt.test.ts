@@ -7,7 +7,7 @@ import { describe, expect, test } from "bun:test";
 //
 // What must not come back is a picker. A box that could send the words to a worker other than the
 // one whose log is standing above it is a screen promising one thing and doing another, and the
-// mistake it invites — reading one worker's log while the words go to another worker — leaves no trace on the
+// mistake it invites — reading one worker's log while the words go to another — leaves no trace on the
 // screen that made it. Choosing a worker is walking to that worker's screen.
 //
 // This is read off the file that ships: which road a submission takes is decided in one
