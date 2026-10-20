@@ -1,6 +1,6 @@
 import { getRequestIP } from "h3";
 
-import { AccountServiceDown, modelState, sessionUser } from "@web/accounts/account-service";
+import { AccountServiceDown, modelState, sessionUser } from "./account-service";
 import { wording } from "#shared/wording";
 
 import { useWebSql } from "./db";

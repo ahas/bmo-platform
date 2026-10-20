@@ -32,6 +32,10 @@ const ALLOWED: [&str; 8] = [
 /// The server's own crate, which its binary and its tests import by name.
 const OWN_CRATE: &str = "bmo_web_server";
 
+/// The service's own client crate, which the server's handlers answer with.
+const OWN_CLIENT: &str = "bmo_web_client";
+const OWN_CLIENT_PACKAGE: &str = "bmo-web-client";
+
 /// The variable naming the file of names no tracked file may hold. No repository keeps such a list, so it is read
 /// from outside the checkout.
 const NAMES_LIST: &str = "BMO_NAMES_LIST";
@@ -136,7 +140,11 @@ fn no_package_depends_on_another_units_package() {
         .into_iter()
         .flatten()
         .filter_map(|dependency| dependency["name"].as_str())
-        .filter(|dependency| dependency.starts_with("bmo-") && !ALLOWED.contains(dependency))
+        .filter(|dependency| {
+          dependency.starts_with("bmo-")
+            && *dependency != OWN_CLIENT_PACKAGE
+            && !ALLOWED.contains(dependency)
+        })
         .map(move |dependency| format!("{name} depends on {dependency}"))
         .collect::<Vec<_>>()
     })
@@ -188,7 +196,7 @@ fn no_rust_code_names_another_units_crate() {
   let allowed: Vec<String> = ALLOWED
     .iter()
     .map(|name| name.replace('-', "_"))
-    .chain([OWN_CRATE.to_owned()])
+    .chain([OWN_CRATE.to_owned(), OWN_CLIENT.to_owned()])
     .collect();
   let found: Vec<String> = tracked_texts()
     .into_iter()

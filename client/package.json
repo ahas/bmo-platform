@@ -1,11 +1,11 @@
 {
   "name": "bmo-web-client",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "typecheck": "bun run --cwd apps/web typecheck && tsc -p packages/accounts",
+    "typecheck": "bun run --cwd apps/web typecheck && tsc -p packages/server-client",
     "check": "bun run typecheck && bun test"
   },
   "dependencies": {

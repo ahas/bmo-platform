@@ -21,24 +21,28 @@ own server is the only caller that faces a browser, and it reaches the server an
 ## Wire conventions
 
 These hold for every route the server serves, and the console's clients hold every unit's own conventions as
-that unit's document states them.
+that unit's document states them. `docs/openapi.json` is the contract, generated from the client crate's own
+types; `server/client/` is the Rust crate the server answers with and that document generates, and
+`client/packages/server-client` is the TypeScript package generated from the same document.
 
-- **A body is JSON, both ways,** with snake_case keys. A time is epoch milliseconds, a count a whole number,
-  and a field written with a question mark may be null.
+- **A body is JSON, both ways,** with camelCase keys. A time is epoch milliseconds, a count a whole number,
+  and a field written with a question mark may be null. A user's id is answered as the digits of sumida's whole
+  number, a string a caller hands on as it stands; all other ids are signed 64-bit integers.
 - **Every route but `GET /health` takes `Authorization: Bearer <token>`** with the server's token, and answers
   401 `unauthorized` without it. sumida's own session routes (below) take the session cookie instead and are
   reached only through the console's server.
 - **A path segment is an id as it stands,** percent-encoded where it needs to be.
 - **An answer with no body is 204;** one with a body is 200, or 201 where the call creates something. A read
   of one thing by its id answers 404 where it does not exist.
-- **A refusal carries a body of exactly two keys:** `error`, one English sentence for a person, and `code`, a
-  stable snake_case code a caller decides on. Where a route names no closer code, the code is its status's:
-  400 `bad_request` for a request wrong as asked, a body that does not read as the route's shape among them;
+- **A refusal carries a body of exactly two keys:** `code`, a stable kebab-case code a caller decides on, and
+  `error`, one English sentence for a person. Where a route names no closer code, the code is its status's:
+  400 `bad-request` for a request wrong as asked, a body that does not read as the route's shape among them;
   401 `unauthorized` for a missing or wrong token; 403 `forbidden` for one the asker may not make; 404
-  `not_found` for what does not exist; 409 `conflict` for a conflict with the present state; 500 `database`
-  for the server's database, `failed` for any other failure on its side; 502 `unit_failed` for a call on
-  another unit that failed; and 503 `not_in_force` while the account model is not in force, `no_receiver`
-  where a message is asked after and no receiver is named.
+  `not-found` for what does not exist; 409 `conflict` for a conflict with the present state; 500 `database`
+  for the server's database, `failed` for any other failure on its side; 502 `upstream-failed` for a call on
+  another unit that failed; and 503 `not-in-force` while the account model is not in force, `no-receiver`
+  where a message is asked after and no receiver is named. sumida's session routes answer sumida's own refusal
+  shape, documented in the same OpenAPI document.
 
 ## What the server serves
 
@@ -46,18 +50,18 @@ that unit's document states them.
 
 | Route | Answer |
 |---|---|
-| `GET /health` | `ok`, `version`, `in_force` |
+| `GET /health` | `ok`, `version`, `inForce` |
 
 ### The account model
 
 | Route | Request | Answer |
 |---|---|---|
-| `GET /accounts/model` | | `in_force`; `why?`, where it is not in force |
-| `POST /accounts/move` | `owner_senders` (each a sender), `rooms` (each a room the deployment answers), `room_rules?` (each `room`, `id`, `subject`, the sender the rule is for, and `words`) | `done`, `written`: true where this call wrote the move, false where it stood already, and `administrator?`, the user the move made the platform administrator |
+| `GET /accounts/model` | | `inForce`; `why?`, where it is not in force |
+| `POST /accounts/move` | `ownerSenders` (each a sender), `rooms` (each a room the deployment answers), `roomRules?` (each `room`, `id`, `subject`, the sender the rule is for, and `words`) | `done`, `written`: true where this call wrote the move, false where it stood already, and `administrator?`, the user the move made the platform administrator |
 
 - **The model is in force** once the move has been written; the server stands only on its database with
   sumida's tables and its rules registered. Until then every route but `GET /health`, `GET /accounts/model` and
-  `POST /accounts/move` answers 503 `not_in_force` naming why, so no caller mistakes an absent model for a
+  `POST /accounts/move` answers 503 `not-in-force` naming why, so no caller mistakes an absent model for a
   refusal; a caller reads that no sender is linked to a user and no grant stands.
 - **The move** is written once, in one transaction, and a second call writes nothing (`docs/accounts.md`, 「The
   data move」).
@@ -69,8 +73,8 @@ that unit's document states them.
 | `GET /senders/{sender}/user` | | `user`: the user the sender is linked to; 404 where none is |
 | `GET /users/{user}` | | `user`, `name`, `administrator` (boolean), `senders` |
 | `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user; 404 where there is no such user |
-| `POST /users/{user}/password` | `current`, `next` | 204; 401 `wrong_password` where `current` does not match |
-| `POST /users/{user}/name` | `name` | 204; 409 `name_taken` where another user holds it |
+| `POST /users/{user}/password` | `current`, `next` | 204; 401 `wrong-password` where `current` does not match |
+| `POST /users/{user}/name` | `name` | 204; 409 `name-taken` where another user holds it |
 
 - **A user** is named by its id as the server gives it, a string a caller hands on as it stands; a body naming
   a user may give it as that string or as the number it holds, and a path whose user is no id is refused 400.
@@ -88,7 +92,7 @@ that unit's document states them.
   caller names it when it says what a user lacks.
 - **A room check** builds the sender's user where their identity is linked, and the room's members, always.
 - **A message check** asks the receiver for the message's sender (「Calls the server makes」) and checks that
-  sender in the room; a message the receiver does not hold in that room is refused 404 `no_such_message`.
+  sender in the room; a message the receiver does not hold in that room is refused 404 `no-such-message`.
 - **An object's `kind`** is one the server's rules declare: `bmo_worker` (relation `run`), `bmo_repository`
   (relation `change`) or `bmo_tools`. A kind or a relation the rules do not declare is refused 400.
 - **The platform administrator passes every check.**
@@ -97,9 +101,9 @@ that unit's document states them.
 
 | Route | Request | Answer |
 |---|---|---|
-| `GET /grants?room=` | | `grants`: each `relation`, `subject_key` (`user:{user}`, `bmo_member:{room}` or another key), `expires_at?`, `words?`, the grants made on the room in the order they were written, none past its expiry |
-| `POST /grants` | `room?`, or `kind` and `object`; `relation`; `to` (`sender?`, `user?`, `members`: true for every member of the room); `words?`; `expires_at?`; `message` (`room`, `id`) | `grant`, `subject` (the holder's subject key), `user?` (the holder's user) |
-| `DELETE /grants` | as `POST /grants`, without `words` and `expires_at` | `grant`, `revoked` (how many went) |
+| `GET /grants?room=` | | `grants`: each `relation`, `subjectKey` (`user:{user}`, `bmo_member:{room}` or another key), `expiresAt?`, `words?`, the grants made on the room in the order they were written, none past its expiry |
+| `POST /grants` | `room?`, or `kind` and `object`; `relation`; `to` (`sender?`, `user?`, `members`: true for every member of the room); `words?`; `expiresAt?`; `message` (`room`, `id`) | `grant`, `subject` (the holder's subject key), `user?` (the holder's user) |
+| `DELETE /grants` | as `POST /grants`, without `words` and `expiresAt` | `grant`, `revoked` (how many went) |
 
 - **The granter is the sender of the message a grant is made on,** and sumida checks that their user may grant
   what they give, so nobody gives what they do not hold.
@@ -150,11 +154,11 @@ that unit's document states them.
   | `draw` | `label`, `asked`, `result`, `number`, `seed`, `method`, `answered`, `next` | `draws.line`, what was asked by `draws.spec` and what came out by `draws.dice_total` where dice are summed |
 
 - **The chat agent's name** in a line is the server's `names.chat_agent` setting; no name stands in the pack.
-- **`language` names the pack's language,** `ko`; another language is refused 404 `unknown_language`. A code
-  the pack does not hold is refused 404 `unknown_code`, and a line whose fields do not read as its code's
-  shape 400 `bad_request`. The caller then sends the line as its code and fields, so a room is never silent.
+- **`language` names the pack's language,** `ko`; another language is refused 404 `unknown-language`. A code
+  the pack does not hold is refused 404 `unknown-code`, and a line whose fields do not read as its code's
+  shape 400 `bad-request`. The caller then sends the line as its code and fields, so a room is never silent.
 - **The receiver must send `language` = `ko`.** The language it sends is its own setting, and its example
-  settings name `en`; a receiver deployed so has every fixed line refused 404 `unknown_language` and posts each
+  settings name `en`; a receiver deployed so has every fixed line refused 404 `unknown-language` and posts each
   unrendered, as its code and fields. Its deployment sets `ko`, the one language the pack holds.
 - **The route answers whether or not the account model is in force,** since it reads no account.
 
@@ -190,7 +194,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | the receiver | read a message | `GET /rooms/{chat}/messages/{message}` | a message check's sender |
 
 - **A call that does not reach the receiver** is a failure of the call: the start goes on and declares again
-  on its next start; a message check answers 502 `unit_failed`.
+  on its next start; a message check answers 502 `upstream-failed`.
 
 ## Calls the console makes
 

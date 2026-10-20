@@ -2,13 +2,15 @@
 //! made on, as the receiver says, and sumida checks they may grant what they give, so a grant is never made
 //! on anyone's word but the holder's of that authority. The granter's words stand beside the tuple.
 
+pub use bmo_web_client::{GrantRow, Granted, Revoked};
 use chrono::{DateTime, Utc};
 use sea_orm::ConnectionTrait;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleFilter, TupleWrite};
 
 use crate::checks::{ROOM, declared, grant_of};
+use crate::ids::shown;
 use crate::receiver::Receiver;
 use crate::users::{member_of, sender_subject, user_for_sender, user_of_sender};
 use crate::{Refusal, now_ms, one, run};
@@ -40,6 +42,7 @@ pub struct On {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GrantAsk {
   #[serde(flatten)]
   pub target: Target,
@@ -51,6 +54,7 @@ pub struct GrantAsk {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RevokeAsk {
   #[serde(flatten)]
   pub target: Target,
@@ -58,34 +62,9 @@ pub struct RevokeAsk {
   pub message: On,
 }
 
-/// What a grant wrote: the grant, its subject, and the holder's user where it is one.
-#[derive(Debug, Serialize)]
-pub struct Granted {
-  pub grant: String,
-  pub subject: String,
-  pub user: Option<i32>,
-}
-
-/// What a revoke took back: the grant, and how many tuples went.
-#[derive(Debug, Serialize)]
-pub struct Revoked {
-  pub grant: String,
-  pub revoked: u64,
-}
-
-/// A grant standing on a room, as a room's readers list them.
-#[derive(Debug, Serialize, PartialEq, Eq)]
-pub struct Standing {
-  pub relation: String,
-  pub subject_key: String,
-  /// Epoch milliseconds.
-  pub expires_at: Option<i64>,
-  pub words: Option<String>,
-}
-
 /// The grants standing on a room: those made on the room itself, with the words beside each, in the order
 /// they were written; a grant past its expiry is gone.
-pub async fn standing_in<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<Standing>, Refusal> {
+pub async fn standing_in<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<GrantRow>, Refusal> {
   let rows = crate::all(
     db,
     r#"SELECT t."relation", t."subject_key",
@@ -103,7 +82,7 @@ pub async fn standing_in<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<St
   rows
     .iter()
     .map(|row| {
-      Ok(Standing {
+      Ok(GrantRow {
         relation: row.try_get("", "relation")?,
         subject_key: row.try_get("", "subject_key")?,
         expires_at: row.try_get("", "expires_at")?,
@@ -235,7 +214,7 @@ pub async fn grant<C: ConnectionTrait>(
   Ok(Granted {
     grant: grant_of(&kind, &object, &ask.target.relation),
     subject: key.key(),
-    user,
+    user: user.map(shown),
   })
 }
 
@@ -267,5 +246,8 @@ pub async fn revoke<C: ConnectionTrait>(
   )
   .await?;
 
-  Ok(Revoked { grant, revoked })
+  Ok(Revoked {
+    grant,
+    revoked: revoked as i64,
+  })
 }

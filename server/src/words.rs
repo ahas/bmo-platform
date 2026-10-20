@@ -116,7 +116,7 @@ pub fn rendered(mut asked: Map<String, Value>, names: &Names) -> Result<String, 
   if language != LANGUAGE {
     return Err(
       Refusal::new(StatusCode::NOT_FOUND, format!("the pack has no language `{language}`"))
-        .coded("unknown_language"),
+        .coded("unknown-language"),
     );
   }
 
@@ -126,7 +126,7 @@ pub fn rendered(mut asked: Map<String, Value>, names: &Names) -> Result<String, 
 
   line.text(names).ok_or_else(|| {
     Refusal::new(StatusCode::NOT_FOUND, format!("the pack holds no line for `{code}`"))
-      .coded("unknown_code")
+      .coded("unknown-code")
   })
 }
 

@@ -9,6 +9,7 @@ use sea_orm::ConnectionTrait;
 use serde::Serialize;
 use sumida::api::service::api_key::hash_api_key;
 
+use crate::ids::shown;
 use crate::{Refusal, one, run};
 
 /// A key as it is handed to the phone, once, with the hash it is kept by.
@@ -23,7 +24,7 @@ pub struct Made {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Holder {
-  pub user: i32,
+  pub user: String,
   pub name: String,
   pub hash: String,
 }
@@ -82,7 +83,7 @@ pub async fn holder<C: ConnectionTrait>(db: &C, key: &str) -> Result<Holder, Ref
   .ok_or_else(|| Refusal::new(axum::http::StatusCode::UNAUTHORIZED, "no live key answers to that"))?;
 
   Ok(Holder {
-    user: row.try_get("", "id")?,
+    user: shown(row.try_get("", "id")?),
     name: row.try_get("", "username")?,
     hash,
   })

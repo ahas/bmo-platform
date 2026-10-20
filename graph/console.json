@@ -4,6 +4,7 @@
     "title": "User scope and account service login",
     "what": "The console's user scope on the account service: the session sealed in the console's cookie and checked per request, sumida's session asked through the server, and which rooms and routes a member may reach.",
     "files": [
+      "client/apps/web/server/utils/account-service.ts",
       "client/apps/web/server/utils/accounts.ts",
       "client/apps/web/server/utils/opened-routes.ts",
       "client/apps/web/server/utils/room-reach.ts",
@@ -12,7 +13,8 @@
       "client/tests/server/route-scope.test.ts",
       "client/tests/server/utils/room-reach.test.ts",
       "client/apps/web/server/utils/session-cookie.ts",
-      "client/packages/accounts/account-service.ts"
+      "client/packages/server-client/src/index.ts",
+      "client/packages/server-client/src/schema.ts"
     ],
     "symbols": [
       "consoleModel",
@@ -34,7 +36,7 @@
       "console/login",
       "server/account-service"
     ],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "console/agent-list",
@@ -290,31 +292,6 @@
       "console/unit-calls"
     ],
     "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
-  },
-  {
-    "id": "console/console-bundles",
-    "title": "Console bundles",
-    "what": "The console attaches every unit's console bundle by its declaration alone: its screen and words, the service relayed under /api/, its event stream, sockets and notice kinds, with no bundle or service named in code.",
-    "files": [
-      "client/apps/web/modules/console-bundles.ts",
-      "client/apps/web/shared/console-bundles.ts",
-      "client/apps/web/app/composables/host.ts",
-      "client/apps/web/server/api/[...path].ts",
-      "client/apps/web/server/routes/_ws.ts",
-      "client/apps/web/server/plugins/bundle-events.ts",
-      "client/apps/web/nuxt.config.ts",
-      "docs/boundary.md"
-    ],
-    "symbols": [
-      "ConsoleBundleView"
-    ],
-    "aliases": [],
-    "needs": [
-      "console/language-pack",
-      "console/login",
-      "console/unit-calls"
-    ],
-    "base": "036db5d470ee7bebedd4aae79278ea4a86abb1e6"
   },
   {
     "id": "console/archive-screen",
@@ -733,6 +710,31 @@
       "console/unit-calls"
     ],
     "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+  },
+  {
+    "id": "console/console-bundles",
+    "title": "Console bundles",
+    "what": "The console attaches every unit's console bundle by its declaration alone: its screen and words, the service relayed under /api/, its event stream, sockets and notice kinds, with no bundle or service named in code.",
+    "files": [
+      "client/apps/web/modules/console-bundles.ts",
+      "client/apps/web/shared/console-bundles.ts",
+      "client/apps/web/app/composables/host.ts",
+      "client/apps/web/server/api/[...path].ts",
+      "client/apps/web/server/routes/_ws.ts",
+      "client/apps/web/server/plugins/bundle-events.ts",
+      "client/apps/web/nuxt.config.ts",
+      "docs/boundary.md"
+    ],
+    "symbols": [
+      "ConsoleBundleView"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/language-pack",
+      "console/login",
+      "console/unit-calls"
+    ],
+    "base": "036db5d470ee7bebedd4aae79278ea4a86abb1e6"
   },
   {
     "id": "console/control-api",
@@ -1655,7 +1657,8 @@
       "client/apps/web/app/components/AgentsCatalogue.vue",
       "client/apps/web/app/domain/catalogue-models.ts",
       "client/apps/web/server/api/model-catalogue.get.ts",
-      "client/apps/web/server/api/model-catalogue.post.ts"
+      "client/apps/web/server/api/model-catalogue.post.ts",
+      "client/apps/web/shared/agency.ts"
     ],
     "symbols": [
       "CatalogueView",
@@ -1671,7 +1674,7 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "6e38bf2a8354a82176aab72c9159cddd7ff9d1ad"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "console/model-tiers",
@@ -2050,7 +2053,8 @@
       "client/apps/web/server/api/models.get.ts",
       "client/apps/web/server/api/models.post.ts",
       "client/apps/web/server/api/models/[modelKey].patch.ts",
-      "client/apps/web/server/api/models/[modelKey].delete.ts"
+      "client/apps/web/server/api/models/[modelKey].delete.ts",
+      "client/apps/web/shared/agency.ts"
     ],
     "symbols": [
       "ModelView",
@@ -2069,7 +2073,7 @@
       "console/agent-list",
       "console/unit-calls"
     ],
-    "base": "6e38bf2a8354a82176aab72c9159cddd7ff9d1ad"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "console/room-screen",

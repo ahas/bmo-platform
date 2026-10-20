@@ -126,7 +126,7 @@ async fn the_health_answers_without_a_token_and_every_other_route_refuses_withou
 
   assert_eq!(status, StatusCode::OK);
   assert_eq!(said["ok"], true);
-  assert_eq!(said["in_force"], true);
+  assert_eq!(said["inForce"], true);
   assert_eq!(said["version"], bmo_web_server::VERSION);
 
   for (method, path) in [
@@ -158,22 +158,22 @@ async fn the_model_stands_once_the_move_is_written_and_nothing_needing_it_answer
   let (status, said) = ask(&app, Method::GET, "/accounts/model", None).await;
 
   assert_eq!(status, StatusCode::OK);
-  assert_eq!(said["in_force"], false);
+  assert_eq!(said["inForce"], false);
   assert!(said["why"].is_string(), "{said}");
 
   let (status, said) =
     ask(&app, Method::POST, "/checks/room", Some(json!({ "room": ROOM, "relation": "ask" }))).await;
 
   assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
-  assert_eq!(said["code"], "not_in_force", "{said}");
+  assert_eq!(said["code"], "not-in-force", "{said}");
 
-  let the_move = json!({ "owner_senders": [OWNER], "rooms": [ROOM] });
+  let the_move = json!({ "ownerSenders": [OWNER], "rooms": [ROOM] });
   let (status, said) = ask(&app, Method::POST, "/accounts/move", Some(the_move.clone())).await;
 
   assert_eq!(status, StatusCode::OK, "{said}");
   assert_eq!((said["done"].clone(), said["written"].clone()), (json!(true), json!(true)));
   assert!(said["administrator"].is_string(), "{said}");
-  assert_eq!(ask(&app, Method::GET, "/accounts/model", None).await.1["in_force"], true);
+  assert_eq!(ask(&app, Method::GET, "/accounts/model", None).await.1["inForce"], true);
 
   let (_, again) = ask(&app, Method::POST, "/accounts/move", Some(the_move)).await;
 
@@ -195,7 +195,7 @@ async fn a_sender_names_its_user_and_a_user_names_its_senders() {
   let (status, said) = ask(&app, Method::GET, "/senders/9999/user", None).await;
 
   assert_eq!(status, StatusCode::NOT_FOUND);
-  assert_eq!(said["code"], "not_found");
+  assert_eq!(said["code"], "not-found");
 
   let (status, said) = ask(&app, Method::GET, &format!("/users/{user}"), None).await;
 
@@ -243,7 +243,7 @@ async fn a_password_changes_on_the_current_one_and_a_name_another_user_holds_is_
   .await;
 
   assert_eq!(status, StatusCode::UNAUTHORIZED);
-  assert_eq!(said["code"], "wrong_password");
+  assert_eq!(said["code"], "wrong-password");
   assert_eq!(
     ask(
       &app,
@@ -260,7 +260,7 @@ async fn a_password_changes_on_the_current_one_and_a_name_another_user_holds_is_
   let (status, said) = ask(&app, Method::POST, &path, Some(json!({ "name": "someone else" }))).await;
 
   assert_eq!(status, StatusCode::CONFLICT);
-  assert_eq!(said["code"], "name_taken");
+  assert_eq!(said["code"], "name-taken");
   assert_eq!(
     ask(&app, Method::POST, &path, Some(json!({ "name": "the boss" }))).await.0,
     StatusCode::NO_CONTENT
@@ -318,7 +318,7 @@ async fn the_checks_answer_for_a_room_a_message_and_an_object() {
   .await;
 
   assert_eq!(status, StatusCode::NOT_FOUND);
-  assert_eq!(said["code"], "no_such_message");
+  assert_eq!(said["code"], "no-such-message");
 
   let (status, said) = ask(
     &app,
@@ -368,13 +368,13 @@ async fn a_grant_is_made_listed_and_revoked_on_a_message_of_its_room() {
   let listed = said["grants"].as_array().unwrap();
   let made = listed
     .iter()
-    .find(|one| one["subject_key"] == format!("user:{user}"))
+    .find(|one| one["subjectKey"] == format!("user:{user}"))
     .expect("the grant stands");
 
   assert_eq!(made["relation"], "launch");
   assert_eq!(made["words"], "may launch the room's jobs");
-  assert_eq!(made["expires_at"], Value::Null);
-  assert!(listed.iter().any(|one| one["subject_key"] == format!("bmo_member:{ROOM}")));
+  assert_eq!(made["expiresAt"], Value::Null);
+  assert!(listed.iter().any(|one| one["subjectKey"] == format!("bmo_member:{ROOM}")));
 
   // By a member, who holds no authority to grant.
   let refused = json!({
@@ -398,7 +398,7 @@ async fn a_grant_is_made_listed_and_revoked_on_a_message_of_its_room() {
       .as_array()
       .unwrap()
       .iter()
-      .any(|one| one["subject_key"] == format!("user:{user}"))
+      .any(|one| one["subjectKey"] == format!("user:{user}"))
   );
 }
 
@@ -470,7 +470,7 @@ async fn a_body_that_does_not_read_is_refused_naming_why() {
   let (status, said) = ask(&app, Method::POST, "/checks/room", Some(json!({ "room": "a room" }))).await;
 
   assert_eq!(status, StatusCode::BAD_REQUEST);
-  assert_eq!(said["code"], "bad_request");
+  assert_eq!(said["code"], "bad-request");
   assert!(said["error"].as_str().unwrap().contains("the body does not read"), "{said}");
 }
 
@@ -528,7 +528,7 @@ async fn the_receivers_client_reads_a_senders_message_and_declares_the_holder() 
   let client = ReceiverClient::new(&address, "the receiver's token").unwrap();
 
   assert_eq!(client.sender_of(ROOM, 1).await.unwrap(), Some(OWNER));
-  assert_eq!(client.sender_of(ROOM, 2).await.unwrap_err().code, "no_such_message");
+  assert_eq!(client.sender_of(ROOM, 2).await.unwrap_err().code, "no-such-message");
 
   client.declare_holder("web", "http://127.0.0.1:3240", &HOLDINGS).await.unwrap();
 

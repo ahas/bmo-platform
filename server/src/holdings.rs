@@ -1,8 +1,8 @@
 //! What the service holds for a room (docs/accounts.md, 「A room's holdings」): the grants standing on it,
 //! and the senders holding a grant there as their user. The receiver asks it before it removes a room.
 
+use bmo_web_client::Holding as HeldHolding;
 use sea_orm::ConnectionTrait;
-use serde::Serialize;
 
 use crate::checks::ROOM;
 use crate::receiver::Holding;
@@ -24,13 +24,6 @@ pub const HOLDINGS: [Holding; 2] = [
   },
 ];
 
-/// One holding a room has, as a code and its count.
-#[derive(Debug, Serialize, PartialEq, Eq)]
-pub struct Held {
-  pub code: &'static str,
-  pub count: i64,
-}
-
 async fn count<C: ConnectionTrait>(db: &C, sql: &str, values: Vec<sea_orm::Value>) -> Result<i64, Refusal> {
   Ok(
     one(db, sql, values)
@@ -43,7 +36,7 @@ async fn count<C: ConnectionTrait>(db: &C, sql: &str, values: Vec<sea_orm::Value
 
 /// What a room holds of the service's, each holding it has at least one of: the grants made on the room or
 /// to its members, and the senders whose user holds a grant on the room.
-pub async fn held<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<Held>, Refusal> {
+pub async fn held<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<HeldHolding>, Refusal> {
   let grants = count(
     db,
     r#"SELECT COUNT(*) AS "count" FROM "relation_tuples"
@@ -64,7 +57,10 @@ pub async fn held<C: ConnectionTrait>(db: &C, room: i64) -> Result<Vec<Held>, Re
     [("room_grants", grants), ("room_senders", senders)]
       .into_iter()
       .filter(|(_, count)| *count > 0)
-      .map(|(code, count)| Held { code, count })
+      .map(|(code, count)| HeldHolding {
+        code: code.to_owned(),
+        count,
+      })
       .collect(),
   )
 }

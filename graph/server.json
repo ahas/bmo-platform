@@ -2,7 +2,7 @@
   {
     "id": "server/account-service",
     "title": "Account service",
-    "what": "The account service on sumida: the server's binary and its verbs, its routes and settings, the users and senders, the account model, the receiver port and the migrations of its own tables (docs/accounts.md).",
+    "what": "The account service on sumida: the server binary and its verbs, its routes and settings, the users and senders, the account model, the receiver port and the migrations of its tables, the OpenAPI contract under docs/openapi.json and the client crate generating it (docs/accounts.md).",
     "files": [
       "server/src/lib.rs",
       "server/src/bin/bmo-web-server.rs",
@@ -16,6 +16,15 @@
       "server/src/migration/m20261019_000000_extensions.rs",
       "server/src/migration/m20261019_000001_tables.rs",
       "server/src/migration/m20261019_000002_document_talk.rs",
+      "server/client/Cargo.toml",
+      "server/client/src/lib.rs",
+      "server/client/src/types.rs",
+      "server/client/src/wire.rs",
+      "server/client/src/openapi.rs",
+      "server/client/src/client.rs",
+      "server/client/tests/openapi.rs",
+      "server/client/examples/openapi.rs",
+      "docs/openapi.json",
       "docs/accounts.md",
       "deploy/bmo-web-server.service",
       "server/tests/routes.rs",
@@ -25,7 +34,7 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "1065658a76a909333fdfe1a1776f62f290c11efc"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "server/data-move",
@@ -55,7 +64,7 @@
     "needs": [
       "server/language-pack"
     ],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "server/fixed-lines",
@@ -72,7 +81,7 @@
     "needs": [
       "server/language-pack"
     ],
-    "base": "3254965c11ed5f8a55226fd7446d4d5dda78d820"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "server/grants-and-checks",
@@ -129,8 +138,6 @@
       "server/src/lang/memory_verbs.rs",
       "server/src/lang/mod.rs",
       "server/src/lang/models.rs",
-      "server/src/lang/news_brief.rs",
-      "server/src/lang/news_page.rs",
       "server/src/lang/node_land.rs",
       "server/src/lang/nodes.rs",
       "server/src/lang/outside_hosting.rs",
@@ -198,8 +205,6 @@
       "server/lang/ko/machine-stand-in.yaml",
       "server/lang/ko/memory-verbs.yaml",
       "server/lang/ko/models.yaml",
-      "server/lang/ko/news-brief.yaml",
-      "server/lang/ko/news-page.yaml",
       "server/lang/ko/node-land.yaml",
       "server/lang/ko/nodes.yaml",
       "server/lang/ko/outside-hosting.yaml",
@@ -245,7 +250,7 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "8da6988773780f00bc342f0bf7e06973e476c464"
+    "base": "f9e7312760a2a8a0ece38e4fce643310f1c57e95"
   },
   {
     "id": "server/phone-keys",

@@ -471,7 +471,8 @@ async fn a_phone_key_names_its_user_until_it_is_deleted() {
   let made = phones::make(scratch.db(), user).await.unwrap();
   let holder = phones::holder(scratch.db(), &made.key).await.unwrap();
 
-  assert_eq!((holder.user, holder.name.as_str()), (user, "boss"));
+  assert_eq!(holder.user, user.to_string());
+  assert_eq!(holder.name, "boss");
 
   let token = "a-token-issued-before-the-model-0123456789abcdef";
   let adopted = phones::adopt(scratch.db(), token, user).await.unwrap();

@@ -31,7 +31,7 @@ pub trait Receiver: Send + Sync {
 
 /// The refusal of a message the receiver does not hold in a room.
 pub fn no_such_message(room: i64, message: i64) -> Refusal {
-  Refusal::absent(format!("no message {message} stands in room {room}")).coded("no_such_message")
+  Refusal::absent(format!("no message {message} stands in room {room}")).coded("no-such-message")
 }
 
 /// The receiver over HTTP, at its base address with its token.
@@ -123,7 +123,7 @@ impl Receiver for NoReceiver {
         StatusCode::SERVICE_UNAVAILABLE,
         "no receiver is named in the settings, so no message's sender can be read",
       )
-      .coded("no_receiver"),
+      .coded("no-receiver"),
     )
   }
 

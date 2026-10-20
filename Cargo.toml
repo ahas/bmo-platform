@@ -2,7 +2,7 @@
 # Bun project of its own, with its own manifest and lockfile.
 [workspace]
 resolver = "3"
-members = ["server"]
+members = ["server", "server/client"]
 
 [workspace.package]
 edition = "2024"

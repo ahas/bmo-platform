@@ -1,4 +1,4 @@
-import { signOut } from "@web/accounts/account-service";
+import { signOut } from "../../utils/account-service";
 
 // The seal goes, and the sumida session it held goes with it on the account service.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {

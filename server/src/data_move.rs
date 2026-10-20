@@ -2,7 +2,7 @@
 //! transaction. The caller hands what only the deployment's configuration holds; the rest is read here.
 
 use sea_orm::{ConnectionTrait, TransactionTrait};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sumida::api::authz::Authz;
 use sumida::api::authz::write::{SubjectKey, TupleWrite};
 
@@ -23,23 +23,7 @@ pub const MEMBER_DEFAULTS: [&str; 6] = ["ask", "search", "notes", "memories", "r
 /// What the move is written as when nobody grants it, in a tuple's `created_by`.
 const MOVER: &str = "data-move";
 
-/// One room rule, as the caller reads it out of the deployment's room rules.
-#[derive(Debug, Deserialize)]
-pub struct RoomRule {
-  pub room: i64,
-  pub id: String,
-  pub subject: i64,
-  pub words: String,
-}
-
-/// What the caller hands the move.
-#[derive(Debug, Deserialize)]
-pub struct MoveAsk {
-  pub owner_senders: Vec<i64>,
-  pub rooms: Vec<i64>,
-  #[serde(default)]
-  pub room_rules: Vec<RoomRule>,
-}
+pub use bmo_web_client::{MoveAsk, RoomRule};
 
 /// What the move answered: whether it is done, whether this call wrote it, and the administrator's user.
 #[derive(Debug, Serialize, PartialEq, Eq)]

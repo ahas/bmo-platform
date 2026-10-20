@@ -1,0 +1,22 @@
+{
+  "name": "@web/server-client",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The web console's server API, generated from its OpenAPI document: every body as a type and a typed call for every route.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "generate": "openapi-typescript ../../../docs/openapi.json --output src/schema.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

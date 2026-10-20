@@ -1,4 +1,4 @@
-import { changeUserPassword, renameUser } from "@web/accounts/account-service";
+import { changeUserPassword, renameUser } from "../utils/account-service";
 
 import { wording } from "#shared/wording";
 

@@ -1,4 +1,4 @@
-import { checkRoom, userOf } from "@web/accounts/account-service";
+import { checkRoom, userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
 import { unitFetch } from "./units";

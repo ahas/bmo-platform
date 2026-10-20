@@ -9,7 +9,7 @@
 
 import { parseArgs } from "node:util";
 
-import { modelState } from "@web/accounts/account-service";
+import { modelState } from "../server/utils/account-service";
 
 import { closeWebSql, useWebSql } from "../server/utils/db";
 import { MAX_NAME_LENGTH, MIN_NAME_LENGTH, MIN_PASSWORD_LENGTH } from "../shared/config";

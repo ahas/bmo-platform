@@ -1,0 +1,415 @@
+//! Every body and member the account service's routes carry (`docs/boundary.md`, 「What the server serves」).
+
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+/// Whether the service is up, its version, and whether the account model is in force.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Health {
+  pub ok: bool,
+  pub version: String,
+  pub in_force: bool,
+}
+
+/// Where the account model stands, and why it is not in force where it is not.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelState {
+  pub in_force: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub why: Option<String>,
+}
+
+/// One room rule the deployment answers, handed to the data move.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RoomRule {
+  pub room: i64,
+  pub id: String,
+  pub subject: i64,
+  pub words: String,
+}
+
+/// What the data move is handed: what only the other units hold.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MoveAsk {
+  pub owner_senders: Vec<i64>,
+  pub rooms: Vec<i64>,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub room_rules: Vec<RoomRule>,
+}
+
+/// What the data move answered.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Moved {
+  pub done: bool,
+  pub written: bool,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub administrator: Option<String>,
+}
+
+/// The user a sender is linked to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SenderUser {
+  pub user: String,
+}
+
+/// A user as the console reads them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct UserView {
+  pub user: String,
+  pub name: String,
+  pub administrator: bool,
+  pub senders: Vec<i64>,
+}
+
+/// The senders linked to a user.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Senders {
+  pub senders: Vec<i64>,
+}
+
+/// A password change.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PasswordAsk {
+  pub current: String,
+  pub next: String,
+}
+
+/// A new name for a user.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct NameAsk {
+  pub name: String,
+}
+
+/// A room relation asked of a sender.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RoomCheckAsk {
+  pub room: i64,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub sender: Option<i64>,
+  pub relation: String,
+}
+
+/// A room relation asked of a message's sender.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MessageCheckAsk {
+  pub room: i64,
+  pub message: i64,
+  pub relation: String,
+}
+
+/// A relation asked of a user on an object of the rules.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ObjectCheckAsk {
+  pub kind: String,
+  pub object: String,
+  pub relation: String,
+  pub user: String,
+}
+
+/// What a check answered.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct CheckAnswer {
+  pub allowed: bool,
+  pub grant: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub user: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub sender: Option<i64>,
+}
+
+/// A grant standing on a room.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GrantRow {
+  pub relation: String,
+  /// The holder's subject key, such as `user:12` or `bmo_member:-7`.
+  pub subject_key: String,
+  /// Epoch milliseconds.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub expires_at: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub words: Option<String>,
+}
+
+/// The grants standing on a room.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Grants {
+  pub grants: Vec<GrantRow>,
+}
+
+/// Whom a grant is to: a sender, a user, or every member of the room.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+pub struct Holder {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub sender: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub user: Option<String>,
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+  pub members: bool,
+}
+
+/// The message a grant is made or revoked on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct On {
+  pub room: i64,
+  pub id: i64,
+}
+
+/// A grant made: a room and a relation there, or a kind, an object and a relation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GrantAsk {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub room: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub object: Option<String>,
+  pub relation: String,
+  pub to: Holder,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub words: Option<String>,
+  /// Epoch milliseconds.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub expires_at: Option<i64>,
+  pub message: On,
+}
+
+/// A grant revoked.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RevokeAsk {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub room: Option<i64>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub kind: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub object: Option<String>,
+  pub relation: String,
+  pub to: Holder,
+  pub message: On,
+}
+
+/// What a grant wrote: the grant, its subject, and the holder's user where it is one.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Granted {
+  pub grant: String,
+  pub subject: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub user: Option<String>,
+}
+
+/// What a revoke took back.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Revoked {
+  pub grant: String,
+  pub revoked: i64,
+}
+
+/// A phone's new key, handed out once, and the hash it is kept by.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneMade {
+  pub key: String,
+  pub hash: String,
+}
+
+/// The user a phone's key is made for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneAsk {
+  pub user: String,
+}
+
+/// A token issued before the model, carried onto a key of the same text.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneAdoptAsk {
+  pub token: String,
+  pub user: String,
+}
+
+/// The hash a token was kept by.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneAdopted {
+  pub hash: String,
+}
+
+/// A key asked after.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneWhoAsk {
+  pub key: String,
+}
+
+/// Whose a phone's key is.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PhoneHolder {
+  pub user: String,
+  pub name: String,
+  pub hash: String,
+}
+
+/// One holding a room has of the service's, as a code and its count.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Holding {
+  /// `room_grants` or `room_senders`.
+  pub code: String,
+  pub count: i64,
+}
+
+/// What a room holds of the service's.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Holdings {
+  pub holdings: Vec<Holding>,
+}
+
+/// A fixed line asked for, with the fields its code carries.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "code", rename_all = "kebab-case")]
+pub enum FixedLineAsk {
+  /// A usage limit begins; the `until` it carries is not read.
+  RestBegins {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    until: Option<i64>,
+  },
+  ProviderDown,
+  Compacting,
+  CompactFailed,
+  RunBroken {
+    agent: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    cause: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    record: Option<String>,
+  },
+  ChatDenied,
+  GoingDownForUpdate {
+    items: Vec<i64>,
+  },
+  GoingDown,
+  CompanionEngineError {
+    kind: EngineError,
+  },
+  CompanionCut {
+    agent: String,
+    reason: String,
+  },
+  Draw(DrawLine),
+}
+
+/// How a companion's engine ended its turn.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum EngineError {
+  Busy,
+  Refused,
+  TooLong,
+  Failed,
+}
+
+/// Everything a draw's room line carries.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct DrawLine {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub label: Option<String>,
+  pub asked: DrawAsked,
+  pub result: DrawResult,
+  pub number: i64,
+  pub seed: String,
+  pub method: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub answered: Option<String>,
+  pub next: String,
+}
+
+/// What a draw asked, by its shape.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "shape", rename_all = "kebab-case")]
+pub enum DrawAsked {
+  Dice {
+    count: i64,
+    sides: i64,
+    modifier: i64,
+  },
+  Range {
+    min: i64,
+    max: i64,
+  },
+  Pick {
+    items: i64,
+    take: i64,
+  },
+  Shuffle {
+    items: i64,
+  },
+}
+
+/// What a draw came to, by its shape.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "shape", rename_all = "kebab-case")]
+pub enum DrawResult {
+  Dice { faces: Vec<i64>, total: i64 },
+  Range { value: i64 },
+  Pick { picked: Vec<String> },
+  Shuffle { order: Vec<String> },
+}
+
+/// A fixed line asked for, with the language to say it in and the fields its code carries.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RenderAsk {
+  /// The pack's language, `ko`.
+  pub language: String,
+  #[serde(flatten)]
+  pub line: FixedLineAsk,
+}
+
+/// The sentence a fixed line renders as.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Rendered {
+  pub text: String,
+}
+
+/// A sign-in's name and password.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginAsk {
+  pub username: String,
+  pub password: String,
+  /// Omitted, the session lasts as long as the browser keeps it; true gives it the longer window.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub remember_me: Option<bool>,
+}
+
+/// A named account part: an organization or a role.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Named {
+  pub id: i64,
+  pub name: String,
+}
+
+/// The account behind a session, as sumida answers it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Session {
+  pub id: i64,
+  pub username: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub full_name: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub email: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub phone: Option<String>,
+  pub is_admin: bool,
+  pub is_enabled: bool,
+  pub is_banned: bool,
+  pub organization: Named,
+  pub role: Named,
+  pub first_seen_at: String,
+  pub last_seen_at: String,
+  pub created_at: String,
+  pub updated_at: String,
+}
+
+/// What a route that answers with nothing in particular sends: an empty object.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Empty {}

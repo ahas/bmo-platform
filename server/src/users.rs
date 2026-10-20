@@ -301,7 +301,7 @@ pub async fn change_password<C: ConnectionTrait>(
   if !sumida::api::service::auth::helper::verify_password(current, &held) {
     return Err(
       Refusal::new(axum::http::StatusCode::UNAUTHORIZED, "the current password does not match")
-        .coded("wrong_password"),
+        .coded("wrong-password"),
     );
   }
 
@@ -329,7 +329,7 @@ pub async fn rename<C: ConnectionTrait>(db: &C, user: i32, name: &str) -> Result
   if taken.is_some() {
     return Err(
       Refusal::new(axum::http::StatusCode::CONFLICT, format!("the name {name} is taken"))
-        .coded("name_taken"),
+        .coded("name-taken"),
     );
   }
 

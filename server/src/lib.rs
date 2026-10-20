@@ -28,7 +28,6 @@ use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use sea_orm::{ConnectionTrait, DatabaseConnection, QueryResult, Value};
-use serde_json::json;
 use sumida::api::SumidaState;
 use sumida::error::SumidaApiError;
 
@@ -55,7 +54,7 @@ impl SumidaState for Service {
   }
 }
 
-/// A refusal: its status, a stable snake_case code a caller decides on, and an English sentence naming why
+/// A refusal: its status, a stable kebab-case code a caller decides on, and an English sentence naming why
 /// (docs/boundary.md, 「Wire conventions」).
 #[derive(Debug, thiserror::Error)]
 #[error("{detail}")]
@@ -68,13 +67,13 @@ pub struct Refusal {
 /// The code a status is refused with where nothing names a closer one.
 fn code_of(status: StatusCode) -> &'static str {
   match status {
-    StatusCode::BAD_REQUEST => "bad_request",
+    StatusCode::BAD_REQUEST => "bad-request",
     StatusCode::UNAUTHORIZED => "unauthorized",
     StatusCode::FORBIDDEN => "forbidden",
-    StatusCode::NOT_FOUND => "not_found",
+    StatusCode::NOT_FOUND => "not-found",
     StatusCode::CONFLICT => "conflict",
-    StatusCode::BAD_GATEWAY => "unit_failed",
-    StatusCode::SERVICE_UNAVAILABLE => "unavailable",
+    StatusCode::BAD_GATEWAY => "upstream-failed",
+    StatusCode::SERVICE_UNAVAILABLE => "not-ready",
     _ => "failed",
   }
 }
@@ -130,7 +129,12 @@ impl From<sumida::error::SumidaError> for Refusal {
 
 impl IntoResponse for Refusal {
   fn into_response(self) -> Response {
-    (self.status, Json(json!({ "error": self.detail, "code": self.code }))).into_response()
+    let body = bmo_web_client::WireError {
+      code: self.code.to_owned(),
+      error: self.detail,
+    };
+
+    (self.status, Json(body)).into_response()
   }
 }
 

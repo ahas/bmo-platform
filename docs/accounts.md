@@ -51,7 +51,7 @@ flowchart TD
   and why not where it is not. Once seen in force it stays so for the life of the process.
 - **A reader asks this first.** Not in force, it reads as it does without the model: no sender is linked to a
   user and no grant stands.
-- **Every route but `GET /health`, `GET /accounts/model` and `POST /accounts/move` answers 503 `not_in_force`
+- **Every route but `GET /health`, `GET /accounts/model` and `POST /accounts/move` answers 503 `not-in-force`
   while the model is not in force,** naming why, so no caller can mistake an absent model for a refusal.
 
 ## sumida's own routes

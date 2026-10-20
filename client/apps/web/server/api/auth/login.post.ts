@@ -1,4 +1,4 @@
-import { sessionUser, signIn, userOf } from "@web/accounts/account-service";
+import { sessionUser, signIn, userOf } from "../../utils/account-service";
 
 import { wording } from "#shared/wording";
 

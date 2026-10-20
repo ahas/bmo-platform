@@ -295,13 +295,13 @@ async fn draw_is_the_line_a_person_checks_it_from() {
 async fn a_code_or_a_language_the_pack_lacks_is_refused_by_its_code() {
   let (status, body) = render_with("no-such-line", json!({}), LANGUAGE, Some(TOKEN)).await;
 
-  assert_eq!((status, body["code"].as_str()), (StatusCode::NOT_FOUND, Some("unknown_code")), "{body}");
+  assert_eq!((status, body["code"].as_str()), (StatusCode::NOT_FOUND, Some("unknown-code")), "{body}");
 
   let (status, body) = render_with("compacting", json!({}), "xx", Some(TOKEN)).await;
 
   assert_eq!(
     (status, body["code"].as_str()),
-    (StatusCode::NOT_FOUND, Some("unknown_language")),
+    (StatusCode::NOT_FOUND, Some("unknown-language")),
     "{body}"
   );
 
@@ -310,7 +310,7 @@ async fn a_code_or_a_language_the_pack_lacks_is_refused_by_its_code() {
 
   assert_eq!(
     (status, body["code"].as_str()),
-    (StatusCode::BAD_REQUEST, Some("bad_request")),
+    (StatusCode::BAD_REQUEST, Some("bad-request")),
     "{body}"
   );
 

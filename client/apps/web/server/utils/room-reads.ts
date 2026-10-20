@@ -1,4 +1,4 @@
-import { userOf } from "@web/accounts/account-service";
+import { userOf } from "./account-service";
 
 import { useWebSql } from "./db";
 import { receiverRead } from "./receiver";

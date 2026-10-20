@@ -12,10 +12,16 @@ use axum::middleware::{Next, from_fn, from_fn_with_state};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use bmo_web_client::{
+  CheckAnswer as WireCheck, Granted as WireGranted, Grants as WireGrants, Health as WireHealth,
+  Holdings as WireHoldings, ModelState as WireModel, Moved as WireMoved, PhoneAdopted as WireAdopted,
+  PhoneHolder as WireHolder, PhoneMade as WireMade, Rendered as WireRendered, Revoked as WireRevoked,
+  SenderUser as WireSenderUser, Senders as WireSenders, UserView as WireUser,
+};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
-use serde_json::{Map, Value, json};
+use serde_json::{Map, Value};
 use sumida::api::Sumida;
 use sumida::api::authz::Authz;
 
@@ -131,7 +137,7 @@ fn not_in_force() -> Refusal {
     StatusCode::SERVICE_UNAVAILABLE,
     "the model is not in force: the data move has not been written",
   )
-  .coded("not_in_force")
+  .coded("not-in-force")
 }
 
 /// A JSON body, refused with 400 naming what is wrong where it does not read as the route's shape.
@@ -148,7 +154,7 @@ impl<S: Send + Sync, T: DeserializeOwned> FromRequest<S> for Body<T> {
   }
 }
 
-type Answer = Result<Json<Value>, Refusal>;
+type Answer<T> = Result<Json<T>, Refusal>;
 type Done = Result<StatusCode, Refusal>;
 
 fn user_in(path: &str) -> Result<i32, Refusal> {
@@ -183,36 +189,46 @@ fn own() -> Router<Service> {
     .route("/rooms/{chat}/holdings", get(holdings_route))
 }
 
-async fn health(State(service): State<Service>) -> Json<Value> {
+async fn health(State(service): State<Service>) -> Json<WireHealth> {
   let in_force = standing(&service).await.unwrap_or(false);
 
-  Json(json!({ "ok": true, "version": VERSION, "in_force": in_force }))
+  Json(WireHealth {
+    ok: true,
+    version: VERSION.to_owned(),
+    in_force,
+  })
 }
 
-async fn model_route(State(service): State<Service>) -> Answer {
+async fn model_route(State(service): State<Service>) -> Answer<WireModel> {
   if standing(&service).await? {
-    Ok(Json(json!({ "in_force": true })))
+    Ok(Json(WireModel {
+      in_force: true,
+      why: None,
+    }))
   } else {
-    Ok(Json(json!({ "in_force": false, "why": not_in_force().detail })))
+    Ok(Json(WireModel {
+      in_force: false,
+      why: Some(not_in_force().detail),
+    }))
   }
 }
 
-async fn move_route(State(service): State<Service>, Body(ask): Body<MoveAsk>) -> Answer {
+async fn move_route(State(service): State<Service>, Body(ask): Body<MoveAsk>) -> Answer<WireMoved> {
   let moved = run_move(&service.db, ask).await?;
 
-  Ok(Json(json!({
-    "done": moved.done,
-    "written": moved.written,
-    "administrator": moved.administrator.map(shown),
-  })))
+  Ok(Json(WireMoved {
+    done: moved.done,
+    written: moved.written,
+    administrator: moved.administrator.map(shown),
+  }))
 }
 
-async fn sender_user(State(service): State<Service>, Path(sender): Path<i64>) -> Answer {
+async fn sender_user(State(service): State<Service>, Path(sender): Path<i64>) -> Answer<WireSenderUser> {
   let user = user_of_sender(&service.db, sender)
     .await?
     .ok_or_else(|| Refusal::absent(format!("sender {sender} is linked to no user")))?;
 
-  Ok(Json(json!({ "user": shown(user) })))
+  Ok(Json(WireSenderUser { user: shown(user) }))
 }
 
 async fn senders_of(service: &Service, user: i32) -> Result<Vec<i64>, Refusal> {
@@ -229,7 +245,7 @@ async fn senders_of(service: &Service, user: i32) -> Result<Vec<i64>, Refusal> {
 
 /// A user as the console reads them: their name, whether they are the platform administrator, and the
 /// sender ids linked to them.
-async fn user_route(State(service): State<Service>, Path(user): Path<String>) -> Answer {
+async fn user_route(State(service): State<Service>, Path(user): Path<String>) -> Answer<WireUser> {
   let user = user_in(&user)?;
   let db = &service.db;
   let row = one(db, r#"SELECT "username" FROM "users" WHERE "id" = $1"#, vec![user.into()])
@@ -239,22 +255,24 @@ async fn user_route(State(service): State<Service>, Path(user): Path<String>) ->
   let administrator = Authz::is_superuser(&user_subject(db, user).await?, db).await?;
   let senders = senders_of(&service, user).await?;
 
-  Ok(Json(json!({
-    "user": shown(user),
-    "name": name,
-    "administrator": administrator,
-    "senders": senders,
-  })))
+  Ok(Json(WireUser {
+    user: shown(user),
+    name,
+    administrator,
+    senders,
+  }))
 }
 
-async fn user_senders(State(service): State<Service>, Path(user): Path<String>) -> Answer {
+async fn user_senders(State(service): State<Service>, Path(user): Path<String>) -> Answer<WireSenders> {
   let user = user_in(&user)?;
 
   one(&service.db, r#"SELECT "id" FROM "users" WHERE "id" = $1"#, vec![user.into()])
     .await?
     .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
 
-  Ok(Json(json!({ "senders": senders_of(&service, user).await? })))
+  Ok(Json(WireSenders {
+    senders: senders_of(&service, user).await?,
+  }))
 }
 
 #[derive(Deserialize)]
@@ -311,32 +329,38 @@ struct ObjectAsk {
   user: i32,
 }
 
-async fn room_check(State(service): State<Service>, Body(ask): Body<RoomAsk>) -> Answer {
+async fn room_check(State(service): State<Service>, Body(ask): Body<RoomAsk>) -> Answer<WireCheck> {
   let answer = check_room(&service.db, ask.room, ask.sender, &ask.relation).await?;
 
-  Ok(Json(json!({
-    "allowed": answer.allowed,
-    "grant": answer.grant,
-    "user": answer.user.map(shown),
-  })))
+  Ok(Json(WireCheck {
+    allowed: answer.allowed,
+    grant: answer.grant,
+    user: answer.user.map(shown),
+    sender: None,
+  }))
 }
 
-async fn message_check(State(service): State<Service>, Body(ask): Body<MessageAsk>) -> Answer {
+async fn message_check(State(service): State<Service>, Body(ask): Body<MessageAsk>) -> Answer<WireCheck> {
   let answer =
     check_message(&service.db, service.receiver.as_ref(), ask.room, ask.message, &ask.relation).await?;
 
-  Ok(Json(json!({
-    "allowed": answer.allowed,
-    "grant": answer.grant,
-    "user": answer.user.map(shown),
-    "sender": answer.sender,
-  })))
+  Ok(Json(WireCheck {
+    allowed: answer.allowed,
+    grant: answer.grant,
+    user: answer.user.map(shown),
+    sender: answer.sender,
+  }))
 }
 
-async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>) -> Answer {
+async fn object_check(State(service): State<Service>, Body(ask): Body<ObjectAsk>) -> Answer<WireCheck> {
   let answer = check_object(&service.db, &ask.kind, &ask.object, &ask.relation, ask.user).await?;
 
-  Ok(Json(json!({ "allowed": answer.allowed, "grant": answer.grant })))
+  Ok(Json(WireCheck {
+    allowed: answer.allowed,
+    grant: answer.grant,
+    user: None,
+    sender: None,
+  }))
 }
 
 #[derive(Deserialize)]
@@ -344,24 +368,25 @@ struct RoomQuery {
   room: i64,
 }
 
-async fn grants_route(State(service): State<Service>, Query(query): Query<RoomQuery>) -> Answer {
-  Ok(Json(json!({ "grants": standing_in(&service.db, query.room).await? })))
+async fn grants_route(
+  State(service): State<Service>,
+  Query(query): Query<RoomQuery>,
+) -> Answer<WireGrants> {
+  Ok(Json(WireGrants {
+    grants: standing_in(&service.db, query.room).await?,
+  }))
 }
 
-async fn grant_route(State(service): State<Service>, Body(ask): Body<GrantAsk>) -> Answer {
+async fn grant_route(State(service): State<Service>, Body(ask): Body<GrantAsk>) -> Answer<WireGranted> {
   let granted = grant(&service.db, service.receiver.as_ref(), ask).await?;
 
-  Ok(Json(json!({
-    "grant": granted.grant,
-    "subject": granted.subject,
-    "user": granted.user.map(shown),
-  })))
+  Ok(Json(granted))
 }
 
-async fn revoke_route(State(service): State<Service>, Body(ask): Body<RevokeAsk>) -> Answer {
+async fn revoke_route(State(service): State<Service>, Body(ask): Body<RevokeAsk>) -> Answer<WireRevoked> {
   let revoked = revoke(&service.db, service.receiver.as_ref(), ask).await?;
 
-  Ok(Json(json!({ "grant": revoked.grant, "revoked": revoked.revoked })))
+  Ok(Json(revoked))
 }
 
 #[derive(Deserialize)]
@@ -382,20 +407,29 @@ struct KeyAsk {
   key: String,
 }
 
-async fn phone_make(State(service): State<Service>, Body(ask): Body<UserAsk>) -> Answer {
+async fn phone_make(State(service): State<Service>, Body(ask): Body<UserAsk>) -> Answer<WireMade> {
   let made = phones::make(&service.db, ask.user).await?;
 
-  Ok(Json(json!({ "key": made.key, "hash": made.hash })))
+  Ok(Json(WireMade {
+    key: made.key,
+    hash: made.hash,
+  }))
 }
 
-async fn phone_adopt(State(service): State<Service>, Body(ask): Body<AdoptAsk>) -> Answer {
-  Ok(Json(json!({ "hash": phones::adopt(&service.db, &ask.token, ask.user).await? })))
+async fn phone_adopt(State(service): State<Service>, Body(ask): Body<AdoptAsk>) -> Answer<WireAdopted> {
+  Ok(Json(WireAdopted {
+    hash: phones::adopt(&service.db, &ask.token, ask.user).await?,
+  }))
 }
 
-async fn phone_who(State(service): State<Service>, Body(ask): Body<KeyAsk>) -> Answer {
+async fn phone_who(State(service): State<Service>, Body(ask): Body<KeyAsk>) -> Answer<WireHolder> {
   let holder = phones::holder(&service.db, &ask.key).await?;
 
-  Ok(Json(json!({ "user": shown(holder.user), "name": holder.name, "hash": holder.hash })))
+  Ok(Json(WireHolder {
+    user: holder.user,
+    name: holder.name,
+    hash: holder.hash,
+  }))
 }
 
 async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) -> Done {
@@ -404,10 +438,17 @@ async fn phone_delete(State(service): State<Service>, Path(hash): Path<String>) 
   Ok(StatusCode::NO_CONTENT)
 }
 
-async fn holdings_route(State(service): State<Service>, Path(chat): Path<i64>) -> Answer {
-  Ok(Json(json!({ "holdings": holdings::held(&service.db, chat).await? })))
+async fn holdings_route(State(service): State<Service>, Path(chat): Path<i64>) -> Answer<WireHoldings> {
+  Ok(Json(WireHoldings {
+    holdings: holdings::held(&service.db, chat).await?,
+  }))
 }
 
-async fn render_route(State(service): State<Service>, Body(asked): Body<Map<String, Value>>) -> Answer {
-  Ok(Json(json!({ "text": words::rendered(asked, &service.names)? })))
+async fn render_route(
+  State(service): State<Service>,
+  Body(asked): Body<Map<String, Value>>,
+) -> Answer<WireRendered> {
+  Ok(Json(WireRendered {
+    text: words::rendered(asked, &service.names)?,
+  }))
 }

@@ -14,11 +14,12 @@ bundle; a screen of a unit not yet split is a placeholder.
   make it wrong or incomplete repairs it first, stating what is true now, and the code is then written to
   match. `docs/boundary.md` states every route this repository serves, every call it makes on another unit
   and every code it answers with; `docs/inventory.md` states where each member of the old repository stands.
-- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, and the console
-  bundles the console extends: `bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client`
-  and `bmo-remote-client`. Another unit is reached over HTTP at the address a setting names; its code, its
-  tables and its files are never read. A helper an old shared package held is copied in. The testbed's
-  dependency sweep and the repository's own tests fail on any other.
+- **No `bmo-*` dependency but the base libraries** `bmo-chat`, `bmo-chat-client` and `bmo-ui`, the console
+  bundles the console extends (`bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client`
+  and `bmo-remote-client`), and the repository's own crates `bmo-web-server` and `bmo-web-client`. Another unit
+  is reached over HTTP at the address a setting names; its code, its tables and its files are never read. A
+  helper an old shared package held is copied in. The testbed's dependency sweep and the repository's own tests
+  fail on any other.
 - **A base never knows its consumers.** The account service, the language packs and the console's shell supply
   the mechanism and a safe default; no code here names the unit or agent that calls it, and nothing branches
   on a unit's or a chat service's name.
@@ -33,8 +34,8 @@ bundle; a screen of a unit not yet split is a placeholder.
 - **Tests live in `tests/`:** the server's in `server/tests/`, the client's in `client/tests/`, and the checks
   that span the repository in the root `tests/`. No test sits beside the code it tests.
 - **No directory named after its parent** (no `x/x`), and **one manifest at the root**: the Cargo workspace's,
-  whose one member is `server/`. The client is a Bun project of its own, its `package.json` and lockfile in
-  `client/`.
+  whose members are `server/` and `server/client/`. The client is a Bun project of its own, its `package.json`
+  and lockfile in `client/`.
 - **Documents state what is true now**: no change history, no quoted source and no file-and-line pins.
 
 ## Checks

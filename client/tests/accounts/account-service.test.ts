@@ -20,7 +20,7 @@ import {
   signIn,
   signOut,
   userOf
-} from "../../packages/accounts/account-service";
+} from "../../apps/web/server/utils/account-service";
 import { standInAccountService } from "../support/account-service";
 import { OWNER_ID, ROOM_ID } from "../support/ids";
 
@@ -63,7 +63,7 @@ describe("the model", () => {
 
     try {
       expect(await modelState(options)).toEqual({ inForce: false, reason: "the data move has not been written" });
-      await expect(userOf(2, options)).rejects.toMatchObject({ status: 503, code: "not_in_force" });
+      await expect(userOf(2, options)).rejects.toMatchObject({ status: 503, code: "not-in-force" });
     } finally {
       service.state.inForce = true;
     }
@@ -73,11 +73,11 @@ describe("the model", () => {
     expect(await modelState({ address: "http://127.0.0.1:9", token: "none", timeoutMs: 500 })).toBeNull();
   });
 
-  test("the move is handed in snake_case and answers its administrator", async () => {
+  test("the move is handed in the common wire format and answers its administrator", async () => {
     const moved = await runMove({ ownerSenders: [OWNER_ID], rooms: [ROOM_ID], roomRules: [] }, options);
 
     expect(moved).toEqual({ done: true, written: true, administrator: "1" });
-    expect(service.moves.at(-1)).toEqual({ owner_senders: [OWNER_ID], rooms: [ROOM_ID], room_rules: [] });
+    expect(service.moves.at(-1)).toEqual({ ownerSenders: [OWNER_ID], rooms: [ROOM_ID], roomRules: [] });
   });
 });
 
@@ -100,7 +100,13 @@ describe("users", () => {
   });
 
   test("a wrong token is a refusal with its code", async () => {
-    const refusal = await userOf(2, { ...options, token: "wrong" }).catch((error: unknown) => error);
+    let refusal: AccountRefusal | null = null;
+
+    try {
+      await userOf(2, { ...options, token: "wrong" });
+    } catch (error) {
+      if (error instanceof AccountRefusal) refusal = error;
+    }
 
     expect(refusal).toBeInstanceOf(AccountRefusal);
     expect(refusal).toMatchObject({ status: 401, code: "unauthorized" });

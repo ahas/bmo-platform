@@ -1,0 +1,542 @@
+//! The account service's OpenAPI 3.1 document (`docs/openapi.json`): every route the server exposes, in the
+//! common wire format. The bodies' schemas are generated from this crate's own types; the TypeScript package is
+//! generated from this document.
+
+use std::collections::BTreeMap;
+
+use schemars::JsonSchema;
+use schemars::Schema;
+use schemars::generate::{SchemaGenerator, SchemaSettings};
+use serde_json::{Map, Value, json};
+
+use crate::types::*;
+use crate::wire::{SessionError, WireError};
+
+/// Where the schemas the routes refer to stand in the document.
+const SCHEMAS: &str = "/components/schemas";
+
+const DESCRIPTION: &str = "The web console's server: the account service on sumida, which holds the users, the \
+  senders linked to them, the grants they hold, the account model they stand in, the room holdings the \
+  receiver asks about, and the fixed lines a room says. Its own routes answer in the common wire format: \
+  camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as \
+  a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the \
+  session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as \
+  the digits of sumida's whole number, a string a caller hands on as it stands.";
+
+/// Which refusal body a route's failures carry.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Refusal {
+  /// The service's own two keys, `code` and `error`.
+  Wire,
+  /// sumida's session shape.
+  Session,
+}
+
+/// One route as the document states it.
+struct Route {
+  id: &'static str,
+  tag: &'static str,
+  summary: &'static str,
+  parameters: Vec<Value>,
+  body: Option<Value>,
+  answers: Vec<(u16, Option<Value>)>,
+  codes: Vec<&'static str>,
+  refusal: Refusal,
+  security: Option<Value>,
+}
+
+fn parameter(name: &str, kind: &str, required: bool) -> Value {
+  json!({
+    "name": name,
+    "in": "query",
+    "required": required,
+    "schema": { "type": kind },
+  })
+}
+
+fn integer_path(name: &str) -> Value {
+  json!({
+    "name": name,
+    "in": "path",
+    "required": true,
+    "schema": { "type": "integer", "format": "int64" },
+  })
+}
+
+fn string_path(name: &str) -> Value {
+  json!({
+    "name": name,
+    "in": "path",
+    "required": true,
+    "schema": { "type": "string" },
+  })
+}
+
+fn json_answer<Answer: JsonSchema>(generator: &mut SchemaGenerator) -> Option<Value> {
+  Some(json!({ "application/json": { "schema": generator.subschema_for::<Answer>() } }))
+}
+
+/// The body `POST /words/render` takes: one of the fixed line's codes with its fields, and the language.
+fn render_body(generator: &mut SchemaGenerator) -> Option<Value> {
+  let line = json!(generator.subschema_for::<FixedLineAsk>());
+
+  Some(json!({
+    "allOf": [
+      line,
+      {
+        "type": "object",
+        "required": ["language"],
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "The pack's language, `ko`.",
+          },
+        },
+      },
+    ],
+  }))
+}
+
+fn no_answer() -> Option<Value> {
+  None
+}
+
+impl Route {
+  fn operation(self, wire: &Schema, session: &Schema) -> Value {
+    let mut responses = Map::new();
+
+    for (status, content) in self.answers {
+      let description = match status {
+        200 => "Answered.",
+        204 => "Done; no content.",
+        _ => "Answered.",
+      };
+      let mut answer = json!({ "description": description });
+      if let Some(content) = content {
+        answer["content"] = content;
+      }
+      responses.insert(status.to_string(), answer);
+    }
+
+    if !self.codes.is_empty() {
+      let error = match self.refusal {
+        Refusal::Wire => wire,
+        Refusal::Session => session,
+      };
+      let codes = self.codes.join(", ");
+      responses.insert(
+        "default".to_owned(),
+        json!({
+          "description": format!("A refusal or failure: {codes}"),
+          "content": { "application/json": { "schema": error } },
+        }),
+      );
+    }
+
+    let mut operation = json!({
+      "operationId": self.id,
+      "tags": [self.tag],
+      "summary": self.summary,
+      "responses": responses,
+      "x-codes": self.codes,
+    });
+    if !self.parameters.is_empty() {
+      operation["parameters"] = self.parameters.into();
+    }
+    if let Some(body) = self.body {
+      operation["requestBody"] = json!({
+        "required": true,
+        "content": { "application/json": { "schema": body } },
+      });
+    }
+    if let Some(security) = self.security {
+      operation["security"] = security;
+    }
+
+    operation
+  }
+}
+
+/// The document as JSON.
+pub fn openapi() -> Value {
+  let mut generator = SchemaSettings::draft2020_12()
+    .for_serialize()
+    .with(|settings| {
+      settings.definitions_path = SCHEMAS.into();
+      settings.meta_schema = None;
+    })
+    .into_generator();
+  let wire: Schema = generator.subschema_for::<WireError>();
+  let session: Schema = generator.subschema_for::<SessionError>();
+  let mut paths: BTreeMap<String, Value> = BTreeMap::new();
+
+  macro_rules! add {
+    (
+      $method:literal, $path:literal, $id:literal, $tag:literal, $summary:literal,
+      params: $params:expr, body: $body:expr, answers: $answers:expr, codes: $codes:expr
+    ) => {{
+      add!(
+        $method, $path, $id, $tag, $summary,
+        params: $params, body: $body, answers: $answers, codes: $codes,
+        refusal: Refusal::Wire, security: Value::Null
+      )
+    }};
+    (
+      $method:literal, $path:literal, $id:literal, $tag:literal, $summary:literal,
+      params: $params:expr, body: $body:expr, answers: $answers:expr, codes: $codes:expr,
+      refusal: $refusal:expr, security: $security:expr
+    ) => {{
+      let security = match $security {
+        Value::Null => None,
+        ref other => Some(other.clone()),
+      };
+      let route = Route {
+        id: $id,
+        tag: $tag,
+        summary: $summary,
+        parameters: $params,
+        body: $body,
+        answers: $answers,
+        codes: $codes,
+        refusal: $refusal,
+        security,
+      };
+      let operation = route.operation(&wire, &session);
+      let entry = paths.entry($path.to_owned()).or_insert_with(|| json!({}));
+      entry[$method.to_lowercase()] = operation;
+    }};
+  }
+
+  let bearer = || json!([{ "bearerAuth": [] }]);
+  let cookie = || json!([{ "session": [] }]);
+  let open = || json!([]);
+
+  add!(
+    "GET",
+    "/health",
+    "health",
+    "Health",
+    "Whether the service is up, its version, and whether the account model is in force.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<Health>(&mut generator))],
+    codes: vec![],
+    refusal: Refusal::Wire,
+    security: open()
+  );
+  add!(
+    "GET",
+    "/accounts/model",
+    "modelState",
+    "Account model",
+    "Where the account model stands, and why it is not in force where it is not.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<ModelState>(&mut generator))],
+    codes: vec!["database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/accounts/move",
+    "moveAccounts",
+    "Account model",
+    "Writes the account model once, in one transaction; a second call writes nothing.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<MoveAsk>())),
+    answers: vec![(200, json_answer::<Moved>(&mut generator))],
+    codes: vec!["bad-request", "conflict", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/senders/{sender}/user",
+    "senderUser",
+    "Users and senders",
+    "The user a sender is linked to.",
+    params: vec![integer_path("sender")],
+    body: None,
+    answers: vec![(200, json_answer::<SenderUser>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}",
+    "user",
+    "Users and senders",
+    "One user: their name, whether they are the platform administrator, and the senders linked to them.",
+    params: vec![string_path("user")],
+    body: None,
+    answers: vec![(200, json_answer::<UserView>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/users/{user}/senders",
+    "userSenders",
+    "Users and senders",
+    "The sender numbers linked to a user.",
+    params: vec![string_path("user")],
+    body: None,
+    answers: vec![(200, json_answer::<Senders>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/users/{user}/password",
+    "changePassword",
+    "Users and senders",
+    "Changes a user's password on the strength of their current one.",
+    params: vec![string_path("user")],
+    body: Some(json!(generator.subschema_for::<PasswordAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "wrong-password", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/users/{user}/name",
+    "renameUser",
+    "Users and senders",
+    "Gives a user another name.",
+    params: vec![string_path("user")],
+    body: Some(json!(generator.subschema_for::<NameAsk>())),
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "name-taken", "conflict", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/checks/room",
+    "checkRoom",
+    "Checks",
+    "Whether a sender holds a room relation in a room; a null sender is the room's members alone.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<RoomCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/checks/message",
+    "checkMessage",
+    "Checks",
+    "Whether the sender of a message in a room holds a relation there.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<MessageCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "no-such-message", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/checks/object",
+    "checkObject",
+    "Checks",
+    "Whether a user holds a relation on a worker, a repository or a tool capability.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<ObjectCheckAsk>())),
+    answers: vec![(200, json_answer::<CheckAnswer>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/grants",
+    "grants",
+    "Grants",
+    "The grants standing on a room, in the order they were written, none past its expiry.",
+    params: vec![parameter("room", "integer", true)],
+    body: None,
+    answers: vec![(200, json_answer::<Grants>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/grants",
+    "grant",
+    "Grants",
+    "Grants a relation on a room or an object, on the authority of the message's sender.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<GrantAsk>())),
+    answers: vec![(200, json_answer::<Granted>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/grants",
+    "revoke",
+    "Grants",
+    "Takes a grant back, on the authority of the message's sender.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<RevokeAsk>())),
+    answers: vec![(200, json_answer::<Revoked>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-found", "no-receiver", "upstream-failed", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/phones",
+    "makePhoneKey",
+    "Phone keys",
+    "Makes a new key for a user's phone, handed out once, with the hash it is kept by.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<PhoneAsk>())),
+    answers: vec![(200, json_answer::<PhoneMade>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/phones/adopt",
+    "adoptPhone",
+    "Phone keys",
+    "Carries a token issued before the model onto a key of the same text.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<PhoneAdoptAsk>())),
+    answers: vec![(200, json_answer::<PhoneAdopted>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-found", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/phones/who",
+    "phoneHolder",
+    "Phone keys",
+    "Whose a phone's key is, where it is a live key of a user who may sign in.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<PhoneWhoAsk>())),
+    answers: vec![(200, json_answer::<PhoneHolder>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/phones/{hash}",
+    "deletePhoneKey",
+    "Phone keys",
+    "Takes a phone's key away by its hash.",
+    params: vec![string_path("hash")],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
+    "/rooms/{chat}/holdings",
+    "roomHoldings",
+    "Rooms",
+    "What a room holds of the service's, each holding it has at least one of.",
+    params: vec![integer_path("chat")],
+    body: None,
+    answers: vec![(200, json_answer::<Holdings>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/words/render",
+    "renderLine",
+    "Fixed lines",
+    "One fixed line, rendered in the room's language from the server's pack.",
+    params: vec![],
+    body: render_body(&mut generator),
+    answers: vec![(200, json_answer::<Rendered>(&mut generator))],
+    codes: vec!["bad-request", "not-found", "unknown-language", "unknown-code", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "POST",
+    "/sumida/auth/session",
+    "signIn",
+    "Sessions",
+    "Signs in with a name and a password; the session cookie is in Set-Cookie and the body carries nothing.",
+    params: vec![],
+    body: Some(json!(generator.subschema_for::<LoginAsk>())),
+    answers: vec![(200, json_answer::<Empty>(&mut generator))],
+    codes: vec!["unauthorized"],
+    refusal: Refusal::Session,
+    security: open()
+  );
+  add!(
+    "DELETE",
+    "/sumida/auth/session",
+    "signOut",
+    "Sessions",
+    "Ends the session this request arrives on.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<Empty>(&mut generator))],
+    codes: vec!["unauthorized"],
+    refusal: Refusal::Session,
+    security: cookie()
+  );
+  add!(
+    "GET",
+    "/sumida/me",
+    "me",
+    "Sessions",
+    "The account behind a session.",
+    params: vec![],
+    body: None,
+    answers: vec![(200, json_answer::<Session>(&mut generator))],
+    codes: vec!["unauthorized"],
+    refusal: Refusal::Session,
+    security: cookie()
+  );
+
+  let schemas: Map<String, Value> = generator.take_definitions(true);
+
+  json!({
+    "openapi": "3.1.0",
+    "info": {
+      "title": "bmo-web-server",
+      "version": crate::VERSION,
+      "description": DESCRIPTION,
+    },
+    "x-layer": "downstream",
+    "x-stage": 9,
+    "paths": paths,
+    "components": {
+      "schemas": schemas,
+      "securitySchemes": {
+        "bearerAuth": { "type": "http", "scheme": "bearer" },
+        "session": { "type": "apiKey", "in": "cookie", "name": "bmo.sid" },
+      },
+    },
+  })
+}
+
+/// The document as `docs/openapi.json` keeps it: pretty, ending in a line break.
+pub fn openapi_json() -> String {
+  let mut written = serde_json::to_string_pretty(&openapi()).expect("the document is JSON");
+
+  written.push('\n');
+  written
+}

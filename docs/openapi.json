@@ -1,0 +1,2419 @@
+{
+  "components": {
+    "schemas": {
+      "CheckAnswer": {
+        "description": "What a check answered.",
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "grant": {
+            "type": "string"
+          },
+          "sender": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "user": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "allowed",
+          "grant"
+        ],
+        "type": "object"
+      },
+      "DrawAsked": {
+        "description": "What a draw asked, by its shape.",
+        "oneOf": [
+          {
+            "properties": {
+              "count": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "modifier": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "shape": {
+                "const": "dice",
+                "type": "string"
+              },
+              "sides": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "shape",
+              "count",
+              "sides",
+              "modifier"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "max": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "min": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "shape": {
+                "const": "range",
+                "type": "string"
+              }
+            },
+            "required": [
+              "shape",
+              "min",
+              "max"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "items": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "shape": {
+                "const": "pick",
+                "type": "string"
+              },
+              "take": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "shape",
+              "items",
+              "take"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "items": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "shape": {
+                "const": "shuffle",
+                "type": "string"
+              }
+            },
+            "required": [
+              "shape",
+              "items"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "DrawLine": {
+        "description": "Everything a draw's room line carries.",
+        "properties": {
+          "answered": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asked": {
+            "$ref": "#/components/schemas/DrawAsked"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "next": {
+            "type": "string"
+          },
+          "number": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "result": {
+            "$ref": "#/components/schemas/DrawResult"
+          },
+          "seed": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "asked",
+          "result",
+          "number",
+          "seed",
+          "method",
+          "next"
+        ],
+        "type": "object"
+      },
+      "DrawResult": {
+        "description": "What a draw came to, by its shape.",
+        "oneOf": [
+          {
+            "properties": {
+              "faces": {
+                "items": {
+                  "format": "int64",
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "shape": {
+                "const": "dice",
+                "type": "string"
+              },
+              "total": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "shape",
+              "faces",
+              "total"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "shape": {
+                "const": "range",
+                "type": "string"
+              },
+              "value": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "shape",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "picked": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "shape": {
+                "const": "pick",
+                "type": "string"
+              }
+            },
+            "required": [
+              "shape",
+              "picked"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "order": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "shape": {
+                "const": "shuffle",
+                "type": "string"
+              }
+            },
+            "required": [
+              "shape",
+              "order"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Empty": {
+        "description": "What a route that answers with nothing in particular sends: an empty object.",
+        "type": "object"
+      },
+      "EngineError": {
+        "description": "How a companion's engine ended its turn.",
+        "enum": [
+          "busy",
+          "refused",
+          "too-long",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "FixedLineAsk": {
+        "description": "A fixed line asked for, with the fields its code carries.",
+        "oneOf": [
+          {
+            "description": "A usage limit begins; the `until` it carries is not read.",
+            "properties": {
+              "code": {
+                "const": "rest-begins",
+                "type": "string"
+              },
+              "until": {
+                "format": "int64",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "provider-down",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "compacting",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "compact-failed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "cause": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "code": {
+                "const": "run-broken",
+                "type": "string"
+              },
+              "record": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "code",
+              "agent"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "chat-denied",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "going-down-for-update",
+                "type": "string"
+              },
+              "items": {
+                "items": {
+                  "format": "int64",
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "code",
+              "items"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "going-down",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "companion-engine-error",
+                "type": "string"
+              },
+              "kind": {
+                "$ref": "#/components/schemas/EngineError"
+              }
+            },
+            "required": [
+              "code",
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "code": {
+                "const": "companion-cut",
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "agent",
+              "reason"
+            ],
+            "type": "object"
+          },
+          {
+            "$ref": "#/components/schemas/DrawLine",
+            "properties": {
+              "code": {
+                "const": "draw",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "GrantAsk": {
+        "description": "A grant made: a room and a relation there, or a kind, an object and a relation.",
+        "properties": {
+          "expiresAt": {
+            "description": "Epoch milliseconds.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "$ref": "#/components/schemas/On"
+          },
+          "object": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relation": {
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "to": {
+            "$ref": "#/components/schemas/Holder"
+          },
+          "words": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "relation",
+          "to",
+          "message"
+        ],
+        "type": "object"
+      },
+      "GrantRow": {
+        "description": "A grant standing on a room.",
+        "properties": {
+          "expiresAt": {
+            "description": "Epoch milliseconds.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "relation": {
+            "type": "string"
+          },
+          "subjectKey": {
+            "description": "The holder's subject key, such as `user:12` or `bmo_member:-7`.",
+            "type": "string"
+          },
+          "words": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "relation",
+          "subjectKey"
+        ],
+        "type": "object"
+      },
+      "Granted": {
+        "description": "What a grant wrote: the grant, its subject, and the holder's user where it is one.",
+        "properties": {
+          "grant": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "user": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "grant",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "Grants": {
+        "description": "The grants standing on a room.",
+        "properties": {
+          "grants": {
+            "items": {
+              "$ref": "#/components/schemas/GrantRow"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "grants"
+        ],
+        "type": "object"
+      },
+      "Health": {
+        "description": "Whether the service is up, its version, and whether the account model is in force.",
+        "properties": {
+          "inForce": {
+            "type": "boolean"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "version",
+          "inForce"
+        ],
+        "type": "object"
+      },
+      "Holder": {
+        "description": "Whom a grant is to: a sender, a user, or every member of the room.",
+        "properties": {
+          "members": {
+            "type": "boolean"
+          },
+          "sender": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "user": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "Holding": {
+        "description": "One holding a room has of the service's, as a code and its count.",
+        "properties": {
+          "code": {
+            "description": "`room_grants` or `room_senders`.",
+            "type": "string"
+          },
+          "count": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "count"
+        ],
+        "type": "object"
+      },
+      "Holdings": {
+        "description": "What a room holds of the service's.",
+        "properties": {
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/Holding"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "holdings"
+        ],
+        "type": "object"
+      },
+      "LoginAsk": {
+        "description": "A sign-in's name and password.",
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "rememberMe": {
+            "description": "Omitted, the session lasts as long as the browser keeps it; true gives it the longer window.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object"
+      },
+      "MessageCheckAsk": {
+        "description": "A room relation asked of a message's sender.",
+        "properties": {
+          "message": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "relation": {
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "room",
+          "message",
+          "relation"
+        ],
+        "type": "object"
+      },
+      "ModelState": {
+        "description": "Where the account model stands, and why it is not in force where it is not.",
+        "properties": {
+          "inForce": {
+            "type": "boolean"
+          },
+          "why": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "inForce"
+        ],
+        "type": "object"
+      },
+      "MoveAsk": {
+        "description": "What the data move is handed: what only the other units hold.",
+        "properties": {
+          "ownerSenders": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "roomRules": {
+            "items": {
+              "$ref": "#/components/schemas/RoomRule"
+            },
+            "type": "array"
+          },
+          "rooms": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "ownerSenders",
+          "rooms"
+        ],
+        "type": "object"
+      },
+      "Moved": {
+        "description": "What the data move answered.",
+        "properties": {
+          "administrator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "written": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "done",
+          "written"
+        ],
+        "type": "object"
+      },
+      "NameAsk": {
+        "description": "A new name for a user.",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "Named": {
+        "description": "A named account part: an organization or a role.",
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ObjectCheckAsk": {
+        "description": "A relation asked of a user on an object of the rules.",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "relation": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "object",
+          "relation",
+          "user"
+        ],
+        "type": "object"
+      },
+      "On": {
+        "description": "The message a grant is made or revoked on.",
+        "properties": {
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "room": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "room",
+          "id"
+        ],
+        "type": "object"
+      },
+      "PasswordAsk": {
+        "description": "A password change.",
+        "properties": {
+          "current": {
+            "type": "string"
+          },
+          "next": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "current",
+          "next"
+        ],
+        "type": "object"
+      },
+      "PhoneAdoptAsk": {
+        "description": "A token issued before the model, carried onto a key of the same text.",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "user"
+        ],
+        "type": "object"
+      },
+      "PhoneAdopted": {
+        "description": "The hash a token was kept by.",
+        "properties": {
+          "hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hash"
+        ],
+        "type": "object"
+      },
+      "PhoneAsk": {
+        "description": "The user a phone's key is made for.",
+        "properties": {
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "type": "object"
+      },
+      "PhoneHolder": {
+        "description": "Whose a phone's key is.",
+        "properties": {
+          "hash": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "hash"
+        ],
+        "type": "object"
+      },
+      "PhoneMade": {
+        "description": "A phone's new key, handed out once, and the hash it is kept by.",
+        "properties": {
+          "hash": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "hash"
+        ],
+        "type": "object"
+      },
+      "PhoneWhoAsk": {
+        "description": "A key asked after.",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "type": "object"
+      },
+      "Rendered": {
+        "description": "The sentence a fixed line renders as.",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "RevokeAsk": {
+        "description": "A grant revoked.",
+        "properties": {
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "$ref": "#/components/schemas/On"
+          },
+          "object": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relation": {
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "to": {
+            "$ref": "#/components/schemas/Holder"
+          }
+        },
+        "required": [
+          "relation",
+          "to",
+          "message"
+        ],
+        "type": "object"
+      },
+      "Revoked": {
+        "description": "What a revoke took back.",
+        "properties": {
+          "grant": {
+            "type": "string"
+          },
+          "revoked": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "grant",
+          "revoked"
+        ],
+        "type": "object"
+      },
+      "RoomCheckAsk": {
+        "description": "A room relation asked of a sender.",
+        "properties": {
+          "relation": {
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "sender": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "room",
+          "relation"
+        ],
+        "type": "object"
+      },
+      "RoomRule": {
+        "description": "One room rule the deployment answers, handed to the data move.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "room": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "subject": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "words": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "room",
+          "id",
+          "subject",
+          "words"
+        ],
+        "type": "object"
+      },
+      "SenderUser": {
+        "description": "The user a sender is linked to.",
+        "properties": {
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "type": "object"
+      },
+      "Senders": {
+        "description": "The senders linked to a user.",
+        "properties": {
+          "senders": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "senders"
+        ],
+        "type": "object"
+      },
+      "Session": {
+        "description": "The account behind a session, as sumida answers it.",
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "isBanned": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "lastSeenAt": {
+            "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Named"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/Named"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "isAdmin",
+          "isEnabled",
+          "isBanned",
+          "organization",
+          "role",
+          "firstSeenAt",
+          "lastSeenAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "SessionError": {
+        "description": "The body sumida's own session routes refuse with: its code, the status as a number, and a reason written in\ndebug builds only.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "statusCode": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "statusCode"
+        ],
+        "type": "object"
+      },
+      "UserView": {
+        "description": "A user as the console reads them.",
+        "properties": {
+          "administrator": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "senders": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "name",
+          "administrator",
+          "senders"
+        ],
+        "type": "object"
+      },
+      "WireError": {
+        "description": "The body every non-2xx answer of the service's own routes carries: a stable kebab-case code a caller decides\non, and one English sentence for a person.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "error"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "session": {
+        "in": "cookie",
+        "name": "bmo.sid",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the room holdings the receiver asks about, and the fixed lines a room says. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
+    "title": "bmo-web-server",
+    "version": "2.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/accounts/model": {
+      "get": {
+        "operationId": "modelState",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelState"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Where the account model stands, and why it is not in force where it is not.",
+        "tags": [
+          "Account model"
+        ],
+        "x-codes": [
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/accounts/move": {
+      "post": {
+        "operationId": "moveAccounts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Moved"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, conflict, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Writes the account model once, in one transaction; a second call writes nothing.",
+        "tags": [
+          "Account model"
+        ],
+        "x-codes": [
+          "bad-request",
+          "conflict",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/checks/message": {
+      "post": {
+        "operationId": "checkMessage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, no-such-message, no-receiver, upstream-failed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether the sender of a message in a room holds a relation there.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "no-such-message",
+          "no-receiver",
+          "upstream-failed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/checks/object": {
+      "post": {
+        "operationId": "checkObject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether a user holds a relation on a worker, a repository or a tool capability.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/checks/room": {
+      "post": {
+        "operationId": "checkRoom",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomCheckAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whether a sender holds a room relation in a room; a null sender is the room's members alone.",
+        "tags": [
+          "Checks"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/grants": {
+      "delete": {
+        "operationId": "revoke",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Revoked"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Takes a grant back, on the authority of the message's sender.",
+        "tags": [
+          "Grants"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "no-receiver",
+          "upstream-failed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "get": {
+        "operationId": "grants",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "room",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Grants"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The grants standing on a room, in the order they were written, none past its expiry.",
+        "tags": [
+          "Grants"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "post": {
+        "operationId": "grant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Granted"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-found, no-receiver, upstream-failed, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Grants a relation on a room or an object, on the authority of the message's sender.",
+        "tags": [
+          "Grants"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-found",
+          "no-receiver",
+          "upstream-failed",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Answered."
+          }
+        },
+        "security": [],
+        "summary": "Whether the service is up, its version, and whether the account model is in force.",
+        "tags": [
+          "Health"
+        ],
+        "x-codes": []
+      }
+    },
+    "/phones": {
+      "post": {
+        "operationId": "makePhoneKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneMade"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Makes a new key for a user's phone, handed out once, with the hash it is kept by.",
+        "tags": [
+          "Phone keys"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/phones/adopt": {
+      "post": {
+        "operationId": "adoptPhone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneAdoptAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneAdopted"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Carries a token issued before the model onto a key of the same text.",
+        "tags": [
+          "Phone keys"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/phones/who": {
+      "post": {
+        "operationId": "phoneHolder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneWhoAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneHolder"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whose a phone's key is, where it is a live key of a user who may sign in.",
+        "tags": [
+          "Phone keys"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/phones/{hash}": {
+      "delete": {
+        "operationId": "deletePhoneKey",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hash",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Takes a phone's key away by its hash.",
+        "tags": [
+          "Phone keys"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/rooms/{chat}/holdings": {
+      "get": {
+        "operationId": "roomHoldings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chat",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Holdings"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "What a room holds of the service's, each holding it has at least one of.",
+        "tags": [
+          "Rooms"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/senders/{sender}/user": {
+      "get": {
+        "operationId": "senderUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sender",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SenderUser"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The user a sender is linked to.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/sumida/auth/session": {
+      "delete": {
+        "operationId": "signOut",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empty"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Ends the session this request arrives on.",
+        "tags": [
+          "Sessions"
+        ],
+        "x-codes": [
+          "unauthorized"
+        ]
+      },
+      "post": {
+        "operationId": "signIn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empty"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized"
+          }
+        },
+        "security": [],
+        "summary": "Signs in with a name and a password; the session cookie is in Set-Cookie and the body carries nothing.",
+        "tags": [
+          "Sessions"
+        ],
+        "x-codes": [
+          "unauthorized"
+        ]
+      }
+    },
+    "/sumida/me": {
+      "get": {
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionError"
+                }
+              }
+            },
+            "description": "A refusal or failure: unauthorized"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The account behind a session.",
+        "tags": [
+          "Sessions"
+        ],
+        "x-codes": [
+          "unauthorized"
+        ]
+      }
+    },
+    "/users/{user}": {
+      "get": {
+        "operationId": "user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserView"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One user: their name, whether they are the platform administrator, and the senders linked to them.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/name": {
+      "post": {
+        "operationId": "renameUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, name-taken, conflict, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Gives a user another name.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "name-taken",
+          "conflict",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/password": {
+      "post": {
+        "operationId": "changePassword",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordAsk"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, wrong-password, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Changes a user's password on the strength of their current one.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "wrong-password",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/senders": {
+      "get": {
+        "operationId": "userSenders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Senders"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, not-found, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The sender numbers linked to a user.",
+        "tags": [
+          "Users and senders"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/words/render": {
+      "post": {
+        "operationId": "renderLine",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FixedLineAsk"
+                  },
+                  {
+                    "properties": {
+                      "language": {
+                        "description": "The pack's language, `ko`.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "language"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rendered"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, not-found, unknown-language, unknown-code, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "One fixed line, rendered in the room's language from the server's pack.",
+        "tags": [
+          "Fixed lines"
+        ],
+        "x-codes": [
+          "bad-request",
+          "not-found",
+          "unknown-language",
+          "unknown-code",
+          "failed"
+        ]
+      }
+    }
+  },
+  "x-layer": "downstream",
+  "x-stage": 9
+}

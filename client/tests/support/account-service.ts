@@ -31,13 +31,48 @@ export interface StandInSeed {
   messages?: [number, number, number | null][];
 }
 
+// What the data move was handed, as the stand-in kept it.
+export interface StandInMove {
+  ownerSenders?: number[];
+  rooms?: number[];
+  roomRules?: { room: number; id: string; subject: number; words: string }[];
+}
+
+// The message a grant is made on.
+interface StandInOn {
+  room: number;
+  id: number;
+}
+
+// A body any route of the stand-in reads. A route reads the fields it names; the rest stand unused.
+interface StandInBody {
+  username?: string;
+  password?: string;
+  current?: string;
+  next?: string;
+  name?: string;
+  room?: number;
+  sender?: number;
+  // A message check names the message's number; a grant names the message and its room.
+  message?: number | StandInOn;
+  relation?: string;
+  kind?: string;
+  object?: string;
+  user?: string;
+  to?: { user?: string; sender?: number; members?: boolean };
+  expiresAt?: number;
+  words?: string;
+  key?: string;
+  token?: string;
+}
+
 export interface StandIn {
   address: string;
   token: string;
   users: StandInUser[];
   grants: StandInGrant[];
   keys: Map<string, { user: number; key: string }>;
-  moves: unknown[];
+  moves: StandInMove[];
   state: { inForce: boolean };
   stop(): void;
 }
@@ -56,7 +91,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
   const messages = new Map((seed.messages ?? []).map(([room, message, sender]) => [`${room}:${message}`, sender]));
   const sessions = new Map<string, number>();
   const keys = new Map<string, { user: number; key: string }>();
-  const moves: unknown[] = [];
+  const moves: StandInMove[] = [];
   const state = { inForce: seed.inForce ?? true };
   const userOfSender = (sender: number | null): StandInUser | undefined =>
     sender === null ? undefined : users.find((user) => (user.senders ?? []).includes(sender));
@@ -79,12 +114,12 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       user: user === undefined ? null : String(user.id)
     };
   };
-  const json = (body: unknown, status = 200, headers: Record<string, string> = {}): Response =>
+  const json = (body: object, status = 200, headers: Record<string, string> = {}): Response =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
-  const refused = (status: number, code: string, error: string): Response => json({ error, code }, status);
+  const refused = (status: number, code: string, error: string): Response => json({ code, error }, status);
   const done = (): Response => new Response(null, { status: 204 });
   const cookieOf = (request: Request): string | undefined => request.headers.get("cookie")?.split(";")[0]?.trim();
-  const userNamed = (id: unknown): StandInUser | undefined => users.find((one) => String(one.id) === String(id));
+  const userNamed = (id: string | number): StandInUser | undefined => users.find((one) => String(one.id) === String(id));
 
   const server = Bun.serve({
     hostname: "127.0.0.1",
@@ -94,13 +129,13 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       const body =
         request.method === "GET" || request.method === "HEAD"
           ? null
-          : ((await request.json().catch(() => null)) as Record<string, any> | null);
+          : ((await request.json().catch(() => null)) as StandInBody | null);
 
       // sumida's own session routes take the session cookie, not the token.
       if (path === "/sumida/auth/session" && request.method === "POST") {
         const user = users.find((one) => one.name === body?.username && one.password !== undefined && one.password === body?.password);
 
-        if (user === undefined) return json({ title: "Unauthorized" }, 401);
+        if (user === undefined) return refused(401, "unauthorized", "no account answers to that name");
 
         const id = crypto.randomUUID();
 
@@ -116,22 +151,22 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (path === "/sumida/me") {
         const user = users.find((one) => one.id === sessions.get(cookieOf(request) ?? ""));
 
-        return user === undefined ? json({ title: "Unauthorized" }, 401) : json({ id: user.id, username: user.name });
+        return user === undefined ? refused(401, "unauthorized", "no live session") : json({ id: user.id, username: user.name });
       }
 
-      if (path === "/health") return json({ ok: true, version: "0.0.0", in_force: state.inForce });
+      if (path === "/health") return json({ ok: true, version: "0.0.0", inForce: state.inForce });
       if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return refused(401, "unauthorized", "the token is missing or wrong");
       if (path === "/accounts/model") {
-        return json(state.inForce ? { in_force: true } : { in_force: false, why: "the data move has not been written" });
+        return json(state.inForce ? { inForce: true } : { inForce: false, why: "the data move has not been written" });
       }
       if (path === "/accounts/move") {
-        moves.push(body);
+        moves.push((body ?? {}) as StandInMove);
 
         const administrator = users.find((one) => one.administrator);
 
         return json({ done: true, written: moves.length === 1, administrator: administrator === undefined ? null : String(administrator.id) });
       }
-      if (!state.inForce) return refused(503, "not_in_force", "the account model is not in force");
+      if (!state.inForce) return refused(503, "not-in-force", "the account model is not in force");
 
       const userRoute = path.match(/^\/users\/([^/]+)$/);
 
@@ -139,7 +174,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         const user = userNamed(decodeURIComponent(userRoute[1]!));
 
         return user === undefined
-          ? refused(404, "not_found", "no such user")
+          ? refused(404, "not-found", "no such user")
           : json({ user: String(user.id), name: user.name, administrator: user.administrator === true, senders: user.senders ?? [] });
       }
 
@@ -148,9 +183,9 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (passwordRoute !== null) {
         const user = userNamed(decodeURIComponent(passwordRoute[1]!));
 
-        if (user === undefined || user.password !== body!.current) return refused(401, "wrong_password", "the current password does not match");
+        if (user === undefined || user.password !== body?.current) return refused(401, "wrong-password", "the current password does not match");
 
-        user.password = body!.next;
+        user.password = body?.next ?? "";
 
         return done();
       }
@@ -159,88 +194,100 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
 
       if (nameRoute !== null) {
         const user = userNamed(decodeURIComponent(nameRoute[1]!));
+        const name = body?.name ?? "";
 
-        if (users.some((one) => one.name === body!.name && one !== user)) return refused(409, "name_taken", "another user holds that name");
-        if (user !== undefined) user.name = body!.name;
+        if (users.some((one) => one.name === name && one !== user)) return refused(409, "name-taken", "another user holds that name");
+        if (user !== undefined) user.name = name;
 
         return done();
       }
-      if (path === "/checks/room") return json(checkRoom(body!.room, body!.sender ?? null, body!.relation));
+      if (path === "/checks/room") {
+        return json(checkRoom(body?.room ?? 0, body?.sender ?? null, body?.relation ?? ""));
+      }
       if (path === "/checks/message") {
-        const key = `${body!.room}:${body!.message}`;
+        const room = body?.room ?? 0;
+        const message = typeof body?.message === "number" ? body.message : 0;
+        const key = `${room}:${message}`;
 
-        if (!messages.has(key)) return refused(404, "no_such_message", `no message ${body!.message} stands in room ${body!.room}`);
+        if (!messages.has(key)) return refused(404, "no-such-message", `no message ${message} stands in room ${room}`);
 
         const sender = messages.get(key) ?? null;
 
-        return json({ ...checkRoom(body!.room, sender, body!.relation), sender });
+        return json({ ...checkRoom(room, sender, body?.relation ?? ""), sender });
       }
       if (path === "/checks/object") {
-        const user = userNamed(body!.user);
+        const kind = body?.kind ?? "";
+        const object = body?.object ?? "";
+        const relation = body?.relation ?? "";
+        const user = userNamed(body?.user ?? "");
 
         return json({
-          allowed: user?.administrator === true || holds(body!.kind, body!.object, body!.relation, [`user:${body!.user}`]),
-          grant: `${body!.kind}:${body!.object}#${body!.relation}`
+          allowed: user?.administrator === true || holds(kind, object, relation, [`user:${body?.user ?? ""}`]),
+          grant: `${kind}:${object}#${relation}`
         });
       }
       if (path === "/grants" && request.method !== "GET") {
-        const granter = userOfSender(messages.get(`${body!.message.room}:${body!.message.id}`) ?? null);
-        const kind = body!.room === undefined ? body!.kind : ROOM;
-        const object = body!.room === undefined ? body!.object : String(body!.room);
+        const on = typeof body?.message === "number" ? null : body?.message;
+        const granter = userOfSender(on === null || on === undefined ? null : (messages.get(`${on.room}:${on.id}`) ?? null));
+        const kind = body?.room === undefined ? (body?.kind ?? "") : ROOM;
+        const object = body?.room === undefined ? (body?.object ?? "") : String(body.room);
+        const relation = body?.relation ?? "";
 
         if (granter?.administrator !== true) return refused(403, "forbidden", "the sender may not grant");
 
         let subject: string;
         let user: string | null = null;
+        const to = body?.to ?? {};
 
-        if (body!.to.members === true) {
+        if (to.members === true) {
           subject = `bmo_member:${object}`;
         } else {
-          let holder = body!.to.user !== undefined ? userNamed(body!.to.user) : userOfSender(body!.to.sender);
+          let holder = to.user !== undefined ? userNamed(to.user) : userOfSender(to.sender ?? null);
 
-          if (holder === undefined && body!.to.sender !== undefined && request.method === "POST") {
-            holder = { id: Math.max(0, ...users.map((one) => one.id)) + 1, name: `member-${body!.to.sender}`, senders: [body!.to.sender] };
+          if (holder === undefined && to.sender !== undefined && request.method === "POST") {
+            holder = { id: Math.max(0, ...users.map((one) => one.id)) + 1, name: `member-${to.sender}`, senders: [to.sender] };
             users.push(holder);
           }
-          if (holder === undefined) return json({ grant: `${kind}:${object}#${body!.relation}`, revoked: 0 });
+          if (holder === undefined) return json({ grant: `${kind}:${object}#${relation}`, revoked: 0 });
 
           subject = `user:${holder.id}`;
           user = String(holder.id);
         }
 
         const same = (one: StandInGrant): boolean =>
-          (one.kind ?? ROOM) === kind && one.object === object && one.relation === body!.relation && one.subject === subject;
+          (one.kind ?? ROOM) === kind && one.object === object && one.relation === relation && one.subject === subject;
 
         if (request.method === "DELETE") {
           const before = grants.length;
 
           grants.splice(0, grants.length, ...grants.filter((one) => !same(one)));
 
-          return json({ grant: `${kind}:${object}#${body!.relation}`, revoked: before - grants.length });
+          return json({ grant: `${kind}:${object}#${relation}`, revoked: before - grants.length });
         }
 
         grants.splice(0, grants.length, ...grants.filter((one) => !same(one)));
-        grants.push({ kind, object, relation: body!.relation, subject, expiresAt: body!.expires_at ?? undefined, words: body!.words ?? undefined });
+        grants.push({ kind, object, relation, subject, expiresAt: body?.expiresAt, words: body?.words });
 
-        return json({ grant: `${kind}:${object}#${body!.relation}`, subject, user });
+        return json({ grant: `${kind}:${object}#${relation}`, subject, user });
       }
       if (path === "/phones" && request.method === "POST") {
         const key = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
         const hash = hashOf(key);
 
-        keys.set(hash, { user: Number(body!.user), key });
+        keys.set(hash, { user: Number(body?.user), key });
 
         return json({ key, hash });
       }
       if (path === "/phones/adopt") {
-        const hash = hashOf(body!.token);
+        const token = body?.token ?? "";
+        const hash = hashOf(token);
 
-        keys.set(hash, { user: Number(body!.user), key: body!.token });
+        keys.set(hash, { user: Number(body?.user), key: token });
 
         return json({ hash });
       }
       if (path === "/phones/who") {
-        const hash = hashOf(body!.key);
+        const hash = hashOf(body?.key ?? "");
         const held = keys.get(hash);
         const user = users.find((one) => one.id === held?.user);
 
@@ -257,7 +304,7 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
         return done();
       }
 
-      return refused(404, "not_found", `no route ${request.method} ${path}`);
+      return refused(404, "not-found", `no route ${request.method} ${path}`);
     }
   });
 

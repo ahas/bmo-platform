@@ -1,6 +1,6 @@
 {
   "name": "bmo-web",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,7 @@
     "@internationalized/date": "3.12.4",
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",
-    "@web/accounts": "workspace:*",
+    "@web/server-client": "workspace:*",
     "bmo-artifact-client": "file:../../vendor/bmo-artifact-client-0.1.0-rev.2.tgz",
     "bmo-drive-client": "file:../../vendor/bmo-drive-client-0.1.0-rev.1.tgz",
     "bmo-mail-client": "file:../../vendor/bmo-mail-client-0.1.0-rev.1.tgz",

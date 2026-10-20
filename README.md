@@ -10,15 +10,15 @@ answers in English messages and codes, which these packs render.
 
 | Folder | Holds |
 |---|---|
-| `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the fixed lines' renderer, the document wording file, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` with their fixtures under `tests/fixtures/` |
-| `client/` | the console, a Bun workspace of its own with its lockfile: the Nuxt app under `apps/web/`, the account service's client under `packages/accounts/`, the console's tests under `tests/` with their support under `tests/support/`, the packed bmo-ui layer and the console bundles under `vendor/`, and the patch the install applies under `patches/` |
+| `server/` | the server: the account service on sumida (`src/`, with the deployment's rule file, the routes, the checks, the grants, the data move, the phone keys, the receiver port, the settings, the fixed lines' renderer, the document wording file, the migrations under `src/migration/` and the language pack's parts under `src/lang/`), its binary under `src/bin/`, the service's own contract and client crate under `client/`, the language pack's files under `lang/`, one folder to a language, its settings and sumida's, and its tests under `tests/` with their fixtures under `tests/fixtures/` |
+| `client/` | the console, a Bun workspace of its own with its lockfile: the Nuxt app under `apps/web/`, the TypeScript package generated from the server's OpenAPI document under `packages/server-client/`, the console's tests under `tests/` with their support under `tests/support/`, the packed bmo-ui layer and the console bundles under `vendor/`, and the patch the install applies under `patches/` |
 | `graph/` | the code dependency graph: one node per feature a person names, its files, its exported names, the owner's words for it and what it needs, an area to a file (`console.json`, `server.json`), written only by `bmo graph` |
 | `tests/` | the checks that span the repository: its dependencies, Korean, layout and names (`docs/checks.md`), run by the server's crate as its test target `repository` |
 | `deploy/` | the user units a deployment links: the server's, `bmo-web-server.service`, and the console's, `bmo-web.service` |
 | `.cargo/` | Cargo's configuration for this checkout: sumida, a git dependency, fetched through the git program |
 | `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
 
-At the root stand the Cargo workspace manifest, whose one member is `server/`, and its lockfile; the version in
+At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile; the version in
 `VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
 deployed); `rustfmt.toml`; `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which the
 testbed's Korean sweep holds every file to; no code file of this repository holds any).
@@ -27,7 +27,7 @@ testbed's Korean sweep holds every file to; no code file of this repository hold
 
 | Document | States |
 |---|---|
-| `docs/boundary.md` | The boundary: every route the server serves, every call the server and the console make on another unit, the settings that name those units, and the codes the packs render |
+| `docs/boundary.md` | The boundary: every route the server serves, its OpenAPI contract and its generated clients, every call the server and the console make on another unit, the settings that name those units, and the codes the packs render |
 | `docs/accounts.md` | The account service: what it holds, where it answers, when the model is in force, its routes, its command and its tables |
 | `docs/language-pack.md` | The language packs: the server's and the console's, how each is read, and what other units read of them |
 | `docs/web.md` | The console: its layout, motion, access, wording, every screen, notifications, how it talks to the units, its settings and how it runs |
@@ -49,5 +49,7 @@ testbed's Korean sweep holds every file to; no code file of this repository hold
 the README's folder table and the dependencies the manifests name. The only dependencies from another
 repository are the base libraries `bmo-chat`, `bmo-chat-client` and `bmo-ui`, and the console bundles
 `bmo-artifact-client`, `bmo-mail-client`, `bmo-review-client`, `bmo-drive-client` and `bmo-remote-client`, as
-`testbed.toml` declares; the console takes them all from their packs under `client/vendor/`. `bun run typecheck` in `client/` checks the console app, the account service's client and the
-console's tests.
+`testbed.toml` declares; the console takes them all from their packs under `client/vendor/`. The service's own
+client crate, `bmo-web-client`, and the package generated from it, `@web/server-client`, are this repository's
+own and are no unit's package. `bun run typecheck` in `client/` checks the console app, the generated TypeScript
+package and the console's tests.
