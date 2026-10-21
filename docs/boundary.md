@@ -268,7 +268,7 @@ data root's `env/web-console.env`, which its unit reads and its build reads for 
 | console | `REVIEW_ADDRESS`, `REVIEW_TOKEN` | bmo-review |
 | console | `DRIVE_ADDRESS`, `DRIVE_TOKEN` | bmo-drive |
 | console | `REMOTE_ADDRESS`, `REMOTE_TOKEN` | bmo-remote |
-| console | `CACHE_SIREN_ADDRESS` | the cache siren |
+| console | `CACHE_SIREN_ADDRESS`, `CACHE_SIREN_TOKEN` | the cache siren |
 | console | `CACHE_WARMER_ADDRESS` | the cache warmer |
 | console | `KEEPALIVE_CONSUMER` | the consumer the agency registers its targets under at the cache warmer; with none, an agent's own keepalive switch is not offered and the round's still is |
 | console | `TELEGRAM_ADDRESS`, `TELEGRAM_TOKEN` | the Telegram service |
