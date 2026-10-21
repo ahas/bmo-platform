@@ -64,6 +64,18 @@ enum Verb {
     /// The file written.
     file: PathBuf,
   },
+  /// Moves the old archive's exported rows into this store (docs/accounts.md, TODO #1923).
+  Import {
+    /// The export directory the item's export hand wrote.
+    #[arg(long, value_name = "dir")]
+    export: PathBuf,
+    /// The PostgreSQL database written.
+    #[arg(long, value_name = "url")]
+    database: String,
+    /// Reads, checks and counts everything, and writes nothing.
+    #[arg(long)]
+    dry_run: bool,
+  },
 }
 
 fn refused(why: impl std::fmt::Display) -> ExitCode {
@@ -251,6 +263,47 @@ fn main() -> ExitCode {
     return wording(file);
   }
 
+  // The import reads its own arguments and never the deployment's settings.
+  if let Verb::Import {
+    export,
+    database,
+    dry_run,
+  } = &cli.verb
+  {
+    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build();
+    return match runtime.map_err(|why| why.to_string()).and_then(|runtime| {
+      runtime.block_on(async {
+        match bmo_web_server::import::run(database, export, *dry_run).await {
+          Ok(report) => {
+            for moved in &report.tables {
+              println!("{}: {} exported, {} written", moved.source, moved.exported, moved.written);
+            }
+            println!(
+              "{} at snapshot {} read {}: {} rows sampled, {} failures",
+              if report.dry_run { "dry run" } else { "import" },
+              report.snapshot,
+              report.read_at,
+              report.sample.checked,
+              report.sample.failures.len()
+            );
+            for failure in &report.sample.failures {
+              eprintln!("  {failure}");
+            }
+            if report.sample.failures.is_empty() {
+              Ok(())
+            } else {
+              Err("the count-and-sample compare failed".to_owned())
+            }
+          }
+          Err(why) => Err(why),
+        }
+      })
+    }) {
+      Ok(()) => ExitCode::SUCCESS,
+      Err(why) => refused(why),
+    };
+  }
+
   let settings = match Settings::load() {
     Ok(settings) => settings,
     Err(why) => return refused(why),
@@ -305,7 +358,7 @@ fn main() -> ExitCode {
         name,
         administrator,
       } => user(settings, name, administrator).await,
-      Verb::Wording { .. } | Verb::Health | Verb::Settings => ExitCode::SUCCESS,
+      Verb::Wording { .. } | Verb::Health | Verb::Settings | Verb::Import { .. } => ExitCode::SUCCESS,
     }
   })
 }

@@ -8,6 +8,7 @@ pub mod data_move;
 pub mod grants;
 pub mod holdings;
 pub mod ids;
+pub mod import;
 pub mod lang;
 pub mod marks;
 pub mod migration;
