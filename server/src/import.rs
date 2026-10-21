@@ -11,6 +11,11 @@
 //! sumida rewrites both from the compiled rules at start, so they are derived, not carried. Nor is
 //! `org_closure` written row by row: sumida's trigger rebuilds it from `organizations` as they are
 //! inserted, and the compare proves the derived rows are the export's.
+//!
+//! The `settings` rows carried are the two keys the service reads from its own store: `users_moved_at`,
+//! the mark the data move writes and the model is in force by, and `users_administrator`, the user the
+//! console's tables default to. They go beside the accounts, so the store the import writes answers in
+//! force without the move running again.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -243,6 +248,13 @@ pub const TABLES: &[TableMap] = &[
     source: "web_users",
     target: "web_users",
     columns: &["name", "password_hash", "created_at"],
+  },
+  TableMap {
+    // The two keys the service reads from its own settings table, exported through the unit's key
+    // filter: the move's mark and the administrator the console's tables default to.
+    source: "settings",
+    target: "settings",
+    columns: &["key", "value"],
   },
 ];
 

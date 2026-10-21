@@ -61,6 +61,14 @@ fn fixture() -> (tempfile::TempDir, PathBuf) {
       ],
       vec!["name"],
     ),
+    (
+      "settings",
+      vec![
+        json!({"key": "users_administrator", "value": "1", "rowid": 1}),
+        json!({"key": "users_moved_at", "value": "1791315569764", "rowid": 2}),
+      ],
+      vec!["key"],
+    ),
   ];
 
   let mut manifest = Vec::new();
@@ -135,6 +143,20 @@ async fn the_import_writes_its_rows_refuses_a_second_run_and_the_compare_finds_a
   assert_eq!(scratch.count("SELECT COUNT(*) FROM users", vec![]).await, 1);
   assert_eq!(scratch.count("SELECT COUNT(*) FROM relation_tuples", vec![]).await, 1);
   assert_eq!(scratch.count("SELECT COUNT(*) FROM org_closure", vec![]).await, 1);
+  assert_eq!(scratch.count("SELECT COUNT(*) FROM settings", vec![]).await, 2);
+  assert!(
+    bmo_web_server::data_move::moved(&scratch.service.db).await.expect("the mark reads"),
+    "the store the import wrote answers in force"
+  );
+  assert_eq!(
+    scratch
+      .count(
+        "SELECT COUNT(*) FROM settings WHERE key = 'users_administrator' AND value = '1'",
+        vec![]
+      )
+      .await,
+    1
+  );
 
   let again = import::run(&address, &export, false).await;
   assert!(again.is_err(), "a store holding rows is refused");
