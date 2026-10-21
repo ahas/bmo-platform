@@ -1,14 +1,14 @@
 import { RUNNER_AGENTS, SIREN_POLL_MS } from "#shared/config";
 import { chatAgent } from "#shared/agent-names";
-import { countText } from "./numbers";
+import { formatTime } from "bmo-ui/app/domain/time";
 import { agentLabel, catalogueAgents, chatIdOf, roomTitle } from "./agents";
-import { agentLink, modeLabel, modelLabel, momentLink } from "./status";
+import { agentLink, modelLabel, momentLink } from "./status";
 
 // The screen shows tokens the way the rest of the console does, and that is where the words
 // for a number live.
 export { tokenText } from "./usage";
 
-import type { RoomSummary, SirenCause, SirenEvent, SirenQuota, SirenWatch } from "#shared/types";
+import type { RoomSummary, SirenCause, SirenEvent, SirenWatch } from "#shared/types";
 import type { Translate } from "#shared/wording";
 
 // What one kind of request means and how loudly it reads. The words are the watch's own; these
@@ -118,8 +118,14 @@ export function projectLabel(project: string): string {
   return parts.length === 0 ? project : parts[parts.length - 1] ?? project;
 }
 
-// What the title bar says about the watch itself, rather than about any one request: how long it
-// has been up, and when it last saw anything. Both are facts about the watch being alive, so they
+// The clock a request or the window's start reads as, in the console's own zone and shape: the
+// moment the siren recorded, not a string the siren pre-wrote.
+export function eventTime(event: SirenEvent): string {
+  return event.atSeconds === null ? "" : formatTime(event.atSeconds);
+}
+
+// What the title bar says about the watch itself, rather than about any one request: when its
+// window began and when it last saw anything. Both are facts about the watch being alive, so they
 // stand together and go together — an unreachable watch has neither.
 export interface StandingFact {
   label: string;
@@ -139,43 +145,35 @@ export function standingOf(t: Translate, watch: SirenWatch): Standing | null {
     return null;
   }
 
-  const facts: StandingFact[] = [
-    { label: t("siren.label.uptime"), value: t("common.label.minutes", { m: countText(Math.floor(watch.uptimeSeconds / 60)) }) }
-  ];
+  const facts: StandingFact[] = [];
 
-  if (watch.lastEvent !== null) {
-    facts.push({ label: t("siren.label.last_request"), value: watch.lastEvent });
+  if (watch.since !== null) {
+    facts.push({ label: t("siren.label.window_since"), value: formatTime(Math.floor(watch.since / 1000)) });
   }
 
-  return { line: facts.map((fact) => `${fact.label} ${fact.value}`).join(" · "), facts };
-}
+  // The list is newest first, so its first row is what the watch saw last.
+  const last = watch.events[0]?.atSeconds ?? null;
 
-// Whose limits the two figures are, where saying so tells anything apart: the login's name where
-// its provider holds more than one, and the provider's own name where the answering provider holds
-// none of the deployment's logins. With one login there is nothing to tell apart and nothing is named.
-export function quotaOwner(t: Translate, quota: SirenQuota): string | null {
-  const shared = quota.provider !== null && quota.provider !== "claude-code";
-
-  if (!shared && (quota.accounts ?? 0) < 2) {
-    return null;
+  if (last !== null) {
+    facts.push({ label: t("siren.label.last_request"), value: formatTime(last) });
   }
 
-  return quota.account ?? (quota.provider === null ? null : modeLabel(t, quota.provider));
+  return facts.length === 0 ? null : { line: facts.map((fact) => `${fact.label} ${fact.value}`).join(" · "), facts };
 }
 
 export function emptyWatch(): SirenWatch {
   return {
     reachable: false,
-    files: 0,
-    lastEvent: null,
-    uptimeSeconds: 0,
+    since: null,
     newLastMinute: 0,
     perMinute: [],
     sessions30m: 0,
-    thresholds: { yellow: 0, red: 0, burst: 0 },
+    sirenCount: 0,
+    cacheShare: null,
+    coldCount: 0,
+    settings: { armed: false, ttlMs: 0, threshold: 0 },
     events: [],
-    hasMore: false,
-    quota: { fiveHour: null, fiveHourResetsAt: null, weekly: null, weeklyResetsAt: null, account: null, provider: null, accounts: null }
+    hasMore: false
   };
 }
 

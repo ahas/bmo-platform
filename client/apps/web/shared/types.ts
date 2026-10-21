@@ -2676,17 +2676,19 @@ export interface SirenCause {
 // One request as the cache siren saw it: which session made it, on what model, whether it went to the cache or
 // burned new tokens, and how loud that is.
 export interface SirenEvent {
+  // The siren's own event number, which only grows and carries on across restarts.
   seq: number;
-  at: string;
   // The second the request was made, which carries a press on the row to the place in the agent's log where
-  // that request stands; null where the feed is too old to carry it.
+  // that request stands, and which the screen writes as a clock; null where the feed is too old to carry it.
   atSeconds: number | null;
   project: string;
   session: string;
   // Which agent made the request, by its registration name. A request the console has no ground to name one
   // for says nothing rather than guessing.
   agent: string | null;
-  mode: AgentMode;
+  // The harness the request went out on, as the siren names it; null for a siren's own row, which a harness
+  // did not make.
+  mode: AgentMode | null;
   model: string;
   kind: string;
   level: string;
@@ -2697,35 +2699,35 @@ export interface SirenEvent {
   readTokens: number;
 }
 
-// What the siren's own quota source told it. A source it could not reach leaves every figure null.
-export interface SirenQuota {
-  fiveHour: number | null;
-  fiveHourResetsAt: number | null;
-  weekly: number | null;
-  weeklyResetsAt: number | null;
-  // Whose figures these are: the name of the login the source marked active, or the provider's label where it
-  // holds none; the provider; and how many logins that provider holds.
-  account: string | null;
-  provider: AgentMode | null;
-  accounts: number | null;
+// The siren's own switch, the cache lifetime it assumes and the new tokens that make a cold or growth request
+// red: the three settings `GET /settings` answers.
+export interface SirenSettings {
+  armed: boolean;
+  ttlMs: number;
+  threshold: number;
 }
 
-// The siren itself: whether it is up, how much of the machine it watches, and how much new token has gone out
-// lately — the last ten minutes a minute at a time, and the last one alone.
+// The siren itself: whether it is up, the sums it keeps over its window, and how much new token has gone out
+// lately — the last ten minutes a minute at a time, and the last one alone, both counted from the events it
+// hands back. It keeps no quota source and no count of the files it watches, so the screen carries neither.
 export interface SirenWatch {
   reachable: boolean;
-  files: number;
-  lastEvent: string | null;
-  uptimeSeconds: number;
+  // When the sums start: the oldest event the siren holds.
+  since: number | null;
   newLastMinute: number;
   perMinute: number[];
+  // The sessions that saw a request in the last half hour.
   sessions30m: number;
-  thresholds: { yellow: number; red: number; burst: number };
+  // The sirens raised over the window, and the sums the siren keeps over it.
+  sirenCount: number;
+  // Cached tokens over cached and new tokens, 0 to 1; null with neither.
+  cacheShare: number | null;
+  coldCount: number;
+  settings: SirenSettings;
   events: SirenEvent[];
-  // Whether the siren had as many as it was asked for. It keeps a ring rather than a history, so this says a
-  // reader who has scrolled to the foot has reached the end of what there is.
+  // Whether the siren held more events than the screen asked for. It keeps a ring rather than a history, so
+  // this says a reader who has scrolled to the foot has reached the end of what there is.
   hasMore: boolean;
-  quota: SirenQuota;
 }
 
 // One table of the console's database, as the DB screen lists them. A table that keeps no row number has no

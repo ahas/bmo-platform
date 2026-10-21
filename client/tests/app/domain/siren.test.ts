@@ -11,12 +11,12 @@ import {
   causeText,
   emptyWatch,
   chatSessionLabel,
+  eventTime,
   filterSiren,
   isLoud,
   kindLook,
   noteLabel,
   projectLabel,
-  quotaOwner,
   SIREN_ALL,
   SIREN_UNNAMED,
   sirenAgentChoices,
@@ -30,6 +30,10 @@ import {
 
 import type { AgentSummary, RoomSummary, SirenEvent, SirenWatch } from "../../../apps/web/shared/types";
 import KO from "../../fixtures/app/domain/siren.test.ko.json";
+
+// The console's times are shown in the zone its app config names; a test standing outside Nuxt answers
+// with the same one the console is built with.
+(globalThis as unknown as Record<string, unknown>).useAppConfig = () => ({ bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko" } });
 
 // The chat agent as the deployment names it, which the owner's own room is called by.
 const OWNER_ROOM_TITLE = "Agent A";
@@ -86,7 +90,6 @@ function event(overrides: Partial<SirenEvent> = {}): SirenEvent {
   return {
     mode: "claude-code",
     seq: 1,
-    at: "22:24:45",
     atSeconds: 1_788_600_285,
     project: "home-user-checkouts-web",
     session: "f62a18a8",
@@ -352,56 +355,46 @@ describe("what the bar says about the watch itself", () => {
     // The body of the screen already says the watch is unreachable in its own words; a mark
     // opening onto two blanks would say it worse.
     expect(standingOf(wording, emptyWatch())).toBeNull();
-    expect(standingOf(wording, { ...emptyWatch(), uptimeSeconds: 900, lastEvent: "05:30:45" })).toBeNull();
+    expect(standingOf(wording, { ...emptyWatch(), since: 1_792_594_617_000, events: [event()] })).toBeNull();
   });
 
-  test("is the uptime in whole minutes and the hour of the last request", () => {
-    const standing = standingOf(wording, watching({ uptimeSeconds: 106_980, lastEvent: "00:46:58" }));
+  test("is when its window began and the clock of the last request", () => {
+    const standing = standingOf(wording, watching({ since: 1_792_594_617_000, events: [event({ seq: 2, atSeconds: 1_792_594_623 })] }));
 
     expect(standing?.facts).toEqual([
-      { label: KO.line_361, value: KO.line_361_2 },
-      { label: KO.line_362, value: "00:46:58" }
+      { label: wording("siren.label.window_since"), value: "23:56:57" },
+      { label: wording("siren.label.last_request"), value: "23:57:03" }
     ]);
-    // A length of time is a quantity, so the thousands are marked in it as in any other.
-    expect(standing?.line).toBe(`${wording("siren.label.uptime")}${KO.line_365}${wording("siren.label.last_request")} 00:46:58`);
+    expect(standing?.line).toBe(`${wording("siren.label.window_since")} 23:56:57 · ${wording("siren.label.last_request")} 23:57:03`);
   });
 
-  test("counts the minutes down rather than up, so a part of one is not a whole one", () => {
-    expect(standingOf(wording, watching({ uptimeSeconds: 119 }))?.line).toBe(`${wording("siren.label.uptime")}${KO.line_369}`);
-    expect(standingOf(wording, watching({ uptimeSeconds: 59 }))?.line).toBe(`${wording("siren.label.uptime")}${KO.line_370}`);
-  });
+  test("says only the window where the watch has seen no request yet", () => {
+    const standing = standingOf(wording, watching({ since: 1_792_594_617_000, events: [] }));
 
-  test("says only the uptime where the watch has seen no request yet", () => {
-    const standing = standingOf(wording, watching({ uptimeSeconds: 240, lastEvent: null }));
-
-    expect(standing?.facts).toEqual([{ label: wording("siren.label.uptime"), value: KO.line_376 }]);
+    expect(standing?.facts).toEqual([{ label: wording("siren.label.window_since"), value: "23:56:57" }]);
     // No trailing separator hanging off the end of a line with nothing after it.
-    expect(standing?.line).toBe(`${wording("siren.label.uptime")}${KO.line_378}`);
+    expect(standing?.line).toBe(`${wording("siren.label.window_since")} 23:56:57`);
+  });
+
+  test("is nothing where the watch keeps no window and has seen nothing", () => {
+    expect(standingOf(wording, watching({ since: null, events: [] }))).toBeNull();
   });
 
   test("and the line is the rows read out, so folding the bar cannot change what it says", () => {
-    const standing = standingOf(wording, watching({ uptimeSeconds: 3_600, lastEvent: "12:00:00" }));
+    const standing = standingOf(wording, watching({ since: 1_792_594_617_000, events: [event({ atSeconds: 1_792_594_623 })] }));
 
     expect(standing?.line).toBe(standing?.facts.map((fact) => `${fact.label} ${fact.value}`).join(" · "));
   });
 });
 
-// The two limits on the screen are the active agent's, and they say whose where that tells
-// anything apart.
-describe("whose limits the siren's figures are", () => {
-  const quota = { ...emptyWatch().quota, fiveHour: 30, weekly: 58 };
-
-  test("the login is named where the provider holds more than one", () => {
-    expect(quotaOwner(wording, { ...quota, account: KO.line_394, provider: "claude-code", accounts: 2 })).toBe(KO.line_394);
+// A request's clock is the moment the siren recorded, written in the console's own zone and shape
+// rather than as a string the siren handed over.
+describe("the clock a request reads as", () => {
+  test("is the second it was made at, in the console's zone", () => {
+    expect(eventTime(event({ atSeconds: 1_792_594_623 }))).toBe("23:57:03");
   });
 
-  test("with one login there is nothing to tell apart", () => {
-    expect(quotaOwner(wording, { ...quota, account: KO.line_398, provider: "claude-code", accounts: 1 })).toBeNull();
-    expect(quotaOwner(wording, quota)).toBeNull();
-  });
-
-  test("a provider holding no login of the deployment's is named by its own name", () => {
-    expect(quotaOwner(wording, { ...quota, account: "Codex", provider: "codex", accounts: 0 })).toBe("Codex");
-    expect(quotaOwner(wording, { ...quota, account: null, provider: "openrouter", accounts: 0 })).toBe("OpenRouter");
+  test("and nothing where the siren carried no second", () => {
+    expect(eventTime(event({ atSeconds: null }))).toBe("");
   });
 });

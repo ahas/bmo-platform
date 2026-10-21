@@ -104,17 +104,17 @@
         </template>
 
         <template #right>
-          <!-- How long the watch has been up and when it last saw a request. The uptime counts on
-               while the screen is open, so it stands in fixed-width digits. Nothing stands here
-               while the watch is unreachable: the body says so in its own words. -->
+          <!-- When the watch's window began and when it last saw a request. Both stand in
+               fixed-width digits. Nothing stands here while the watch is unreachable: the body
+               says so in its own words. -->
           <UPopover v-if="standing !== null" :content="{ align: 'end' }" :ui="{ content: 'w-56 p-3' }">
             <!-- On a phone it is an icon alone, named on hover like every icon button and as square as
                  the bar's icon button. -->
-            <UTooltip :text="$t('siren.label.uptime_last')" :disabled="!narrow">
+            <UTooltip :text="$t('siren.label.window_last')" :disabled="!narrow">
               <button
                 type="button"
                 class="flex shrink-0 items-center gap-2 rounded-md p-1.5 text-sm tabular-nums text-muted transition-colors hover:bg-elevated active:bg-accented sm:shrink sm:px-2 sm:py-0.5"
-                :aria-label="$t('siren.label.uptime_last')"
+                :aria-label="$t('siren.label.window_last')"
               >
                 <UIcon name="i-material-symbols-schedule-outline" class="size-5 shrink-0 sm:hidden" />
 
@@ -141,11 +141,12 @@
         <p v-else-if="loaded && !watch.reachable" class="text-sm text-muted">{{ $t(SIREN_UNREACHABLE) }}</p>
 
         <template v-else>
-          <!-- What the watch is seeing right now: how much of the machine it is on, and how
-               much new token has gone out in the last minute and the last ten. Where the screen is
-               wide the ten minutes take half of the reading column and the figures the other half,
-               so the shape of the last ten minutes is read at the size it deserves rather than as a
-               strip; each figure's name folds between its words there and stays whole. -->
+          <!-- What the watch is seeing right now: how much new token has gone out in the last
+               minute, how many sessions moved, and how many sirens it raised; then how much of the
+               cache was reused and how many requests had to refill it. Where the screen is wide the
+               ten minutes take half of the reading column and the figures the other half, so the
+               shape of the last ten minutes is read at the size it deserves rather than as a strip;
+               each figure's name folds between its words there and stays whole. -->
           <section class="flex flex-col gap-3 lg:grid lg:grid-cols-2" :aria-busy="!loaded">
             <SkeletonStatus v-if="!loaded" class="sr-only" :label="$t('siren.status.figures_loading')" />
 
@@ -162,37 +163,27 @@
                   <RollingSentence v-else tag="p" class="text-lg font-semibold text-highlighted" :keypath="'common.label.count'" :figures="{ n: watch.sessions30m }" />
                 </div>
                 <div class="rounded-lg border border-default px-4 py-3">
-                  <p class="text-sm break-keep text-muted">{{ $t("siren.label.watched_files") }}</p>
+                  <p class="text-sm break-keep text-muted">{{ $t("siren.label.sirens") }}</p>
                   <SkeletonBar v-if="!loaded" class="mt-1 h-6 w-20" />
-                  <RollingSentence v-else tag="p" class="text-lg font-semibold text-highlighted" :keypath="'common.label.count'" :figures="{ n: watch.files }" />
+                  <RollingSentence v-else tag="p" class="text-lg font-semibold text-highlighted" :keypath="'common.label.count'" :figures="{ n: watch.sirenCount }" />
                 </div>
               </div>
 
-              <!-- The active agent's own windows, as the watch's quota source gave them: the slot the
-                   bot marks as the one runs go out on now, named where naming it tells anything
-                   apart. A figure standing on the screen leads to where it is settled: which
-                   logins are walked, in what order and which of them are on. -->
+              <!-- How well the cache is holding over the window the watch sums: the cached share of
+                   everything read and written, and the requests that had to refill it. -->
               <div class="grid grid-cols-2 gap-2">
-                <NuxtLink to="/agents?tab=general" class="rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented">
-                  <p class="flex min-w-0 flex-wrap gap-x-1 text-sm break-keep text-muted">
-                    <span class="shrink-0">{{ $t("siren.label.session_remaining") }}</span>
-                    <span v-if="owner !== null" class="max-w-full truncate">· {{ owner }}</span>
-                  </p>
+                <div class="rounded-lg border border-default px-4 py-3">
+                  <p class="text-sm break-keep text-muted">{{ $t("siren.label.cache_share") }}</p>
                   <SkeletonBar v-if="!loaded" class="mt-1 h-6 w-16" />
                   <p v-else class="text-lg font-semibold tabular-nums text-highlighted">
-                    {{ watch.quota.fiveHour === null ? "—" : `${remainingPercent(watch.quota.fiveHour / 100)}%` }}
+                    {{ watch.cacheShare === null ? "—" : `${Math.round(watch.cacheShare * 100)}%` }}
                   </p>
-                </NuxtLink>
-                <NuxtLink to="/agents?tab=general" class="rounded-lg border border-default px-4 py-3 transition-colors hover:bg-elevated active:bg-accented">
-                  <p class="flex min-w-0 flex-wrap gap-x-1 text-sm break-keep text-muted">
-                    <span class="shrink-0">{{ $t("siren.label.weekly_remaining") }}</span>
-                    <span v-if="owner !== null" class="max-w-full truncate">· {{ owner }}</span>
-                  </p>
+                </div>
+                <div class="rounded-lg border border-default px-4 py-3">
+                  <p class="text-sm break-keep text-muted">{{ $t("siren.label.cold_requests") }}</p>
                   <SkeletonBar v-if="!loaded" class="mt-1 h-6 w-16" />
-                  <p v-else class="text-lg font-semibold tabular-nums text-highlighted">
-                    {{ watch.quota.weekly === null ? "—" : `${remainingPercent(watch.quota.weekly / 100)}%` }}
-                  </p>
-                </NuxtLink>
+                  <RollingSentence v-else tag="p" class="text-lg font-semibold text-highlighted" :keypath="'common.label.count'" :figures="{ n: watch.coldCount }" />
+                </div>
               </div>
             </div>
 
@@ -206,7 +197,7 @@
                     v-for="(minute, at) in watch.perMinute"
                     :key="at"
                     class="flex-1 rounded-t bg-primary/60"
-                    :style="{ height: `${barHeight(minute, watch.thresholds.red)}%` }"
+                    :style="{ height: `${barHeight(minute, watch.settings.threshold)}%` }"
                     :title="$t('siren.label.minute_tokens', { tokens: tokenText(minute) })"
                   />
                 </template>
@@ -215,8 +206,10 @@
                 </template>
               </div>
               <SkeletonBar v-if="!loaded" class="mt-2 h-4 w-4/5" />
+              <!-- The switch the siren stands on and the line it sounds at, with the cache lifetime
+                   it assumes: the three settings it answers for itself. -->
               <p v-else class="mt-2 text-sm break-keep text-muted">
-                {{ $t("siren.message.thresholds", { yellow: tokenText(watch.thresholds.yellow), red: tokenText(watch.thresholds.red), burst: tokenText(watch.thresholds.burst) }) }}
+                {{ $t(watch.settings.armed ? "siren.message.thresholds_armed" : "siren.message.thresholds_quiet", { threshold: tokenText(watch.settings.threshold), minutes: countText(ttlMinutes) }) }}
               </p>
             </div>
           </section>
@@ -267,15 +260,16 @@
                     <UIcon :name="kindLook($t, row.event.kind).icon" class="size-5 shrink-0" :class="KIND_TEXT[kindLook($t, row.event.kind).color]" :aria-label="kindLook($t, row.event.kind).label" />
 
                     <div class="siren-cells flex min-w-0 grow flex-col gap-1">
-                      <time class="siren-moment text-sm tabular-nums text-muted sm:hidden">{{ row.event.at }}</time>
+                      <time class="siren-moment text-sm tabular-nums text-muted sm:hidden">{{ eventTime(row.event) }}</time>
                       <span class="siren-cells flex min-w-0 items-center gap-2 text-sm">
-                        <time class="hidden shrink-0 tabular-nums text-muted sm:inline">{{ row.event.at }}</time>
+                        <time class="hidden shrink-0 tabular-nums text-muted sm:inline">{{ eventTime(row.event) }}</time>
                         <span class="siren-clip shrink-0 font-medium text-highlighted">{{ sirenAgentLabel($t, row.event, rooms) }}</span>
                         <!-- A request the watch could name no session for still holds that column,
                              so the row beside it is not pulled a cell to the left. -->
                         <span class="siren-clip siren-held shrink-0 font-mono text-muted" :class="row.event.session === '' ? 'hidden' : ''">{{ row.event.session }}</span>
                         <MarqueeLine class="min-w-0 flex-1 text-muted">
-                          {{ modeLabel($t, row.event.mode) }}<template v-if="row.event.model !== ''"> · {{ modelLabel(row.event.model) }}</template>
+                          <template v-if="row.event.mode !== null">{{ modeLabel($t, row.event.mode) }}</template>
+                          <template v-if="row.event.model !== ''"><template v-if="row.event.mode !== null"> · </template>{{ modelLabel(row.event.model) }}</template>
                         </MarqueeLine>
                       </span>
                       <span class="siren-cells flex min-w-0 items-center gap-3 text-sm text-muted">
@@ -319,13 +313,13 @@
 </template>
 
 <script setup lang="ts">
-import { remainingPercent } from "~/domain/usage";
 import { NuxtLink } from "#components";
 import { useFootInView } from "bmo-ui/app/domain/foot";
 import { watch as observe } from "vue";
 
 import { SIREN_MAX, SIREN_PAGE_SIZE, SIREN_UNREACHABLE } from "#shared/config";
 import { failureText } from "bmo-ui/app/domain/errors";
+import { countText } from "~/domain/numbers";
 import { useReadFailure } from "~/domain/events";
 import { usePolling } from "~/domain/polling";
 import { modeLabel, modelLabel } from "~/domain/status";
@@ -335,10 +329,10 @@ import {
   SIREN_ALL,
   barHeight,
   emptyWatch,
+  eventTime,
   filterSiren,
   isLoud,
   causeText,
-  quotaOwner,
   kindLook,
   noteLabel,
   sirenAgentChoices,
@@ -374,8 +368,9 @@ const KIND_TEXT: Record<SirenKindLook["color"], string> = {
 const held = ref<SirenWatch>(emptyWatch());
 
 const watch = computed<SirenWatch>(() => held.value);
-// Whose limits the two figures are, where saying so tells anything apart.
-const owner = computed(() => quotaOwner(t, watch.value.quota));
+
+// The cache lifetime the siren assumes, in whole minutes, as the line under the ten minutes says it.
+const ttlMinutes = computed<number>(() => Math.round(watch.value.settings.ttlMs / 60_000));
 
 // How far back the screen is asking for. The watch keeps a ring and hands back the newest of it,
 // so reaching further back is asking for more rather than asking from a cursor: the answer is

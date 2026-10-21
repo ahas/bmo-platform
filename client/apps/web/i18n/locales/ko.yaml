@@ -676,11 +676,13 @@ siren:
     request_filter: 요청 필터
   label:
     all_models: 전체 모델
+    cache_share: 캐시 재사용률
     cache_tokens_of: "캐시 {tokens}"
     cause_deploy: 배포
     cause_launch: 실행선 이동
     cause_reload: 문서 리로드
     chat_session: "{title} {agent}"
+    cold_requests: 재프리필 요청
     filter: 필터
     filter_count: "필터 {n}"
     kind_burst: 폭주
@@ -712,14 +714,13 @@ siren:
     note_ttl_expired: 캐시 TTL 만료
     note_unknown: 알 수 없음
     note_usage_unavailable: 사용량 미제공
-    session_remaining: 5시간 남은 사용량
+    sirens: 울린 사이렌
     unnamed: 기타
-    uptime: 업타임
-    uptime_last: 업타임과 마지막 요청
-    watched_files: 감시 중인 트랜스크립트 파일
-    weekly_remaining: 주간 남은 사용량
+    window_last: 집계 시작과 마지막 요청
+    window_since: 집계 시작
   message:
-    thresholds: "지난 10분, 분당 새 토큰 · 경보 기준 노랑 {yellow} · 빨강 {red} · 60초 폭주 {burst}"
+    thresholds_armed: "지난 10분, 분당 새 토큰 · 새 토큰 {threshold}부터 경보 · 캐시 수명 {minutes}분 · 경보 켜짐"
+    thresholds_quiet: "지난 10분, 분당 새 토큰 · 새 토큰 {threshold}부터 경보 · 캐시 수명 {minutes}분 · 경보 꺼짐"
   status:
     end: 끝
     figures_loading: 수치 불러오는 중…

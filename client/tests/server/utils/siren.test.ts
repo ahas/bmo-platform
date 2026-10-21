@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
 import { SIREN_MAX, SIREN_PAGE_SIZE } from "../../../apps/web/shared/config";
-import { readSiren, sirenAgentOf, watchQuota } from "../../../apps/web/server/utils/siren";
+import { readSiren, sirenAgentOf } from "../../../apps/web/server/utils/siren";
 
 const held = globalThis.fetch;
 
@@ -12,71 +12,126 @@ afterEach(() => {
   globalThis.fetch = held;
 });
 
-// The watch's own answers, in the shape it really writes them: a tally under short names and a
-// ring of requests newest last. Every address it was asked at is kept, since how far back the
-// screen asked is part of what is checked here.
-const asked: string[] = [];
+// The moment the figures are counted from, held still so a minute's bucket is where the test puts it.
+const NOW = 1_792_600_000_000;
+const MINUTE = 60_000;
 
-function answering(stats: unknown, events: unknown): void {
+// Every address the siren was asked at, with the accept a call carried: how far back the screen asked
+// and whether it asked for a page rather than the stream are both part of what is checked here.
+const asked: { url: string; accept: string | null }[] = [];
+
+function answering(answers: { stats?: unknown; settings?: unknown; events?: unknown }): void {
   asked.length = 0;
-  globalThis.fetch = ((input: string | URL | Request) => {
+  globalThis.fetch = ((input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
 
-    asked.push(url);
+    asked.push({ url, accept: new Headers(init?.headers).get("accept") });
 
-    const body = url.includes("/stats") ? stats : events;
+    const body = url.includes("/stats") ? answers.stats : url.includes("/settings") ? answers.settings : answers.events;
 
-    return Promise.resolve(new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } }));
+    return Promise.resolve(new Response(JSON.stringify(body ?? {}), { headers: { "content-type": "application/json" } }));
   }) as typeof fetch;
 }
 
-// A ring of n requests, oldest first, as the watch hands one back.
-function ring(count: number): { events: { seq: number; kind: string }[] } {
-  return { events: Array.from({ length: count }, (_, at) => ({ seq: at + 1, kind: "warm" })) };
-}
-
+// The shapes the daemon really writes (its docs/api.md): sums by session, three settings, and a page of
+// events whose data is a Usage or a Siren.
 const stats = {
-  per_min: [0, 0, 1200, 4100],
-  new_60s: 4100,
-  sessions_30m: 3,
-  uptime_s: 205,
-  files: 45,
-  last_event: "22:28:49",
-  cfg: { yellow_new_tokens: 20000, red_new_tokens: 100000, burst_red_tokens: 500000 },
+  since: NOW - 30 * MINUTE,
+  sirenCount: 3,
+  sessions: [
+    {
+      sessionId: "alpha",
+      projectName: "home-user-checkouts-web",
+      harnessName: "claude-code",
+      modelName: "claude-opus-5",
+      requestCount: 5,
+      newTokenCount: 4_000,
+      cachedTokenCount: 96_000,
+      outputTokenCount: 0,
+      cachedShare: 0.96,
+      coldCount: 2,
+      firstAt: NOW - 20 * MINUTE,
+      lastAt: NOW - 5 * MINUTE
+    },
+    {
+      sessionId: "beta",
+      projectName: "home-user-checkouts-web",
+      harnessName: "codex",
+      modelName: "gpt-5.6",
+      requestCount: 1,
+      newTokenCount: 1_000,
+      cachedTokenCount: 0,
+      outputTokenCount: 0,
+      cachedShare: 0,
+      coldCount: 1,
+      firstAt: NOW - 45 * MINUTE,
+      lastAt: NOW - 45 * MINUTE
+    }
+  ]
 };
 
-const events = {
-  events: [
-    {
-      seq: 1,
-      ts_kst: "22:24:45",
-      epoch: 1_788_600_285.42,
-      project: "home-user-checkouts-a",
-      session: "f62a18a8",
-      m: "O5",
-      model: "claude-opus-5",
+const settings = { armed: true, ttlMs: 3_600_000, threshold: 100_000 };
+
+function usage(id: number, at: number, over: Record<string, unknown> = {}): unknown {
+  return {
+    id,
+    at,
+    kind: "usage.created",
+    data: {
+      sessionId: "alpha",
+      modelName: "claude-opus-5",
+      at,
+      harnessName: "claude-code",
+      backend: "anthropic",
       kind: "warm",
       level: "info",
       note: "",
-      new: 648,
-      read: 814029,
-    },
-    { seq: 2, ts_kst: "22:28:49", kind: "cold", level: "red", note: "ttl_expired", new: 240000, read: 0 },
+      newTokenCount: 648,
+      cachedTokenCount: 814_029,
+      projectName: "home-user-checkouts-web",
+      directoryName: "web",
+      scope: "the caller's own",
+      actorName: "the caller's own",
+      labels: {},
+      ...over
+    }
+  };
+}
+
+function siren(id: number, at: number): unknown {
+  return {
+    id,
+    at,
+    kind: "siren.sounded",
+    data: { kind: "burst", at, sessionId: null, projectName: "home-user-checkouts-web,home-user-agents-search", newTokenCount: 600_000, cachedTokenCount: 0, requestCount: 119, note: "119 req in 60s", parts: [], audible: true }
+  };
+}
+
+const events = {
+  items: [
+    usage(1, NOW - 15 * MINUTE, { newTokenCount: 5_000 }),
+    usage(2, NOW - 90_000, { newTokenCount: 1_000 }),
+    siren(3, NOW - 60_000),
+    { id: 4, at: NOW - 45_000, kind: "settings.changed", data: settings },
+    usage(5, NOW - 30_000, { newTokenCount: 648 })
   ],
+  more: false
 };
 
-describe("where the watch is asked", () => {
+describe("where the siren is asked", () => {
   test("at the address the setting names, and nowhere where it names none", async () => {
-    answering(stats, events);
-    await readSiren();
+    answering({ stats, settings, events });
+    await readSiren(SIREN_PAGE_SIZE, NOW);
 
-    expect(asked.map((url) => url.split("?")[0])).toEqual(["http://siren.test/stats", "http://siren.test/events"]);
+    expect(asked.map((call) => call.url.split("?")[0])).toEqual(["http://siren.test/stats", "http://siren.test/settings", "http://siren.test/events"]);
+    // The page is asked for outright: without the accept the route holds a stream open and never answers.
+    expect(asked.find((call) => call.url.includes("/events"))?.accept).toBe("application/json");
 
     delete process.env.CACHE_SIREN_ADDRESS;
-    answering(stats, events);
+    answering({ stats, settings, events });
 
     try {
-      expect((await readSiren()).reachable).toBe(false);
+      expect((await readSiren(SIREN_PAGE_SIZE, NOW)).reachable).toBe(false);
       expect(asked).toEqual([]);
     } finally {
       process.env.CACHE_SIREN_ADDRESS = "http://siren.test";
@@ -84,204 +139,182 @@ describe("where the watch is asked", () => {
   });
 });
 
-describe("what the watch's answer becomes", () => {
-  test("the tally the screen stands on, under the names the screen uses", async () => {
-    answering(stats, events);
+describe("what the siren's sums become", () => {
+  test("the window's sums, its siren count and its settings, under the names the screen uses", async () => {
+    answering({ stats, settings, events });
 
-    const watch = await readSiren();
+    const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
 
     expect(watch).toMatchObject({
       reachable: true,
-      files: 45,
-      lastEvent: "22:28:49",
-      uptimeSeconds: 205,
-      newLastMinute: 4100,
-      sessions30m: 3,
-      perMinute: [0, 0, 1200, 4100],
-      thresholds: { yellow: 20000, red: 100000, burst: 500000 },
+      since: NOW - 30 * MINUTE,
+      sirenCount: 3,
+      sessions30m: 1,
+      coldCount: 3,
+      settings: { armed: true, ttlMs: 3_600_000, threshold: 100_000 }
     });
+    // Cached tokens over cached and new: 96,000 over 101,000.
+    expect(watch.cacheShare).toBeCloseTo(96_000 / 101_000, 10);
   });
 
-  test("one request, with the short model name and the tokens either way", async () => {
-    answering(stats, events);
+  test("the last minute and the last ten, counted from the events the siren hands back", async () => {
+    answering({ stats, settings, events });
 
-    const [newest, older] = (await readSiren()).events;
+    const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
 
-    // Newest first: the watch hands its ring oldest last, and the screen reads downward.
-    expect(newest).toEqual({
-      seq: 2,
-      at: "22:28:49",
-      // The watch sent no second for this one, so the screen has none to carry.
-      atSeconds: null,
-      project: "",
-      session: "",
-      agent: null,
-      mode: "claude-code",
-      model: "",
-      kind: "cold",
-      level: "red",
-      note: "ttl_expired",
-      // What moved a prefix is the agency's record, served by no route, so no request carries a cause.
-      cause: null,
-      newTokens: 240000,
-      readTokens: 0,
-    });
-    expect(older).toMatchObject({
-      seq: 1,
-      mode: "claude-code",
-      model: "claude-opus-5",
-      kind: "warm",
-      newTokens: 648,
-      readTokens: 814029,
-    });
-    // The second the request was made, whole: what carries a press on the row into the log.
-    expect(older?.atSeconds).toBe(1_788_600_285);
+    // The request 30 seconds old is inside the minute; the one 90 seconds old is not.
+    expect(watch.newLastMinute).toBe(648);
+    expect(watch.perMinute).toHaveLength(10);
+    // A bucket a minute, oldest first: the current minute is the last, the one before it the one before.
+    expect(watch.perMinute[9]).toBe(648);
+    expect(watch.perMinute[8]).toBe(1_000);
+    // A request older than the ten minutes falls outside every bucket.
+    expect(watch.perMinute.reduce((total, one) => total + one, 0)).toBe(1_648);
   });
 
-  test("a field the watch did not send says nothing rather than breaking the screen", async () => {
-    answering({}, { events: [{ seq: 3 }] });
+  test("a siren that has summed nothing leaves the share empty rather than zero", async () => {
+    answering({ stats: { since: NOW, sirenCount: 0, sessions: [] }, settings, events: { items: [], more: false } });
 
-    const watch = await readSiren();
+    expect((await readSiren(SIREN_PAGE_SIZE, NOW)).cacheShare).toBeNull();
+  });
+
+  test("a field the siren did not send says nothing rather than breaking the screen", async () => {
+    answering({ stats: {}, settings: {}, events: { items: [{ id: 9, kind: "usage.created", data: {} }], more: false } });
+
+    const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
 
     expect(watch.reachable).toBe(true);
-    expect(watch.thresholds).toEqual({ yellow: 0, red: 0, burst: 0 });
-    expect(watch.events[0]).toMatchObject({ seq: 3, at: "", kind: "", newTokens: 0 });
+    expect(watch.settings).toEqual({ armed: false, ttlMs: 0, threshold: 0 });
+    expect(watch.events[0]).toMatchObject({ seq: 9, atSeconds: null, kind: "", newTokens: 0, mode: "claude-code" });
   });
 
-  test("a watch that is not there leaves the screen readable and empty", async () => {
+  test("a siren that is not there leaves the screen readable and empty", async () => {
     globalThis.fetch = (() => Promise.reject(new Error("ECONNREFUSED"))) as unknown as typeof fetch;
 
-    expect(await readSiren()).toMatchObject({ reachable: false, events: [], files: 0 });
+    expect(await readSiren(SIREN_PAGE_SIZE, NOW)).toMatchObject({ reachable: false, events: [], sirenCount: 0, sessions30m: 0 });
   });
 
   test("and so does one that answers with an error", async () => {
     globalThis.fetch = (() => Promise.resolve(new Response("nope", { status: 500 }))) as unknown as typeof fetch;
 
-    expect((await readSiren()).reachable).toBe(false);
+    expect((await readSiren(SIREN_PAGE_SIZE, NOW)).reachable).toBe(false);
+  });
+});
+
+describe("one event as the screen reads it", () => {
+  test("a request, newest first, with its seconds whole and its harness in the console's names", async () => {
+    answering({ stats, settings, events });
+
+    const [newest, burst, older] = (await readSiren(SIREN_PAGE_SIZE, NOW)).events;
+
+    expect(newest).toEqual({
+      seq: 5,
+      atSeconds: Math.floor((NOW - 30_000) / 1000),
+      project: "home-user-checkouts-web",
+      session: "alpha",
+      agent: null,
+      mode: "claude-code",
+      model: "claude-opus-5",
+      kind: "warm",
+      level: "info",
+      note: "",
+      // What moved a prefix is the agency's record, served by no route, so no request carries a cause.
+      cause: null,
+      newTokens: 648,
+      readTokens: 814_029
+    });
+    // A siren's own row was raised by a burst, and no harness made it.
+    expect(burst).toMatchObject({ seq: 3, kind: "burst", level: "red", mode: null, model: "", note: "119 req in 60s", newTokens: 600_000 });
+    expect(older).toMatchObject({ seq: 2, kind: "warm", newTokens: 1_000 });
+  });
+
+  test("a settings change is a fact about the siren, not a request", async () => {
+    answering({ stats, settings, events });
+
+    const seqs = (await readSiren(SIREN_PAGE_SIZE, NOW)).events.map((event) => event.seq);
+
+    expect(seqs).toEqual([5, 3, 2, 1]);
+  });
+
+  test("a request keeps only the first characters of its session's number", async () => {
+    answering({ stats, settings, events: { items: [usage(1, NOW, { sessionId: "0123456789abcdef" })], more: false } });
+
+    expect((await readSiren(SIREN_PAGE_SIZE, NOW)).events[0]?.session).toBe("01234567");
   });
 });
 
 describe("which agent a request belongs to", () => {
-  test("a row a caller posted names its agent", () => {
-    expect(sirenAgentOf({ agent: "agent-a", project: "p" })).toBe("agent-a");
-    expect(sirenAgentOf({ agent: true, project: "p" })).toBeNull();
-  });
-
   test("a runner is known by the directory of its own name it works in", () => {
-    expect(sirenAgentOf({ project: "home-user-agents-search", cwd: "search" })).toBe("search");
-    expect(sirenAgentOf({ project: "home-user-agents-browse", cwd: "browse" })).toBe("browse");
+    expect(sirenAgentOf({ project: "home-user-agents-search", directory: "search" })).toBe("search");
+    expect(sirenAgentOf({ project: "home-user-agents-browse", directory: "browse" })).toBe("browse");
   });
 
   test("a directory of that name inside a checkout is not a runner", () => {
-    expect(sirenAgentOf({ project: "home-user-checkouts-a", cwd: "search" })).toBeNull();
+    expect(sirenAgentOf({ project: "home-user-checkouts-a", directory: "search" })).toBeNull();
   });
 
   test("anything else is left unnamed rather than guessed at, since which agent holds a session is served by no route", () => {
     expect(sirenAgentOf({})).toBeNull();
-    expect(sirenAgentOf({ project: "home-user-checkouts-a", cwd: "a" })).toBeNull();
+    expect(sirenAgentOf({ project: "home-user-checkouts-a", directory: "a" })).toBeNull();
+    // The caller's own fields are opaque to the siren and name no agent.
+    expect(sirenAgentOf({ project: "home-user-checkouts-web", directory: "web" })).toBeNull();
   });
 });
 
-// Scrolling to the foot of the list is what asks for more, and asking for more is asking the watch
-// for a bigger slice of its ring: it keeps a ring rather than a history and hands back the newest
-// of it, so there is no cursor to read from. What is held here is that the ask really grows, that
-// the answer says whether there is more behind it, and that the end of the ring is an end.
+// Scrolling to the foot of the list is what asks for more, and asking for more is asking the screen's server
+// for a bigger slice of the page it holds: the siren keeps a ring rather than a history, so there is no cursor
+// to read from. The siren is read whole so the ten minutes are complete; the page is what grows.
 describe("how far back the feed is read", () => {
-  test("a page at a time, and the first ask is one page", async () => {
-    answering(stats, ring(SIREN_PAGE_SIZE));
+  function ring(count: number): unknown {
+    return { items: Array.from({ length: count }, (_, i) => usage(i + 1, NOW - (count - 1 - i) * 1_000)), more: false };
+  }
 
-    await readSiren();
+  test("the siren is read whole, and the screen is handed one page of it", async () => {
+    answering({ stats, settings, events: ring(SIREN_PAGE_SIZE * 2) });
 
-    expect(asked.some((url) => url.includes(`/events?limit=${SIREN_PAGE_SIZE}`))).toBe(true);
+    const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
+
+    expect(asked.some((call) => call.url.includes(`/events?limit=${SIREN_MAX}`))).toBe(true);
+    expect(watch.events).toHaveLength(SIREN_PAGE_SIZE);
+    expect(watch.hasMore).toBe(true);
   });
 
   test("and the screen may ask for more than one", async () => {
-    answering(stats, ring(10));
+    answering({ stats, settings, events: ring(SIREN_PAGE_SIZE * 2) });
 
-    await readSiren(SIREN_PAGE_SIZE * 3);
+    const watch = await readSiren(SIREN_PAGE_SIZE * 2, NOW);
 
-    expect(asked.some((url) => url.includes(`/events?limit=${SIREN_PAGE_SIZE * 3}`))).toBe(true);
-  });
-
-  // The watch handed back as many as it was asked for, so there is more of its ring behind them.
-  test("says there is more where it gave back as many as it was asked for", async () => {
-    answering(stats, ring(SIREN_PAGE_SIZE));
-
-    expect((await readSiren(SIREN_PAGE_SIZE)).hasMore).toBe(true);
-  });
-
-  // Fewer than asked is the ring itself ending, and there is nothing further to ask for.
-  test("and says there is none where it gave back fewer", async () => {
-    answering(stats, ring(SIREN_PAGE_SIZE - 1));
-
-    expect((await readSiren(SIREN_PAGE_SIZE)).hasMore).toBe(false);
-  });
-
-  // The ring the watch keeps is the ceiling. An ask past it is cut back to it, and standing at it
-  // is standing at the end however full the answer was.
-  test("never asks for more of the ring than the watch keeps", async () => {
-    answering(stats, ring(SIREN_MAX));
-
-    const watch = await readSiren(SIREN_MAX * 4);
-
-    expect(asked.some((url) => url.includes(`/events?limit=${SIREN_MAX}`))).toBe(true);
+    expect(watch.events).toHaveLength(SIREN_PAGE_SIZE * 2);
     expect(watch.hasMore).toBe(false);
   });
 
-  test("a watch that does not answer has nothing more to give", async () => {
+  test("standing at the ring's own ceiling is standing at the end", async () => {
+    answering({ stats, settings, events: ring(SIREN_MAX) });
+
+    const watch = await readSiren(SIREN_MAX * 4, NOW);
+
+    expect(asked.some((call) => call.url.includes(`/events?limit=${SIREN_MAX}`))).toBe(true);
+    expect(watch.hasMore).toBe(false);
+  });
+
+  test("a siren that does not answer has nothing more to give", async () => {
     globalThis.fetch = (() => Promise.reject(new Error("not there"))) as unknown as typeof fetch;
 
-    const watch = await readSiren();
+    const watch = await readSiren(SIREN_PAGE_SIZE, NOW);
 
     expect(watch.reachable).toBe(false);
     expect(watch.hasMore).toBe(false);
     expect(watch.events).toEqual([]);
   });
 
-  // Every row keeps the watch's own sequence number and the list is drawn by it, so a feed read
-  // again at a bigger size is the same rows with older ones behind them rather than a second copy.
   test("what comes back is one feed, newest first, with no row twice", async () => {
-    answering(stats, ring(SIREN_PAGE_SIZE * 2));
+    answering({ stats, settings, events: ring(SIREN_PAGE_SIZE * 2) });
 
-    const watch = await readSiren(SIREN_PAGE_SIZE * 2);
+    const watch = await readSiren(SIREN_PAGE_SIZE * 2, NOW);
     const seqs = watch.events.map((event) => event.seq);
 
     expect(seqs).toHaveLength(SIREN_PAGE_SIZE * 2);
     expect(new Set(seqs).size).toBe(seqs.length);
     expect(seqs[0]).toBeGreaterThan(seqs[seqs.length - 1] as number);
-  });
-});
-
-// The watch reads the slot its source marked active, and the screen says whose figures they are.
-describe("the quota the watch read", () => {
-  test("carries the active login's name, its provider and how many logins it holds", () => {
-    expect(watchQuota({ five_h: 30, five_h_resets: 100, seven_d: 58, seven_d_resets: 200, tier: "main", provider: "claude-code", accounts: 2 })).toEqual({
-      fiveHour: 30,
-      fiveHourResetsAt: 100,
-      weekly: 58,
-      weeklyResetsAt: 200,
-      account: "main",
-      provider: "claude-code",
-      accounts: 2,
-    });
-  });
-
-  test("a source that names nobody leaves the name blank rather than inventing one", () => {
-    expect(watchQuota({ five_h: 12, tier: "", provider: "somewhere" })).toMatchObject({ fiveHour: 12, account: null, provider: null, accounts: null });
-    expect(watchQuota(undefined)).toEqual({
-      fiveHour: null,
-      fiveHourResetsAt: null,
-      weekly: null,
-      weeklyResetsAt: null,
-      account: null,
-      provider: null,
-      accounts: null,
-    });
-  });
-
-  test("the screen's watch carries it", async () => {
-    answering({ quota: { five_h: 30, tier: "main", provider: "claude-code", accounts: 2 } }, ring(0));
-
-    expect((await readSiren()).quota).toMatchObject({ fiveHour: 30, account: "main", accounts: 2 });
   });
 });
