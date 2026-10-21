@@ -26,8 +26,8 @@ standIn("AGENCY", (call) => {
 });
 standIn("CACHE_WARMER", (call) =>
   call.path.startsWith("/consumers/agency/subjects")
-    ? answer({ subjects: [{ subject: "agent-a", switch: "off", paused_at: 7_000, targets: 1 }] })
-    : answer({ targets: [{ subject: "agent-a", last_warmed_at: 5_500 }] })
+    ? answer({ items: [{ id: 1, consumerName: "agency", name: "agent-a", on: false, pausedAt: 7_000, pausedUntil: 9_007_199_254_740_991, targetCount: 1 }], more: false })
+    : answer({ items: [{ id: 1, consumerName: "agency", name: "chat-touch", subjectName: "agent-a", warmedAt: 5_500 }], more: false })
 );
 
 const handler = await routeOf<AgentList>("../../apps/web/server/api/agents.get");
