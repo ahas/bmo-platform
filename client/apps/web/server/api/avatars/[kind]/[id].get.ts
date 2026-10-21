@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
     throw fail(404, wording("room.error.avatar_not_found"));
   }
 
-  // The address carries the moment the picture was taken, so what a browser holds is good until a new
-  // one is taken and the address changes with it.
+  // The address carries the moment the picture was received, so what a browser holds is good until a new
+  // one arrives and the address changes with it.
   setResponseHeaders(event, {
     "content-type": "image/jpeg",
     "cache-control": "private, max-age=604800, immutable"

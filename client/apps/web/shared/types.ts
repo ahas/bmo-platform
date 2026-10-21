@@ -228,7 +228,7 @@ export interface ListedRoom extends RoomSummary, RoomRead {}
 export type AvatarKind = "room" | "person";
 
 // One subject's profile picture, as the console asks for it. The address carries the moment the
-// picture was taken, so a browser keeps what it holds until the picture itself changes.
+// picture was received, so a browser keeps what it holds until the picture itself changes.
 export interface AvatarRef {
   kind: AvatarKind;
   id: number;

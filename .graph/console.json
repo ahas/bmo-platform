@@ -383,7 +383,7 @@
   {
     "id": "console/avatars",
     "title": "Profile pictures",
-    "what": "Profile pictures on the console: one room's or person's picture read through the Telegram service, the first-letter mark with a colour from identity where none is kept, refreshed on the receiver's change events.",
+    "what": "Profile pictures on the console: the Telegram service's kept pictures read from its page-by-page list, each address carrying the moment it was received, and the first-letter mark with a colour from identity where none is kept, refreshed on the receiver's change events.",
     "files": [
       "client/apps/web/app/domain/avatars.ts",
       "client/apps/web/server/api/avatars.get.ts",
@@ -414,8 +414,8 @@
       "console/shared-config",
       "calls/telegram"
     ],
-    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
-    "changed": 1792540655965
+    "base": "67ef1facf2637789977b23ce2810ac1fc51a5f04",
+    "changed": 1792540886710
   },
   {
     "id": "console/back-gesture",

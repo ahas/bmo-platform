@@ -256,7 +256,7 @@
   {
     "id": "calls/telegram",
     "title": "bmo-telegram avatars API",
-    "what": "The Telegram service's profile-picture routes as the console reaches them: a room's at GET /rooms/{roomId}/avatar and a person's at GET /people/{personId}/avatar, served on by the console behind its sign-in.",
+    "what": "The Telegram service's profile-picture routes as the console reaches them: the kept pictures listed page by page at GET /avatars, a room's at GET /rooms/{roomId}/avatar and a person's at GET /people/{personId}/avatar, served on by the console behind its sign-in.",
     "files": [
       "client/apps/web/server/utils/avatars.ts",
       "client/apps/web/server/api/avatars.get.ts",
@@ -266,8 +266,8 @@
     "symbols": [],
     "aliases": [],
     "needs": [],
-    "base": "029615a1aa3ec53c8581f3d2302dd85ea8252d9a",
-    "changed": 1792540656215,
+    "base": "67ef1facf2637789977b23ce2810ac1fc51a5f04",
+    "changed": 1792540887015,
     "boundary": {
       "side": "calls",
       "repository": "bmo-telegram",

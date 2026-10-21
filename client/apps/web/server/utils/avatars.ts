@@ -13,11 +13,71 @@ export function isAvatarKind(value: unknown): value is AvatarKind {
   return typeof value === "string" && KINDS.includes(value);
 }
 
-// Every picture the console can show. No unit serves the list of the pictures it keeps, with the moment
-// each was taken, so the list stands empty and every face stands as its letter until one does
-// (docs/boundary.md, 「Gaps the console meets」).
+// How many pictures one page of the provider's list carries. The list is one row per room and per
+// person, so a page of this size walks it in a few calls.
+const AVATAR_PAGE = 200;
+
+interface AvatarPage {
+  items?: unknown;
+  more?: unknown;
+}
+
+interface AvatarRow {
+  kind?: unknown;
+  id?: unknown;
+  takenAt?: unknown;
+}
+
+// Every picture the console can show, read from the provider's `GET /avatars` a page at a time
+// (the Telegram service's `docs/api.md`, 「Profile pictures」). A page is walked by the moment the
+// last picture on it was received, oldest first, so no picture is read twice or left behind. A page
+// the provider does not answer ends the walk with what has been read so far: the screens fall back
+// to their letters rather than standing empty.
 export async function avatarRefs(): Promise<AvatarRef[]> {
-  return [];
+  const unit = unitAt("TELEGRAM");
+
+  if (unit === null) return [];
+
+  const refs: AvatarRef[] = [];
+  let after: number | null = null;
+
+  for (;;) {
+    const query = new URLSearchParams({ limit: String(AVATAR_PAGE) });
+
+    if (after !== null) query.set("after", String(after));
+
+    let page: AvatarPage;
+
+    try {
+      const response = await fetch(`${unit.address}/avatars?${query}`, { headers: unitHeaders(unit), signal: AbortSignal.timeout(5_000) });
+
+      if (!response.ok) return refs;
+
+      page = (await response.json()) as AvatarPage;
+    } catch {
+      return refs;
+    }
+
+    const items: AvatarRow[] = Array.isArray(page.items) ? (page.items as AvatarRow[]) : [];
+
+    for (const item of items) {
+      if (!isAvatarKind(item.kind)) continue;
+      if (typeof item.id !== "number" || !Number.isSafeInteger(item.id)) continue;
+      if (typeof item.takenAt !== "number" || !Number.isFinite(item.takenAt)) continue;
+
+      // The address carries the moment the picture was received, so a browser keeps what it holds
+      // until the provider receives a new one and the address changes with it.
+      refs.push({ kind: item.kind, id: item.id, url: `/api/avatars/${item.kind}/${item.id}?v=${item.takenAt}` });
+    }
+
+    if (page.more !== true || items.length === 0) return refs;
+
+    const last = items.at(-1)?.takenAt;
+
+    if (typeof last !== "number" || !Number.isFinite(last) || (after !== null && last <= after)) return refs;
+
+    after = last;
+  }
 }
 
 // One subject's picture as the chat service serves it, or null where it keeps none or is not reached.
