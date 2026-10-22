@@ -32,8 +32,10 @@ export type SessionError = Schemas["SessionError"];
 export type AccountServiceClient = Client<paths>;
 
 /**
- * The account service at `baseUrl`, sending `token` as its bearer token. Each call is a route of the OpenAPI
- * document, typed by it: `client.GET("/users/{user}", { params: { path: { user } } })`.
+ * The account service at `baseUrl`, sending `token` as its bearer token where one is given. Each call is a
+ * route of the OpenAPI document, typed by it: `client.GET("/users/{user}", { params: { path: { user } } })`.
+ * A client given no token sends no `Authorization` header, which is what sumida's own session routes need:
+ * one sent there is read as a token and refused before the session cookie.
  */
 export function accountServiceClient(
   baseUrl: string,
@@ -42,7 +44,7 @@ export function accountServiceClient(
 ): AccountServiceClient {
   return createClient<paths>({
     baseUrl,
-    headers: { Authorization: `Bearer ${token}` },
+    ...(token === "" ? {} : { headers: { Authorization: `Bearer ${token}` } }),
     ...(fetcher === undefined ? {} : { fetch: fetcher })
   });
 }

@@ -67,6 +67,16 @@ function clientOf(options: ServiceOptions): AccountServiceClient {
   return accountServiceClient(address, options.token ?? process.env.WEB_SERVER_TOKEN ?? "");
 }
 
+// sumida's own session routes take the session cookie, and a bearer sent there is read as a token and refused
+// before the cookie, so they are asked without the service's token.
+function sumidaClientOf(options: ServiceOptions): AccountServiceClient {
+  const address = addressOf(options);
+
+  if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
+
+  return accountServiceClient(address, "");
+}
+
 // A call nothing answered is the service down; a call it answered is read by its status.
 async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
   try {
@@ -132,7 +142,7 @@ export async function signIn(
   address: string,
   options: ServiceOptions = {}
 ): Promise<string | null> {
-  const client = clientOf(options);
+  const client = sumidaClientOf(options);
   const reply = await sent(
     options,
     client.POST("/sumida/auth/session", {
@@ -160,7 +170,7 @@ export async function sessionUser(
   address: string,
   options: ServiceOptions = {}
 ): Promise<{ id: UserId; name: string } | null> {
-  const client = clientOf(options);
+  const client = sumidaClientOf(options);
   const reply = await sent(
     options,
     client.GET("/sumida/me", { headers: signedHeaders(address, cookie), signal: signalOf(options) })
@@ -176,7 +186,7 @@ export async function sessionUser(
 
 /** A session ended; one already gone is ended too. */
 export async function signOut(cookie: string, address: string, options: ServiceOptions = {}): Promise<void> {
-  const client = clientOf(options);
+  const client = sumidaClientOf(options);
 
   await sent(
     options,
