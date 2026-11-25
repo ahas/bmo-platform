@@ -24,7 +24,7 @@ async fn spent_run(scratch: &Scratch, agent: &str, input: i64, cost_micros: i64,
   let opening = Opening {
     agent: agent.to_owned(),
     chat_id: None,
-    unit: format!("{agent}-{input}"),
+    work_unit: format!("{agent}-{input}"),
     depth: 0,
     cap_ms: None,
     started_at: now,

@@ -202,7 +202,7 @@ fn an_agent_switched_on_on_a_road_carrying_no_run_and_able_to_take_an_open_item_
 
   not_idle(&|held| held.carrying = vec!["coder-a".to_owned()], "it carries a run");
   not_idle(&|held| held.agents[0].enabled = false, "switched off");
-  not_idle(&|held| held.agents[0].owner_account = Some("7".to_owned()), "a login account's seat");
+  not_idle(&|held| held.agents[0].owner_account = Some(7), "a login account's seat");
   not_idle(&|held| held.agents[0].provider = None, "its road names no provider");
   not_idle(&|held| held.agents[0].model = None, "its road names no model");
   not_idle(&|held| held.open[0].role = Some("worker".to_owned()), "the item is for another role");

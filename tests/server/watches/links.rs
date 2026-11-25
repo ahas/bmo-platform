@@ -541,7 +541,7 @@ async fn a_program_on_a_lent_login_is_let_go_from_a_node_other_accounts_share_be
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id", "lendable")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account", "lendable")
          VALUES ('lent', 'lent', 1, 1, 'directory', $1, 0, 1, true),
                 ('seven', 'seven', 2, 1, 'directory', $2, 0, 7, false)"#,
       vec![lent.to_string_lossy().into_owned().into(), own.to_string_lossy().into_owned().into()],

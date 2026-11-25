@@ -41,7 +41,9 @@ pub struct Opening {
   pub agent: String,
   #[serde(default, alias = "chat_id")]
   pub chat_id: Option<i64>,
-  pub unit: String,
+  /// The unit of work the run is: the name its log lines and its runner stand under.
+  #[serde(rename = "unit")]
+  pub work_unit: String,
   pub depth: u32,
   #[serde(default, alias = "cap_ms")]
   pub cap_ms: Option<i64>,
@@ -102,7 +104,9 @@ pub struct Run {
   pub id: i64,
   pub agent: String,
   pub chat_id: Option<i64>,
-  pub unit: String,
+  /// The unit of work the run is, answered to a caller under `unit`.
+  #[serde(rename = "unit")]
+  pub work_unit: String,
   pub title: Option<String>,
   pub depth: i64,
   pub started_at: i64,
@@ -122,7 +126,7 @@ impl Run {
       id: row.try_get("", "id")?,
       agent: row.try_get("", "agent")?,
       chat_id: row.try_get("", "chat_id")?,
-      unit: row.try_get("", "unit")?,
+      work_unit: row.try_get("", "work_unit")?,
       title: row.try_get("", "title")?,
       depth: row.try_get("", "depth")?,
       started_at: row.try_get("", "started_at")?,
@@ -179,13 +183,14 @@ pub async fn open<C: ConnectionTrait>(db: &C, opening: &Opening) -> Result<i64, 
   let row = one(
     db,
     r#"INSERT INTO "runs"
-         ("agent", "chat_id", "unit", "depth", "cap_ms", "started_at", "started_by", "search_id", "round", "message_id",
+         ("agent", "chat_id", "work_unit", "depth", "cap_ms", "started_at", "started_by", "search_id", "round",
+          "message_id",
           "title", "carried")
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING "id""#,
     vec![
       opening.agent.clone().into(),
       opening.chat_id.into(),
-      opening.unit.clone().into(),
+      opening.work_unit.clone().into(),
       i64::from(opening.depth).into(),
       opening.cap_ms.into(),
       opening.started_at.into(),
@@ -211,7 +216,7 @@ pub async fn close<C: ConnectionTrait>(db: &C, id: i64, closing: &Closing) -> Re
          "input_tokens" = $5, "output_tokens" = $6, "cache_read_tokens" = $7, "cache_write_tokens" = $8,
          "cost_micros" = $9,
          "tool_count" = (SELECT COUNT(*) FROM "agent_log" l
-                          WHERE l."agent" = "runs"."agent" AND l."run" = "runs"."unit" AND l."kind" = 'tool')
+                          WHERE l."agent" = "runs"."agent" AND l."run" = "runs"."work_unit" AND l."kind" = 'tool')
        WHERE "id" = $1 AND "finished_at" IS NULL"#,
     vec![
       id.into(),
@@ -239,7 +244,7 @@ pub async fn close<C: ConnectionTrait>(db: &C, id: i64, closing: &Closing) -> Re
 }
 
 // What a run is read with.
-const RUN_FIELDS: &str = r#""id", "agent", "chat_id", "unit", "title", "depth", "started_at", "finished_at", "outcome",
+const RUN_FIELDS: &str = r#""id", "agent", "chat_id", "work_unit", "title", "depth", "started_at", "finished_at", "outcome",
   "context_tokens", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost_micros", "round",
   "message_id", "tool_count""#;
 
@@ -257,7 +262,7 @@ pub async fn of_unit<C: ConnectionTrait>(db: &C, agent: &str, unit: &str) -> Res
   one(
     db,
     &format!(
-      r#"SELECT {RUN_FIELDS} FROM "runs" WHERE "unit" = $1 AND ($2 = '' OR "agent" = $2)
+      r#"SELECT {RUN_FIELDS} FROM "runs" WHERE "work_unit" = $1 AND ($2 = '' OR "agent" = $2)
          ORDER BY "id" DESC LIMIT 1"#
     ),
     vec![unit.into(), agent.into()],
@@ -309,7 +314,7 @@ pub async fn search<C: ConnectionTrait>(db: &C, search: &Search) -> Result<Page,
            AND ($5::bigint IS NULL OR "chat_id" = $5)
            AND ($6::text IS NULL OR "round" = $6)
            AND ($7::jsonb = '[]'::jsonb
-                OR "unit" IN (SELECT jsonb_array_elements_text($7::jsonb))
+                OR "work_unit" IN (SELECT jsonb_array_elements_text($7::jsonb))
                 OR "round" IN (SELECT jsonb_array_elements_text($7::jsonb)))
          ORDER BY "id" {} LIMIT $8"#,
       if upward { "ASC" } else { "DESC" }
@@ -490,7 +495,7 @@ pub async fn launch(ground: &Ground, id: i64, launch: Launch) -> Result<(), NotL
   let left = Left {
     agent: &launch.agent,
     for_agent: None,
-    name: &run.unit,
+    name: &run.work_unit,
     title: &launch.title,
     command: launch.command.into(),
   };
@@ -505,7 +510,7 @@ pub async fn launch(ground: &Ground, id: i64, launch: Launch) -> Result<(), NotL
   };
 
   if let Err(NotClosed::Store(why)) = close(&ground.db, id, &closing).await {
-    eprintln!("{}: the run's row could not be closed: {}", run.unit, why.detail);
+    eprintln!("{}: the run's row could not be closed: {}", run.work_unit, why.detail);
   }
 
   Err(NotLaunched::Refused(code))

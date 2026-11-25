@@ -530,7 +530,7 @@ async fn a_translation_on_the_registry_names_no_wait_and_is_waited_for_however_l
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "runs" WHERE "agent" = $1 AND "unit" LIKE 'translate:%' AND "outcome" = 'answered'
+        r#"SELECT COUNT(*) FROM "runs" WHERE "agent" = $1 AND "work_unit" LIKE 'translate:%' AND "outcome" = 'answered'
              AND "finished_at" IS NOT NULL AND "input_tokens" = 41 AND "output_tokens" = 7"#,
         role.clone(),
       )
@@ -540,7 +540,7 @@ async fn a_translation_on_the_registry_names_no_wait_and_is_waited_for_however_l
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "agent_log" l JOIN "runs" r ON r."agent" = l."agent" AND r."unit" = l."run"
+        r#"SELECT COUNT(*) FROM "agent_log" l JOIN "runs" r ON r."agent" = l."agent" AND r."work_unit" = l."run"
            WHERE l."agent" = $1 AND l."kind" IN ('start', 'note', 'end')"#,
         role.clone(),
       )

@@ -3,6 +3,7 @@
 //! tables without either's record standing in the other's way.
 
 mod m20270124_000001_baseline;
+mod m20270125_000001_platform_ownership;
 
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement, TransactionTrait};
 use sea_orm_migration::prelude::*;
@@ -201,7 +202,10 @@ pub struct Migrator;
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
   fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-    vec![Box::new(m20270124_000001_baseline::Migration)]
+    vec![
+      Box::new(m20270124_000001_baseline::Migration),
+      Box::new(m20270125_000001_platform_ownership::Migration),
+    ]
   }
 
   fn migration_table_name() -> DynIden {

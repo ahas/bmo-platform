@@ -767,7 +767,7 @@ impl RunKey {
   fn expression(self) -> &'static str {
     match self {
       Self::Account => {
-        r#"COALESCE(CAST("s"."owner_account" AS text), NULLIF("a"."owner_account", ''),
+        r#"COALESCE(CAST("s"."owner_account" AS text), CAST("a"."owner_account" AS text),
              CAST("h"."owner_account" AS text), 'none')"#
       }
       Self::Supply => r#"COALESCE("r"."supply_source", 'platform')"#,

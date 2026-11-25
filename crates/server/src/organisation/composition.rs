@@ -205,15 +205,12 @@ pub(crate) fn seat_name(role: &str, user: i64, index: usize) -> String {
 pub async fn compose(ground: &Ground, user: i64) -> Result<Vec<RoleAgent>, Refused> {
   let answer = resolved(ground, Subject::Person(user)).await?;
   let standing = standing(answer.as_ref());
-  let account = user.to_string();
+  let account = user;
   let held = role_agents::every(&ground.db).await?;
   let mut made = Vec::new();
 
   for role in agent_roles::every(&ground.db).await? {
-    if held
-      .iter()
-      .any(|agent| agent.role == role.name && agent.owner_account.as_deref() == Some(&account))
-    {
+    if held.iter().any(|agent| agent.role == role.name && agent.owner_account == Some(account)) {
       continue;
     }
 
@@ -240,7 +237,7 @@ pub async fn compose(ground: &Ground, user: i64) -> Result<Vec<RoleAgent>, Refus
         continue;
       }
 
-      match seat(ground, &role, template.clone(), name.clone(), &account, road.as_ref()).await {
+      match seat(ground, &role, template.clone(), name.clone(), account, road.as_ref()).await {
         Ok(agent) => {
           role_agents::write(&ground.db, &agent).await?;
           made.push(agent);
@@ -259,13 +256,13 @@ async fn seat(
   role: &AgentRole,
   template: Option<RoleAgent>,
   name: String,
-  account: &str,
+  account: i64,
   road: Option<&Road>,
 ) -> Result<RoleAgent, Refused> {
   let mut agent = template.unwrap_or_else(|| fresh(&role.name, None));
 
   agent.name = name;
-  agent.owner_account = Some(account.to_owned());
+  agent.owner_account = Some(account);
   agent.enabled = true;
   agent.added_at = crate::now_ms();
 

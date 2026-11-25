@@ -290,7 +290,7 @@ async fn theirs(
 ) -> Result<(RoleAgent, RoleSupply, Option<Supplied>), Refused> {
   let agent = role_agents::named(&ground.db, name)
     .await?
-    .filter(|agent| agent.owner_account.as_deref() == Some(person.to_string().as_str()))
+    .filter(|agent| agent.owner_account == Some(person))
     .ok_or_else(|| not_theirs(name))?;
   let role = role_named(ground, person, &agent.role).await?;
   let seat = role.supplied.iter().find(|seat| seat.name == name).cloned();
@@ -373,7 +373,7 @@ impl Route for OwnAgentBack {
           .with_code("not-supplied")
       })?;
     let agent = match role_agents::named(call.store(), &name).await? {
-      Some(agent) if agent.owner_account.as_deref() == Some(person.to_string().as_str()) => {
+      Some(agent) if agent.owner_account == Some(person) => {
         let mut agent = own_agents::laid(ground, &role.role, agent, seat.road.as_ref()).await?;
 
         agent.enabled = true;

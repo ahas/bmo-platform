@@ -136,7 +136,7 @@ async fn the_supplied_set_is_the_composition_with_each_seat_s_origin_and_the_per
     .await
     .unwrap();
 
-  assert_eq!(agent.owner_account.as_deref(), Some("7"));
+  assert_eq!(agent.owner_account, Some(7));
   assert_eq!(agent.prompt.as_deref(), Some("The making template's own words."));
   assert!(own_agents::as_supplied(&agent, seat));
 

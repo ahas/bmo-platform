@@ -80,7 +80,7 @@ fn bad_target(said: &str) -> VerbError {
 
 // What a row is, in the words a person reads beside its target.
 fn run_what(run: &run_list::RunRow) -> String {
-  format!("{} · {} · {}", run.agent, run.unit, run_list::elapsed(run.started_at))
+  format!("{} · {} · {}", run.agent, run.work_unit, run_list::elapsed(run.started_at))
 }
 
 fn job_what(job: &JobRow) -> String {
@@ -455,7 +455,7 @@ pub async fn run_stop(data_root: &Path, asked: &StopArgs) -> Result<Answer, Verb
 
   let known = match &target {
     Target::Unit(unit) => {
-      picture.runs.iter().any(|run| run.unit == *unit)
+      picture.runs.iter().any(|run| run.work_unit == *unit)
         || picture.executions.iter().any(|execution| execution.id == *unit)
         || rows.iter().any(|(held, _)| *held == target.words())
     }

@@ -138,7 +138,7 @@ impl Route for RunLogLines {
     // A run of the ledger named by its id reads the lines written under its unit, beside the lines written
     // under that name itself.
     let unit = match run.as_deref().map(str::parse::<i64>) {
-      Some(Ok(id)) => run_ledger::read(call.store(), id).await?.map(|held| held.unit),
+      Some(Ok(id)) => run_ledger::read(call.store(), id).await?.map(|held| held.work_unit),
       _ => None,
     };
     // Before a cursor with none after it, the nearest lines are the newest of the older ones, so they are read

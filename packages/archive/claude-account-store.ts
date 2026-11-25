@@ -62,7 +62,7 @@ interface ClaudeAccountDbRow {
   base_prompt?: string | null;
   added_at: number;
   needs_login_at: number | null;
-  user_id?: number | null;
+  owner_account?: number | null;
 }
 
 export class ClaudeAccountStore {
@@ -198,7 +198,7 @@ export class ClaudeAccountStore {
       basePrompt: row.base_prompt ?? null,
       addedAt: row.added_at,
       needsLoginAt: row.needs_login_at ?? null,
-      userId: row.user_id === undefined || row.user_id === null ? null : Number(row.user_id),
+      userId: row.owner_account === undefined || row.owner_account === null ? null : Number(row.owner_account),
     };
   }
 

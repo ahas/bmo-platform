@@ -346,9 +346,9 @@ pub async fn account_named(db: &DatabaseConnection, named: &str) -> Result<Optio
 /// 「What a person brings」).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Owning {
-  pub user_id: Option<i64>,
+  pub owner_account: Option<i64>,
   /// The organisation unit an account belongs to in place of a person (docs/supply.md, 「Organisation supply」).
-  pub unit_id: Option<i64>,
+  pub owner_unit: Option<i64>,
   pub node: Option<String>,
 }
 
@@ -407,13 +407,13 @@ pub async fn add_owned(
 
   values.extend(columns(&asked));
   values.push(base_prompt.named_prompt().map(str::to_owned).into());
-  values.push(owning.user_id.into());
+  values.push(owning.owner_account.into());
   values.push(owning.node.clone().into());
-  values.push(owning.unit_id.into());
+  values.push(owning.owner_unit.into());
   run(
     &written,
     &format!(
-      "INSERT INTO claude_accounts (id, name, place, enabled, added_at, {}, base_prompt, user_id, node, unit_id)
+      "INSERT INTO claude_accounts (id, name, place, enabled, added_at, {}, base_prompt, owner_account, node, owner_unit)
        VALUES ($1, $2, $3, 1, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
       CREDENTIAL_COLUMNS.join(", ")
     ),
@@ -434,7 +434,7 @@ pub async fn set_unit(db: &DatabaseConnection, id: &str, unit: Option<i64>) -> R
     return Err(Refused::failed(no_such(id)));
   };
 
-  if account.user_id.is_some() {
+  if account.owner_account.is_some() {
     return Err(
       Refused::new(
         axum::http::StatusCode::UNPROCESSABLE_ENTITY,
@@ -446,7 +446,7 @@ pub async fn set_unit(db: &DatabaseConnection, id: &str, unit: Option<i64>) -> R
 
   run(
     db,
-    "UPDATE claude_accounts SET unit_id = $1 WHERE id = $2",
+    "UPDATE claude_accounts SET owner_unit = $1 WHERE id = $2",
     vec![unit.into(), id.into()],
   )
   .await?;

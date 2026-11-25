@@ -804,7 +804,7 @@ async fn start_on_node(
     (Some(id), None) => {
       let account = held
         .iter()
-        .find(|one| one.id == id && one.user_id == Some(user))
+        .find(|one| one.id == id && one.owner_account == Some(user))
         .ok_or_else(|| unknown_account(id))?;
       let Credential::Directory { home } = &account.credential else {
         return Err(not_directory(&account.name));
@@ -967,8 +967,8 @@ async fn code_on_node(
     ..CredentialGiven::default()
   };
   let owning = Owning {
-    user_id: Some(sign_in.user),
-    unit_id: None,
+    owner_account: Some(sign_in.user),
+    owner_unit: None,
     node: Some(sign_in.node.clone()),
   };
 

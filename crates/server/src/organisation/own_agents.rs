@@ -146,13 +146,11 @@ pub async fn supply(ground: &Ground, person: i64) -> Result<Vec<RoleSupply>, Ref
 
 /// The person's own agents, every role agent filed under their account.
 pub async fn held(ground: &Ground, person: i64) -> Result<Vec<RoleAgent>, Refused> {
-  let account = person.to_string();
-
   Ok(
     role_agents::every(&ground.db)
       .await?
       .into_iter()
-      .filter(|agent| agent.owner_account.as_deref() == Some(account.as_str()))
+      .filter(|agent| agent.owner_account == Some(person))
       .collect(),
   )
 }
@@ -173,7 +171,7 @@ pub async fn seat(
   let mut agent = role.template.clone().unwrap_or_else(|| composition::fresh(&role.role.name, None));
 
   agent.name = name;
-  agent.owner_account = Some(person.to_string());
+  agent.owner_account = Some(person);
   agent.enabled = true;
   agent.added_at = crate::now_ms();
 

@@ -237,12 +237,12 @@ async fn account_counts(ground: &Ground, reach: Reach, account: i64) -> Result<T
   for (kind, table, column, textual) in [
     ("supervisors", "supervisors", "owner_account", false),
     ("slot-requests", "role_slot_requests", "account", true),
-    ("role-agents", "role_agents", "owner_account", true),
+    ("role-agents", "role_agents", "owner_account", false),
     ("attachments", "agent_attachments", "account", true),
     ("mcp-servers", "mcp_servers", "account", true),
-    ("registered-models", "registered_models", "account", false),
-    ("claude-accounts", "claude_accounts", "user_id", false),
-    ("personal-supply", "personal_supply", "user_id", false),
+    ("registered-models", "registered_models", "owner_account", false),
+    ("claude-accounts", "claude_accounts", "owner_account", false),
+    ("personal-supply", "personal_supply", "owner_account", false),
     ("supply-reservations", "supply_reservations", "account", false),
     ("call-keys", "gateway_call_keys", "account", false),
     ("gateway-requests", "gateway_requests", "account", false),
@@ -483,7 +483,7 @@ impl Removal {
     for agent in names(
       &db,
       r#"SELECT "name" FROM "role_agents" WHERE "owner_account" = $1 ORDER BY "name""#,
-      vec![text.clone().into()],
+      vec![account.into()],
     )
     .await?
     {
@@ -516,7 +516,7 @@ impl Removal {
     // Its registrations, each as the registry removes one.
     for name in names(
       &db,
-      r#"SELECT "name" FROM "registered_models" WHERE "account" = $1 ORDER BY "name""#,
+      r#"SELECT "name" FROM "registered_models" WHERE "owner_account" = $1 ORDER BY "name""#,
       vec![account.into()],
     )
     .await?
@@ -530,12 +530,13 @@ impl Removal {
       removed.add("registered-models", 1);
     }
 
-    let ids = claude_accounts_of(&db, "user_id", account).await?;
+    let ids = claude_accounts_of(&db, "owner_account", account).await?;
 
     removed.add("claude-accounts", claude_accounts_gone(&db, &ids).await?);
     removed.add(
       "personal-supply",
-      run(&db, r#"DELETE FROM "personal_supply" WHERE "user_id" = $1"#, vec![account.into()]).await? as i64,
+      run(&db, r#"DELETE FROM "personal_supply" WHERE "owner_account" = $1"#, vec![account.into()]).await?
+        as i64,
     );
     removed.add("supply-reservations", reservations_gone(&ground, Owner::Account(account)).await?);
 
@@ -594,12 +595,12 @@ async fn unit_counts(ground: &Ground, unit: i64) -> Result<Tally, Refused> {
     "organisation-supply",
     count(
       db,
-      r#"SELECT COUNT(*) AS "n" FROM "personal_supply" WHERE "unit_id" = $1"#,
+      r#"SELECT COUNT(*) AS "n" FROM "personal_supply" WHERE "owner_unit" = $1"#,
       vec![unit.into()],
     )
     .await?,
   );
-  tally.add("claude-accounts", claude_accounts_of(db, "unit_id", unit).await?.len() as i64);
+  tally.add("claude-accounts", claude_accounts_of(db, "owner_unit", unit).await?.len() as i64);
   tally.add(
     "supply-reservations",
     count(
@@ -624,10 +625,10 @@ async fn unit_removed(ground: Arc<Ground>, unit: i64) -> Result<Tally, Refused> 
   removed.add("repository-checkouts", checkouts);
   removed.add(
     "organisation-supply",
-    run(&db, r#"DELETE FROM "personal_supply" WHERE "unit_id" = $1"#, vec![unit.into()]).await? as i64,
+    run(&db, r#"DELETE FROM "personal_supply" WHERE "owner_unit" = $1"#, vec![unit.into()]).await? as i64,
   );
 
-  let ids = claude_accounts_of(&db, "unit_id", unit).await?;
+  let ids = claude_accounts_of(&db, "owner_unit", unit).await?;
 
   removed.add("claude-accounts", claude_accounts_gone(&db, &ids).await?);
   removed.add("supply-reservations", reservations_gone(&ground, Owner::Unit(unit)).await?);
@@ -677,7 +678,7 @@ impl Route for OwnerRemoval {
     let removal = Removal::of(&call, account, supervisors);
     let registrations = count(
       call.store(),
-      r#"SELECT COUNT(*) AS "n" FROM "registered_models" WHERE "account" = $1"#,
+      r#"SELECT COUNT(*) AS "n" FROM "registered_models" WHERE "owner_account" = $1"#,
       vec![account.into()],
     )
     .await?;

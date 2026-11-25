@@ -191,13 +191,13 @@ impl Route for PersonalModelPut {
     let written = call.store().begin().await?;
     let standing = one(
       &written,
-      r#"SELECT "account" FROM "registered_models" WHERE "name" = $1"#,
+      r#"SELECT "owner_account" FROM "registered_models" WHERE "name" = $1"#,
       vec![registration.clone().into()],
     )
     .await?;
 
     if let Some(standing) = &standing
-      && standing.try_get::<Option<i64>>("", "account")? != Some(account)
+      && standing.try_get::<Option<i64>>("", "owner_account")? != Some(account)
     {
       return Err(unknown(&name));
     }
@@ -226,7 +226,7 @@ impl Route for PersonalModelPut {
       run(
         &written,
         r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens", "thinking",
-             "walked", "keeps_research", "added_at", "account", "enabled")
+             "walked", "keeps_research", "added_at", "owner_account", "enabled")
            VALUES ($1, $2, $3, $4, $5, 0, 0, 0, $6, $7, 1)"#,
         vec![
           registration.clone().into(),

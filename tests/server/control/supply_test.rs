@@ -155,7 +155,7 @@ async fn a_person_tests_their_own_supply_and_the_platform_its_own_and_nothing_is
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('seven', 'seven', 1, 1, 'directory', $1, 0, 7)"#,
       vec![login.to_string_lossy().into_owned().into()],
     )
@@ -169,7 +169,7 @@ async fn a_person_tests_their_own_supply_and_the_platform_its_own_and_nothing_is
     .await;
   scratch
     .run(
-      r#"INSERT INTO "personal_supply" ("user_id", "road", "secret", "place", "added_at")
+      r#"INSERT INTO "personal_supply" ("owner_account", "road", "secret", "place", "added_at")
          VALUES (7, 'deepseek', 'ds', 1, 0)"#,
       vec![],
     )

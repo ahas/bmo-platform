@@ -263,7 +263,7 @@ pub async fn accounts_placed(db: &DatabaseConnection) -> Result<Vec<String>, Ref
   let rows = all(
     db,
     r#"SELECT "owner_account"::text AS "account" FROM "supervisors" WHERE "owner_account" IS NOT NULL
-       UNION SELECT "owner_account" AS "account" FROM "role_agents" WHERE "owner_account" IS NOT NULL
+       UNION SELECT "owner_account"::text AS "account" FROM "role_agents" WHERE "owner_account" IS NOT NULL
        ORDER BY "account""#,
     vec![],
   )
@@ -287,9 +287,10 @@ pub async fn run_placed<C: ConnectionTrait>(
   cwd: &str,
 ) -> Result<RunPlaced, Refusal> {
   let seat = crate::role_agents::seated_at(db, role, Some(cwd)).await?;
-  let Some(account) = seat.and_then(|seat| seat.owner_account) else {
+  let Some(owner) = seat.and_then(|seat| seat.owner_account) else {
     return Ok(RunPlaced::default());
   };
+  let account = owner.to_string();
   let node = node_of(db, &account).await?;
 
   Ok(RunPlaced {
@@ -385,11 +386,12 @@ pub async fn acting_for<C: ConnectionTrait>(
   }
 
   let account = match crate::role_agents::named(db, &agent).await? {
-    Some(seat) => seat.owner_account,
+    Some(seat) => seat.owner_account.map(|account| account.to_string()),
     None if caller.role.is_none() && caller.checkout.is_none() => None,
     None => crate::role_agents::seated_at(db, caller.role, caller.checkout)
       .await?
-      .and_then(|seat| seat.owner_account),
+      .and_then(|seat| seat.owner_account)
+      .map(|account| account.to_string()),
   };
 
   Ok(ActingFor {

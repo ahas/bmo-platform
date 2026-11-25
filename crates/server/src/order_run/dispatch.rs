@@ -599,7 +599,7 @@ pub async fn seats_for(ground: &Ground, held: &Request, role: &AgentRole) -> Res
   // A request is let in only on its own account's agents (docs/role-slots.md, 「Accounts」).
   let on = role.agents.iter().filter(|agent| {
     agent.enabled
-      && agent.owner_account == held.account
+      && agent.owner_account.map(|owner| owner.to_string()) == held.account
       && held.agent_wanted.as_deref().is_none_or(|wanted| wanted == agent.name)
   });
   let mut seats: Vec<Seat> = vec![];

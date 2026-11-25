@@ -22,7 +22,7 @@ use crate::role_agents::{self, RoleAgent};
 pub(crate) struct Seating<'a> {
   pub item: &'a Value,
   pub role: &'a str,
-  pub account: Option<&'a str>,
+  pub account: Option<i64>,
 }
 
 /// The hold a grown checkout is taken under.

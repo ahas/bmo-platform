@@ -100,7 +100,7 @@ async fn a_person_s_run_takes_the_nearest_unit_s_key_through_a_reservation_namin
   personal_key(scratch.db(), "deepseek").await;
   scratch
     .run(
-      r#"INSERT INTO "personal_supply" ("unit_id", "road", "secret", "place", "added_at")
+      r#"INSERT INTO "personal_supply" ("owner_unit", "road", "secret", "place", "added_at")
          VALUES (4, 'deepseek', 'team-key', 1, 0)"#,
       vec![],
     )

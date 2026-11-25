@@ -56,7 +56,7 @@ pub fn asked(account: Option<i64>, provider: &'static str) -> Asked<'static> {
 pub async fn personal_key(db: &sea_orm::DatabaseConnection, road: &str) {
   store::run(
     db,
-    r#"INSERT INTO "personal_supply" ("user_id", "road", "secret", "place", "added_at") VALUES ($1, $2, 'key', 1, 0)"#,
+    r#"INSERT INTO "personal_supply" ("owner_account", "road", "secret", "place", "added_at") VALUES ($1, $2, 'key', 1, 0)"#,
     vec![PERSON.into(), road.into()],
   )
   .await

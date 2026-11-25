@@ -339,11 +339,11 @@ pub async fn owner_of(ground: &Ground, provider: &str, model: &str) -> Result<Op
     REGISTERED => Ok(
       one(
         &ground.db,
-        r#"SELECT "account" FROM "registered_models" WHERE "name" = $1"#,
+        r#"SELECT "owner_account" FROM "registered_models" WHERE "name" = $1"#,
         vec![model.into()],
       )
       .await?
-      .map(|row| row.try_get::<Option<i64>>("", "account"))
+      .map(|row| row.try_get::<Option<i64>>("", "owner_account"))
       .transpose()?
       .flatten(),
     ),
@@ -397,7 +397,7 @@ pub async fn personal_source(
   let keyed = one(
     &ground.db,
     r#"SELECT 1 AS "open" FROM "personal_supply"
-       WHERE "user_id" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
+       WHERE "owner_account" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
     vec![account.into(), provider.into()],
   )
   .await?
@@ -436,7 +436,7 @@ async fn own_key_refused(ground: &Ground, account: i64, provider: &str) -> Resul
     one(
       &ground.db,
       r#"SELECT 1 AS "refused" FROM "personal_supply"
-         WHERE "user_id" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NOT NULL LIMIT 1"#,
+         WHERE "owner_account" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NOT NULL LIMIT 1"#,
       vec![account.into(), provider.into()],
     )
     .await?
@@ -463,7 +463,7 @@ pub async fn organisation_source(
       road => one(
         &ground.db,
         r#"SELECT 1 AS "open" FROM "personal_supply"
-           WHERE "unit_id" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
+           WHERE "owner_unit" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
         vec![(*unit).into(), road.into()],
       )
       .await?
@@ -774,8 +774,8 @@ pub async fn pass_owned(ground: &Ground, chosen: &Chosen) -> Result<Choice, Refu
 /// Claude login, marks no key. Answers the key marked.
 pub async fn refuse_personal_key(ground: &Ground, chosen: &Chosen) -> Result<Option<i64>, Refusal> {
   let (owner, id) = match (&chosen.source, chosen.account) {
-    (Source::Personal, Some(account)) => ("user_id", account),
-    (Source::Organisation { unit, .. }, Some(_)) => ("unit_id", *unit),
+    (Source::Personal, Some(account)) => ("owner_account", account),
+    (Source::Organisation { unit, .. }, Some(_)) => ("owner_unit", *unit),
     _ => return Ok(None),
   };
   if chosen.provider == CLAUDE_CODE {

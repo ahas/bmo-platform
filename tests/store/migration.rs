@@ -88,14 +88,14 @@ async fn the_columns_carried_beyond_a_tables_first_shape_stand_after_its_row_id(
     accounts[accounts.len() - 9..],
     [
       "rowid",
-      "user_id",
+      "owner_account",
       "endpoint_url",
       "key_file",
       "endpoint_models",
       "base_prompt",
       "node",
       "lendable",
-      "unit_id"
+      "owner_unit"
     ]
   );
   let settings = columns("supervisor_settings").await;

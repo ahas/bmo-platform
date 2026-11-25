@@ -120,12 +120,10 @@ impl Part {
       (Self::Repositories, Some(name)) => crate::repositories::named(db, &name)
         .await?
         .map_or(Row::Unnamed, |held| Row::Owned("repository", name, held.owner_account)),
-      // A role agent is a seat of its account, its owner written as the account's id in digits.
-      (Self::RoleAgents, Some(name)) => {
-        crate::role_agents::named(db, &name).await?.map_or(Row::Unnamed, |held| {
-          Row::Owned("role agent", name, held.owner_account.as_deref().map(seat_owner))
-        })
-      }
+      // A role agent is a seat of its account.
+      (Self::RoleAgents, Some(name)) => crate::role_agents::named(db, &name)
+        .await?
+        .map_or(Row::Unnamed, |held| Row::Owned("role agent", name, held.owner_account)),
     })
   }
 
@@ -212,15 +210,6 @@ enum Row {
   /// A row whose owner its own route judges: a registered model's or a model file's.
   Unjudged,
 }
-
-/// The account a role agent's seat is filed under, its text read as a user id; a text that reads as none is no
-/// member's account.
-pub fn seat_owner(text: &str) -> i64 {
-  text.trim().parse().unwrap_or(NO_MEMBER)
-}
-
-/// An account id no member holds, standing for an owner that does not read as one.
-const NO_MEMBER: i64 = i64::MIN;
 
 /// A member's change of a managed route, whose row is judged before the route answers.
 pub struct Owning {

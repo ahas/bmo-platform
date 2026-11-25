@@ -65,7 +65,7 @@ async fn own_key(
   Ok(
     one(
       db,
-      &format!(r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "id" = $1 AND "user_id" = $2"#),
+      &format!(r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "id" = $1 AND "owner_account" = $2"#),
       vec![id.into(), user.into()],
     )
     .await?,
@@ -81,22 +81,22 @@ pub async fn people(db: &DatabaseConnection) -> Result<Vec<Value>, Refused> {
 
   for row in all(
     db,
-    r#"SELECT DISTINCT "user_id" FROM "claude_accounts" WHERE "user_id" IS NOT NULL AND "enabled" = 1"#,
+    r#"SELECT DISTINCT "owner_account" FROM "claude_accounts" WHERE "owner_account" IS NOT NULL AND "enabled" = 1"#,
     vec![],
   )
   .await?
   {
-    roads.entry(row.try_get("", "user_id")?).or_default().push(CLAUDE_CODE_ROAD.to_owned());
+    roads.entry(row.try_get("", "owner_account")?).or_default().push(CLAUDE_CODE_ROAD.to_owned());
   }
 
   for row in all(
     db,
-    r#"SELECT DISTINCT "user_id", "road" FROM "personal_supply" WHERE "enabled" ORDER BY "user_id", "road""#,
+    r#"SELECT DISTINCT "owner_account", "road" FROM "personal_supply" WHERE "enabled" ORDER BY "owner_account", "road""#,
     vec![],
   )
   .await?
   {
-    roads.entry(row.try_get("", "user_id")?).or_default().push(row.try_get("", "road")?);
+    roads.entry(row.try_get("", "owner_account")?).or_default().push(row.try_get("", "road")?);
   }
 
   Ok(
@@ -123,7 +123,7 @@ impl Route for PersonalSupplyList {
     let rows = all(
       db,
       &format!(
-        r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "user_id" = $1 ORDER BY "road", "place", "id""#
+        r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "owner_account" = $1 ORDER BY "road", "place", "id""#
       ),
       vec![user.into()],
     )
@@ -180,7 +180,7 @@ impl Route for PersonalSupplyAdd {
     let written = db.begin().await?;
     let taken = one(
       &written,
-      r#"SELECT 1 AS "taken" FROM "personal_supply" WHERE "user_id" = $1 AND "road" = $2 AND "secret" = $3"#,
+      r#"SELECT 1 AS "taken" FROM "personal_supply" WHERE "owner_account" = $1 AND "road" = $2 AND "secret" = $3"#,
       vec![user.into(), road.into(), secret.into()],
     )
     .await?;
@@ -195,9 +195,9 @@ impl Route for PersonalSupplyAdd {
     let added = one(
       &written,
       &format!(
-        r#"INSERT INTO "personal_supply" ("user_id", "road", "secret", "place", "added_at")
+        r#"INSERT INTO "personal_supply" ("owner_account", "road", "secret", "place", "added_at")
            VALUES ($1, $2, $3,
-             (SELECT COALESCE(MAX("place"), 0) + 1 FROM "personal_supply" WHERE "user_id" = $1 AND "road" = $2),
+             (SELECT COALESCE(MAX("place"), 0) + 1 FROM "personal_supply" WHERE "owner_account" = $1 AND "road" = $2),
              $4)
            RETURNING {COLUMNS}"#
       ),
@@ -264,7 +264,7 @@ impl Route for PersonalSupplyChange {
       let road: String = key.try_get("", "road")?;
       let mut order: Vec<i64> = all(
         &written,
-        r#"SELECT "id" FROM "personal_supply" WHERE "user_id" = $1 AND "road" = $2 AND "id" <> $3
+        r#"SELECT "id" FROM "personal_supply" WHERE "owner_account" = $1 AND "road" = $2 AND "id" <> $3
            ORDER BY "place", "id""#,
         vec![user.into(), road.into(), key_id.into()],
       )
@@ -342,13 +342,13 @@ pub async fn off_board(
   let written = db.begin().await?;
   let accounts = run(
     &written,
-    r#"UPDATE "claude_accounts" SET "enabled" = 0 WHERE "user_id" = $1 AND "enabled" <> 0"#,
+    r#"UPDATE "claude_accounts" SET "enabled" = 0 WHERE "owner_account" = $1 AND "enabled" <> 0"#,
     vec![user.into()],
   )
   .await?;
   let keys = run(
     &written,
-    r#"UPDATE "personal_supply" SET "enabled" = false WHERE "user_id" = $1 AND "enabled""#,
+    r#"UPDATE "personal_supply" SET "enabled" = false WHERE "owner_account" = $1 AND "enabled""#,
     vec![user.into()],
   )
   .await?;

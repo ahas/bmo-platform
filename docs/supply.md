@@ -40,7 +40,7 @@ platform pays for takes it.
 - **A key is the person's secret in the console's secret store,** the file `users/<user>/<name>` under the data
   root's `env/`; agency is handed the name alone and reads the file only where a run or the gateway hands its key
   on. Its value never enters the store, a log line, a response or a command line.
-- **A Claude login or an `api-key` account of a person is a Claude account whose `user_id` is that person**
+- **A Claude login or an `api-key` account of a person is a Claude account whose `owner_account` is that person**
   (`docs/cache-fallback.md`, 「The Claude Code road is a list of accounts」). A login is signed in on the person's
   node (「Signing a person's login in」 below) and kept in a configuration directory there.
 - **A gateway key of a person is a row of personal supply:** the person, the road it serves (`codex`,

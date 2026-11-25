@@ -45,12 +45,14 @@ pub struct AgentRole {
 
 impl AgentRole {
   /// The most of an account's runs of this role that go at once: its agents of that account switched on
-  /// (docs/role-slots.md, 「Accounts」).
+  /// (docs/role-slots.md, 「Accounts」). `account` is the account id as the slot's line holds it, in digits.
   pub fn cap_for(&self, account: Option<&str>) -> i64 {
     self
       .agents
       .iter()
-      .filter(|agent| agent.enabled && agent.owner_account.as_deref() == account)
+      .filter(|agent| {
+        agent.enabled && agent.owner_account.map(|owner| owner.to_string()).as_deref() == account
+      })
       .count() as i64
   }
 

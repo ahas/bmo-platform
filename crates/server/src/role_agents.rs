@@ -16,7 +16,7 @@ pub struct RoleAgent {
   pub name: String,
   pub role: String,
   /// The login account whose seat it is, none for the deployment's own (docs/role-agents.md).
-  pub owner_account: Option<String>,
+  pub owner_account: Option<i64>,
   /// Its road: the provider and model its runs go out on, both or neither. An agent naming neither follows
   /// the supervisor that asks it.
   pub provider: Option<String>,
@@ -125,8 +125,8 @@ impl RoleAgent {
   /// Whether it is a candidate for an item naming this model in this role, for a launch of this account: switched
   /// on, of the role and the account, and on a road that runs the model (docs/role-agents.md, 「Which agent a run
   /// takes」).
-  pub fn candidate_for(&self, role: &str, model: &str, account: Option<&str>) -> bool {
-    self.enabled && self.role == role && self.owner_account.as_deref() == account && self.runs(model)
+  pub fn candidate_for(&self, role: &str, model: &str, account: Option<i64>) -> bool {
+    self.enabled && self.role == role && self.owner_account == account && self.runs(model)
   }
 }
 
@@ -160,7 +160,7 @@ pub async fn candidates<C: ConnectionTrait>(
   db: &C,
   role: &str,
   model: &str,
-  account: Option<&str>,
+  account: Option<i64>,
 ) -> Result<Vec<RoleAgent>, Fault> {
   Ok(
     of_role(db, role)
@@ -256,7 +256,7 @@ pub async fn write<C: ConnectionTrait>(db: &C, agent: &RoleAgent) -> Result<(), 
       kept(&agent.skills).into(),
       agent.added_at.into(),
       agent.sessions.word().into(),
-      agent.owner_account.clone().into(),
+      agent.owner_account.into(),
       agent.advisor.clone().into(),
       agent.follows_asker.map(i64::from).into(),
     ],

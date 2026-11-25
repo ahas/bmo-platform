@@ -138,7 +138,7 @@ async fn off_boarding_turns_a_person_s_supply_off_and_revokes_their_call_key() {
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('theirs', 'theirs', 90, 1, 'directory', '/logins/theirs', 0, 7),
                 ('others', 'others', 91, 1, 'directory', '/logins/others', 0, 8)"#,
       vec![],
@@ -146,7 +146,7 @@ async fn off_boarding_turns_a_person_s_supply_off_and_revokes_their_call_key() {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "personal_supply" ("user_id", "road", "secret", "place", "added_at")
+      r#"INSERT INTO "personal_supply" ("owner_account", "road", "secret", "place", "added_at")
          VALUES (7, 'deepseek', 'ds', 1, 0), (7, 'openrouter', 'or', 1, 0), (8, 'deepseek', 'ds', 1, 0)"#,
       vec![],
     )
@@ -178,7 +178,7 @@ async fn off_boarding_turns_a_person_s_supply_off_and_revokes_their_call_key() {
   assert_eq!(
     scratch
       .count(
-        r#"SELECT COUNT(*) FROM "claude_accounts" WHERE "enabled" = 1 AND "user_id" IS NOT NULL"#,
+        r#"SELECT COUNT(*) FROM "claude_accounts" WHERE "enabled" = 1 AND "owner_account" IS NOT NULL"#,
         vec![]
       )
       .await,

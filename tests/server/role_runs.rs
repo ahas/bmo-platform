@@ -98,7 +98,7 @@ async fn a_role_session_s_turn_is_a_run_under_its_title_and_room_closed_as_its_t
   let runs = runs_of(&scratch).await;
 
   assert_eq!(runs.len(), 1, "{runs:?}");
-  assert_eq!(runs[0].unit, "role-tester-1");
+  assert_eq!(runs[0].work_unit, "role-tester-1");
   assert_eq!(runs[0].title.as_deref(), Some("asked by tester: draw the figures"));
   assert_eq!(runs[0].chat_id, Some(-5));
   assert!(runs[0].finished_at.is_some(), "the run closes as its turn ends");
@@ -107,7 +107,7 @@ async fn a_role_session_s_turn_is_a_run_under_its_title_and_room_closed_as_its_t
   // A turn naming the unit its lines stand under is a run under that unit.
   let _ = sessions.send_turn(turn(asked("role-tester-2", Some("a-unit-of-its-own")))).await;
 
-  assert_eq!(runs_of(&scratch).await[0].unit, "a-unit-of-its-own");
+  assert_eq!(runs_of(&scratch).await[0].work_unit, "a-unit-of-its-own");
 }
 
 async fn call(port: u16, method: reqwest::Method, path: &str, body: Option<Value>) -> (u16, Value) {

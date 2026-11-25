@@ -283,7 +283,7 @@ async fn members(ground: &Ground, acting: Acting, road: &str) -> Result<Outcome,
       let keyed = one(
         &ground.db,
         r#"SELECT 1 AS "open" FROM "personal_supply"
-           WHERE "user_id" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
+           WHERE "owner_account" = $1 AND "road" = $2 AND "enabled" AND "refused_at" IS NULL LIMIT 1"#,
         vec![person.into(), road.into()],
       )
       .await?

@@ -238,7 +238,7 @@ fn bad(error: impl Into<String>) -> Refused {
 /// platform its own.
 pub(super) async fn account_views(judging: Judging<'_>, acting: Acting) -> Result<Vec<Value>, Refused> {
   match acting {
-    Acting::Person(user) => claude_accounts::views_of(judging, |one| one.user_id == Some(user)).await,
+    Acting::Person(user) => claude_accounts::views_of(judging, |one| one.owner_account == Some(user)).await,
     Acting::Platform => {
       let administrator = claude_accounts::administrator(judging.db).await?;
 
@@ -264,7 +264,10 @@ pub(super) fn unknown_account(id: &str) -> Refused {
 /// own alone for a person; another's is answered as unknown.
 async fn changed_account(judging: Judging<'_>, acting: Acting, id: &str) -> Result<(), Refused> {
   let Acting::Person(user) = acting else { return Ok(()) };
-  let theirs = accounts(judging.db).await?.iter().any(|one| one.id == id && one.user_id == Some(user));
+  let theirs = accounts(judging.db)
+    .await?
+    .iter()
+    .any(|one| one.id == id && one.owner_account == Some(user));
 
   if theirs { Ok(()) } else { Err(unknown_account(id)) }
 }
@@ -390,8 +393,8 @@ async fn own_change(
       }
 
       let owning = Owning {
-        user_id: acting.person(),
-        unit_id: None,
+        owner_account: acting.person(),
+        owner_unit: None,
         node: None,
       };
 
@@ -405,7 +408,7 @@ async fn own_change(
       changed_account(judging, acting, id).await?;
 
       let held = accounts(db).await?.into_iter().find(|one| one.id == id);
-      let owner = held.as_ref().and_then(|one| one.user_id);
+      let owner = held.as_ref().and_then(|one| one.owner_account);
       let given = credential_given(body)?
         .with_secret_under(held.map(|one| one.credential.kind()), judging.data_root, owner)
         .map_err(bad)?;

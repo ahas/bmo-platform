@@ -344,12 +344,11 @@ impl Route for CreateAssignment {
       if let Some(repository) = crate::repositories::named(db, assignee).await? {
         let account = crate::supervisors::named(db, &holder)
           .await?
-          .and_then(|supervisor| supervisor.owner_account)
-          .map(|account| account.to_string());
+          .and_then(|supervisor| supervisor.owner_account);
         let seating = super::support_growth::Seating {
           item: &asked["item"],
           role: &role,
-          account: account.as_deref(),
+          account,
         };
         let holding = super::support_growth::Holding {
           item_id,
@@ -933,9 +932,8 @@ impl Route for CreateJob {
     });
     let account = crate::supervisors::named(db, &holder)
       .await?
-      .and_then(|supervisor| supervisor.owner_account)
-      .map(|account| account.to_string());
-    let seat = item_seat(&call.shared_ground(), item_id, &item, &asked_role, account.as_deref()).await?;
+      .and_then(|supervisor| supervisor.owner_account);
+    let seat = item_seat(&call.shared_ground(), item_id, &item, &asked_role, account).await?;
     // A launch of the item opens where the last session that worked on it left off (docs/sessions.md, 「The
     // handoff a job's session leaves」).
     let prompt = match crate::job_handoff::of_item(&call.shared_ground(), item_id).await {
@@ -2699,7 +2697,7 @@ async fn item_seat(
   item_id: i64,
   item: &Value,
   role: &str,
-  account: Option<&str>,
+  account: Option<i64>,
 ) -> Result<Seat, Refused> {
   let db = &ground.db;
   let labels = &item["labels"];
@@ -3288,7 +3286,7 @@ impl<S: Sessions + Send + Sync> OnSession<'_, S> {
       &Opening {
         agent: self.worker.to_owned(),
         chat_id: member["roomId"].as_i64(),
-        unit: self.name.to_owned(),
+        work_unit: self.name.to_owned(),
         depth: 0,
         cap_ms: None,
         started_at: now_ms(),

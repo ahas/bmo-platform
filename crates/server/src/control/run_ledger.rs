@@ -30,9 +30,9 @@ fn bad(error: impl Into<String>) -> Refused {
 fn member(run: &run_ledger::Run) -> Value {
   json!({
     "id": run.id,
-    "name": format!("{}:{}", run.agent, run.unit),
+    "name": format!("{}:{}", run.agent, run.work_unit),
     "agentName": run.agent.clone(),
-    "unitName": run.unit.clone(),
+    "unitName": run.work_unit.clone(),
     "title": run.title.clone(),
     "workerName": Value::Null,
     "jobId": Value::Null,

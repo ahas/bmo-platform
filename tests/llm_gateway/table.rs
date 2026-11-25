@@ -23,7 +23,7 @@ fn registration(name: &str, addresses: Vec<RegisteredAddress>) -> Registration {
     keeps_research: false,
     card_service: None,
     role_files: false,
-    account: None,
+    owner_account: None,
     addresses,
   }
 }
@@ -364,11 +364,11 @@ fn road_member(name: &str, road: Option<&str>) -> Member {
   }
 }
 
-fn personal_key(id: i64, user_id: i64, road: &str, secret: &str, place: i64) -> PersonalKey {
+fn personal_key(id: i64, owner_account: i64, road: &str, secret: &str, place: i64) -> PersonalKey {
   PersonalKey {
     id,
-    user_id: Some(user_id),
-    unit_id: None,
+    owner_account: Some(owner_account),
+    owner_unit: None,
     road: road.into(),
     secret: secret.into(),
     place,
@@ -462,8 +462,8 @@ fn owner_number(owner: Owner) -> i64 {
 fn a_units_lowest_open_key_of_a_road_lays_one_member_of_the_unit_beside_each_member_of_that_road() {
   let members = [road_member("router-a", Some("openrouter")), road_member("flash", Some("deepseek"))];
   let unit_key = |id: i64, secret: &str, place: i64| PersonalKey {
-    user_id: None,
-    unit_id: Some(12),
+    owner_account: None,
+    owner_unit: Some(12),
     ..personal_key(id, 0, "openrouter", secret, place)
   };
   let keys = [

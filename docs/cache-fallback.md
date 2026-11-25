@@ -256,7 +256,7 @@ When a demotion first catches — when a healthy session first drops — two thi
   walk carries them to the next account as above (「A login that is about to end」).
 - **A road names the provider; the Claude Code road holds the accounts.** The account order is one list for
   the deployment, and it is what every run on the Claude Code road walks.
-- **An account belongs to a person or to the platform:** its `user_id` names the person, or none for the
+- **An account belongs to a person or to the platform:** its `owner_account` names the person, or none for the
   platform's. A person's run on personal supply walks that person's own accounts alone, in the list's order; a
   person's run on a platform source walks the accounts marked lendable alone, whoever owns them, save that
   person's own, and none is marked until the administrator marks one (`docs/supply.md`, 「The lendable

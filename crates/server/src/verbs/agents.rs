@@ -715,7 +715,7 @@ async fn account_change(
     // A credential given in part keeps the parts the account already holds; the id never moves. An api-key
     // account's secret is resolved in its owner's space under the data root's env/.
     let given = match credential_given
-      .then(|| credential().with_secret_under(Some(held.credential.kind()), data_root, held.user_id))
+      .then(|| credential().with_secret_under(Some(held.credential.kind()), data_root, held.owner_account))
       .transpose()
     {
       Ok(given) => given,

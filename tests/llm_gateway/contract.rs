@@ -1699,7 +1699,7 @@ async fn a_call_key_issued_after_the_last_reading_is_looked_up_and_taken() {
 
 #[tokio::test]
 async fn a_personal_member_answers_its_own_persons_call_key_alone() {
-  let person = "INSERT INTO personal_supply (user_id, road, secret, place, enabled, added_at, refused_at) \
+  let person = "INSERT INTO personal_supply (owner_account, road, secret, place, enabled, added_at, refused_at) \
                 VALUES (7, 'openrouter', 'router-own', 1, true, 1, NULL);";
   let world = World::new(&format!(
     "{PAIR}{}{}{person}{SUPPLY_HOOK}",
@@ -1743,7 +1743,7 @@ async fn a_personal_member_answers_its_own_persons_call_key_alone() {
 
 #[tokio::test]
 async fn the_administrators_personal_member_answers_the_administrators_call_key_and_not_the_gateways() {
-  let person = "INSERT INTO personal_supply (user_id, road, secret, place, enabled, added_at, refused_at) \
+  let person = "INSERT INTO personal_supply (owner_account, road, secret, place, enabled, added_at, refused_at) \
                 VALUES (1, 'openrouter', 'router-own', 1, true, 1, NULL);";
   let world = World::new(&format!(
     "{PAIR}{ADMINISTRATOR}{}{person}{SUPPLY_HOOK}",

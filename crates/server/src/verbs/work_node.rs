@@ -509,7 +509,7 @@ async fn logins(
     held
       .iter()
       .filter(|account| account.credential.runs_on_nodes())
-      .filter(|account| only_user.is_none() || account.user_id == only_user)
+      .filter(|account| only_user.is_none() || account.owner_account == only_user)
       .map(|account| SetupLogin {
         account: account.name.clone(),
         own_directory: account.credential.own_home().is_some(),

@@ -68,7 +68,7 @@ async fn accounts_of_four(scratch: &Scratch, home: &std::path::Path) {
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('main', 'main', 1, 1, 'directory', $1, 0, NULL),
                 ('owner', 'owner', 2, 1, 'directory', $1, 0, 1),
                 ('seven', 'seven', 3, 1, 'directory', $1, 0, 7),
@@ -85,7 +85,7 @@ async fn accounts_of_four(scratch: &Scratch, home: &std::path::Path) {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "personal_supply" ("user_id", "road", "secret", "place", "added_at")
+      r#"INSERT INTO "personal_supply" ("owner_account", "road", "secret", "place", "added_at")
          VALUES (8, 'deepseek', 'ds', 1, 0)"#,
       vec![],
     )

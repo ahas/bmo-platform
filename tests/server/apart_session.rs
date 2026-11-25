@@ -1194,7 +1194,7 @@ async fn a_job_on_a_registered_model_is_held_where_its_final_answer_is_a_tool_ca
     card_service: None,
     role_files: false,
     languages: vec![],
-    account: None,
+    owner_account: None,
     enabled: true,
     addresses: vec![],
   };

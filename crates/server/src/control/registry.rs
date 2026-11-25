@@ -71,7 +71,7 @@ pub struct Registration {
   /// language (docs/own-llm.md, 「What a registration holds」).
   pub languages: Vec<String>,
   /// The account it belongs to, none for the platform's (docs/supply.md, 「Owned supply」).
-  pub account: Option<i64>,
+  pub owner_account: Option<i64>,
   /// Whether it is on: a person's local AI they switched off offers no supply (docs/supply.md, 「A person's local
   /// AI」).
   pub enabled: bool,
@@ -145,7 +145,7 @@ pub async fn registrations<C: ConnectionTrait>(db: &C) -> Result<Vec<Registratio
       card_service: row.try_get("", "card_service")?,
       role_files: flag(&row, "role_files")?,
       languages: languages(&row)?,
-      account: row.try_get("", "account")?,
+      owner_account: row.try_get("", "owner_account")?,
       enabled: flag(&row, "enabled")?,
       addresses: held,
       name,
@@ -247,7 +247,7 @@ pub async fn registered_model<C: ConnectionTrait>(
   let Some(row) = one(
     db,
     r#"SELECT "model", "card_service", "role_files", "context_tokens", "answer_tokens", "thinking",
-         "languages", "account" FROM "registered_models" WHERE "name" = $1"#,
+         "languages", "owner_account" FROM "registered_models" WHERE "name" = $1"#,
     vec![name.into()],
   )
   .await?
@@ -283,7 +283,7 @@ pub async fn registered_model<C: ConnectionTrait>(
     "answerTokens": row.try_get::<i64>("", "answer_tokens")?,
     "thinking": flag(&row, "thinking")?,
     "languages": languages(&row)?,
-    "account": row.try_get::<Option<i64>>("", "account")?,
+    "account": row.try_get::<Option<i64>>("", "owner_account")?,
   })))
 }
 
@@ -581,7 +581,7 @@ pub async fn view<C: ConnectionTrait>(db: &C, data_root: &Path) -> Result<Value,
       "cardService": one.card_service,
       "roleFiles": one.role_files,
       "languages": one.languages,
-      "account": one.account,
+      "account": one.owner_account,
       "addresses": addresses,
       "referrers": referrers(db, &one.name).await?,
     }));
@@ -835,7 +835,7 @@ impl<C: ConnectionTrait> Change<'_, C> {
 
     run(
       self.db,
-      "UPDATE registered_models SET account = $1 WHERE name = $2",
+      "UPDATE registered_models SET owner_account = $1 WHERE name = $2",
       vec![account.into(), name.into()],
     )
     .await?;

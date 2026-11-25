@@ -490,9 +490,7 @@ async fn around_role(
   seat: Option<&crate::role_agents::RoleAgent>,
   role: Option<String>,
 ) -> Result<Option<String>, Refusal> {
-  let Some((seat, account)) =
-    seat.and_then(|seat| Some((seat, seat.owner_account.as_deref()?.trim().parse::<i64>().ok()?)))
-  else {
+  let Some((seat, account)) = seat.and_then(|seat| Some((seat, seat.owner_account?))) else {
     return Ok(role);
   };
   let layers = crate::prompt_layers::of(&ground.db, &crate::apps::service(ground), Some(account))

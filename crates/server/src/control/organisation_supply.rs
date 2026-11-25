@@ -108,7 +108,7 @@ async fn items(ground: &Ground, unit: i64) -> Result<Vec<Value>, Refused> {
   let mut items = all(
     db,
     &format!(
-      r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "unit_id" = $1 ORDER BY "road", "place", "id""#
+      r#"SELECT {COLUMNS} FROM "personal_supply" WHERE "owner_unit" = $1 ORDER BY "road", "place", "id""#
     ),
     vec![unit.into()],
   )
@@ -117,7 +117,7 @@ async fn items(ground: &Ground, unit: i64) -> Result<Vec<Value>, Refused> {
   .map(key_item)
   .collect::<Result<Vec<_>, _>>()?;
 
-  for account in accounts(db).await?.into_iter().filter(|one| one.unit_id == Some(unit)) {
+  for account in accounts(db).await?.into_iter().filter(|one| one.owner_unit == Some(unit)) {
     items.push(json!({
       "id": format!("{ACCOUNT}{}", account.id),
       "road": CLAUDE_CODE_ROAD,
@@ -209,7 +209,7 @@ impl Route for OrganisationSupplyAdd {
     let written = ground.db.begin().await?;
     let taken = one(
       &written,
-      r#"SELECT 1 AS "taken" FROM "personal_supply" WHERE "unit_id" = $1 AND "road" = $2 AND "secret" = $3"#,
+      r#"SELECT 1 AS "taken" FROM "personal_supply" WHERE "owner_unit" = $1 AND "road" = $2 AND "secret" = $3"#,
       vec![unit.into(), road.clone().into(), secret.clone().into()],
     )
     .await?;
@@ -221,9 +221,9 @@ impl Route for OrganisationSupplyAdd {
     let added = one(
       &written,
       &format!(
-        r#"INSERT INTO "personal_supply" ("unit_id", "road", "secret", "place", "added_at")
+        r#"INSERT INTO "personal_supply" ("owner_unit", "road", "secret", "place", "added_at")
            VALUES ($1, $2, $3,
-             (SELECT COALESCE(MAX("place"), 0) + 1 FROM "personal_supply" WHERE "unit_id" = $1 AND "road" = $2),
+             (SELECT COALESCE(MAX("place"), 0) + 1 FROM "personal_supply" WHERE "owner_unit" = $1 AND "road" = $2),
              $4)
            RETURNING {COLUMNS}"#
       ),
@@ -253,7 +253,7 @@ async fn add_account(ground: &Ground, unit: i64, secret: &str) -> Result<Respons
   let key_file = data_root.join("env").join("units").join(unit.to_string()).join(secret);
 
   if accounts(db).await?.iter().any(|one| {
-    one.unit_id == Some(unit) && one.credential.key_file().is_some_and(|file| file == key_file.as_path())
+    one.owner_unit == Some(unit) && one.credential.key_file().is_some_and(|file| file == key_file.as_path())
   }) {
     return Err(taken_refusal(CLAUDE_CODE_ROAD));
   }
@@ -271,8 +271,8 @@ async fn add_account(ground: &Ground, unit: i64, secret: &str) -> Result<Respons
     ..CredentialGiven::default()
   };
   let owning = Owning {
-    user_id: None,
-    unit_id: Some(unit),
+    owner_account: None,
+    owner_unit: Some(unit),
     node: None,
   };
   let id = changes::add_owned(db, &name, &given, BasePromptGiven::Keep, &owning).await?;
@@ -295,7 +295,7 @@ async fn item_of(ground: &Ground, named: &str, unit: i64) -> Result<Item, Refuse
   if let Some(id) = named.strip_prefix(KEY).and_then(|id| id.parse::<i64>().ok()) {
     let held = one(
       &ground.db,
-      r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "id" = $1 AND "unit_id" = $2"#,
+      r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "id" = $1 AND "owner_unit" = $2"#,
       vec![id.into(), unit.into()],
     )
     .await?;
@@ -304,7 +304,10 @@ async fn item_of(ground: &Ground, named: &str, unit: i64) -> Result<Item, Refuse
   }
 
   if let Some(id) = named.strip_prefix(ACCOUNT)
-    && accounts(&ground.db).await?.iter().any(|one| one.id == id && one.unit_id == Some(unit))
+    && accounts(&ground.db)
+      .await?
+      .iter()
+      .any(|one| one.id == id && one.owner_unit == Some(unit))
   {
     return Ok(Item::Account(id.to_owned()));
   }
@@ -391,13 +394,18 @@ async fn any_supply(ground: &Ground, units: &[i64]) -> Result<bool, Refused> {
   for unit in units {
     let keyed = one(
       &ground.db,
-      r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "unit_id" = $1 AND "enabled" LIMIT 1"#,
+      r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "owner_unit" = $1 AND "enabled" LIMIT 1"#,
       vec![(*unit).into()],
     )
     .await?
     .is_some();
 
-    if keyed || accounts(&ground.db).await?.iter().any(|one| one.unit_id == Some(*unit) && one.enabled) {
+    if keyed
+      || accounts(&ground.db)
+        .await?
+        .iter()
+        .any(|one| one.owner_unit == Some(*unit) && one.enabled)
+    {
       return Ok(true);
     }
   }
@@ -410,7 +418,7 @@ async fn any_supply(ground: &Ground, units: &[i64]) -> Result<bool, Refused> {
 async fn own_supply(ground: &Ground, person: i64) -> Result<bool, Refused> {
   let keyed = one(
     &ground.db,
-    r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "user_id" = $1 AND "enabled" LIMIT 1"#,
+    r#"SELECT 1 AS "held" FROM "personal_supply" WHERE "owner_account" = $1 AND "enabled" LIMIT 1"#,
     vec![person.into()],
   )
   .await?
@@ -421,7 +429,10 @@ async fn own_supply(ground: &Ground, person: i64) -> Result<bool, Refused> {
   Ok(
     keyed
       || local
-      || accounts(&ground.db).await?.iter().any(|one| one.user_id == Some(person) && one.enabled),
+      || accounts(&ground.db)
+        .await?
+        .iter()
+        .any(|one| one.owner_account == Some(person) && one.enabled),
   )
 }
 

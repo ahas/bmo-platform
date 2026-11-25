@@ -345,7 +345,7 @@ async fn recorded(
     &run_ledger::Opening {
       agent: work.role().clone(),
       chat_id: None,
-      unit: unit.clone(),
+      work_unit: unit.clone(),
       depth: 0,
       cap_ms: None,
       started_at: at,

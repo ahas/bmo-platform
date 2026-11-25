@@ -48,7 +48,7 @@ async fn a_run_whose_turn_ended_without_closing_it_is_closed_as_cut_and_its_log_
   scratch
     .run(
       r#"INSERT INTO "runs"
-           ("id", "agent", "chat_id", "unit", "depth", "started_at", "finished_at", "outcome", "carried")
+           ("id", "agent", "chat_id", "work_unit", "depth", "started_at", "finished_at", "outcome", "carried")
          VALUES (1, 'chat-agent', -5, 'chat:-5:1', 0, $1, NULL, NULL, true),
                 (2, 'chat-agent', -5, 'chat:-5:2', 0, $1, NULL, NULL, true),
                 (3, 'chat-agent', -5, 'chat:-5:3', 0, $2, NULL, NULL, true),

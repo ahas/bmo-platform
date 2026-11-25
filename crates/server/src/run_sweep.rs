@@ -32,8 +32,8 @@ pub async fn pass(ground: &Ground) -> Result<usize, Refusal> {
   let now = now_ms();
   let open = all(
     &ground.db,
-    r#"SELECT "id", "agent", "unit", "chat_id", "started_at", "carried" FROM "runs"
-       WHERE "finished_at" IS NULL AND ("unit" LIKE 'job-%' OR "carried")
+    r#"SELECT "id", "agent", "work_unit", "chat_id", "started_at", "carried" FROM "runs"
+       WHERE "finished_at" IS NULL AND ("work_unit" LIKE 'job-%' OR "carried")
        ORDER BY "id""#,
     vec![],
   )
@@ -50,7 +50,7 @@ pub async fn pass(ground: &Ground) -> Result<usize, Refusal> {
     let (Ok(id), Ok(agent), Ok(unit)) = (
       row.try_get::<i64>("", "id"),
       row.try_get::<String>("", "agent"),
-      row.try_get::<String>("", "unit"),
+      row.try_get::<String>("", "work_unit"),
     ) else {
       continue;
     };

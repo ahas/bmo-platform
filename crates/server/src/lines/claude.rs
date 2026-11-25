@@ -339,7 +339,7 @@ pub fn account_env(
       Ok(env)
     }
     Credential::ApiKey { home, key_file } => {
-      if matches!(runs, Runs::OnNode { .. }) && account.user_id.is_none() {
+      if matches!(runs, Runs::OnNode { .. }) && account.owner_account.is_none() {
         return Err(fault(format!(
           "Account {} is the platform's api-key account, whose key does not go out to a work node.",
           account.id

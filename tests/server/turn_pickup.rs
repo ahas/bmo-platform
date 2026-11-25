@@ -189,7 +189,7 @@ async fn a_job_whose_turn_ended_after_the_restart_ends_with_its_report_and_a_cha
     .await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("agent", "unit", "depth", "started_at", "id") VALUES
+      r#"INSERT INTO "runs" ("agent", "work_unit", "depth", "started_at", "id") VALUES
            ('worker-a', 'job-6', 0, $1, 600), ('agent-a', 'chat:5:1', 0, $1, 601)"#,
       vec![old.into()],
     )

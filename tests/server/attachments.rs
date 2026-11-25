@@ -114,7 +114,7 @@ async fn stood() -> Stood {
     let mut agent = role_agents::of_role(scratch.db(), role).await.unwrap().remove(0);
 
     agent.name = name.to_owned();
-    agent.owner_account = Some(ACCOUNT.to_owned());
+    agent.owner_account = Some(ACCOUNT.parse().unwrap());
     agent.skills = None;
     role_agents::write(scratch.db(), &agent).await.unwrap();
   }

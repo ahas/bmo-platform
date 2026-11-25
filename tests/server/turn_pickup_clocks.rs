@@ -287,7 +287,7 @@ async fn a_resumed_job_past_its_bound_ends_stopped_and_its_item_is_released() {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("id", "agent", "unit", "depth", "started_at")
+      r#"INSERT INTO "runs" ("id", "agent", "work_unit", "depth", "started_at")
          VALUES (100, 'worker', 'job-41', 0, $1)"#,
       vec![began.into()],
     )
@@ -436,7 +436,7 @@ async fn a_turn_resumed_through_the_pickup_is_cut_and_handed_back() {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("id", "agent", "unit", "depth", "started_at")
+      r#"INSERT INTO "runs" ("id", "agent", "work_unit", "depth", "started_at")
          VALUES (100, 'worker', 'job-41', 0, $1)"#,
       vec![began.into()],
     )

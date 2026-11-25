@@ -45,7 +45,7 @@ async fn a_job_cut_at_its_bound_is_stopped_and_its_lease_is_given_back() {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("id", "agent", "unit", "depth", "started_at")
+      r#"INSERT INTO "runs" ("id", "agent", "work_unit", "depth", "started_at")
          VALUES (100, 'worker', 'job-41', 0, $1)"#,
       vec![began.into()],
     )

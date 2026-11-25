@@ -80,7 +80,7 @@ pub async fn of_person<C: ConnectionTrait>(db: &C, account: i64) -> Result<Vec<L
     r#"SELECT m."name", m."model", m."context_tokens", m."enabled", m."added_at",
          a."url", a."key_file", a."reach_port"
        FROM "registered_models" m JOIN "registered_model_addresses" a ON a."registration" = m."name"
-       WHERE m."account" = $1 AND a."reach_port" IS NOT NULL
+       WHERE m."owner_account" = $1 AND a."reach_port" IS NOT NULL
        ORDER BY m."added_at", m."name""#,
     vec![account.into()],
   )

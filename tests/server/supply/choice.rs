@@ -340,7 +340,7 @@ async fn an_account_marked_lendable_is_lent_on_a_platform_source_whoever_owns_it
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('owner', 'owner', 1, 1, 'directory', $1, 0, 1),
                 ('eight', 'eight', 2, 1, 'directory', $1, 0, 8)"#,
       vec![login.to_string_lossy().into_owned().into()],
@@ -417,7 +417,7 @@ async fn a_closed_run_names_the_reason_the_last_source_failed_in_a_sentence_of_i
   personal_key(scratch.db(), "deepseek").await;
   scratch
     .run(
-      r#"UPDATE "personal_supply" SET "refused_at" = 1 WHERE "user_id" = $1"#,
+      r#"UPDATE "personal_supply" SET "refused_at" = 1 WHERE "owner_account" = $1"#,
       vec![PERSON.into()],
     )
     .await;
@@ -467,7 +467,7 @@ async fn no_login_is_lent_to_a_person_whose_node_other_accounts_share() {
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('owner', 'owner', 1, 1, 'directory', $1, 0, 1)"#,
       vec![login.to_string_lossy().into_owned().into()],
     )

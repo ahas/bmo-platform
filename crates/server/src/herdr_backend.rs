@@ -4459,7 +4459,7 @@ impl CarriedRun {
     let opening = run_ledger::Opening {
       agent: agent.to_owned(),
       chat_id: self.room,
-      unit: self.unit.clone(),
+      work_unit: self.unit.clone(),
       depth: 0,
       cap_ms: None,
       started_at: at,

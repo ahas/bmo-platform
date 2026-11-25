@@ -40,13 +40,13 @@ pub struct ListArgs {
 pub struct RunRow {
   pub id: i64,
   pub agent: String,
-  pub unit: String,
+  pub work_unit: String,
   pub started_at: i64,
 }
 
 impl RunRow {
   pub fn target(&self) -> String {
-    format!("unit:{}", self.unit)
+    format!("unit:{}", self.work_unit)
   }
 }
 
@@ -125,7 +125,7 @@ pub struct Picture {
 async fn open_runs(db: &sea_orm::DatabaseConnection) -> Result<Vec<RunRow>, Refusal> {
   let rows = all(
     db,
-    r#"SELECT "id", "agent", "unit", "started_at" FROM "runs"
+    r#"SELECT "id", "agent", "work_unit", "started_at" FROM "runs"
        WHERE "finished_at" IS NULL ORDER BY "started_at""#,
     vec![],
   )
@@ -138,7 +138,7 @@ async fn open_runs(db: &sea_orm::DatabaseConnection) -> Result<Vec<RunRow>, Refu
         Ok(RunRow {
           id: row.try_get("", "id")?,
           agent: row.try_get("", "agent")?,
-          unit: row.try_get("", "unit")?,
+          work_unit: row.try_get("", "work_unit")?,
           started_at: row.try_get("", "started_at")?,
         })
       })
@@ -350,7 +350,7 @@ pub fn text(picture: &Picture) -> Vec<String> {
       &[
         ("target", &run.target()),
         ("agent", &run.agent),
-        ("unit", &run.unit),
+        ("unit", &run.work_unit),
         ("started", &started(Some(run.started_at))),
         ("elapsed", &elapsed(run.started_at)),
       ],
@@ -430,9 +430,9 @@ pub fn value(picture: &Picture) -> Value {
     "runs": picture.runs.iter().map(|run| json!({
       "id": run.id,
       "agent": run.agent,
-      "unit": run.unit,
+      "unit": run.work_unit,
       "startedAt": run.started_at,
-      "stop": { "kind": "unit", "id": run.unit },
+      "stop": { "kind": "unit", "id": run.work_unit },
     })).collect::<Vec<_>>(),
     "jobs": picture.jobs.iter().map(|job| json!({
       "id": job.id,

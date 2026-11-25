@@ -1049,7 +1049,7 @@ async fn a_room_names_its_supervisor_only_where_exactly_one_spoke_there() {
   let run_in = async |agent: &str, room: i64, unit: &str| {
     store::run(
       db,
-      r#"INSERT INTO "runs" ("agent", "chat_id", "unit", "depth", "started_at") VALUES ($1, $2, $3, 0, 1)"#,
+      r#"INSERT INTO "runs" ("agent", "chat_id", "work_unit", "depth", "started_at") VALUES ($1, $2, $3, 0, 1)"#,
       vec![agent.into(), room.into(), unit.into()],
     )
     .await

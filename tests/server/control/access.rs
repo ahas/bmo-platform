@@ -326,7 +326,7 @@ async fn rows(scratch: &Scratch, home: &std::path::Path) {
     scratch
       .run(
         r#"INSERT INTO "role_agents" ("name", "role", "owner_account") VALUES ($1, 'worker', $2)"#,
-        vec![format!("worker-{side}").into(), account.map(|account| account.to_string()).into()],
+        vec![format!("worker-{side}").into(), account.into()],
       )
       .await;
   }

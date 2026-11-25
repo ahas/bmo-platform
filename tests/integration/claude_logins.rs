@@ -533,7 +533,7 @@ async fn an_organisations_login_neither_holds_the_rest_nor_lifts_it() {
   bench
     .scratch
     .run(
-      r#"INSERT INTO "claude_accounts" ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "unit_id")
+      r#"INSERT INTO "claude_accounts" ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_unit")
          VALUES ('unit', 'unit', 3, 1, 'directory', $1, 1, 7)"#,
       vec![home.to_string_lossy().into_owned().into()],
     )

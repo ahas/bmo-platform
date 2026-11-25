@@ -225,7 +225,7 @@ both. `road-verbs` is what the procedures tool asks a room's road.
 - **Every supervisor is a row** (`docs/supervisors.md`), and these routes add, change, reset and end any of
   them alike.
 - **A supervisor is owned by a login account,** `ownerAccount`: the id of the user it belongs to, the same id
-  an account's `user_id` names (`docs/store.md`). None means the administrator's. A member named on the call
+  an account's `owner_account` names (`docs/store.md`). None means the administrator's. A member named on the call
   registers, changes, resets and ends the supervisors of their own account alone, and registers one under it
   (「Who a caller acts for」); the platform's own call writes the owner it is handed.
 - **A supervisor answers its row:** `name`, `label`, `ownerAccount`; `aliases`, its call names as one line

@@ -12,8 +12,8 @@ fn account(id: &str, credential: Credential) -> Account {
     enabled: true,
     credential,
     needs_login_at: None,
-    user_id: None,
-    unit_id: None,
+    owner_account: None,
+    owner_unit: None,
     node: None,
     lendable: false,
     base_prompt: None,
@@ -422,8 +422,8 @@ fn an_api_key_login_hands_its_home_and_its_key_and_clears_every_other_credential
     data_root: dir.path().into(),
   };
   let persons = Account {
-    user_id: Some(7),
-    unit_id: None,
+    owner_account: Some(7),
+    owner_unit: None,
     ..account("persons", keyed)
   };
 
@@ -440,8 +440,8 @@ fn an_api_key_login_hands_its_home_and_its_key_and_clears_every_other_credential
 fn a_person_s_login_on_their_node_is_handed_its_directory_there_and_no_token() {
   let data = tempfile::tempdir().unwrap();
   let held = Account {
-    user_id: Some(7),
-    unit_id: None,
+    owner_account: Some(7),
+    owner_unit: None,
     node: Some("pc-7".into()),
     ..account(
       "theirs",

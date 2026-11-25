@@ -570,7 +570,7 @@ pub fn lent_login(held: &[Account], config_dir: &Path, owner: i64) -> Option<Str
   held
     .iter()
     .filter(|account| account.credential.own_home() == Some(config_dir))
-    .find(|account| account.user_id != Some(owner) && account.unit_id.is_none())
+    .find(|account| account.owner_account != Some(owner) && account.owner_unit.is_none())
     .map(|account| account.id.clone())
 }
 

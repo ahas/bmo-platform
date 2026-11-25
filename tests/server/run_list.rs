@@ -18,7 +18,7 @@ async fn seeded(scratch: &Scratch) -> Vec<i64> {
       &Opening {
         agent: if at < 3 { "agent-a".into() } else { "agent-b".into() },
         chat_id: Some(if at % 3 == 0 { -5 } else { -6 }),
-        unit: format!("unit-{at}"),
+        work_unit: format!("unit-{at}"),
         depth: 0,
         cap_ms: None,
         started_at: 1_000 + at,

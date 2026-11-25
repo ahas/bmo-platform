@@ -232,7 +232,7 @@ async fn a_person_adds_a_local_ai_tried_from_their_pc_under_their_chain() {
 
   let held = agency_server::control::registry::registration(&db, "u7-ollama").await.unwrap().unwrap();
 
-  assert_eq!(held.account, Some(7));
+  assert_eq!(held.owner_account, Some(7));
   assert_eq!(held.addresses.len(), 1);
   assert_eq!(held.addresses[0].node, SUPPLY.local_ai.node);
   assert_eq!(held.addresses[0].key_file.as_deref(), Some("users/7/local-secret"));

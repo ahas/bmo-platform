@@ -111,7 +111,7 @@ impl Route for AccountHeld {
     let judging = Judging::of(call.ground());
     let administrator = super::claude_accounts::administrator(call.store()).await?;
     let shown = |account: &super::claude_accounts::Account| match acting {
-      crate::access::Acting::Person(user) => account.user_id == Some(user),
+      crate::access::Acting::Person(user) => account.owner_account == Some(user),
       crate::access::Acting::Platform => {
         user.is_some() || super::claude_accounts::platform_owned(account, administrator)
       }
@@ -121,7 +121,7 @@ impl Route for AccountHeld {
       let (session, week) = account_headlines(judging.windows, &account).await?;
       let balance = account_balance(judging.windows, &account).await?;
       let held = match wanted {
-        Some(user) => account.user_id == Some(user) && account.enabled,
+        Some(user) => account.owner_account == Some(user) && account.enabled,
         None => account.enabled,
       };
       let (endpoint, _, models) = account.credential.endpoint_parts();
@@ -129,7 +129,7 @@ impl Route for AccountHeld {
       items.push(json!({
         "id": account.id,
         "provider": "claude-code",
-        "userName": account.user_id,
+        "userName": account.owner_account,
         "held": held,
         "home": account.records_dir(machine).to_string_lossy(),
         "window": Value::Null,
@@ -142,7 +142,7 @@ impl Route for AccountHeld {
         "keyFile": account.credential.key_file().map(|file| file.to_string_lossy()),
         "models": models,
         "basePrompt": account.base_prompt,
-        "userId": account.user_id,
+        "userId": account.owner_account,
         "node": account.node,
         "lendable": account.lendable,
       }));

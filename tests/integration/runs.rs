@@ -18,7 +18,7 @@ fn picture() -> Picture {
     runs: vec![RunRow {
       id: 1,
       agent: "worker".into(),
-      unit: UNIT.into(),
+      work_unit: UNIT.into(),
       started_at: 1,
     }],
     jobs: vec![JobRow {
@@ -105,7 +105,7 @@ async fn the_picture_reads_the_store_s_open_runs_jobs_and_executions() {
 
   scratch
     .run(
-      r#"INSERT INTO "runs" ("agent", "unit", "depth", "started_at") VALUES ('worker', $1, 0, 1)"#,
+      r#"INSERT INTO "runs" ("agent", "work_unit", "depth", "started_at") VALUES ('worker', $1, 0, 1)"#,
       vec![UNIT.into()],
     )
     .await;
@@ -132,7 +132,7 @@ async fn the_picture_reads_the_store_s_open_runs_jobs_and_executions() {
   let picture = run_list::picture(&ground).await.unwrap();
 
   assert_eq!(picture.runs.len(), 1);
-  assert_eq!(picture.runs[0].unit, UNIT);
+  assert_eq!(picture.runs[0].work_unit, UNIT);
   assert_eq!(picture.jobs.len(), 1);
   assert_eq!(picture.jobs[0].item_id, 2038);
   assert_eq!(picture.executions.len(), 1);

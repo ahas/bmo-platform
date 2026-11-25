@@ -36,11 +36,11 @@ impl Payer {
 pub struct PersonalKey {
   pub id: i64,
   /// The person whose key it is, where a person's.
-  pub user_id: Option<i64>,
+  pub owner_account: Option<i64>,
   /// The organisation unit whose key it is, where a unit's.
-  pub unit_id: Option<i64>,
+  pub owner_unit: Option<i64>,
   pub road: String,
-  /// The secret's name under its owner's folder, `users/<user_id>/` or `units/<unit_id>/` under the data root's
+  /// The secret's name under its owner's folder, `users/<owner_account>/` or `units/<owner_unit>/` under the data root's
   /// `env/`.
   pub secret: String,
   /// Its place among the person's keys of the road, the lowest taken first.
@@ -53,7 +53,7 @@ pub struct PersonalKey {
 impl PersonalKey {
   /// Whose key it is: the person's or the unit's, none for a row that names neither.
   pub fn owner(&self) -> Option<crate::table::Owner> {
-    match (self.user_id, self.unit_id) {
+    match (self.owner_account, self.owner_unit) {
       (Some(user), _) => Some(crate::table::Owner::Personal(user)),
       (None, Some(unit)) => Some(crate::table::Owner::Organisation(unit)),
       (None, None) => None,
@@ -110,8 +110,8 @@ async fn read_on(store: &mut AnyConnection) -> Result<Reading, sqlx::Error> {
     .map(|row| Ok((row.try_get::<String, _>("key_hash")?, row.try_get::<i64, _>("account")?)))
     .collect::<Result<HashMap<_, _>, sqlx::Error>>()?;
   let personal = sqlx::query(
-    "SELECT id, user_id, unit_id, road, secret, place, enabled, refused_at FROM personal_supply \
-     ORDER BY user_id, unit_id, road, place, id",
+    "SELECT id, owner_account, owner_unit, road, secret, place, enabled, refused_at FROM personal_supply \
+     ORDER BY owner_account, owner_unit, road, place, id",
   )
   .fetch_all(&mut *store)
   .await?
@@ -119,8 +119,8 @@ async fn read_on(store: &mut AnyConnection) -> Result<Reading, sqlx::Error> {
   .map(|row| {
     Ok(PersonalKey {
       id: row.try_get("id")?,
-      user_id: row.try_get("user_id")?,
-      unit_id: row.try_get("unit_id")?,
+      owner_account: row.try_get("owner_account")?,
+      owner_unit: row.try_get("owner_unit")?,
       road: row.try_get("road")?,
       secret: row.try_get("secret")?,
       place: row.try_get("place")?,

@@ -92,7 +92,7 @@ async fn a_chat_turn_s_run_carries_its_room_its_round_and_the_message_it_answers
   let run = &runs[0];
 
   assert_eq!(run.agent, "chat-agent");
-  assert!(run.unit.starts_with("chat:-5:"), "{}", run.unit);
+  assert!(run.work_unit.starts_with("chat:-5:"), "{}", run.work_unit);
   assert_eq!(run.chat_id, Some(-5));
   assert_eq!(run.round.as_deref(), Some("round:-5:1000:1"));
   assert_eq!(run.message_id, Some(9), "the latest message the turn answers");
@@ -135,7 +135,7 @@ async fn the_routes_answer_a_chat_run_by_its_room_and_round_and_its_lines_by_its
     &run_ledger::Opening {
       agent: "chat-agent".into(),
       chat_id: Some(-5),
-      unit: "chat:-5:1000".into(),
+      work_unit: "chat:-5:1000".into(),
       depth: 0,
       cap_ms: None,
       started_at: agency_server::now_ms(),
@@ -155,7 +155,7 @@ async fn the_routes_answer_a_chat_run_by_its_room_and_round_and_its_lines_by_its
     &run_ledger::Opening {
       agent: "chat-agent".into(),
       chat_id: Some(-6),
-      unit: "chat:-6:1000".into(),
+      work_unit: "chat:-6:1000".into(),
       depth: 0,
       cap_ms: None,
       started_at: agency_server::now_ms(),
@@ -248,7 +248,7 @@ async fn spent_turn(
     &run_ledger::Opening {
       agent: "chat-agent".into(),
       chat_id: Some(-5),
-      unit: unit.into(),
+      work_unit: unit.into(),
       depth: 0,
       cap_ms: None,
       started_at: at,

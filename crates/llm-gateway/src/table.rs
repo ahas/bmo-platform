@@ -140,7 +140,7 @@ pub fn owners(
   let mut owners: BTreeMap<String, Owner> = BTreeMap::new();
 
   for registration in registrations {
-    if let Some(account) = registration.account {
+    if let Some(account) = registration.owner_account {
       owners.insert(registration.name.clone(), Owner::Owned(account));
       for address in &registration.addresses {
         owners.insert(format!("{}@{}", registration.name, address.node), Owner::Owned(account));

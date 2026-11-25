@@ -1071,7 +1071,7 @@ async fn an_accounts_runs_take_its_own_agents_and_count_against_its_own_cap() {
   let mut seat = agency_server::role_agents::of_role(&ground.db, "worker").await.unwrap().remove(0);
 
   seat.name = "worker-account-7".into();
-  seat.owner_account = Some("7".into());
+  seat.owner_account = Some(7);
   agency_server::role_agents::write(&ground.db, &seat).await.unwrap();
 
   // The deployment's three seats fill with its own runs, and the account's run still takes its own.

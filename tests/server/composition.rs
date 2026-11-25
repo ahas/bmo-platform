@@ -131,7 +131,7 @@ async fn with_nothing_set_every_role_with_a_template_gives_one_agent_carrying_it
     made.iter().map(|agent| (agent.role.as_str(), agent.name.as_str())).collect();
 
   assert_eq!(named, [("making", "making-u7"), ("checking", "checking-u7")]);
-  assert_eq!(made[0].owner_account.as_deref(), Some("7"));
+  assert_eq!(made[0].owner_account, Some(7));
   assert_eq!(made[0].prompt.as_deref(), Some("The making template's own words."));
   assert!(made[0].keeps_cache);
 }

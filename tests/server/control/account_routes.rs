@@ -43,7 +43,7 @@ async fn a_running_server_answers_a_user_s_login_the_record_homes_and_a_job_s_us
   scratch
     .run(
       r#"INSERT INTO "claude_accounts"
-           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "user_id")
+           ("id", "name", "place", "enabled", "credential_kind", "credential_path", "added_at", "owner_account")
          VALUES ('login-a', 'one', 1, 1, 'directory', '/logins/one', 0, 7),
                 ('login-b', 'two', 2, 0, 'directory', '/logins/two', 0, 8),
                 ('login-c', 'three', 3, 1, 'directory', '/logins/one', 0, NULL)"#,

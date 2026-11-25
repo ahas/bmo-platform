@@ -64,7 +64,7 @@ async fn a_job_with_no_live_execution_is_stopped_and_a_live_one_is_left() {
     .await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("agent", "unit", "depth", "started_at", "id") VALUES
+      r#"INSERT INTO "runs" ("agent", "work_unit", "depth", "started_at", "id") VALUES
            ('bmo-cli', 'job-1', 0, $1, 100),
            ('bmo-cli', 'job-2', 0, $3, 200),
            ('node-worker', 'job-3', 0, $1, 300),

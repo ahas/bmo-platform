@@ -210,7 +210,7 @@ impl Route for SupervisorRooms {
 
     let rows = store::all(
       call.store(),
-      r#"SELECT "r"."chat_id", "counted"."runs", "r"."id", "r"."unit", "r"."started_at", "r"."finished_at"
+      r#"SELECT "r"."chat_id", "counted"."runs", "r"."id", "r"."work_unit", "r"."started_at", "r"."finished_at"
          FROM (SELECT "chat_id", COUNT(*) AS "runs", MAX("id") AS "last" FROM "runs"
                WHERE "agent" = $1 AND "chat_id" IS NOT NULL GROUP BY "chat_id") AS "counted"
          JOIN "runs" AS "r" ON "r"."id" = "counted"."last"
@@ -225,7 +225,7 @@ impl Route for SupervisorRooms {
         "roomId": row.try_get::<i64>("", "chat_id")?,
         "runs": row.try_get::<i64>("", "runs")?,
         "lastRunId": row.try_get::<i64>("", "id")?,
-        "lastRunUnit": row.try_get::<String>("", "unit")?,
+        "lastRunUnit": row.try_get::<String>("", "work_unit")?,
         "lastStartedAt": row.try_get::<i64>("", "started_at")?,
         "lastFinishedAt": row.try_get::<Option<i64>>("", "finished_at")?,
       }));

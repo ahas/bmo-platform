@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 
 use super::claude_accounts::Judging;
 use super::{Call, Refused, Route, answer, whole};
-use crate::access::{self, Acting};
+use crate::access::Acting;
 use crate::agent_roles::{self, AgentRole};
 use crate::now_ms;
 use crate::order::{self, Empty};
@@ -41,6 +41,26 @@ pub fn view(agent: &RoleAgent, role_follows: bool, carrying: &[String]) -> Value
   shown["carries"] = json!(carrying.contains(&agent.name));
 
   shown
+}
+
+// The account a body names for a seat: a whole number, a text of digits, or null for the deployment's own.
+const SEAT_ACCOUNT: &str = "ownerAccount: a login account's id, or null for none.";
+
+fn seat_account(named: &Value) -> Result<Option<i64>, Refused> {
+  let held = match named {
+    Value::Null => return Ok(None),
+    Value::Number(number) => {
+      return number.as_i64().map(Some).ok_or_else(|| unprocessable(SEAT_ACCOUNT));
+    }
+    Value::String(held) => held.trim().to_owned(),
+    _ => return Err(unprocessable(SEAT_ACCOUNT)),
+  };
+
+  if held.is_empty() {
+    return Ok(None);
+  }
+
+  held.parse::<i64>().map(Some).map_err(|_| unprocessable(SEAT_ACCOUNT))
 }
 
 // A field that is text or null: none where the body clears it or names nothing.
@@ -77,12 +97,9 @@ pub(crate) async fn judged(
   let held_road = (held.provider.clone(), held.model.clone());
   let mut agent = held;
 
-  // The account whose seat it is, a login account's id written as digits, or none for the deployment's own.
+  // The account whose seat it is, its login account's id, or none for the deployment's own.
   if let Some(account) = body.get("ownerAccount") {
-    agent.owner_account = match account {
-      Value::Number(number) => Some(number.to_string()),
-      other => text(other, "ownerAccount")?,
-    };
+    agent.owner_account = seat_account(account)?;
   }
 
   if let Some(provider) = body.get("provider") {
@@ -235,10 +252,9 @@ fn filed(acting: Acting, agent: &mut RoleAgent) -> Result<(), Refused> {
     return Ok(());
   }
 
-  let named = agent.owner_account.as_deref().map(access::seat_owner);
-  let owner = acting.files_under(named, &format!("the role agent {}", agent.name))?;
+  let owner = acting.files_under(agent.owner_account, &format!("the role agent {}", agent.name))?;
 
-  agent.owner_account = owner.map(|owner| owner.to_string());
+  agent.owner_account = owner;
 
   Ok(())
 }

@@ -59,7 +59,7 @@ async fn a_running_server_answers_the_fields_the_console_reads() {
   repository(scratch.db(), "kept", "/checkouts/kept", &[]).await;
   scratch
     .run(
-      r#"INSERT INTO "runs" ("agent", "chat_id", "unit", "depth", "started_at", "finished_at")
+      r#"INSERT INTO "runs" ("agent", "chat_id", "work_unit", "depth", "started_at", "finished_at")
          VALUES ('chat-agent', 41, 'chat-agent-1', 0, 1000, 2000), ('chat-agent', 41, 'chat-agent-2', 0, 3000, NULL),
                 ('chat-agent', 42, 'chat-agent-3', 0, 2500, 2600)"#,
       vec![],

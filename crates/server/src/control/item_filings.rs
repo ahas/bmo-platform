@@ -138,9 +138,8 @@ pub async fn filed_agent(
   };
   let account = crate::supervisors::named(&ground.db, &ask.agent_name)
     .await?
-    .and_then(|supervisor| supervisor.owner_account)
-    .map(|account| account.to_string());
-  let candidates = crate::role_agents::candidates(&ground.db, &role, model, account.as_deref()).await?;
+    .and_then(|supervisor| supervisor.owner_account);
+  let candidates = crate::role_agents::candidates(&ground.db, &role, model, account).await?;
   let names: Vec<&str> = candidates.iter().map(|agent| agent.name.as_str()).collect();
   let called = format!("a free agent of the {role} role on model={model} ({})", names.join(", "));
 

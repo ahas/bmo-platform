@@ -375,10 +375,10 @@ pub struct Account {
   pub credential: Credential,
   pub needs_login_at: Option<i64>,
   /// The user whose account it is, where the multi-user model names one.
-  pub user_id: Option<i64>,
+  pub owner_account: Option<i64>,
   /// The organisation unit whose account it is, where a unit owns it in place of a person (docs/supply.md,
   /// 「Organisation supply」).
-  pub unit_id: Option<i64>,
+  pub owner_unit: Option<i64>,
   /// The node a person's login was signed in on and stands on, none for an account of this machine's
   /// (docs/supply.md, 「Signing a person's login in」).
   pub node: Option<String>,
@@ -422,13 +422,13 @@ impl Account {
   pub fn runs_on_nodes(&self) -> bool {
     self.credential.runs_on_nodes()
       || matches!(self.credential, Credential::ApiKey { .. })
-        && (self.user_id.is_some() || self.unit_id.is_some())
+        && (self.owner_account.is_some() || self.owner_unit.is_some())
   }
 
   /// Whether it is a person's login signed in on their node, whose configuration directory stands there
   /// and nowhere here.
   pub fn on_own_node(&self) -> bool {
-    self.user_id.is_some() && self.node.is_some()
+    self.owner_account.is_some() && self.node.is_some()
   }
 
   /// The directory the CLI keeps this account's records under: its configuration home where it has
@@ -578,7 +578,7 @@ pub async fn accounts(db: &DatabaseConnection) -> Result<Vec<Account>, Refused> 
   let rows = all(
     db,
     r#"SELECT a.id, a.name, a.place, a.enabled, a.credential_kind, a.credential_path, a.endpoint_url,
-       a.key_file, a.endpoint_models, a.needs_login_at, a.user_id, a.unit_id, a.node, a.lendable, a.base_prompt,
+       a.key_file, a.endpoint_models, a.needs_login_at, a.owner_account, a.owner_unit, a.node, a.lendable, a.base_prompt,
        s."value" AS node_token_gone
      FROM claude_accounts a
      LEFT JOIN "settings" s ON s."key" = $1 || a.id
@@ -606,8 +606,8 @@ pub async fn accounts(db: &DatabaseConnection) -> Result<Vec<Account>, Refused> 
         enabled: row.try_get::<i64>("", "enabled")? == 1,
         credential,
         needs_login_at: row.try_get("", "needs_login_at")?,
-        user_id: row.try_get("", "user_id")?,
-        unit_id: row.try_get("", "unit_id")?,
+        owner_account: row.try_get("", "owner_account")?,
+        owner_unit: row.try_get("", "owner_unit")?,
         node: row.try_get("", "node")?,
         lendable: row.try_get("", "lendable")?,
         base_prompt: row.try_get("", "base_prompt")?,
@@ -1036,8 +1036,10 @@ pub async fn administrator(db: &DatabaseConnection) -> Result<Option<i64>, Refus
 /// organisation's, or of the administrator's, and every account of no organisation while the multi-user model
 /// names no administrator.
 pub fn platform_owned(account: &Account, administrator: Option<i64>) -> bool {
-  account.unit_id.is_none()
-    && (account.user_id.is_none() || administrator.is_none() || account.user_id == administrator)
+  account.owner_unit.is_none()
+    && (account.owner_account.is_none()
+      || administrator.is_none()
+      || account.owner_account == administrator)
 }
 
 /// The logins a run may go out on (docs/cache-fallback.md, 「The Claude Code road is a list of accounts」).
@@ -1082,10 +1084,10 @@ pub async fn carried_for_user(
 
   let administrator = if carrying == Carrying::Platform { administrator(db).await? } else { None };
   let carries = |account: &Account| match carrying {
-    Carrying::Own(user) => account.user_id == Some(user),
+    Carrying::Own(user) => account.owner_account == Some(user),
     Carrying::Platform => platform_owned(account, administrator),
-    Carrying::Lent(borrower) => account.lendable && account.user_id != Some(borrower),
-    Carrying::Organisation(unit) => account.unit_id == Some(unit),
+    Carrying::Lent(borrower) => account.lendable && account.owner_account != Some(borrower),
+    Carrying::Organisation(unit) => account.owner_unit == Some(unit),
   };
 
   Ok(road_order(db).await?.into_iter().filter(|one| carries(one)).collect())
@@ -1280,8 +1282,8 @@ pub async fn views_of(
       "keyFile": account.credential.key_file().map(|file| file.to_string_lossy()),
       "models": models,
       "basePrompt": account.base_prompt,
-      "userId": account.user_id,
-      "unitId": account.unit_id,
+      "userId": account.owner_account,
+      "unitId": account.owner_unit,
       "node": account.node,
       "lendable": account.lendable,
       "login": login_standing(&account, now),
