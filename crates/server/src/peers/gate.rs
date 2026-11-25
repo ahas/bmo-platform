@@ -1,8 +1,9 @@
-//! The gate (docs/api.md, 「Calls agency makes」) through the client it publishes: the reference a job's
-//! first prompt is handed, picked over its instruction by the gate's reference road. The reference is the knowledge, rules and documents of the brain of the supervisor the call names,
-//! chosen by the gate; a worker and a voyager read the brain only through what the gate hands them here. And
-//! the English of what a person wrote for a job's worker, read by the gate's translator (docs/worker-language.md,
-//! 「What agency translates on the way in」).
+//! The gate (docs/api.md, 「Calls agency makes」) through the client it publishes: what the gate's turn
+//! reading attaches to a job's first prompt, read from the brain of the supervisor the envelope names —
+//! its sheets, its due rows and the sheet of the rows the services of the deployment left standing in
+//! that brain; it picks nothing, and a job's own memory tools are how its run reads that brain beyond
+//! what the reading hands. And the English of what a person wrote for a job's worker, read by the gate's
+//! translator (docs/worker-language.md, 「What agency translates on the way in」).
 
 use std::sync::Arc;
 
@@ -54,9 +55,10 @@ impl GateAddress {
 
 /// What agency asks the gate.
 pub trait Gate: Send + Sync {
-  /// The reference the gate picks for a job's instruction: the knowledge, rules
-  /// and documents of `supervisor`'s brain its lines call for, each with its path, text and source. Empty
-  /// where the gate is undeployed or does not answer.
+  /// What the gate's turn reading attaches for `supervisor`: the entries of that
+  /// brain's sheets and rows a turn is given with no pick, each with its path, text and source. The
+  /// `lines` carry the job's instruction and choose nothing. Empty where the gate is undeployed or
+  /// does not answer.
   fn reference<'a>(&'a self, supervisor: &'a str, lines: Vec<String>) -> Asking<'a, Vec<Entry>>;
 
   /// The gate kinds and the order they stand in, as the gate publishes them: an empty order where the gate
@@ -79,8 +81,8 @@ pub trait Gate: Send + Sync {
   }
 }
 
-/// A prompt with the reference the gate picked attached, its entries under a heading of their own, each
-/// named by its path and source; the prompt stands alone where no entry was picked.
+/// A prompt with the entries the gate's reading attaches, set under a heading of their own, each
+/// named by its path and source; the prompt stands alone where no entry came.
 pub fn attach(prompt: &str, entries: &[Entry]) -> String {
   if entries.is_empty() {
     return prompt.to_owned();
@@ -97,7 +99,7 @@ pub fn attach(prompt: &str, entries: &[Entry]) -> String {
   text
 }
 
-/// No gate deployed: nothing is asked, so a job and a thrown-away session carry no picked reference.
+/// No gate deployed: nothing is asked, so a job and a thrown-away session carry no reading's entries.
 pub struct NoGate;
 
 impl Gate for NoGate {
@@ -125,7 +127,8 @@ impl PublishedGate {
     lines: Vec<String>,
   ) -> Result<Vec<Entry>, PeerFault> {
     // A job carries no room, no speakers and no situation: the envelope names the supervisor the
-    // turn belongs to, whose brain the road reads, and a turn with no line asks none of it.
+    // turn belongs to, whose brain the road reads. What a turn is given attaches with no pick, so
+    // the instruction's lines ride along and choose nothing, and a job with no instruction hands none.
     let ask = ReferenceAsk {
       room_id: 0,
       message_id: None,

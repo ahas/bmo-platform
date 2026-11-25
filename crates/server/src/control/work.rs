@@ -722,33 +722,51 @@ fn instruction_lines(instruction: &Value) -> Vec<String> {
   lines
 }
 
-/// A prompt with the reference the gate picked attached, its entries under a heading of their own, each
-/// named by its path and source; the prompt stands alone where no entry was picked.
+/// A prompt with the entries the gate's reading attaches under a heading of their own, each
+/// named by its path and source; the prompt stands alone where no entry came.
 fn with_reference(prompt: &str, entries: &[bmo_gate_client::Entry]) -> String {
   crate::peers::gate::attach(prompt, entries)
 }
 
-/// The prompt a job's worker is given, with the reference the gate picked over the job's instruction
-/// attached ahead of the run, read from the brain of the job's holder: the supervisor that launched it, whose
-/// account the item is filed under. A job with no instruction or no holder, or a gate that picks nothing,
-/// stands as it was.
-pub async fn referenced(gate: &dyn crate::peers::gate::Gate, job: &Value, prompt: &str) -> String {
-  let Some(instruction) = job.get("instruction").filter(|instruction| !instruction.is_null()) else {
-    return prompt.to_owned();
+/// Whether the gate's reading reaches this job: it must name a holder, the supervisor that launched it,
+/// and that supervisor must stand with both the reference and the brain switch on, the two a chat round
+/// asks before it hands the gate an envelope (docs/supervisors.md, 「Its settings」). Settings agency
+/// cannot read stand on, as they do on the chat road, so a broken settings read closes nothing.
+async fn reading_reaches(ground: &Ground, job: &Value) -> bool {
+  let Some(holder) = job["holderName"].as_str().filter(|holder| !holder.is_empty()) else {
+    return false;
   };
+
+  match super::supervisor_settings::Settings::of(&ground.db, holder).await {
+    Ok(settings) => settings.reference_on && settings.brain_on,
+    Err(why) => {
+      eprintln!("job: the reading switches of the holder {holder} were not read: {}", why.error);
+
+      true
+    }
+  }
+}
+
+/// The prompt a job's worker is given, with the entries the gate's reading attaches to a turn ahead of
+/// the run, read from the brain of the job's holder: the supervisor that launched it, whose account the
+/// item is filed under. The road reads a named agent's brain whole, with no room, no situation and no
+/// line to say what to pick, so a job with no instruction takes what attaches just as a lineless round
+/// does: the org sheet, and the sheet of the rows the services of the deployment left in that brain.
+/// A job with no holder stands as it was.
+pub async fn referenced(gate: &dyn crate::peers::gate::Gate, job: &Value, prompt: &str) -> String {
   let Some(holder) = job["holderName"].as_str().filter(|holder| !holder.is_empty()) else {
     return prompt.to_owned();
   };
-  let lines = instruction_lines(instruction);
-
-  if lines.is_empty() {
-    return prompt.to_owned();
-  }
+  let lines = job
+    .get("instruction")
+    .filter(|instruction| !instruction.is_null())
+    .map(instruction_lines)
+    .unwrap_or_default();
 
   match gate.reference(holder, lines).await {
     Ok(entries) => with_reference(prompt, &entries),
     Err(why) => {
-      eprintln!("job: the gate's reference was not picked: {why}");
+      eprintln!("job: the gate's reading was not handed: {why}");
 
       prompt.to_owned()
     }
@@ -3559,9 +3577,9 @@ pub async fn launched<S: Sessions + Send + Sync>(
   // checkout's directory (docs/worker-slots.md, 「Names and places」).
   crate::places::checkouts::ensure_support_checkout(ground, &worker_name).await?;
 
-  // The gate picks the reference a job's instruction calls for, and the run carries it in its first
-  // prompt; a job with no instruction stands as it was. The first prompt closes with what the review opens
-  // with; a turn the review asks for goes out with its own words instead.
+  // The gate's reading goes with a job's first prompt whenever the holder's switches let the brain reach
+  // the turn, whatever the instruction says; a job with no holder stands as it was. The first prompt closes
+  // with what the review opens with; a turn the review asks for goes out with its own words instead.
   let (prompt, resume, carried) = match turn {
     // A first turn launched again after agency's restart goes out with the words it kept, its reference and its
     // review's opening already in them.
@@ -3577,7 +3595,11 @@ pub async fn launched<S: Sessions + Send + Sync>(
         // The checkout's bundle is read now and stands above the lent checkouts, never kept on the job's row
         // (docs/worker-bench.md, 「Preamble」).
         let prompt = crate::control::preamble::bundled(ground, &worker_name, item, &prompt).await;
-        let prompt = referenced(ground.peers.gate.as_ref(), &member, &prompt).await;
+        let prompt = if reading_reaches(ground, &member).await {
+          referenced(ground.peers.gate.as_ref(), &member, &prompt).await
+        } else {
+          prompt
+        };
         let Some(opening) = crate::job_review::opened(ground, id).await else {
           return Ok(None);
         };

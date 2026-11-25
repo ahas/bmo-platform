@@ -64,15 +64,17 @@ hands to a role. What each supervisor owns apart from the others is `docs/agent-
   the `window` shape is composed from the chat documents and its brain's persona (`docs/agent-documents.md`,
   「A supervisor of the window shape」), and its settings change nothing of it.
 - **The reference switch** says whether the gate's reading of the supervisor's brain reaches its turns — the
-  sheets, memories and rows the gate picks in front of its words, and the index it reads the brain through; the
-  supervisors policy names the default where its settings never held it. Off, every place the gate's reading
-  reaches a supervisor's turn is closed, and the brain's own tools stay, so the supervisor still recalls and
-  learns by its own calls and is handed nothing it did not ask for:
+  sheets, memories and rows that attach in front of its words with no pick, and the index it reads the brain
+  through; the supervisors policy names the default where its settings never held it. Off, every place the gate's
+  reading reaches a supervisor's turn or run is closed, and the brain's own tools stay, so the supervisor still
+  recalls and learns by its own calls and is handed nothing it did not ask for:
   - its session record holds none of the capabilities the roles policy names as the reference's (`reference`:
     `gate.reference`, the gate's reading of the index and its pieces), on its own turns;
   - the receiver, which reads the switch on the settings page beside the brain switch, composes the room's block
     and the turn's core as it does for a brain switched off: no brain index, hint or due line in the block, and no
-    core asked of the gate.
+    core asked of the gate;
+  - a job launched for that supervisor is handed no entries of the reading either: its first prompt asks the gate
+    nothing (`docs/api.md`, 「assignments and jobs」).
   The brain switch off closes all of this whatever the reference switch says.
 - **The brain switch** says whether the supervisor's brain reaches its turns, on where its settings never held
   it. Off, every place the brain reaches a supervisor's turn is closed, and nothing else changes:
@@ -81,7 +83,9 @@ hands to a role. What each supervisor owns apart from the others is `docs/agent-
     and its pieces; and `brain.lessons`, the lessons form a run working for it holds), on its own turns;
   - the receiver, which reads the switch on the settings page, carries no brain index, hint or due line in the
     room's block and asks the gate for no core for its turns (the receiver's `docs/drafting.md`, 「A supervisor
-    whose brain is off」).
+    whose brain is off」);
+  - a job launched for that supervisor asks the gate nothing for its first prompt, whatever its reference
+    switch says, and the job's run is handed no sheet and no row of that brain.
   The base persona a `window`-shaped supervisor's system prompt ends with is its identity, not its memory, and
   stays. The brain's memory tool asks only `room.tools`, which other tools share, so the switch does not take
   its entries away; the tool limit below does, where it leaves `room.tools` out.
@@ -91,7 +95,9 @@ hands to a role. What each supervisor owns apart from the others is `docs/agent-
   brain's `docs/design.md`, 「What a holder leaves」; the gate's `docs/reference-selection.md`, 「What a turn is
   given」). Agency declares none of them, changes none and withdraws none: the brain lets only the service that
   left a row end it, and that service withdraws its own rows when it is disabled. The brain switch above closes
-  these rows with everything else the brain reaches, and a supervisor holding no brain is handed none.
+  these rows with everything else the brain reaches, and a supervisor holding no brain is handed none. A job
+  launched for that supervisor is handed these rows by that same gate reading, in its first prompt, and the
+  two switches above close them for the run as they close them for the supervisor's own turns.
 - **The tool limit** narrows what the supervisor's sessions hold, in the shape a role's session's
   `toolsAllowed` has (`docs/api.md`, 「sessions」): a list of capabilities, or none for everything, as every
   supervisor holds by default. A list is the whole of what its sessions keep, on its own turns, and it

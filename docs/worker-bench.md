@@ -91,7 +91,8 @@ Each repository holds three things beside the work of its jobs:
   4. the handoff the last session on the item left, where one did (`docs/sessions.md`, 「The handoff a
      job's session leaves」)
   5. the job's text: its instruction, brief, work order and notes
-  6. the reference the gate picked over the job's instruction, where it picked any
+  6. what the gate's reading attaches for the job's holder — its sheets and the rows the deployment's
+     services left in that brain — where any entries came (`docs/api.md`, 「assignments and jobs」)
   7. the opening of the job's review (`docs/job-review.md`)
 
   The report trailer is no part of it: it stands in the run's prefix, after its rules

@@ -651,9 +651,9 @@ in on, on the role's line.
   lease back; ending the session the lease is bound to does (`docs/role-slots.md`, 「The line」). A caller
   running sessions one after another on one slot starts the next before it ends the one before.
 
-A role's session's first prompt carries no reference the gate picks: the gate reads a brain only for the
-supervisor a call names, and a role's session names none. A job's instruction carries one (「assignments and
-jobs」), and a co-work branch's prompt is composed by its parent.
+A role's session's first prompt carries no reference the gate reads: the gate reads a brain only for the
+supervisor a call names, and a role's session names none. A job's first prompt carries the reading's
+entries (「assignments and jobs」), and a co-work branch's prompt is composed by its parent.
 
 A role's session may be handed its instructions whole, for a consumer that composes its own — the research unit,
 which asks for the slots and the sessions its searches, browses, rounds and branches go out in, is one: the
@@ -2346,13 +2346,19 @@ service.
   road stopped answering and went out on the next, a stop and a session handed over as the job ends each
   leave one, and the turn that goes on opens with it; a note the job service does not take is said in the
   job's log and stops nothing.
-- **A job's first prompt carries the reference its instruction calls for.** As the job is launched, its
-  instruction is handed to the gate's reference selection (`POST /reference/selected` of the gate), with
-  no room and no situation and with `agent` naming the job's holder, the supervisor that launched it and whose
-  account the item is filed under: an account's own supervisor for its jobs, the owner's supervisor for the
-  owner's. The entries the gate picks from that supervisor's brain — knowledge, rules and documents — are
-  attached to the prompt under a `## Reference` heading. A job with no instruction, or a gate that picks
-  nothing, stands on its own words; a job's run reads the brain only through what the gate picked here.
+- **A job's first prompt carries what the gate's reading attaches to a turn.** As the job is launched,
+  while its holder — the supervisor that launched it and whose account the item is filed under: an
+  account's own supervisor for its jobs, the owner's supervisor for the owner's — stands with both the
+  reference and the brain switch on (`docs/supervisors.md`, 「Its settings」), an envelope is handed to the
+  gate's turn reading (`POST /reference/selected` of the gate) with no room, no situation and `agent`
+  naming that holder. The gate picks nothing: what it answers is what attaches to a turn with no pick —
+  the org sheet, the sheet of the rows the services of the deployment left standing in that supervisor's
+  brain, and any due or woken rows that brain holds (the gate's `docs/reference-selection.md`, 「What a
+  turn is given」) — attached to the prompt under a `## Reference` heading. The instruction's own lines
+  ride in the envelope and choose nothing, so a job with no instruction takes what attaches just as a
+  lineless round does. A job naming no holder, one whose holder's switches close the reading, or a gate
+  that answers nothing stands on its own words; beyond what the reading hands at its start, a job's run
+  reads that brain itself through its memory tools.
 - **A job goes out on the road of the agent its item names, or its launch takes for its item's model**
   (`docs/repositories.md`, 「An agent an item names」), let in on that agent alone. The item's `agent`, `model`
   and `role` labels are read off the item `POST /jobs` is handed, its `labels`. An item naming a model and no
@@ -2729,9 +2735,9 @@ back, the asynchronous calls still running (`GET /uses`, `state=running`) before
 supervisor's replaced program carried, a namespace's facts, the paragraph on finding and using tools that a chat launch's
 system prompt carries, and, after a chat program's first turn, the servers its session token's clients
 reached (`GET /tool-sessions/{token}`, its `connected`), where a host that saw none says nothing; and through
-`bmo-pocket`'s owner verbs it puts, takes and lists an account's personal tools (「personal-apps」). Of the gate it asks the reference a job's instruction
-calls for, picked over the brain of the supervisor the call names in its `agent`, and attaches the picked entries
-to the run's first prompt; it asks `POST /translations` for the English of what a person wrote for a job's
+`bmo-pocket`'s owner verbs it puts, takes and lists an account's personal tools (「personal-apps」). Of the gate it asks
+what the turn reading attaches for a job's first prompt, read over the brain of the supervisor the call names
+in its `agent`, and attaches the entries it answers to that prompt; it asks `POST /translations` for the English of what a person wrote for a job's
 worker, the owner's part of its preamble and the words handed to a running job, waiting for the answer no longer
 than its own bound (`docs/worker-language.md`, 「What agency translates on the way in」); and it
 reads the gate kinds and their order as the gate publishes them, so no copy of the gate order stands here. Of the
