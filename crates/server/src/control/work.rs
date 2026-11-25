@@ -732,7 +732,7 @@ fn with_reference(prompt: &str, entries: &[bmo_gate_client::Entry]) -> String {
 /// and that supervisor must stand with both the reference and the brain switch on, the two a chat round
 /// asks before it hands the gate an envelope (docs/supervisors.md, 「Its settings」). Settings agency
 /// cannot read stand on, as they do on the chat road, so a broken settings read closes nothing.
-async fn reading_reaches(ground: &Ground, job: &Value) -> bool {
+pub async fn reading_reaches(ground: &Ground, job: &Value) -> bool {
   let Some(holder) = job["holderName"].as_str().filter(|holder| !holder.is_empty()) else {
     return false;
   };

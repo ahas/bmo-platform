@@ -608,3 +608,91 @@ async fn a_job_s_reference_is_read_for_the_supervisor_holding_it() {
   referenced(&gate, &json!({ "holderName": "", "instruction": instruction }), "the prompt").await;
   assert!(gate.asked().is_empty(), "no holder, no supervisor to read for");
 }
+
+/// A gate whose every reading comes back as the holders' sheet, writing down the lines each was asked over.
+#[derive(Default)]
+struct Sheet(std::sync::Mutex<Vec<Vec<String>>>);
+
+impl Gate for Sheet {
+  fn reference<'a>(
+    &'a self,
+    _supervisor: &'a str,
+    lines: Vec<String>,
+  ) -> Asking<'a, Vec<bmo_gate_client::Entry>> {
+    self.0.lock().unwrap().push(lines);
+
+    Box::pin(async move {
+      Ok(vec![bmo_gate_client::Entry {
+        path: "holders/sheet.md".to_owned(),
+        text: "- [unit#3] the unit stands for order".to_owned(),
+        source: "memory".to_owned(),
+      }])
+    })
+  }
+}
+
+impl Sheet {
+  fn asked(&self) -> Vec<Vec<String>> {
+    std::mem::take(&mut *self.0.lock().unwrap())
+  }
+}
+
+// The sheet a holder left is one of the entries the reading attaches with no pick, so a job takes it onto
+// its first prompt even with no instruction to say lines: what attaches goes to a lineless turn too.
+#[tokio::test]
+async fn a_job_takes_the_holders_sheet_even_with_no_instruction() {
+  use agency_server::control::work::referenced;
+
+  let gate = Sheet::default();
+  let prompt = referenced(&gate, &json!({ "holderName": "bmo" }), "the prompt").await;
+
+  assert!(prompt.starts_with("the prompt\n\n## Reference\n"), "{prompt}");
+  assert!(prompt.contains("`holders/sheet.md` (memory)"), "{prompt}");
+  assert!(prompt.contains("- [unit#3] the unit stands for order"), "{prompt}");
+  let asked = gate.asked();
+
+  assert_eq!(asked, [Vec::<String>::new()], "asked with no line, and asked at all");
+}
+
+// The job's reading follows the two switches a chat round follows: off either, the launch asks the gate
+// nothing; a holder the store holds no settings for stands reading, and a job naming none asks nothing.
+#[tokio::test]
+async fn the_job_reading_follows_the_holders_reference_and_brain_switches() {
+  use crate::support::{grounds::ground_on, scratch::Scratch};
+  use agency_server::control::work::reading_reaches;
+
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let ground = ground_on(scratch.db().clone(), home.path());
+  let job = json!({ "holderName": "u9" });
+
+  assert!(reading_reaches(&ground, &job).await, "settings the store holds none of stand reading");
+
+  for (reference, brain) in [(0, 1), (1, 0)] {
+    scratch
+      .run(
+        r#"INSERT INTO supervisor_settings (agent, reference_on, brain_on) VALUES ($1, $2, $3)
+           ON CONFLICT (agent) DO UPDATE SET reference_on = $2, brain_on = $3"#,
+        vec!["u9".into(), reference.into(), brain.into()],
+      )
+      .await;
+
+    assert!(
+      !reading_reaches(&ground, &job).await,
+      "reference {reference}, brain {brain}: the reading is closed"
+    );
+  }
+
+  scratch
+    .run(
+      "UPDATE supervisor_settings SET reference_on = 1, brain_on = 1 WHERE agent = $1",
+      vec!["u9".into()],
+    )
+    .await;
+
+  assert!(reading_reaches(&ground, &job).await, "both switches on open the reading again");
+  assert!(
+    !reading_reaches(&ground, &json!({ "holderName": "" })).await,
+    "no holder, no reading asked"
+  );
+}
