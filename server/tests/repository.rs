@@ -143,13 +143,15 @@ fn no_test_stands_inside_src_or_beside_its_code() {
   let found: Vec<String> = tracked_texts()
     .into_iter()
     .filter(|(path, text)| {
+      // The account service's and console's own rule; the agency part keeps its tests in the root harness.
+      let ours = path.starts_with("server/") || path.starts_with("client/");
       let in_src = path.split('/').any(|part| part == "src");
       let test_file = path.contains(".test.") || path.contains(".spec.") || path.ends_with("_test.rs");
       let test_module =
         path.ends_with(".rs") && in_src && (text.contains("#[cfg(test)]") || text.contains("#[test]"));
       let outside_tests = !path.split('/').any(|part| part == "tests");
 
-      test_module || (test_file && outside_tests)
+      ours && (test_module || (test_file && outside_tests))
     })
     .map(|(path, _)| path)
     .collect();
