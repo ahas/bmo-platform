@@ -335,8 +335,8 @@ The service's own (`docs/accounts.md`, 「Account security」). `holder` is the 
 
 | Route | Request | Answer |
 |---|---|---|
-| `GET /mail` | `Owner-Key` | `server` (bmo-mail's outgoing server id, or null), `from`, `fromName`, `secret` (a secret's name or null), `configured`, `secretStands`, `mailService` (bmo-mail answered), `servers`: each `id`, `name`, `host`; 403 to anyone but the platform administrator, a unit's head among them |
-| `PUT /mail` | `server`, `from`, `fromName`, `secret` | the system mail as now set; 400 `bad-mail` for a field out of shape or a server bmo-mail does not offer the platform |
+| `GET /mail` | `Owner-Key` | the platform link's `mail.system` value as `server` (bmo-mail's outgoing server id, or null), `from`, `fromName`, `secret` (a secret's name or null), `configured`, `secretStands`, `mailService` (bmo-mail answered), `servers`: each `id`, `name`, `host`; 403 to anyone but the platform administrator, a unit's head among them |
+| `PUT /mail` | `server`, `from`, `fromName`, `secret` | the system mail as now set, written to the platform link of the `mail.system` chain kind; 400 `bad-mail` for a field out of shape or a server bmo-mail does not offer the platform |
 | `POST /mail/test` | `to` | 204; 409 `mail-unset`; 502 `mail-failed` with bmo-mail's sentence |
 | `POST /sign-ins` | `login`, `password`, `deviceToken?`; `X-Real-IP`, `User-Agent` | `outcome` `signed-in` with `user` and `enrol`, the session cookie set on the answer; or `second-factor` with `ticket`. 401 `wrong-credentials`, 403 `account-disabled`, 429 `throttled` and 423 `locked` with `Retry-After` |
 | `POST /sign-ins/second-factor` | `ticket`, `code`, `remember`; the same headers | `signed-in` as above, with `deviceToken` where `remember` was asked; 401 `wrong-code`, 410 `ticket-gone`, 429, 423 |
@@ -370,10 +370,10 @@ The service's own (`docs/accounts.md`, 「Account security」). `holder` is the 
 | Route | Request | Answer |
 |---|---|---|
 | `GET /users/{user}/secrets` | | `secrets`: each `name`, `bytes`, `changedAt` and `kind?`, the key of the kind its file reads as (`docs/accounts.md`, 「The secret store」), every secret the person's space holds, in the order of their names |
-| `PUT /users/{user}/secrets/{name}` | `value`, `replace?`, `encoding?` | `name`, `bytes`, `changedAt`; 201 where the name was new, 200 where it replaced a value; 409 `secret-exists` where the name stands and `replace` is not true |
+| `PUT /users/{user}/secrets/{name}` | `value`, `replace?`, `encoding?` | `name`, `bytes`, `changedAt`; 201 where the name was new, 200 where it replaced a value; 409 `secret-exists` where the name stands and `replace` is not true; 403 `kind-not-offered` where the file reads as a secret kind the `secret.kinds` chain does not offer this person |
 | `DELETE /users/{user}/secrets/{name}` | | 204; 404 where no secret stands under the name |
 | `GET /units/{unit}/secrets` | | as a person's list, every secret the unit's space holds, for a head of the unit and the platform administrator (docs/accounts.md, 「The secret store」); 403 to anyone else, 404 for a unit of no company the caller reaches |
-| `PUT /units/{unit}/secrets/{name}` | `value`, `replace?`, `encoding?` | as a person's write, into the unit's space, for the same callers |
+| `PUT /units/{unit}/secrets/{name}` | `value`, `replace?`, `encoding?` | as a person's write, into the unit's space, for the same callers, `kind-not-offered` read against the unit's chain |
 | `DELETE /units/{unit}/secrets/{name}` | | as a person's, in the unit's space, for the same callers |
 
 - **Every route of the store is the space's own person's:** it takes the login's user in `Owner-Key`, the user the
@@ -412,9 +412,14 @@ The service's own (`docs/accounts.md`, 「Account security」). `holder` is the 
 | Route | Request | Answer |
 |---|---|---|
 | `GET /secret-kinds` | | `kinds`: every kind, in the order they were added |
-| `POST /secret-kinds` | a kind | the kind as kept, 201; 409 `kind-exists` where a kind stands under its `key` |
-| `PUT /secret-kinds/{key}` | a kind, its `key` the path's | the kind as kept; 404 where no kind stands under the key |
-| `DELETE /secret-kinds/{key}` | | 204; 404 where no kind stands under the key |
+| `POST /secret-kinds` | a kind | the kind as kept, 201; 409 `kind-exists` where a kind stands under its `key`; the `secret.kinds` chain kind is re-declared to the registry as it then stands |
+| `PUT /secret-kinds/{key}` | a kind, its `key` the path's | the kind as kept; 404 where no kind stands under the key (its key does not change, so the chain kind's choices stand) |
+| `DELETE /secret-kinds/{key}` | | 204; 404 where no kind stands under the key; the `secret.kinds` chain kind is re-declared without it, its key taken out of every stored value and rule that named it |
+
+- **The `secret.kinds` and `mail.system` chain kinds are this service's own** (docs/accounts.md, 「The kinds the
+  service's own consumers declare」); they are declared as it stands. A unit's system mail and the kinds each link
+  keeps are read and written through the chain's link routes (`/chain/kinds/{key}/links/{link}/value`), a `json`
+  value such as a unit's mail named in `Declared-By: web` as this service writes it.
 
 - **A kind is a shape the console's secret form asks a value in,** and never a value (`docs/accounts.md`,
   「Secret kinds」): `key`, `name`, `description` and `fields`, each field its `key`, `label`, `masked`, `input` and
