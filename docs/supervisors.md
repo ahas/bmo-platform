@@ -85,6 +85,13 @@ hands to a role. What each supervisor owns apart from the others is `docs/agent-
   The base persona a `window`-shaped supervisor's system prompt ends with is its identity, not its memory, and
   stays. The brain's memory tool asks only `room.tools`, which other tools share, so the switch does not take
   its entries away; the tool limit below does, where it leaves `room.tools` out.
+- **What a service of the deployment left in that brain reaches a turn as the brain's own content does.** A live
+  application service declares rows that stand in every agent's brain — what an agent working there must know
+  about it, and how it is used — and the gate hands them to a turn beside the sheets and the due memories (the
+  brain's `docs/design.md`, 「What a holder leaves」; the gate's `docs/reference-selection.md`, 「What a turn is
+  given」). Agency declares none of them, changes none and withdraws none: the brain lets only the service that
+  left a row end it, and that service withdraws its own rows when it is disabled. The brain switch above closes
+  these rows with everything else the brain reaches, and a supervisor holding no brain is handed none.
 - **The tool limit** narrows what the supervisor's sessions hold, in the shape a role's session's
   `toolsAllowed` has (`docs/api.md`, 「sessions」): a list of capabilities, or none for everything, as every
   supervisor holds by default. A list is the whole of what its sessions keep, on its own turns, and it
