@@ -1,0 +1,195 @@
+import { fileURLToPath } from "node:url";
+
+import { parseYAML } from "confbox";
+
+// The server's language pack (docs/language-pack.md), whose parts the console's own code reads where
+// it shows a line a unit answers with as a code, and the data beside the console's pack, the words it
+// matches on. A file is imported as a module holding its tree. The build runs on Node, where the
+// runtime's own YAML import is not at hand, so the parser is the one Nuxt's own configuration loading
+// carries. The console's pack itself is the i18n module's to read.
+const yamlFolders = [
+  fileURLToPath(new URL("../../../server/lang/", import.meta.url)),
+  fileURLToPath(new URL("./i18n/data/", import.meta.url))
+];
+const yamlData = {
+  name: "bmo-web-yaml-data",
+  enforce: "pre" as const,
+  transform(code: string, id: string) {
+    return yamlFolders.some((folder) => id.startsWith(folder)) && id.endsWith(".yaml")
+      ? { code: `export default ${JSON.stringify(parseYAML(code))};`, map: null }
+      : null;
+  }
+};
+
+// The base path every page and road stands under; the deployment's reverse proxy hands it on as it is
+// (docs/web.md, 「Where it opens」).
+const baseURL = process.env.BMO_WEB_BASE_URL || "/bmo/";
+
+export default defineNuxtConfig({
+  // bmo-ui, the base every screen stands on. The screens a unit brings are loaded from its manifest while
+  // the console runs, on the libraries `modules/console-shared.ts` lists (docs/web.md, 「Screens a unit
+  // brings」); bmo-ui's `docs/console-bundles.md` is the contract.
+  extends: ["bmo-ui"],
+  modules: ["./modules/console-shared", "nuxt-auth-utils", "@nuxtjs/i18n"],
+  // The console's own styles, stated after the layers' (the conversation's measures and colours, its
+  // documents and its interface faces); what bmo-ui's stylesheet carries is the layer's.
+  css: ["~/assets/css/main.css"],
+  compatibilityDate: "2025-09-01",
+  devtools: { enabled: false },
+  // An open window reads the newest build's name every minute, so a deployment reaches it as a notice
+  // (app/plugins/new-build.client.ts; docs/web.md, 「Running as a service」).
+  experimental: { checkOutdatedBuildInterval: 60_000 },
+  ssr: true,
+  // A worker's standing dev console serves a copy under a path of its own and builds into a directory
+  // of its own, so a typecheck in the same checkout does not rewrite what it is serving. Nothing named,
+  // the console is what it always is.
+  buildDir: process.env.BMO_WEB_BUILD_DIR || ".nuxt",
+  app: {
+    baseURL,
+    head: {
+      htmlAttrs: { lang: "ko" },
+      meta: [
+        // The chrome of an installed copy takes the console's own background.
+        { name: "theme-color", content: "#18181b" },
+        // The standard name is what Chromium reads; the Apple one stays for Safari's home screen.
+        { name: "mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" }
+      ],
+      link: [
+        { rel: "manifest", href: `${baseURL}manifest.webmanifest` },
+        // A tab is drawn at 16 or 32 pixels, each with a picture drawn for that size (docs/web.md,
+        // 「The console's pictures」); the installed app takes its own from the manifest.
+        { rel: "icon", type: "image/png", sizes: "16x16", href: `${baseURL}icons/favicon-16.png` },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: `${baseURL}icons/favicon-32.png` },
+        { rel: "apple-touch-icon", sizes: "180x180", href: `${baseURL}icons/apple-touch-icon.png` }
+      ]
+    }
+  },
+  // The zone every time is shown in, the locale figures are written and letter case folded in, and the
+  // dayjs locale dates' words are written in, all stated since the console renders on the server as well
+  // as in the browser (bmo-ui's `docs/boundary.md`, 「What the host owes」). These are the source language's;
+  // the language plugin states the reader's over them. The dayjs locales are loaded by the app's own plugin.
+  appConfig: {
+    // Where a bundle's screens call its service: the console's relay base, then the service's name
+    // and the path the service's own API writes (bmo-ui's `docs/console-bundles.md`).
+    bmoUi: { zone: "Asia/Seoul", locale: "ko-KR", dateLocale: "ko", relayBase: "/api" }
+  },
+  // The chat agent's names, the deployment's to set and no code file's (docs/web.md, 「Settings」): the name its
+  // messages stand under and the label rooms call it by, set at run time as `NUXT_PUBLIC_CHAT_AGENT_NAME` and
+  // `NUXT_PUBLIC_CHAT_AGENT_LABEL`.
+  runtimeConfig: {
+    public: {
+      chatAgent: { name: "", label: "" },
+      // The console's public address, its scheme, public name and base path, set at run time as
+      // `NUXT_PUBLIC_CONSOLE_ADDRESS`: a link under it is read as the console's own (docs/web.md, the secret store section).
+      consoleAddress: "",
+      // The installed app's shell version, which the shell-version module states as the build stands.
+      shellVersion: ""
+    }
+  },
+  // A dev server answers only the hosts it is told of: those `BMO_WEB_DEV_HOSTS` names, comma-separated.
+  vite: {
+    server: { allowedHosts: (process.env.BMO_WEB_DEV_HOSTS ?? "").split(",").filter((host) => host !== "") },
+    // The development server pre-bundles at its start only what its scan finds and the names listed here. The
+    // layer's modules stand inside node_modules, where the scan does not go, and bmo-ui's time module imports
+    // dayjs and its plugins, which ship as CommonJS: served unbundled, the browser finds no default export in
+    // dayjs, and the app does not start. The scan starts at the app's entry and reaches the pages only through
+    // Nuxt's generated imports, which it cannot follow, and a library first met once a page stands is bundled
+    // then and reloads every open page, losing what the page held. So the libraries the console's own pages and
+    // screens import are listed too.
+    optimizeDeps: {
+      include: [
+        "dayjs",
+        "dayjs/plugin/utc",
+        "dayjs/plugin/timezone",
+        "dayjs/locale/ko",
+        "dayjs/locale/ja",
+        "dayjs/locale/zh-cn",
+        "@internationalized/date",
+        "bmo-text/markdown",
+        "dompurify",
+        "echarts/core",
+        "echarts/charts",
+        "echarts/components",
+        "echarts/renderers",
+        "es-module-lexer",
+        "lottie-web",
+        "marked",
+        "motion-v"
+      ]
+    },
+    plugins: [yamlData],
+    build: {
+      // Rolldown's notice of how much of a build its plugins took is off. Most of a Nuxt build is plugin
+      // work by its nature, so the notice stands on every build and names nothing a change could act on.
+      rolldownOptions: { checks: { pluginTimings: false } },
+      // Every chunk past the default 500 kB is a library loaded only by the screen that needs it, the
+      // code editor and the diagram renderer's layout engine among them. None can be cut smaller from
+      // here, so the warning stands just above the largest of them.
+      chunkSizeWarningLimit: 7000
+    }
+  },
+  nitro: {
+    // A console bundle whose screen opens a socket has it relayed like any other call: the console
+    // hands the upgrade on to the service the manifest names (bmo-ui's `docs/console-bundles.md`). Each request
+    // runs in a context of its own, so the words it is answered with are said in its reader's language
+    // (`server/plugins/language.ts`).
+    experimental: { websocket: true, asyncContext: true },
+    // A deployment builds a release of its own beside the one being served and only then moves onto it,
+    // because nitro splits the build by route and a running server reads a route's chunk off disk the
+    // first time that route is asked for (docs/web.md, 「Running as a service」). Whoever is deploying
+    // names the directory here; with nothing named the build writes where it always does.
+    output: { dir: process.env.BMO_WEB_OUTPUT_DIR ?? ".output" },
+    // The runtime's own modules stay imports, not bundled files.
+    rollupConfig: { external: [/^bun$/, /^bun:/], plugins: [yamlData] },
+    typescript: { tsConfig: { compilerOptions: { types: ["@types/bun"] } } },
+    hooks: {
+      // The map of routes `$fetch` and `useFetch` would be typed against is left empty. Typing one call against it
+      // matches every route in it against every other, so its cost grows with the square of the routes and past
+      // some two hundred TypeScript gives up on the console's calls (docs/web.md, 「Running in development」).
+      // Every caller that reads an answer names the type of what it answers, so the map gives them nothing but
+      // its weight.
+      "types:extend"(types) {
+        for (const route of Object.keys(types.routes)) delete types.routes[route];
+      }
+    }
+  },
+  // The four units the console calls publish a client whose entry is TypeScript. Nitro's esbuild pass skips
+  // node_modules, so its bundler would read that entry as JavaScript and stop; the filter is stated whole here,
+  // because one given through `nitro.esbuild` has Nuxt's node_modules exclusion merged into it. TypeScript is
+  // handed to esbuild wherever it comes from, and JavaScript in node_modules is still left alone.
+  hooks: {
+    "nitro:config"(nitroConfig) {
+      nitroConfig.esbuild ??= {};
+      nitroConfig.esbuild.options ??= {};
+      nitroConfig.esbuild.options.include = /\.(?:ts|tsx)$/;
+      nitroConfig.esbuild.options.exclude = [];
+    }
+  },
+  // The served build runs on Bun from an entry of the console's own: Nitro's Bun entry with the idle limit off, which
+  // Nitro's own cannot turn off (docs/web.md, 「Running as a service」).
+  $production: {
+    nitro: { preset: "bun", entry: fileURLToPath(new URL("./server/bun.mjs", import.meta.url)) }
+  },
+  // Four languages, one pack each: every word the console shows is a key into `i18n/locales/ko.yaml`, and the
+  // other three hold the same keys (docs/web.md, 「Wording and the language pack」). The reader's language is the
+  // console's own choice (`app/plugins/language.ts`), so the module detects none. `language` is the tag the
+  // document's `lang` is written as.
+  i18n: {
+    strategy: "no_prefix",
+    defaultLocale: "ko",
+    detectBrowserLanguage: false,
+    locales: [
+      { code: "ko", language: "ko-KR", file: "ko.yaml" },
+      { code: "en", language: "en-US", file: "en.yaml" },
+      { code: "ja", language: "ja-JP", file: "ja.yaml" },
+      { code: "zh-CN", language: "zh-CN", file: "zh-CN.yaml" }
+    ]
+  },
+  ui: {
+    // Registers ContentSearch and ContentSearchButton, which the sidebar's search is; the console has no
+    // @nuxt/content, and the palette is handed its groups directly.
+    content: true
+  }
+});

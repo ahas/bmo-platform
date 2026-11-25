@@ -13,7 +13,9 @@
 智能体服务部分已全部移入。它是负责供给、投递和控制智能体的服务，其中有两条轴线在运转：一条是拥有房间、
 与人对话的监督者（supervisor），另一条是执行工作的角色（role）。调用方在某个路径上请求某个角色的一次
 运行（run）时，在该角色的上限内放行，从角色的提供方顺序中挑出仍有配额的提供方并启动它，随后传递各轮对话、
-读取智能体的输出，并结束这次运行。herdr 是会话契约背后的后端之一。账户服务与控制台随后移入。
+读取智能体的输出，并结束这次运行。herdr 是会话契约背后的后端之一。账户服务与控制台也立在这里：`server/` 是账户服务，
+掌管人与其绑定的发送者、公司与组织单元、所有设置所遵循的委派链、密钥库及其种类、系统邮件与语言包，
+其契约 crate 位于 `server/client/`；`client/` 是控制台，即人登录所用的界面，自成一个 Bun 工作区。
 
 ## 文档
 
@@ -36,6 +38,8 @@
 | Folder | Holds |
 |---|---|
 | `crates/` | Rust crate |
+| `server/` | 账户服务：crate、`server/client/` 的契约客户端、语言包与设置 |
+| `client/` | 控制台：Nuxt 应用，自成一个 Bun 工作区 |
 | `deploy/` | 服务单元 |
 | `docs/` | 权威文档 |
 | `packages/` | TypeScript 包，同属一个 Bun 工作区 |
@@ -81,6 +85,7 @@ cargo test --workspace
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 (cd packages && bun install && bunx tsc --noEmit)
+(cd client && bun install && bun run check)
 (cd tests/packages && bun test)
 ```
 

@@ -1,0 +1,1569 @@
+// The account service as the console reaches it (docs/accounts.md; docs/boundary.md, 「What the server
+// serves」): every route the console asks the server on, over HTTP with the server's token, and sumida's
+// session routes under `/sumida`, which take the session cookie instead. The service holds the decisions;
+// this module only asks, through the client generated from the service's OpenAPI document.
+
+import {
+  accountServiceClient,
+  type AccountServiceClient,
+  type Member,
+  type Members,
+  type PersonMove,
+  type People as WirePeople,
+  type RosterPerson as WireRosterPerson,
+  type Person as WirePerson,
+  type SectionRow,
+  type Sections,
+  type Session as WireSession,
+  type SessionError,
+  type EntryAct,
+  type Accepted,
+  type Invite,
+  type InviteUnit,
+  type UnitSubtree,
+  type MemoryWriter,
+  type OrgMemoryUnit,
+  type InviteView,
+  type Proof,
+  type SenderLink,
+  type Unit,
+  type Rebound,
+  type MachineRevoked,
+  type Rendered,
+  type PairingApproved,
+  type ShareAnswer,
+  type ShareAskRow,
+  type ShareAskState,
+  type PairingCredential,
+  type PairingMade,
+  type PairingView,
+  type UserNode,
+  type UnitRow,
+  type UserUnit,
+  type UserList,
+  type ProfileAsk as WireProfileAsk,
+  type UserProfile as WireProfile,
+  type WireError,
+  type AccountRemoval,
+  type UnitRemoval,
+  type Removed
+} from "@web/server-client";
+
+import { spokenLanguage } from "#shared/wording";
+
+import type { PersonView } from "#shared/people";
+import type { SecretFile, SecretKind } from "#shared/secret-kinds";
+import type { KeptSecret } from "#shared/types";
+import type { CompanyBmoView, OwnBmoParts, OwnBmoView, PermissionSetting, PermissionTree } from "#shared/bmo-profile";
+import type { HistoryView, PostView, RoleView, RosterAsk, RosterDetail, RosterPage, RosterPerson, RosterUnit } from "#shared/roster";
+
+/** The server's base address; `WEB_SERVER_ADDRESS` where none is given. */
+export interface ServiceOptions {
+  address?: string;
+  token?: string;
+}
+
+/** A user as the server names them: the id it gives, a string handed on as it stands. */
+export type UserId = string;
+
+/** The service did not answer at all: nothing listens at its address, or the connection broke. */
+export class AccountServiceDown extends Error {
+  constructor(readonly address: string, why: string) {
+    super(`bmo-web-server does not answer at ${address}: ${why}`);
+  }
+}
+
+/** The service answered and refused, with its status, its code and its sentence. */
+export class AccountRefusal extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    readonly detail: string
+  ) {
+    super(detail);
+  }
+}
+
+type RefusalBody = WireError | SessionError;
+
+/** What one route answered: its body where it has one, its refusal body where it refused, and the answer. */
+interface Reply<T> {
+  data?: T;
+  error?: RefusalBody;
+  response: Response;
+}
+
+function addressOf(options: ServiceOptions): string {
+  return (options.address ?? process.env.WEB_SERVER_ADDRESS ?? "").replace(/\/+$/, "");
+}
+
+function clientOf(options: ServiceOptions): AccountServiceClient {
+  const address = addressOf(options);
+
+  if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
+
+  return accountServiceClient(address, options.token ?? process.env.WEB_SERVER_TOKEN ?? "", undefined, spokenLanguage());
+}
+
+// sumida's own session routes take the session cookie, and a bearer sent there is read as a token and refused
+// before the cookie, so they are asked without the service's token.
+function sumidaClientOf(options: ServiceOptions): AccountServiceClient {
+  const address = addressOf(options);
+
+  if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
+
+  return accountServiceClient(address, "", undefined, spokenLanguage());
+}
+
+// A call nothing answered is the service down; a call it answered is read by its status.
+async function sent<T>(options: ServiceOptions, asked: Promise<Reply<T>>): Promise<Reply<T>> {
+  try {
+    return await asked;
+  } catch (error) {
+    throw new AccountServiceDown(addressOf(options), error instanceof Error ? error.message : "the call did not carry");
+  }
+}
+
+// The server's own refusal is `{ code, error }`; sumida's session routes answer `{ code, statusCode, reason? }`.
+function refusalOf(response: Response, body: RefusalBody | undefined): AccountRefusal {
+  if (body === undefined) return new AccountRefusal(response.status, "failed", `the account service answered ${response.status}`);
+
+  return "statusCode" in body
+    ? new AccountRefusal(response.status, body.code, body.reason ?? body.code)
+    : new AccountRefusal(response.status, body.code, body.error);
+}
+
+function answered<T>(reply: Reply<T>): T {
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+
+  if (reply.data === undefined) {
+    throw new AccountRefusal(reply.response.status, "failed", "the account service answered with nothing");
+  }
+
+  return reply.data;
+}
+
+/** Report the rooms the console has open now, for the receiver's start. */
+export async function reportWatching(rooms: number[], options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+
+  await sent(
+    options,
+    client.PUT("/watching", {
+      body: { rooms }
+    })
+  );
+}
+
+/** A fixed line as a unit keeps it: its code and the fields it carries. */
+export interface KeptLine {
+  code: string;
+  fields: Record<string, unknown>;
+}
+
+/** The sentence a kept fixed line renders as in `language` (docs/boundary.md, 「Fixed lines」), or null where the
+ * service holds no sentence for it, refuses it or does not answer. */
+export async function renderedLine(line: KeptLine, language: string, options: ServiceOptions = {}): Promise<string | null> {
+  const address = addressOf(options);
+
+  if (address === "") return null;
+
+  // The line is another unit's, its code one the service may hold no sentence for and answers refused, so it is
+  // handed on as it was kept rather than built to the codes the generated client's description lists.
+  try {
+    const response = await fetch(`${address}/words/render`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${options.token ?? process.env.WEB_SERVER_TOKEN ?? ""}`, "content-type": "application/json" },
+      body: JSON.stringify({ ...line.fields, code: line.code, language })
+    });
+
+    if (!response.ok) return null;
+
+    const answer = (await response.json()) as Partial<Rendered>;
+
+    return typeof answer.text === "string" ? answer.text : null;
+  } catch {
+    // A service that does not answer, or answers with no sentence, leaves the line's kept words standing.
+    return null;
+  }
+}
+
+/** Whether the model is in force, and why not where it is not. */
+export interface ModelState {
+  inForce: boolean;
+  reason?: string;
+}
+
+/** What the service says of the model, or null where it does not answer. */
+export async function modelState(options: ServiceOptions = {}): Promise<ModelState | null> {
+  try {
+    const client = clientOf(options);
+    const reply = await sent(options, client.GET("/accounts/model"));
+    const state = answered(reply);
+
+    return state.inForce ? { inForce: true } : { inForce: false, reason: state.why ?? undefined };
+  } catch (error) {
+    if (error instanceof AccountServiceDown) return null;
+
+    throw error;
+  }
+}
+
+// The headers sumida's own routes are asked with: the browser's address, which a ban reads, and the
+// session's cookie where there is one.
+function signedHeaders(address: string, cookie?: string): Record<string, string> {
+  return cookie === undefined ? { "x-real-ip": address } : { "x-real-ip": address, cookie };
+}
+
+/**
+ * A sign-in with a name and a password through the service's own sign-in (docs/accounts.md, 「Signing in」): the
+ * session's cookie, as `name=value`, or null where the service refuses the credentials or asks a second factor.
+ * `address` is the browser's.
+ */
+export async function signIn(
+  name: string,
+  password: string,
+  address: string,
+  options: ServiceOptions = {}
+): Promise<string | null> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/sign-ins", {
+      params: { header: { "X-Real-IP": address } },
+      body: { login: name, password, deviceToken: null }
+    })
+  );
+
+  if (reply.response.status === 401 || reply.response.status === 403) return null;
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+  if (reply.data?.outcome !== "signed-in") return null;
+
+  const cookie = reply.response.headers.get("set-cookie")?.split(";")[0]?.trim();
+
+  if (cookie === undefined || cookie === "") {
+    throw new AccountRefusal(reply.response.status, "failed", "the sign-in answered with no session");
+  }
+
+  return cookie;
+}
+
+/** Who a session is, or null where it is no live session. */
+export async function sessionUser(
+  cookie: string,
+  address: string,
+  options: ServiceOptions = {}
+): Promise<{ id: UserId; name: string; fullName: string } | null> {
+  const client = sumidaClientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/sumida/me", { headers: signedHeaders(address, cookie) })
+  );
+
+  if (reply.response.status === 401 || reply.response.status === 403) return null;
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+
+  const session: WireSession | undefined = reply.data;
+
+  return session === undefined ? null : { id: String(session.id), name: session.username, fullName: session.fullName?.trim() ?? "" };
+}
+
+/** A session ended; one already gone is ended too. */
+export async function signOut(cookie: string, address: string, options: ServiceOptions = {}): Promise<void> {
+  const client = sumidaClientOf(options);
+
+  await sent(
+    options,
+    client.DELETE("/sumida/auth/session", { headers: signedHeaders(address, cookie) })
+  );
+}
+
+/** A user as the console reads them: `name` is the login, `fullName` the person's name, empty where none stands
+ * (docs/accounts.md, 「Users and senders」). */
+export interface ServiceUser {
+  id: UserId;
+  name: string;
+  fullName: string;
+  administrator: boolean;
+  senders: number[];
+}
+
+/** The name a user is shown by: their person's name, their login where none stands (docs/accounts.md, 「Users and
+ * senders」). */
+export function shownName(user: { name: string; fullName: string }): string {
+  return user.fullName === "" ? user.name : user.fullName;
+}
+
+const userPath = (user: UserId | number) => String(user);
+
+/** A user, or null where none has that id. */
+export async function userOf(id: UserId | number, options: ServiceOptions = {}): Promise<ServiceUser | null> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}", { params: { path: { user: userPath(id) } } })
+  );
+
+  if (reply.response.status === 404) return null;
+
+  const said = answered(reply);
+
+  return { id: said.user, name: said.name, fullName: said.fullName ?? "", administrator: said.administrator, senders: said.senders };
+}
+
+/** The senders among `senders` linked to a user, each with that user and whether they may sign in; a sender linked
+ * to none is absent. */
+export async function senderLinks(senders: readonly number[], options: ServiceOptions = {}): Promise<SenderLink[]> {
+  if (senders.length === 0) return [];
+
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/senders/users", { body: { senders: [...senders] } }));
+
+  return answered(reply).links;
+}
+
+/** A user given another name; false where another user holds it. */
+export async function renameUser(
+  id: UserId | number,
+  name: string,
+  options: ServiceOptions = {}
+): Promise<boolean> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/users/{user}/name", {
+      params: { path: { user: userPath(id) } },
+      body: { name }
+    })
+  );
+
+  if (reply.response.ok) return true;
+  if (reply.error?.code === "name-taken") return false;
+
+  throw refusalOf(reply.response, reply.error);
+}
+
+/** The login a profile is kept for, as the console hands it on: its user id written as a decimal and its role. */
+export interface ProfileCaller {
+  key: string;
+  role: "administrator" | "member";
+}
+
+// A person as the console reads them: a contact detail the account service left out is no value rather than a
+// null one.
+function personView(person: WirePerson): PersonView {
+  return {
+    ...person,
+    landline: person.landline ?? undefined,
+    mobile: person.mobile ?? undefined,
+    email: person.email ?? undefined
+  };
+}
+
+/** The people whose name, organisation, job title or permitted contact holds the words: those of the reader's
+ * organisation, or, with a room named, those the reader may let into it (docs/accounts.md, 「A room's callers」). */
+export async function searchPeople(
+  q: string,
+  room: number | null,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<PersonView[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/search", {
+      params: {
+        query: room === null ? { q } : { q, room },
+        header: { "Owner-Key": caller.key, "Owner-Role": caller.role }
+      }
+    })
+  );
+
+  return answered<WirePeople>(reply).people.map(personView);
+}
+
+/** Every member of the reader's company, each by account key and name alone, in the directory's order; or, with
+ * a room named, the people the reader may let into it. */
+export async function companyMembers(
+  room: number | null,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<Member[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/members", {
+      params: {
+        query: room === null ? {} : { room },
+        header: { "Owner-Key": caller.key, "Owner-Role": caller.role }
+      }
+    })
+  );
+
+  return answered<Members>(reply).members;
+}
+
+/** One person of the reader's organisation, or null where none stands there or in another organisation. */
+export async function personOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<PersonView | null> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/person", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  if (reply.response.status === 404) return null;
+
+  return personView(answered<WirePerson>(reply));
+}
+
+/** The companies the reader looks through on the people roster (docs/accounts.md, 「The people roster」); none for a
+ * reader who looks through none. */
+export async function rosterCompanies(caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterUnit[]> {
+  const reply = await sent(options, clientOf(options).GET("/people/companies", { params: { header: profileHeaders(caller) } }));
+
+  return answered(reply).companies.map(unitOf);
+}
+
+/** One page of the people the reader looks through, as `ask` narrows them. */
+export async function rosterPage(ask: RosterAsk, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterPage> {
+  const reply = await sent(options, clientOf(options).GET("/people", { params: { query: ask, header: profileHeaders(caller) } }));
+  const page = answered(reply);
+
+  return { people: page.people.map(rosterPersonOf), total: page.total, next: page.next ?? null };
+}
+
+/** One person the reader looks through, or null where they stand in no company the reader looks through. */
+export async function rosterPerson(user: UserId | number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RosterDetail | null> {
+  const reply = await sent(options, clientOf(options).GET("/people/{user}", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) } }));
+
+  if (reply.response.status === 404) return null;
+
+  const person = answered(reply);
+
+  return {
+    ...rosterPersonOf(person),
+    landline: person.landline ?? undefined,
+    mobile: person.mobile ?? undefined,
+    path: person.path.map(unitOf),
+    headOf: person.headOf.map(unitOf),
+    actingFor: person.actingFor.map((one) => ({ unit: unitOf(one.unit), until: one.until })),
+    posts: person.posts.map(postOf),
+    history: person.history.map(historyOf),
+    left: person.left === undefined || person.left === null ? null : { at: person.left.at, byName: person.left.byName },
+    machineStanding:
+      person.machineStanding === undefined || person.machineStanding === null
+        ? null
+        : { name: person.machineStanding.name, shared: person.machineStanding.shared, provenAt: person.machineStanding.provenAt ?? null }
+  };
+}
+
+function unitOf(unit: { id: number; name: string }): RosterUnit {
+  return { id: unit.id, name: unit.name };
+}
+
+function rosterPersonOf(person: WireRosterPerson): RosterPerson {
+  return {
+    user: person.user,
+    login: person.login,
+    name: person.name,
+    company: unitOf(person.company),
+    unit: unitOf(person.unit),
+    head: person.head,
+    acting: person.acting ?? false,
+    administrator: person.administrator,
+    state: person.state,
+    machine: person.machine ?? null,
+    madeAt: person.madeAt,
+    lastSignInAt: person.lastSignInAt ?? null,
+    jobTitle: person.jobTitle,
+    rank: person.rank ?? "",
+    role: person.role ?? null,
+    duty: person.duty ?? "",
+    post: person.post === undefined || person.post === null ? null : unitOf(person.post),
+    email: person.email ?? undefined
+  };
+}
+
+function postOf(post: Wire["Post"]): PostView {
+  return { unit: unitOf(post.unit), path: post.path.map(unitOf), role: post.role ?? null, head: post.head, since: post.since };
+}
+
+function historyOf(entry: Wire["HistoryEntry"]): HistoryView {
+  return {
+    at: entry.at,
+    byName: entry.byName ?? null,
+    change: entry.change,
+    unit: entry.unit === undefined || entry.unit === null ? null : unitOf(entry.unit),
+    from: entry.from === undefined || entry.from === null ? null : unitOf(entry.from),
+    before: entry.before ?? null,
+    after: entry.after ?? null,
+    until: entry.until ?? null
+  };
+}
+
+/** Every user, for the administrator's screen that sets one person's sections. */
+export async function listUsers(caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserList["users"]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  return answered<UserList>(reply).users;
+}
+
+/** One user's console sections, read as the login `caller` acts for. */
+export async function sectionsOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<SectionRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/sections", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  return answered<Sections>(reply).sections;
+}
+
+/** One user's console sections written whole, answered as they now stand. */
+export async function setSections(
+  id: UserId | number,
+  sections: SectionRow[],
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<SectionRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/sections", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: { sections }
+    })
+  );
+
+  return answered<Sections>(reply).sections;
+}
+
+/** A user's person's name, job title and contact details, empty where the account keeps none. */
+export async function profileOf(
+  id: UserId | number,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<WireProfile> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/profile", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** A user's person's name, job title and contact details written whole, answered as they now stand. */
+export async function setProfile(
+  id: UserId | number,
+  profile: WireProfileAsk,
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<WireProfile> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/users/{user}/profile", {
+      params: { path: { user: userPath(id) }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: profile
+    })
+  );
+
+  return answered(reply);
+}
+
+/** A phone's new key, handed out once, and the hash it is kept by. */
+export async function makePhoneKey(
+  id: UserId | number,
+  options: ServiceOptions = {}
+): Promise<{ key: string; hash: string }> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/phones", { body: { user: userPath(id) } })
+  );
+  const made = answered(reply);
+
+  return { key: made.key, hash: made.hash };
+}
+
+/** A token issued before the model carried onto a key of the same text; its hash. */
+export async function adoptPhone(
+  token: string,
+  id: UserId | number,
+  options: ServiceOptions = {}
+): Promise<string> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/phones/adopt", { body: { token, user: userPath(id) } })
+  );
+
+  return answered(reply).hash;
+}
+
+/** Whose a phone's key is, or null where it is no live key. */
+export async function phoneHolder(
+  key: string,
+  options: ServiceOptions = {}
+): Promise<{ user: UserId; name: string; hash: string } | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/phones/who", { body: { key } }));
+
+  if (reply.response.status === 401) return null;
+
+  return answered(reply);
+}
+
+/** A phone's key taken away by its hash; one already gone is taken away too. */
+export async function deletePhoneKey(hash: string, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+
+  await sent(
+    options,
+    client.DELETE("/phones/{hash}", { params: { path: { hash } } })
+  );
+}
+
+/** What a check answered: whether it opens, the grant it asked for, and the user it was made for. */
+export interface CheckAnswer {
+  allowed: boolean;
+  grant: string;
+  user: UserId | null;
+}
+
+/** Whether a user heads a unit or a unit above it (docs/boundary.md, 「Checks」); not where there is no such unit. */
+export async function checkUnit(unit: number, id: UserId | number, options: ServiceOptions = {}): Promise<boolean> {
+  const reply = await sent(options, clientOf(options).POST("/checks/unit", { body: { unit, user: userPath(id) } }));
+
+  if (reply.response.status === 404) return false;
+
+  return answered(reply).allowed;
+}
+
+/** What the data move is handed: the senders the deployment's configuration names as the owner's (docs/accounts.md,
+ * 「The data move」). */
+export interface MoveRequest {
+  ownerSenders: number[];
+}
+
+/** The data move, run once; a second call answers that it is done. */
+export async function runMove(
+  request: MoveRequest,
+  options: ServiceOptions = {}
+): Promise<{ done: boolean; written: boolean; administrator: UserId | null }> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/accounts/move", {
+      body: { ownerSenders: request.ownerSenders }
+    })
+  );
+  const said = answered(reply);
+
+  return { done: said.done, written: said.written, administrator: said.administrator ?? null };
+}
+
+/** The role a login acts in, as the console hands it on in `Owner-Role` (docs/boundary.md, 「Calls the console makes」). */
+export type OwnerRole = "administrator" | "member";
+
+/**
+ * Every secret a person's own space holds, in the order of their names, asked by that person: `user` is the login's
+ * user, handed on in `Owner-Key` and named in the path alike, so no call reaches another person's space.
+ */
+export async function listSecrets(user: string, options: ServiceOptions = {}): Promise<KeptSecret[]> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.GET("/users/{user}/secrets", { params: { path: { user }, header: { "Owner-Key": user } } })
+  );
+
+  return answered(reply).secrets.map(({ name, bytes, changedAt, kind }) => ({ name, bytes, changedAt, ...(kind ? { kind } : {}) }));
+}
+
+/**
+ * A value written under a name in an organisation unit's space, by a head of the unit or the platform administrator
+ * the caller names (docs/accounts.md, 「The secret store」); the name, its size and its time, never the value.
+ */
+export async function keepUnitSecret(unit: number, name: string, value: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/units/{unit}/secrets/{name}", {
+      params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } },
+      body: { value, encoding: "text", replace: true }
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/**
+ * A value written under a name in the login's own space, replacing the one the name holds only where `replace` says
+ * so; the name, its size and its time, never the value. A refusal is the server's code, which never carries the
+ * value either.
+ */
+export async function keepSecret(
+  name: string,
+  file: SecretFile,
+  replace: boolean,
+  user: string,
+  options: ServiceOptions = {}
+): Promise<KeptSecret> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/secrets/{name}", {
+      params: { path: { user, name }, header: { "Owner-Key": user } },
+      body: { value: file.value, encoding: file.encoding, replace }
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/** The secret under a name in the login's own space moved aside to `<name>.previous`. */
+export async function dropSecret(name: string, user: string, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/users/{user}/secrets/{name}", {
+      params: { path: { user, name }, header: { "Owner-Key": user } }
+    })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** Every secret an organisation unit's space holds, in the order of their names, for a head of the unit or the
+ * platform administrator the caller names (docs/accounts.md, 「The secret store」); never a value. */
+export async function listUnitSecrets(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret[]> {
+  const reply = await sent(
+    options,
+    clientOf(options).GET("/units/{unit}/secrets", { params: { path: { unit: String(unit) }, header: { "Owner-Key": caller.key } } })
+  );
+
+  return answered(reply).secrets.map(({ name, bytes, changedAt, kind }) => ({ name, bytes, changedAt, ...(kind ? { kind } : {}) }));
+}
+
+/** A value written under a name in an organisation unit's space, replacing the one the name holds only where `replace`
+ * says so; the name, its size and its time, never the value. */
+export async function writeUnitSecret(unit: number, name: string, file: SecretFile, replace: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<KeptSecret> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/units/{unit}/secrets/{name}", {
+      params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } },
+      body: { value: file.value, encoding: file.encoding, replace }
+    })
+  );
+  const kept = answered(reply);
+
+  return { name: kept.name, bytes: kept.bytes, changedAt: kept.changedAt };
+}
+
+/** The secret under a name in an organisation unit's space moved aside to `<name>.previous`. */
+export async function dropUnitSecret(unit: number, name: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(
+    options,
+    clientOf(options).DELETE("/units/{unit}/secrets/{name}", { params: { path: { unit: String(unit), name }, header: { "Owner-Key": caller.key } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A kind as the console reads it, from the server's wire shape. */
+function kindOf(kind: SecretKind): SecretKind {
+  return {
+    key: kind.key,
+    name: kind.name,
+    description: kind.description,
+    fields: kind.fields.map(({ key, label, masked, input, required }) => ({ key, label, masked, input, required }))
+  };
+}
+
+/** Every secret kind, in the order they were added (docs/boundary.md, 「Secret kinds」), the deployment's for any login. */
+export async function listSecretKinds(options: ServiceOptions = {}): Promise<SecretKind[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/secret-kinds", {}));
+
+  return answered(reply).kinds.map(kindOf);
+}
+
+/** A kind added, as the server keeps it. */
+export async function addSecretKind(kind: SecretKind, role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/secret-kinds", { params: { header: { "Owner-Role": role } }, body: kind }));
+
+  return kindOf(answered(reply));
+}
+
+/** A kind changed whole under its key, as the server keeps it. */
+export async function putSecretKind(kind: SecretKind, role: OwnerRole, options: ServiceOptions = {}): Promise<SecretKind> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/secret-kinds/{key}", { params: { path: { key: kind.key }, header: { "Owner-Role": role } }, body: kind })
+  );
+
+  return kindOf(answered(reply));
+}
+
+/** A kind removed; no secret stored is touched. */
+export async function dropSecretKind(key: string, role: OwnerRole, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/secret-kinds/{key}", { params: { path: { key }, header: { "Owner-Role": role } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** Every unit, companies first and each unit after its parent, for the administrator's organisation section. */
+export async function listUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<UnitRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/units", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).units;
+}
+
+/** A unit made under a parent, or a new company where none is named. */
+export async function makeUnit(name: string, parent: number | null, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/units", {
+      params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: parent === null ? { name } : { name, parent }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** A unit renamed, or moved under another parent of its company. */
+export async function changeUnit(
+  unit: number,
+  change: { name?: string; parent?: number; kind?: string | null; shortName?: string | null; reportsTo?: number | null },
+  caller: ProfileCaller,
+  options: ServiceOptions = {}
+): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PATCH("/units/{unit}", { params: { path: { unit }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: change })
+  );
+
+  return answered(reply);
+}
+
+/** A user granted head of a unit, or the grant taken away. */
+export async function setHead(unit: number, user: UserId, head: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const params = { path: { unit, user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } };
+  const reply = await sent(options, head ? client.PUT("/units/{unit}/heads/{user}", { params }) : client.DELETE("/units/{unit}/heads/{user}", { params }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** One unit read whole: its heads and members, its kind, short name and the unit it reports to, the roles its
+ * people carry, the people holding a post in it and the appointment running (docs/boundary.md, 「Organisation units」). */
+export async function unitView(unit: number, options: ServiceOptions = {}): Promise<Unit> {
+  return answered(await sent(options, clientOf(options).GET("/units/{unit}", { params: { path: { unit } } })));
+}
+
+/** A person named to act for a unit's head until a moment still to come. */
+export async function appoint(unit: number, user: UserId, until: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/acting", { params: { path: { unit }, header: { "Owner-Key": caller.key } }, body: { user, until } }));
+
+  answered(reply);
+}
+
+/** The appointment running on a unit ended. */
+export async function endAppointment(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/acting", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A post given to a person in a unit, or changed: its role by key, none for no role, and the unit's head or not. */
+export async function givePost(unit: number, user: UserId, ask: { role: string | null; head: boolean }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const body = ask.role === null ? { head: ask.head } : { role: ask.role, head: ask.head };
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/posts/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } }, body }));
+
+  answered(reply);
+}
+
+/** A person's post in a unit taken away, with the head grant it carried. */
+export async function takePost(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/posts/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A company's roles, lowest first (docs/accounts.md, 「Roles and unit kinds」). */
+export async function companyRoles(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<RoleView[]> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/roles", { params: { path: { company }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).roles;
+}
+
+/** A company's roles written whole, lowest first, answered as they now stand. */
+export async function setCompanyRoles(company: number, roles: Wire["CatalogueEntry"][], caller: ProfileCaller, options: ServiceOptions = {}): Promise<RoleView[]> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/roles", { params: { path: { company }, header: { "Owner-Key": caller.key } }, body: { roles } }));
+
+  return answered(reply).roles;
+}
+
+/** A company's unit kinds, in its order. */
+export async function unitKinds(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Wire["CatalogueEntry"][]> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/unit-kinds", { params: { path: { company }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).kinds;
+}
+
+/** A company's unit kinds written whole, answered as they now stand. */
+export async function setUnitKinds(company: number, kinds: Wire["CatalogueEntry"][], caller: ProfileCaller, options: ServiceOptions = {}): Promise<Wire["CatalogueEntry"][]> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/unit-kinds", { params: { path: { company }, header: { "Owner-Key": caller.key } }, body: { kinds } }));
+
+  return answered(reply).kinds;
+}
+
+/** Whether the user `actor` may let `user` into a room or take them out, as `act` asks (docs/accounts.md, 「A room's
+ * callers」). */
+export async function checkEntry(room: number, actor: UserId | number, user: UserId | number, act: EntryAct, options: ServiceOptions = {}): Promise<CheckAnswer> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/checks/entry", { body: { room, actor: userPath(actor), user: userPath(user), act } }));
+  const said = answered(reply);
+
+  return { allowed: said.allowed, grant: said.grant, user: userPath(user) };
+}
+
+/** A sender linked to a user where it is linked to none, asked as the administrator (docs/accounts.md, 「Users and
+ * senders」); a link already standing answers as made. */
+export async function linkSender(user: UserId | number, sender: number, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/senders/{sender}", { params: { path: { user: userPath(user), sender }, header: { "Owner-Role": "administrator" } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** An account marked left, its sign-in disabled. */
+export async function markLeft(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const params = { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } };
+  const reply = await sent(options, client.POST("/users/{user}/leave", { params }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A user placed in a unit. */
+export async function placeUser(user: UserId, unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserUnit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/unit", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { unit } })
+  );
+
+  return answered(reply);
+}
+
+/** Several people moved into a unit in one act, each its head or a member; the unit as it then stands. */
+export async function movePeople(unit: number, people: PersonMove[], caller: ProfileCaller, options: ServiceOptions = {}): Promise<Unit> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/units/{unit}/members", { params: { path: { unit }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body: { people } })
+  );
+
+  return answered(reply);
+}
+
+/** What an invitation is made with: its unit, whether it makes the unit's head, how many hours it stands open, and
+ * the person's name, empty where the maker gives none. */
+export interface InviteMaking {
+  unit: number;
+  head: boolean;
+  hours: number;
+  fullName: string;
+}
+
+/** An invitation made into a unit by the login `caller` acts for. */
+export async function makeInvite(making: InviteMaking, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite> {
+  const client = clientOf(options);
+  const { unit, head, hours, fullName } = making;
+  const body = fullName === "" ? { unit, head, hours } : { unit, head, hours, fullName };
+  const reply = await sent(
+    options,
+    client.POST("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } }, body })
+  );
+
+  return answered(reply);
+}
+
+/** The open invitations the login made, every open one for the administrator. */
+export async function listInvites(caller: ProfileCaller, options: ServiceOptions = {}): Promise<Invite[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).invites;
+}
+
+/** The units the login may invite into. */
+export async function inviteUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<InviteUnit[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/units", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).units;
+}
+
+/** An invitation taken back. */
+export async function dropInvite(token: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.DELETE("/invites/{token}", { params: { path: { token }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** An invitation as its link shows it, or null where no invitation has the token. */
+export async function inviteView(token: string, options: ServiceOptions = {}): Promise<InviteView | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/{token}", { params: { path: { token } } }));
+
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** What an invitation is accepted with: the login, the password and the person's name. */
+export interface Acceptance {
+  name: string;
+  password: string;
+  fullName: string;
+}
+
+/** An invitation accepted with a login, a password and the person's name. */
+export async function acceptInvite(token: string, acceptance: Acceptance, options: ServiceOptions = {}): Promise<Accepted> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/accept", { params: { path: { token } }, body: acceptance }));
+
+  return answered(reply);
+}
+
+/** Whether the invited account's machine is attached, the account enabled where it is. */
+export async function proveInvite(token: string, options: ServiceOptions = {}): Promise<Proof> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/proof", { params: { path: { token } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing approved with the invitation that made the account, while that account waits for its machine. */
+export async function approveInvitePairing(token: string, code: string, options: ServiceOptions = {}): Promise<PairingApproved> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/invites/{token}/pairings/{code}/approve", { params: { path: { token, code } } }));
+
+  return answered(reply);
+}
+
+/**
+ * The invitation's waiting account asks to share a machine another agent holds, bound at once where `owner`, the
+ * account the asking browser is signed in to, is bound to it (docs/accounts.md, 「A machine shared at an invitation's
+ * ask」).
+ */
+export async function askInviteShare(token: string, machine: string, owner: string | null, options: ServiceOptions = {}): Promise<ShareAnswer> {
+  const client = clientOf(options);
+  const body = owner === null ? { machine } : { machine, owner };
+  const reply = await sent(options, client.POST("/invites/{token}/share", { params: { path: { token } }, body }));
+
+  return answered(reply);
+}
+
+/** The invitation's account's ask to share a machine, or null where it asked for none. */
+export async function inviteShare(token: string, options: ServiceOptions = {}): Promise<ShareAskState | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/invites/{token}/share", { params: { path: { token } } }));
+
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** The asks to share a machine the reader may decide, oldest first. */
+export async function machineShares(caller: ProfileCaller, options: ServiceOptions = {}): Promise<ShareAskRow[]> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/machine-shares", { params: { header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  return answered(reply).asks;
+}
+
+/** An ask to share a machine approved, the share bound. */
+export async function approveMachineShare(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ShareAnswer> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/machine-shares/{user}/approve", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  return answered(reply);
+}
+
+/** An ask to share a machine refused. */
+export async function refuseMachineShare(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.POST("/machine-shares/{user}/refuse", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The machine an account is bound to and whether the hub holds it. */
+export async function userNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/users/{user}/node", { params: { path: { user: userPath(id) } } }));
+
+  return answered(reply);
+}
+
+/**
+ * An account bound to another machine, the one `agent` names or a fresh name, by the administrator; `shared` binds a
+ * machine several accounts share.
+ */
+export async function rebindNode(user: UserId, agent: string | null, shared: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Rebound> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/node", {
+      params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: { ...(agent === null ? {} : { agent }), ...(shared ? { shared } : {}) }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** An account bound to no machine any more, by the administrator. */
+export async function unbindNode(user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.DELETE("/users/{user}/node", { params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The account's machine declared shared with other accounts, or no longer shared, by the administrator. */
+export async function shareNode(user: UserId, shared: boolean, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(
+    options,
+    client.PUT("/users/{user}/node/shared", {
+      params: { path: { user }, header: { "Owner-Key": caller.key, "Owner-Role": caller.role } },
+      body: { shared }
+    })
+  );
+
+  return answered(reply);
+}
+
+/** The account's machine as the hub holds it now, recorded as proven where it does. */
+export async function proveNode(id: UserId | number, options: ServiceOptions = {}): Promise<UserNode> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/users/{user}/node/proof", { params: { path: { user: userPath(id) } } }));
+
+  return answered(reply);
+}
+
+/**
+ * A machine name bound to no account revoked at the hub, so the machine under it is told to leave now or at its next
+ * hello (docs/accounts.md, 「Invitations and a person's machine」).
+ */
+export async function revokeMachine(agent: string, options: ServiceOptions = {}): Promise<MachineRevoked> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/machines/{agent}/revoke", { params: { path: { agent } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing asked for the browser at `address`, with no sign-in (docs/accounts.md, 「Desktop pairing」). */
+export async function askPairing(address: string, options: ServiceOptions = {}): Promise<PairingMade> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings", { params: { header: { "X-Real-IP": address } } }));
+
+  return answered(reply);
+}
+
+/** The app's read of its pairing: null while it waits, the machine and its credential once approved, answered once. */
+export async function readPairing(pairing: string, options: ServiceOptions = {}): Promise<PairingCredential | null> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/desktop/pairings/{pairing}", { params: { path: { pairing } } }));
+
+  if (reply.response.status === 202) return null;
+
+  return answered(reply);
+}
+
+/** A desktop pairing as the signed-in person `key` reads it by its code. */
+export async function pairingByCode(code: string, key: string, options: ServiceOptions = {}): Promise<PairingView> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.GET("/desktop/pairings/code/{code}", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing approved by the signed-in person `key` for their own machine. */
+export async function approvePairing(code: string, key: string, options: ServiceOptions = {}): Promise<PairingApproved> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings/code/{code}/approve", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  return answered(reply);
+}
+
+/** A desktop pairing refused by the signed-in person `key`. */
+export async function refusePairing(code: string, key: string, options: ServiceOptions = {}): Promise<void> {
+  const client = clientOf(options);
+  const reply = await sent(options, client.POST("/desktop/pairings/code/{code}/refuse", { params: { path: { code }, header: { "Owner-Key": key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+// A person's BMO profile (docs/accounts.md, 「A person's BMO profile」): a company's default, a person's own, the
+// profile standing for a person, and who may personalise their BMO. The profile's own reads and writes go through the
+// generated client; a picture's bytes are asked on the route's address, the generated client carrying no bytes.
+
+type Wire = import("@web/server-client").components["schemas"];
+
+/** The caller a profile is read as where the console applies it to a BMO: the administrator's role, which every
+ * profile route answers. */
+const APPLYING: ProfileCaller = { key: "", role: "administrator" };
+
+function profileHeaders(caller: ProfileCaller): { "Owner-Key": string; "Owner-Role": ProfileCaller["role"] } {
+  return { "Owner-Key": caller.key, "Owner-Role": caller.role };
+}
+
+// The profile as the console's screens and its apply read it, with the deployment's own name left null for the pack.
+function standingOf(wire: Wire["AgentProfile"]): Omit<OwnBmoView, "hasBmo"> {
+  return {
+    personalize: wire.personalize,
+    name: { value: wire.name.name ?? null, from: wire.name.from },
+    callNames: { value: wire.callNames.callNames, from: wire.callNames.from },
+    persona: { value: wire.persona.persona ?? null, from: wire.persona.from },
+    picture: { from: wire.picture.from },
+    own: { name: wire.own.name ?? null, callNames: wire.own.callNames, persona: wire.own.persona ?? null, picture: wire.own.picture }
+  };
+}
+
+/** A picture's bytes and their type, as the service keeps them. */
+export interface PictureBytes {
+  bytes: Uint8Array;
+  type: string;
+}
+
+// A picture route asked on its address: its bytes read back, set from bytes, or taken away. A refusal is read as every
+// other route's.
+async function pictureCall(path: string, caller: ProfileCaller, init: { method: "GET" | "PUT" | "DELETE"; picture?: PictureBytes }, options: ServiceOptions = {}): Promise<PictureBytes | null> {
+  const address = addressOf(options);
+
+  if (address === "") throw new AccountServiceDown("(no address)", "no address is set for the server");
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${address}${path}`, {
+      method: init.method,
+      headers: {
+        authorization: `Bearer ${options.token ?? process.env.WEB_SERVER_TOKEN ?? ""}`,
+        ...profileHeaders(caller),
+        ...(init.picture === undefined ? {} : { "content-type": init.picture.type })
+      },
+      ...(init.picture === undefined ? {} : { body: new Blob([new Uint8Array(init.picture.bytes)], { type: init.picture.type }) })
+    });
+  } catch (error) {
+    throw new AccountServiceDown(address, error instanceof Error ? error.message : "the call did not carry");
+  }
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => undefined)) as RefusalBody | undefined;
+
+    throw refusalOf(response, body);
+  }
+
+  if (init.method !== "GET") return null;
+
+  return { bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get("content-type") ?? "application/octet-stream" };
+}
+
+/** A company's default for its people's BMOs. */
+export async function companyBmoOf(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).GET("/companies/{company}/agent", { params: { path: { company }, header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: answer.picture };
+}
+
+/** The platform's own default for every company's people's BMOs, which a company setting none follows. */
+export async function platformBmoOf(caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).GET("/platform/agent", { params: { header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: false };
+}
+
+/** The platform's own default name and call names replaced, the platform administrator's; answered as they now stand. */
+export async function setPlatformBmo(ask: { name: string | null; callNames: string[] }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).PUT("/platform/agent", { params: { header: profileHeaders(caller) }, body: ask }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: false };
+}
+
+/** A company's default name and call names replaced, answered as they now stand. */
+export async function setCompanyBmo(company: number, ask: { name: string | null; callNames: string[] }, caller: ProfileCaller, options: ServiceOptions = {}): Promise<CompanyBmoView> {
+  const reply = await sent(options, clientOf(options).PUT("/companies/{company}/agent", { params: { path: { company }, header: profileHeaders(caller) }, body: ask }));
+  const answer = answered(reply);
+
+  return { name: answer.name ?? null, callNames: answer.callNames, picture: answer.picture };
+}
+
+/** A company's default picture. */
+export async function companyBmoPictureOf(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<PictureBytes> {
+  return (await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "GET" }, options))!;
+}
+
+/** A company's default picture set from its bytes. */
+export async function setCompanyBmoPicture(company: number, picture: PictureBytes, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "PUT", picture }, options);
+}
+
+/** A company's default picture taken away. */
+export async function dropCompanyBmoPicture(company: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/companies/${company}/agent/picture`, caller, { method: "DELETE" }, options);
+}
+
+/** The profile standing for a person, read as the administrator where no caller is named. */
+export async function standingBmoOf(user: UserId | number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<Omit<OwnBmoView, "hasBmo">> {
+  const reply = await sent(options, clientOf(options).GET("/users/{user}/agent", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) } }));
+
+  return standingOf(answered(reply));
+}
+
+/** A person's own text parts replaced, answered as the profile now stands. */
+export async function setOwnBmo(user: UserId | number, parts: OwnBmoParts, caller: ProfileCaller, options: ServiceOptions = {}): Promise<Omit<OwnBmoView, "hasBmo">> {
+  const reply = await sent(options, clientOf(options).PUT("/users/{user}/agent", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) }, body: parts }));
+
+  return standingOf(answered(reply));
+}
+
+/** The picture standing for a person, their own or their company's, read as the administrator where no caller is
+ * named. */
+export async function bmoPictureOf(user: UserId | number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<PictureBytes> {
+  return (await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "GET" }, options))!;
+}
+
+/** A person's own picture set from its bytes. */
+export async function setOwnBmoPicture(user: UserId | number, picture: PictureBytes, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "PUT", picture }, options);
+}
+
+/** A person's own picture taken away. */
+export async function dropOwnBmoPicture(user: UserId | number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  await pictureCall(`/users/${encodeURIComponent(userPath(user))}/agent/picture`, caller, { method: "DELETE" }, options);
+}
+
+/** Who under a unit may personalise their BMO, read as the administrator where no caller is named. */
+export async function permissionTreeOf(unit: number, caller: ProfileCaller = APPLYING, options: ServiceOptions = {}): Promise<PermissionTree> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/agent-permissions", { params: { path: { unit }, header: profileHeaders(caller) } }));
+  const answer = answered(reply);
+
+  return {
+    units: answer.units.map((one) => ({ id: one.id, name: one.name, parent: one.parent ?? null, setting: one.setting, allowed: one.allowed })),
+    people: answer.people.map((one) => ({ user: one.user, name: one.name, unit: one.unit, setting: one.setting, allowed: one.allowed }))
+  };
+}
+
+/** The personalisation setting on a unit. */
+export async function setUnitPermission(unit: number, setting: PermissionSetting, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/agent-permission", { params: { path: { unit }, header: profileHeaders(caller) }, body: { setting } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The personalisation setting on one person. */
+export async function setUserPermission(user: UserId | number, setting: PermissionSetting, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/users/{user}/agent-permission", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) }, body: { setting } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** The units whose org memory a login writes, each with whether it heads it (docs/accounts.md, 「A unit's org memory」). */
+export async function orgMemoryUnits(caller: ProfileCaller, options: ServiceOptions = {}): Promise<OrgMemoryUnit[]> {
+  const reply = await sent(options, clientOf(options).GET("/org-memory/units", { params: { header: profileHeaders(caller) } }));
+
+  return answered(reply).units;
+}
+
+/** Whether a user writes a unit's org memory, heading it or holding its grant. */
+export async function writesOrgMemory(unit: number, user: UserId, options: ServiceOptions = {}): Promise<boolean> {
+  const reply = await sent(options, clientOf(options).POST("/checks/org-memory", { body: { unit, user } }));
+
+  return answered(reply).allowed;
+}
+
+/** The unit a person stands in, with its company, none where they stand in no unit (docs/accounts.md, 「Companies and
+ * organisation units」). */
+export async function homeUnit(user: UserId, options: ServiceOptions = {}): Promise<{ company: { id: number; name: string }; unit: { id: number; name: string } } | null> {
+  const reply = await sent(options, clientOf(options).GET("/users/{user}/unit", { params: { path: { user: userPath(user) } } }));
+
+  if (reply.response.status === 404) return null;
+
+  const said = answered(reply);
+
+  return { company: { id: said.company.id, name: said.company.name }, unit: { id: said.unit.id, name: said.unit.name } };
+}
+
+/** The people granted a unit's org memory write, for a head of the unit. */
+export async function memoryWriters(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<MemoryWriter[]> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/memory-writers", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply).writers;
+}
+
+/** A person granted a unit's org memory write. */
+export async function grantMemoryWrite(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).PUT("/units/{unit}/memory-writers/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A person's grant of a unit's org memory write taken away. */
+export async function takeMemoryWrite(unit: number, user: UserId, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/units/{unit}/memory-writers/{user}", { params: { path: { unit, user }, header: { "Owner-Key": caller.key } } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
+/** A unit and every unit below it with the people standing in each, for a head of the unit (docs/accounts.md,
+ * 「Everyone under a unit」). */
+export async function unitSubtree(unit: number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<UnitSubtree> {
+  const reply = await sent(options, clientOf(options).GET("/units/{unit}/subtree", { params: { path: { unit }, header: { "Owner-Key": caller.key } } }));
+
+  return answered(reply);
+}
+
+// --- The permanent delete (docs/accounts.md, 「Deleting an account for good」, 「Deleting a unit or a company」) ---
+
+/** What a removal hands over of the units asked before the service: each unit's name and what it removed. */
+export type RemovalUnits = Record<string, Record<string, number>>;
+
+// The administrator's headers a removal is asked under.
+function removerHeaders(administrator: string): { "Owner-Key": string; "Owner-Role": OwnerRole } {
+  return { "Owner-Key": administrator, "Owner-Role": "administrator" };
+}
+
+// A removal's answer, or null where what it names does not stand, which a resumed removal takes as done.
+function standingOrGone<T>(reply: Reply<T>): T | null {
+  if (reply.response.status === 404) return null;
+
+  return answered(reply);
+}
+
+/** What removing an account would take now, or null where it does not stand. */
+export async function accountRemoval(user: UserId, administrator: string, options: ServiceOptions = {}): Promise<AccountRemoval | null> {
+  const params = { path: { user }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).GET("/users/{user}/removal", { params })));
+}
+
+/** An account removed for good, the units' results kept in the record; null where it no longer stands. */
+export async function removeAccount(user: UserId, units: RemovalUnits, administrator: string, options: ServiceOptions = {}): Promise<Removed | null> {
+  const params = { path: { user }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).DELETE("/users/{user}", { params, body: { units } })));
+}
+
+/** What removing a unit and every unit under it would take now, or null where it does not stand. */
+export async function unitRemoval(unit: number, administrator: string, options: ServiceOptions = {}): Promise<UnitRemoval | null> {
+  const params = { path: { unit }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).GET("/units/{unit}/removal", { params })));
+}
+
+/** A unit and every unit under it removed for good; null where it no longer stands. */
+export async function removeUnit(unit: number, units: RemovalUnits, administrator: string, options: ServiceOptions = {}): Promise<Removed | null> {
+  const params = { path: { unit }, header: removerHeaders(administrator) };
+
+  return standingOrGone(await sent(options, clientOf(options).DELETE("/units/{unit}", { params, body: { units } })));
+}
+
+// --- The delegation chain (docs/accounts.md, 「The delegation chain」) ---
+
+/** A setting kind as the unit using it declared it. */
+export type ChainKindView = Wire["ChainKind"];
+/** A setting resolved for a subject. */
+export type ChainResolutionView = Wire["ChainResolution"];
+/** A link's entry of a kind. */
+export type ChainEntryView = Wire["ChainEntry"];
+/** One rule of a link. */
+export type ChainRuleView = Wire["ChainRule"];
+
+/** Every kind declared on the chain. */
+export async function chainKinds(options: ServiceOptions = {}): Promise<ChainKindView[]> {
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds"))).kinds;
+}
+
+/** A kind resolved for a person or a unit, with the standing of one link asked after where `link` names it. */
+export async function resolveChain(key: string, subject: { person: string } | { unit: number }, link?: string, options: ServiceOptions = {}): Promise<ChainResolutionView> {
+  const query = { ...subject, ...(link === undefined ? {} : { link }) };
+
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds/{key}/resolve", { params: { path: { key }, query } })));
+}
+
+/** A link's entry, read as the login `caller` names. */
+export async function chainEntry(key: string, link: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).GET("/chain/kinds/{key}/links/{link}", { params: { path: { key, link }, header: { "Owner-Key": caller.key } } })));
+}
+
+/** A link's value written as the login `caller` names, null to follow above. */
+export async function setChainValue(key: string, link: string, value: unknown, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/value", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { value } })));
+}
+
+/** A link's delegation written as the login `caller` names. */
+export async function setChainDelegation(key: string, link: string, delegation: Wire["ChainDelegation"], caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(
+    await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/delegation", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { delegation } }))
+  );
+}
+
+/** A link's rules written whole as the login `caller` names. */
+export async function setChainRules(key: string, link: string, rules: ChainRuleView[], caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
+  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/rules", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { rules } })));
+}
+
+// The service's own call helpers under names of their own, for the modules that ask it beside this one.
+export { answered as accountAnswered, clientOf as accountClientOf, refusalOf as accountRefusalOf, sent as accountSent, userPath as accountUserPath };

@@ -1,0 +1,50 @@
+# What the voice briefing says where a person or an agent reads it (docs/voice-briefing.md). Each `{name}` is
+# filled in with what it names.
+
+# Every briefing refused while the owner has the switch off, and one of an agent whose row names no voice, by its
+# {label}.
+switched_off: "보이스브리핑이 꺼져 있어요. {owner_subject} 콘솔에서 다시 켜기 전까지는 목소리로 보내지 않아요. 이 말은 글로만 전하고, 다시 보내려 하지 마세요."
+voiceless: "{label}에게는 목소리가 없어 목소리로 보내지 않아요. 이 말은 글로만 전하고, 다시 보내려 하지 마세요."
+
+# What a briefing's run is called where a person watches it, by its {room}.
+title: "{room} 음성 브리핑"
+
+# A launch refused before anything exists: one nobody signed, one with no words, and one whose run, by its
+# {unit}, never came up.
+unsigned: "a voice briefing has to say who launched it: --by chat:<chatId> from a session, or the launcher's own name."
+wordless: "a voice briefing has to have something to say: the words are read from stdin, or given with --text."
+not_up: "the voice briefing's unit {unit} did not come up; nothing was said."
+
+# How the hand tool and the briefing launcher are called, said with a refusal of what they were asked.
+usage_hand: "usage: bmo voice say --text '<말>' [--chat <chatId>] [--caption <text>] [--file <path.ogg>] [--voice <이름>]"
+usage_brief: "usage: bmo voice brief --chat <chatId> --by chat:<chatId> [--emotion <감정>] [--title '<한 줄>'] [--text '<말>'] [--document <searchId>]  (the words are read from stdin)"
+
+# A switch change that names neither switch, or both.
+one_switch: "켜는지 끄는지(on 또는 autoplay 하나, 참 또는 거짓)를 보내 주세요."
+
+# The notes a briefing's run writes in its log as it goes, which a person watching the run reads.
+runner:
+  # The run's first note: the {count} of characters it was handed and its {chat}.
+  started: "{count}자 · chat {chat}"
+  # The polishing gate's answer to a full reading: the {seconds} it took and the {script} it wrote, or the
+  # {fault} that leaves the mechanical script to be read.
+  polished: "다듬기 {seconds}초: {script}"
+  unpolished: "다듬기 {seconds}초 실패, 기계 대본으로 읽는다: {fault}"
+  # The reading gate's failure, by its {fault}.
+  unread: "읽기 게이트 실패: {fault}"
+  # What the voice is given: the {reading} the gate wrote, or the line as it came where it had nothing to write.
+  read: "읽기: {reading}"
+  read_as_written: "읽기: 음차할 것이 없어 원문 그대로"
+  # A line handed to the voice node list, by its {voice}.
+  to_node: "{voice}: 노드에서 말한다"
+  # A line a node spoke: the {node}, the waits {how} it came to it by, the {seconds} the line lasts, the
+  # {speak} seconds it took to say and the {load} seconds its weights took, and its {checkpoint}.
+  node_spoke: "노드 {node}{how}: {seconds}초 분량 · 말하기 {speak}초 · 가중치 {load}초 · {checkpoint}"
+  # The waits a node's line names: the {seconds} it waited for a free node, and a card other work held.
+  node_waited: "빈 노드를 {seconds}초 기다림"
+  card_queued: "다른 일이 쥔 카드의 줄에 섰음"
+  # A line that waited its turn on this machine's card, and a full reading that waited behind the summaries.
+  queued: "다른 브리핑이 말하는 중이라 줄을 섰다"
+  behind_summaries: "요약 브리핑이 먼저라 뒤에 줄을 섰다"
+  # What stands where a gate gave no reason.
+  no_reason: "이유 없음"

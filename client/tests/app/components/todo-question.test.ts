@@ -1,0 +1,54 @@
+import { describe, expect, test } from "bun:test";
+
+// A job standing on a question, where the owner looks (docs/web.md, the job question's section): the chip on its row in
+// the TODO panel and in the opened item, and the answering card inside the item. One card, one route.
+
+const read = async (path: string) => await Bun.file(new URL(`../../../apps/web/${path}`, import.meta.url)).text();
+
+const row = await read("app/components/TodoRow.vue");
+const badge = await read("app/components/TodoQuestionBadge.vue");
+const item = await read("app/components/TodoItemDetail.vue");
+const ask = await read("app/components/QuestionAsk.vue");
+const room = await read("app/pages/rooms/[chatId].vue");
+const window = await read("app/components/QuestionWindow.vue");
+
+describe("a job standing on a question", () => {
+  // The badge is a part of its own, standing while a question of the item is unsettled, its time run out or not
+  // (docs/web.md, the TODO panel's section).
+  test("marks its row in the list and the opened item, each mark pressed for the card", () => {
+    expect(row).toContain('<TodoQuestionBadge v-if="questions !== null" :questions="questions" @press="emit(\'question\', item.id)" />');
+    expect(item).toContain('<TodoQuestionBadge :questions="waitingQuestions" @press="showQuestion" />');
+    expect(badge).toContain("data-awaiting-question");
+    expect(badge).toContain(":label=\"$t('todo.label.awaiting_question')\"");
+    expect(badge).toContain('questionState(question) === "open"');
+  });
+
+  test("stands the one answering card inside the item, not a quiet line", () => {
+    expect(item).toContain('<QuestionAsk :only="openedItem.id" />');
+    expect(item).toContain("settledQuestionsOf");
+    // The settled ones are read from bmo-job for the item, apart from the open ones the card stands.
+    expect(item).toContain("`/api/todos/${id}/questions`");
+  });
+
+  // The questions stand in a window over the owner's room rather than in its foot (docs/web.md, 「The questions
+  // window」), the same cards in it as one list, for the owner's login alone.
+  test("stand in the questions window over the owner's room, out of the room's foot, for the owner's login", () => {
+    expect(room).toContain('<QuestionWindow v-if="ownsTodo && owner.owner"');
+    expect(room).not.toContain("<QuestionAsk");
+    expect(window).toContain("<FloatingWindow");
+    expect(window).toContain("<QuestionAsk listed");
+  });
+
+  // Each question is talked over with the job that asked it, inside its own card (docs/web.md, 「Talking a question
+  // over」).
+  test("open the talk over a question inside its card", () => {
+    expect(ask).toContain("<QuestionTalk");
+    expect(ask).toContain('$t(\'question.action.discuss\')');
+  });
+
+  test("answers through the card the questions window answers through, by the one route", () => {
+    expect(ask).toContain('$fetch("/api/questions"');
+    expect(ask).toContain("questionReply(");
+    expect(ask).toContain("const shown = computed");
+  });
+});

@@ -1,0 +1,88 @@
+# The server: the account service on sumida, its routes, its migrations and its binary
+# (docs/accounts.md).
+[package]
+name = "bmo-web-server"
+description = "The web console's server: the account service on sumida, its routes and its migrations."
+version = "0.1.0-rev.1"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+# One test target, the harness at tests/main.rs (bmo-chat's docs/conventions.md, 「Rust builds」).
+autotests = false
+
+[[bin]]
+name = "bmo-web-server"
+path = "src/bin/bmo-web-server.rs"
+test = false
+
+[dependencies]
+# The migrations' own macro.
+async-trait = "0.1.92"
+# The service's own contract: its bodies as types, its OpenAPI document, and one call for each route.
+bmo-web-client = { path = "client" }
+axum.workspace = true
+# A secret's value sent as base64, decoded under the standard alphabet into the bytes the store writes.
+base64 = "0.22.1"
+chrono = { version = "0.4.45", default-features = false, features = ["std", "clock"] }
+# The owner's time zone, which a fixed line naming a moment tells it in.
+chrono-tz = { version = "0.10.4", default-features = false, features = ["std"] }
+clap = { version = "4.6.7", features = ["derive", "env"] }
+# The settings files and the environment, layered in that order.
+config = { version = "0.15", default-features = false, features = ["toml"] }
+# A machine credential: HMAC-SHA256 over its name, keyed by the jake hub's agent key.
+hmac = "0.12.1"
+rand = "0.9.2"
+# A part of the language pack that keeps its keys in the order its file writes them.
+indexmap = { version = "2.14.2", features = ["serde"] }
+# The language pack's YAML, read into each part's type, and the document wording file written from it.
+serde-saphyr = { version = "1.3.0", default-features = false, features = ["deserialize", "serialize"] }
+# The receiver, asked for a message's sender.
+reqwest.workspace = true
+# The service's own statements, in the release sumida's own entities are written in.
+sea-orm = { version = "1.1.17", default-features = false, features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }
+# The migrations, in the release sumida's own migrations run on.
+sea-orm-migration = { version = "1.1.17", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+# The stable sample the import's compare picks by hashing a row's key, and every token, code and session id kept
+# hashed (docs/accounts.md, 「Account security」).
+sha2 = "0.10.9"
+# The second factor's time-based codes (RFC 6238) and their otpauth address.
+totp-rs = { version = "6.0.0", default-features = false, features = ["std", "otpauth"] }
+# The otpauth address drawn as a QR code, in SVG, by the service itself.
+qrcode = { version = "0.14.1", default-features = false, features = ["svg"] }
+# PostgreSQL's client under sea-orm, taken by itself for the pool's options.
+sqlx = { version = "0.8.6", default-features = false, features = ["postgres", "runtime-tokio"] }
+# The inert session a credit grant is judged under: sumida's membership services read the acting person
+# from a session, and the supply routes hold one with no store behind it.
+tower-sessions = "0.14.0"
+# The base: users, sessions, API keys and permission layers, with sessions on Valkey, and its membership
+# domain beside them — the plans, wallets, quotas and holds the supply answers stand on (docs/accounts.md,
+# 「Supply」); mail-form because the membership schema seeds its notices' forms. sumida builds its token
+# routes only with a secret store chosen, and the static one is chosen; no token is ever issued here.
+sumida = { git = "https://github.com/ahas/sumida", rev = "0eb770ba682aca2f2b46abdbfcd6f7e2ff43b50f", default-features = false, features = ["session-store-redis", "jwt-secret-store-static", "membership", "mail-form"] }
+thiserror = "2.0.21"
+tokio.workspace = true
+
+[dev-dependencies]
+# A password hash of the form the console's own account command makes.
+argon2 = "0.5.3"
+http-body-util = "0.1.3"
+# A temporary folder the import's tests write their export into.
+tempfile = "3.20.0"
+tower = { version = "0.5.2", features = ["util"] }
+# A scratch database's address, the test server's with another database in it.
+url = "2.5.8"
+# The names list the repository's guard reads from outside the checkout.
+toml = "0.8.23"
+# The patterns the repository's guard reads its tracked files for.
+regex = "1.13.1"
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+# Signing in stands in a process of its own: sumida reads its settings once per process.
+[[test]]
+name = "sign_in"
+path = "tests/sign_in/main.rs"

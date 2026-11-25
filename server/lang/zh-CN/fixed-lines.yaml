@@ -1,0 +1,58 @@
+# Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
+rest_begins:
+  until: "已达到用量上限，{until}前暂停回复。"
+  soon: "已达到用量上限，暂时停止回复。"
+  today: "{hour}:{minute}"
+  another_day: "{month}{day}日 {hour}:{minute}"
+  months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+chat_denied: "此房间已被屏蔽。这里的话我以后既不听也不保存了。"
+still_working: "还在准备回答，请稍等。"
+supervisor_cut: "已中断 {name} 的这一轮。{reason} 从下一条消息起将在新会话中回答。"
+memory_tidying: "正在整理记忆，完成后回答。请稍等。"
+account_let_in: "{by} 邀请 {account} 加入了聊天。"
+account_left: "{account} 退出了房间。"
+account_taken_out: "{by} 将 {account} 移出了房间。"
+accounts_let_in: "{by} 邀请 {account} 等 {others} 人加入了聊天。"
+unit_let_in: "{by} 邀请 {unit} 加入了聊天。"
+person: "{name}"
+people_joiner: "、"
+people_joined: "{people} 加入了房间。"
+people_joined_by: "{by} 邀请 {people} 加入了聊天。"
+person_left: "{person} 退出了房间。"
+person_taken_out: "{by} 将 {person} 移出了房间。"
+supply_closed:
+  no_order: "此聊天室的智能体没有设定可用的供给源，暂时无法回答。请在设置的供给中添加供给登录或供给密钥。"
+  withheld: "组织设置关闭了所有智能体供给源，暂时无法回答。请联系组织管理员开启供给源。"
+  no_personal: "你没有可供此智能体使用的供给登录或供给密钥，暂时无法回答。请在设置的供给中添加。"
+  own_refused: "你的供给密钥被提供商拒绝，暂时无法回答。请在设置的供给中重新登记密钥。"
+  no_organisation: "组织供给中目前没有可用的供给密钥或供给登录，无法回答。请联系组织管理员。"
+  organisation_refused: "组织的积分已用完，暂时无法回答。请联系组织管理员发放积分。"
+  no_lendable: "目前没有可借给他人智能体使用的 Claude 账号，无法回答。请在设置的供给中添加你自己的 Claude 供给登录，或联系平台管理员。"
+  shared_node: "你正在使用的电脑与其他人共用，无法使用借来的 Claude 账号，因此无法回答。请在设置的供给中添加你自己的 Claude 供给登录，或向平台管理员申请一台你自己的电脑。"
+  owned: "此智能体的模型属于其他人，无法用平台供给运行。请更换智能体的模型。"
+  refused: "积分已用完，暂时无法回答。请在设置的供给中查看积分或更改供给顺序。"
+  ran_out: "回答过程中积分用完，已停止。请在设置的供给中查看积分或更改供给顺序。"
+  other: "此智能体已没有可用的供给源，暂时无法回答。请检查设置中的供给。"
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject} 进入睡眠整理记忆，将在新会话中醒来"
+  # The session was reset, and the next turn opens a new one.
+  reset: "{agent} 的会话进入睡眠整理记忆后重新开始。对话记录保持不变"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · 由 {by} 请求"
+  # Why, where no asker gave words.
+  causes:
+    full: "上下文已满"
+    road: "提供方 · 模型已更改"
+    documents: "指示已更改"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject} 在{date}夜里睡了一觉，整理了记忆 · 新学到 {learned} · 合并 {merged} · 结束 {closed}"

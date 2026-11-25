@@ -1,0 +1,14 @@
+# The particles the server joins to a name the pack cannot know (docs/language-pack.md, 「A part is a file」),
+# chosen by whether the name's last sound closes on a consonant.
+
+# The subject particle: after a closed sound, after an open one, and both where the sound cannot be read.
+subject:
+  closed: "이"
+  open: "가"
+  unknown: "이(가)"
+
+# The object particle, chosen the same way.
+object:
+  closed: "을"
+  open: "를"
+  unknown: "을(를)"

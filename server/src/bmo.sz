@@ -1,0 +1,30 @@
+// The deployment's rules, registered with sumida's at the account service's start (docs/accounts.md).
+// sumida's own file holds the platform, users, roles and organizations; this one holds what a grant of the
+// deployment's can name: people's console permissions. Every object is named by a string, so none has a table. A
+// room, a worker, a repository and a tool are no kind here: what a room's members may have the chat agent do is
+// the owner's room rules in the agent's brain, and what an agent may do stands in its prompts and its brain.
+//
+// Every permission ends in `platform:root->superuser`: the platform administrator passes every check, and
+// only the administrator grants.
+
+// One console section, by its id (docs/accounts.md, 「Console sections」): whether a user may open it and
+// whether they may change what it holds. A write is also a read, so `may_read` takes the write relation too;
+// the administrator passes both.
+definition bmo_section {
+  relation read:  user
+  relation write: user
+
+  permission may_read  = read | write | platform:root->superuser
+  permission may_write = write | platform:root->superuser
+  permission grant     = platform:root->superuser
+}
+
+// A unit's org memory, by the unit's id (docs/accounts.md, 「A unit's org memory」): whether a user writes the memory
+// every agent serving the unit's people shares without heading the unit. A head writes it by heading it, so this
+// relation is only the grant a head gives; it reaches the one unit it names.
+definition bmo_org_memory {
+  relation write: user
+
+  permission may_write = write | platform:root->superuser
+  permission grant     = platform:root->superuser
+}

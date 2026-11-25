@@ -1,0 +1,5 @@
+# A turn of the chat agent's chat as a person sees it go (docs/agent-control.md, 「One standing pane per agent」).
+
+# The title a round's turn stands under in the chat agent's pane, and a fold's, in the chat agent's pane and in a worker's.
+title: "대화"
+fold: "접기"

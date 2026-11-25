@@ -1,0 +1,747 @@
+/* Apple SD Gothic Neo, Apple Inc.'s typeface, shipped with macOS and under no open licence; the
+   owner chose to carry it. The files next to this one are built by client/apps/web/scripts/interface-font.py
+   out of the release: cut to the letters Pretendard's subset build carries, given tabular figures
+   the release has none of, and with their lines centred on the Hangul (docs/web.md, 「Fonts」).
+   Each face names the ranges it covers, so a letter outside them goes straight to the faces behind.
+   The page's head preloads all four (`app.vue`), so the first screen is drawn in them rather than
+   swapping into them a moment later. */
+
+@font-face {
+  font-family: "Apple SD Gothic Neo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/AppleSDGothicNeo-Regular.subset.woff2") format("woff2");
+  unicode-range:
+    U+0000-04FF, U+1E00-1EFF, U+2000-27BF, U+3000-303F, U+3130-318F, U+3200-32FF, U+AC00-D7A3,
+    U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "Apple SD Gothic Neo";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/AppleSDGothicNeo-Medium.subset.woff2") format("woff2");
+  unicode-range:
+    U+0000-04FF, U+1E00-1EFF, U+2000-27BF, U+3000-303F, U+3130-318F, U+3200-32FF, U+AC00-D7A3,
+    U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "Apple SD Gothic Neo";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/AppleSDGothicNeo-SemiBold.subset.woff2") format("woff2");
+  unicode-range:
+    U+0000-04FF, U+1E00-1EFF, U+2000-27BF, U+3000-303F, U+3130-318F, U+3200-32FF, U+AC00-D7A3,
+    U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: "Apple SD Gothic Neo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/AppleSDGothicNeo-Bold.subset.woff2") format("woff2");
+  unicode-range:
+    U+0000-04FF, U+1E00-1EFF, U+2000-27BF, U+3000-303F, U+3130-318F, U+3200-32FF, U+AC00-D7A3,
+    U+FF00-FFEF;
+}
+
+/* The conversation's one set of measures (docs/web.md, 「The conversation's measures」): a bubble,
+   its parts and the room around it, the face beside a run and the bars over the list. Every part
+   of a room names one of these rather than a number of its own, so the shape is decided here and
+   the turn still running, the answer, a picture and a flying bubble all wear the same one.
+   - The bubble's corners: the shared radius every box of the console takes, the small tier where
+     two bubbles of a run meet on the photo's side, and square where its tail hangs. Anything standing inside a bubble near its edge
+     takes that radius less its inset (none where the inset is the radius or more), and a picture
+     running to the edge is cut by the bubble's own corners.
+   - The bubble's inner room, which the words, the name, the caption and the meta line all keep;
+     a picture runs to the bubble's edges instead.
+   - The step between bubbles of one run, and the larger step between one run and the next.
+   - The face and the gap between it and its bubble, which every row keeps on its own side. The tail
+     has no measure of its own: it is read off these two, as an arc round the face across that gap.
+   - The choosing column a row opens at its leading edge while messages are chosen: the mark's
+     square, hung a little outside the reading column, and the photo's gap from it. A message on the
+     leading side slides aside by it, and a bubble's widest keeps that much clear on its far side.
+   - The meta line under the words: one size and one line height for everything on it.
+   - The square box a sticker alone stands in, held before its file loads, and the size its emoji is drawn at in
+     that box where nothing of the sticker is kept.
+   - The room above and below the input box in the bar along the foot.
+   - The colours a sender's name is drawn in at the head of a bubble, one per person by their number:
+     eight of the theme's own colours, at the step that reads at 4.5:1 or better on the bubble's
+     ground — the 700 step in the light theme, the 400 step in the dark one (set with the focus
+     colour below).
+   - The two grounds: the owner's and everyone else's, the palette's own for each mode (set with the
+     focus colour below), which each bubble and its tail wear and a bubble's own surfaces step from.
+   - How far a bubble's inks stand from its ground: the share of the way from the ground's lightness
+     to the far end, black in the light theme and white in the dark (set with the focus colour
+     below): the muted letters' share, the dimmed ones' and the theme colours', one of which every
+     colour drawn on a bubble takes (the bubble's rule below), and the most chroma a theme colour
+     keeps there. A theme colour's own chroma lifts its luminance at a lightness, so the light theme
+     takes it a little further than the letters; a light ink of a strong colour falls outside what a
+     screen shows and is cut back darker, so the dark theme holds its chroma lower.
+   - How far a mark's ink stands from its ground: the verdict mark is read at 3:1 rather than 4.5:1, so
+     its share is smaller and its colour stays vivid, and the most chroma the red keeps there. The
+     green fits the screen at its whole chroma at a mark's lightness in both themes; a red does in the
+     light theme, and in the dark one, where the mark is light, only held lower.
+   - How far a surface inside a bubble stands from its ground, on the same scale towards the far end:
+     a raised panel and a press a step and two up, a hairline as far as the panel or further. The
+     dark theme's steps are larger, as the page's own surfaces are further apart there. The sunk
+     well and the page's own ground keep the page's lightness for them instead, read where the theme
+     sets it, and the most chroma a screen shows of the ground's hue at that lightness: little at the
+     light theme's near-white, more at the dark theme's near-black. */
+:root {
+  --chat-radius: calc(var(--ui-radius) * 2);
+  --chat-radius-joined: var(--ui-radius);
+  --chat-pad-x: 12px;
+  --chat-pad-y: 8px;
+  --chat-message-gap: 8px;
+  --chat-face: 32px;
+  --chat-face-gap: 8px;
+  --chat-face-room: calc(var(--chat-face) + var(--chat-face-gap));
+  --chat-choose-mark: 20px;
+  --chat-choose-hang: 4px;
+  --chat-choose-room: calc(var(--chat-choose-mark) - var(--chat-choose-hang) + var(--chat-face-gap));
+  --chat-meta-line: 20px;
+  --chat-meta-gap: 4px;
+  /* What a sound player adds to the step between the parts of a bubble, so it stands a full inner
+     padding from the words above it, as a picture stands from its caption. */
+  --chat-media-step: calc(var(--chat-pad-y) - var(--chat-meta-gap));
+  --chat-sticker: 160px;
+  --chat-sticker-emoji: 112px;
+  --chat-bar-pad: 8px;
+}
+
+/* The conversation's colours, which differ by mode: the light mode's here and the dark mode's with
+   the focus colour below. Each mode states them on its own class as well as on the root, so a box
+   drawn in a mode the page is not in — the settings' previews — reads them for itself (docs/web.md,
+   「Palettes」). Both grounds are the palette's own for the mode, and the sunk well and the page's
+   ground are read where the mode sets them. */
+:root,
+.light,
+.dark {
+  --chat-well: var(--ui-bg-muted);
+  --chat-page: var(--ui-bg);
+}
+
+/* The step each colour's words are drawn at (docs/web.md, 「Colour」). The library paints every colour from its 500 in
+   the light theme, and as words those read between about 1.9:1 (the warning's bright yellow) and 3.8:1 (the blue)
+   on white, less on their own tints. The warning and the error take the step their words read at on the token
+   itself, so their words, edges, tints and fills all follow it and a white word reads on their fill: the 800 in
+   the light theme, and in the dark the warning's 400 and the error's 300, the error's 400 falling short under its
+   hover tint on a muted or raised surface. The primary, the secondary, the success and the info keep the
+   library's step for their fills, edges and tints, the look of the account's theme, and take a darker step for
+   their words alone through the layer's word token, which every text utility of the colour reads: the 700 for the
+   blue of the secondary and the info and the 800 for the primary and the success in the light theme, the 300 for
+   the primary, the secondary and the info in the dark, where the violet accent's 400 and the blue's fall short
+   under their hover tint. The primary is the theme's accent and takes one step under every theme, the one every
+   accent reads at. A screen a unit brings is drawn on the console's page and reads the same tokens. The dark rule
+   stands after the light one, so the dark root, which both match, takes it, and each mode states it on its own
+   class so a box drawn in a mode the page is not in reads it for itself. */
+:root,
+.light {
+  --ui-warning: var(--ui-color-warning-800);
+  --ui-error: var(--ui-color-error-800);
+  --bmo-ink-primary: var(--ui-color-primary-800);
+  --bmo-ink-secondary: var(--ui-color-secondary-700);
+  --bmo-ink-success: var(--ui-color-success-800);
+  --bmo-ink-info: var(--ui-color-info-700);
+}
+
+.dark {
+  --ui-warning: var(--ui-color-warning-400);
+  --ui-error: var(--ui-color-error-300);
+  --bmo-ink-primary: var(--ui-color-primary-300);
+  --bmo-ink-secondary: var(--ui-color-secondary-300);
+  --bmo-ink-success: var(--ui-color-success-400);
+  --bmo-ink-info: var(--ui-color-info-300);
+}
+
+/* The console's ANSI palette (docs/web.md, 「A tool call」): the terminal colours a tool call's prompt is drawn in,
+   oh-my-zsh's pure theme read onto them, each at the step that reads on the screen's own surface in its mode. */
+:root,
+.light {
+  --ansi-blue: var(--color-blue-700);
+  --ansi-red: var(--color-red-700);
+  --ansi-yellow: var(--color-amber-700);
+  --ansi-gray: var(--color-neutral-600);
+  --ansi-green: var(--color-green-700);
+  --ansi-cyan: var(--color-cyan-700);
+  --ansi-magenta: var(--color-fuchsia-700);
+}
+
+.dark {
+  --ansi-blue: var(--color-blue-400);
+  --ansi-red: var(--color-red-400);
+  --ansi-yellow: var(--color-yellow-400);
+  --ansi-gray: var(--color-neutral-400);
+  --ansi-green: var(--color-green-400);
+  --ansi-cyan: var(--color-cyan-400);
+  --ansi-magenta: var(--color-fuchsia-400);
+}
+
+:root,
+.light {
+  --chat-name-1: var(--color-red-700);
+  --chat-name-2: var(--color-orange-700);
+  --chat-name-3: var(--color-amber-700);
+  --chat-name-4: var(--color-emerald-700);
+  --chat-name-5: var(--color-teal-700);
+  --chat-name-6: var(--color-sky-700);
+  --chat-name-7: var(--color-violet-700);
+  --chat-name-8: var(--color-pink-700);
+  --chat-mine: var(--bmo-palette-own-light);
+  --chat-theirs: var(--bmo-palette-other-light);
+  --chat-ink-far: 0;
+  --chat-ink-muted: 0.52;
+  --chat-ink-dimmed: 0.47;
+  --chat-ink-tone: 0.54;
+  --chat-ink-chroma: 0.15;
+  --chat-ink-mark: 0.44;
+  --chat-ink-mark-chroma: 0.4;
+  --chat-well-chroma: 0.012;
+  --chat-surface-raised: 0.045;
+  --chat-surface-pressed: 0.09;
+  --chat-edge-muted: 0.05;
+  --chat-edge: 0.09;
+  --chat-edge-accented: 0.14;
+}
+
+.chat-mine {
+  --bubble: var(--chat-mine);
+}
+
+.chat-theirs {
+  --bubble: var(--chat-theirs);
+}
+
+/* Every colour drawn on a bubble but its words is an ink of that bubble's own ground, so it reads
+   on whatever ground the bubble wears, and keeps reading when a ground changes colour (docs/web.md,
+   「The conversation's measures」). An ink takes its lightness from the ground, moved its share of the
+   way to the far end, and its hue and chroma from its own colour: a colour with only the lightness
+   and one with only the hue and chroma, mixed, give the one with all three, since a mix fills a
+   channel one side leaves out with the other side's. A theme colour's chroma is held to what still
+   fits on the screen at an ink's lightness, and a theme colour's words take that ink too, over the step
+   the page states for them. The verdict mark's passing and failing colours take a
+   mark's ink, the green at its own chroma and the red held to what fits at a mark's lightness. Every
+   surface inside a bubble — a panel, a press, a badge's ground and edge, a hairline — is a step of the
+   ground itself, its lightness moved its share and its hue and chroma the ground's, so it stays of
+   the bubble's colour, the owner's teal and everyone else's grey alike. The sunk well a code block
+   stands in, and the page's own ground, take the ground's hue and chroma at the lightness the page
+   gives them, so a colour fixed against the page — a code block's syntax colours — reads inside a
+   bubble as it does outside one. A move toward the far end is a mix with a colour standing there, of
+   the ground's own hue and chroma for a surface, rather than a sum over the ground's channels inside
+   calc(), which the build's calc reducer cannot read and warns on. */
+.chat-bubble {
+  --chat-far-lightness: oklch(var(--chat-ink-far) none none);
+  --chat-far-ground: oklch(from var(--bubble) var(--chat-ink-far) c h);
+  --chat-ink-muted-lightness: color-mix(in oklch, oklch(from var(--bubble) l none none), var(--chat-far-lightness) calc(var(--chat-ink-muted) * 100%));
+  --chat-ink-dimmed-lightness: color-mix(in oklch, oklch(from var(--bubble) l none none), var(--chat-far-lightness) calc(var(--chat-ink-dimmed) * 100%));
+  --chat-ink-tone-lightness: color-mix(in oklch, oklch(from var(--bubble) l none none), var(--chat-far-lightness) calc(var(--chat-ink-tone) * 100%));
+  --chat-ink-mark-lightness: color-mix(in oklch, oklch(from var(--bubble) l none none), var(--chat-far-lightness) calc(var(--chat-ink-mark) * 100%));
+  --ui-text-muted: color-mix(in oklch, var(--chat-ink-muted-lightness), oklch(from var(--ui-text) none c h));
+  --ui-text-dimmed: color-mix(in oklch, var(--chat-ink-dimmed-lightness), oklch(from var(--ui-text) none c h));
+  --ui-primary: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-primary-500) none min(c, var(--chat-ink-chroma)) h));
+  --ui-secondary: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-secondary-500) none min(c, var(--chat-ink-chroma)) h));
+  --ui-success: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-success-500) none min(c, var(--chat-ink-chroma)) h));
+  --ui-info: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-info-500) none min(c, var(--chat-ink-chroma)) h));
+  --ui-warning: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-warning-500) none min(c, var(--chat-ink-chroma)) h));
+  --ui-error: color-mix(in oklch, var(--chat-ink-tone-lightness), oklch(from var(--ui-color-error-500) none min(c, var(--chat-ink-chroma)) h));
+  --bmo-ink-primary: var(--ui-primary);
+  --bmo-ink-secondary: var(--ui-secondary);
+  --bmo-ink-success: var(--ui-success);
+  --bmo-ink-info: var(--ui-info);
+  --chat-mark-success: color-mix(in oklch, var(--chat-ink-mark-lightness), oklch(from var(--ui-color-success-500) none c h));
+  --chat-mark-error: color-mix(in oklch, var(--chat-ink-mark-lightness), oklch(from var(--ui-color-error-500) none min(c, var(--chat-ink-mark-chroma)) h));
+  --ui-bg: color-mix(in oklch, oklch(from var(--chat-page) l none none), oklch(from var(--bubble) none min(c, var(--chat-well-chroma)) h));
+  --ui-bg-muted: color-mix(in oklch, oklch(from var(--chat-well) l none none), oklch(from var(--bubble) none min(c, var(--chat-well-chroma)) h));
+  --ui-bg-elevated: color-mix(in oklch, var(--bubble), var(--chat-far-ground) calc(var(--chat-surface-raised) * 100%));
+  --ui-bg-accented: color-mix(in oklch, var(--bubble), var(--chat-far-ground) calc(var(--chat-surface-pressed) * 100%));
+  --ui-border: color-mix(in oklch, var(--bubble), var(--chat-far-ground) calc(var(--chat-edge) * 100%));
+  --ui-border-muted: color-mix(in oklch, var(--bubble), var(--chat-far-ground) calc(var(--chat-edge-muted) * 100%));
+  --ui-border-accented: color-mix(in oklch, var(--bubble), var(--chat-far-ground) calc(var(--chat-edge-accented) * 100%));
+}
+
+
+/* A message's bubble while it is being judged: a thin ring in the theme's primary colour around it breathing,
+   fading slowly in and out, until the judging is over (docs/web.md, 「판정」). The ring is drawn round the
+   bubble's shape, its box and its tail together, on a layer of its own under everything the bubble holds, so
+   the tail breathes with the bubble, no line crosses where the two meet, nothing inside moves and the arrival's
+   rise is left alone. On that layer the bubble's box spreads the ring round its own corners, and its tail stands
+   grown by the ring's width in the ring's colour beneath the box; the box is painted in the bubble's own ground,
+   so where the layer lies under the bubble or its tail it is the colour already there, and only the ring shows
+   past the bubble's edge. A bubble with no ground of its own, a picture standing alone, hangs no tail, so its box
+   paints nothing inside and whatever the row stands on shows through the picture as it does without the ring. The
+   whole layer takes the ring's strength at once, so the ring is one even shade where the box's ring and the tail's
+   meet. A reader who asked for less movement sees the ring stand still, faint. */
+.bubble-beat {
+  --bubble-beat-width: 1px;
+  --tail-grow: var(--bubble-beat-width);
+  border-radius: inherit;
+  color: var(--bmo-focus);
+  animation: bubble-breathe 2.4s ease-in-out infinite alternate;
+}
+
+.bubble-beat-ground {
+  border-radius: inherit;
+  background-color: var(--bubble, transparent);
+  box-shadow: 0 0 0 var(--bubble-beat-width) var(--bmo-focus);
+}
+
+@keyframes bubble-breathe {
+  from {
+    opacity: 0.1;
+  }
+
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble-beat {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+.dark {
+  --bmo-focus: var(--ui-color-primary-400);
+  --chat-name-1: var(--color-red-400);
+  --chat-name-2: var(--color-orange-400);
+  --chat-name-3: var(--color-amber-400);
+  --chat-name-4: var(--color-emerald-400);
+  --chat-name-5: var(--color-teal-400);
+  --chat-name-6: var(--color-sky-400);
+  --chat-name-7: var(--color-violet-400);
+  --chat-name-8: var(--color-pink-400);
+  --chat-mine: var(--bmo-palette-own-dark);
+  --chat-theirs: var(--bmo-palette-other-dark);
+  --chat-ink-far: 1;
+  --chat-ink-muted: 0.8;
+  --chat-ink-dimmed: 0.72;
+  --chat-ink-tone: 0.8;
+  --chat-ink-chroma: 0.1;
+  --chat-ink-mark: 0.62;
+  --chat-ink-mark-chroma: 0.13;
+  --chat-well-chroma: 0.04;
+  --chat-surface-raised: 0.11;
+  --chat-surface-pressed: 0.2;
+  --chat-edge-muted: 0.11;
+  --chat-edge: 0.11;
+  --chat-edge-accented: 0.2;
+}
+
+/* A text written in markdown, read as the formatting it was written for (see MarkdownText). What a heading, a list or a table looks like has to be said outright: the
+   console carries no typography plugin, and Nuxt UI's prose components are MDC's, which is a
+   compiler this console does not run. Every colour here is one of the console's own tokens and
+   the fixed-width places name the same face variable the rest of the console does, so the
+   document reads in light and in dark for the same reason every other surface does, and there is
+   still one place that says what the console's monospace is.
+
+   The sizes are relative throughout — the document is a panel's worth of text rather than a
+   page's, and a heading that is a multiple of the text around it stays in proportion to it
+   wherever the panel is read. */
+
+.markdown {
+  overflow-wrap: break-word;
+}
+
+/* A document is a panel's worth of text of its own, so it says its own size and colour. A book —
+   a document the document viewer shows — reads the same. */
+.markdown--document,
+.markdown--book {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--ui-text-toned);
+}
+
+/* In the viewer's translation, a part still being translated and a part the translator could not
+   render stand in the original, ruled down their left side; the words above the text say which.
+   Both rules carry that meaning, so each is drawn in a colour that stands out from the page in
+   either mode rather than in a border colour. */
+.markdown--book > [data-waiting] {
+  border-left: 2px dashed var(--ui-text-muted);
+  padding-left: 0.75em;
+  color: var(--ui-text-muted);
+}
+
+.markdown--book > [data-untranslated] {
+  border-left: 2px solid var(--ui-warning);
+  padding-left: 0.75em;
+}
+
+/* A link the viewer opens inside itself. */
+.markdown--book [data-document-link] {
+  cursor: pointer;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 1.6em 0 0.6em;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ui-text-highlighted);
+}
+
+/* A heading the table of contents steers to stops clear of the top edge rather than flush
+   against it, so the line above it says which section was arrived at. */
+.markdown [data-heading] {
+  scroll-margin-top: 1rem;
+}
+
+.markdown h1 {
+  font-size: 1.5em;
+}
+
+.markdown h2 {
+  font-size: 1.25em;
+}
+
+.markdown h3 {
+  font-size: 1.1em;
+}
+
+/* The two that open a section are ruled off, which is the whole of how a long document reads as
+   sections at all when there is no width to spare for anything else. */
+.markdown h1,
+.markdown h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.markdown p {
+  margin: 0.85em 0;
+}
+
+.markdown strong {
+  font-weight: 600;
+  color: var(--ui-text-highlighted);
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0.85em 0;
+  padding-left: 1.4em;
+}
+
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown li {
+  margin: 0.25em 0;
+}
+
+/* A list inside a list is part of its own item rather than a new block of text, so it keeps the
+   spacing of an item and not that of a paragraph. */
+.markdown li > ul,
+.markdown li > ol {
+  margin: 0.25em 0;
+}
+
+/* A link is a primary word, drawn at the step the primary's words take (docs/web.md, 「Colour」). */
+.markdown a {
+  color: var(--bmo-ink-primary, var(--ui-primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--ui-radius);
+  background-color: var(--ui-bg-elevated);
+  font-family: var(--font-mono);
+  font-size: max(0.9em, 0.875rem);
+  color: var(--ui-text-highlighted);
+}
+
+.markdown blockquote {
+  margin: 0.85em 0;
+  padding-left: 0.9em;
+  border-left: 2px solid var(--ui-border-accented);
+  color: var(--ui-text-muted);
+}
+
+/* A table stands in a box that scrolls it sideways (see domain/markdown), and is laid out in that
+   box at the width its contents ask for, up to a reading width of ten em a column or the text's
+   own column, whichever is wider. So its columns are never squeezed into a narrow column: a phone
+   lays a table out as wide as its columns need and scrolls it, a table that fits stands at its own
+   width, and past the reading width a long cell wraps rather than running on. A cell keeps a
+   readable width however short its words, and a word in it breaks at a space, so a Korean word is
+   not folded a syllable to a line; only a run longer than its whole column breaks inside itself,
+   so one long run never pushes the table wider and squeezes the columns beside it. A collapsed
+   border stands half outside the table, so the table is laid out a pixel short of the column, or
+   a table that fits would scroll by that pixel. */
+.markdown-table {
+  max-width: 100%;
+  margin: 0.85em 0;
+  overflow-x: auto;
+}
+
+.markdown table {
+  width: max-content;
+  max-width: max(100% - 1px, var(--columns, 4) * 10em);
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  min-width: 7em;
+  padding: 0.4em 0.7em;
+  border: 1px solid var(--ui-border);
+  text-align: left;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.markdown th {
+  background-color: var(--ui-bg-elevated);
+  font-weight: 600;
+  color: var(--ui-text-highlighted);
+}
+
+.markdown hr {
+  margin: 1.5em 0;
+  border: 0;
+  border-top: 1px solid var(--ui-border);
+}
+
+/* A picture stands on a line of its own — the base styles make every image a block — in the
+   middle of the column. */
+.markdown img {
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+/* A message stands as the chat it went out to shows it (see domain/message-markup): its markup's line
+   breaks are line breaks, a quote and a code block sit close to the lines around them, and a spoiler is
+   covered until it is pressed. Like words, it takes its size and colour from the bubble. */
+.markdown--message {
+  white-space: pre-wrap;
+}
+
+.markdown--message blockquote,
+.markdown--message .markdown-code {
+  margin: 0.25em 0;
+}
+
+.markdown--message .markdown-code {
+  white-space: normal;
+}
+
+.markdown-spoiler {
+  border-radius: var(--ui-radius);
+  background-color: var(--ui-text-muted);
+  color: transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.markdown-spoiler * {
+  visibility: hidden;
+}
+
+.markdown-spoiler[data-shown] {
+  background-color: var(--ui-bg-elevated);
+  color: inherit;
+  user-select: auto;
+}
+
+.markdown-spoiler[data-shown] * {
+  visibility: visible;
+}
+
+/* Words stand where something else already set the size and the colour — a report in a card, a
+   line of a log, a message — so they take both from the place and say nothing of their own. The
+   blocks sit closer than a document's, since the text is a part of a screen rather than the whole
+   of a panel, and a heading only a little larger than the words around it. */
+.markdown--words p,
+.markdown--words ul,
+.markdown--words ol,
+.markdown--words pre,
+.markdown--words blockquote,
+.markdown--words .markdown-code,
+.markdown--words .markdown-table {
+  margin: 0.5em 0;
+}
+
+.markdown--words h1,
+.markdown--words h2,
+.markdown--words h3,
+.markdown--words h4,
+.markdown--words h5,
+.markdown--words h6 {
+  margin: 0.9em 0 0.4em;
+}
+
+.markdown--words h1 {
+  font-size: 1.2em;
+}
+
+.markdown--words h2 {
+  font-size: 1.1em;
+}
+
+.markdown--words h3 {
+  font-size: 1em;
+}
+
+.markdown--words hr {
+  margin: 0.8em 0;
+}
+
+/* A fenced block in words is as often a quotation of prose as it is code — an item's instruction
+   quotes the whole conversation in fences — and it stands in a card or a bubble a phone's width
+   across, so its lines fold where the block ends rather than running out of sight. A block whose
+   fence names a language other than plain text or markdown is code, which keeps its lines as
+   written and scrolls sideways inside its own box. */
+.markdown--words pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown--words
+  .markdown-code[data-language]:not([data-language="text" i], [data-language="txt" i], [data-language="plaintext" i], [data-language="md" i], [data-language="markdown" i])
+  > pre {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+/* A row the settings search brought into view holds a tint while it is found and lets it go on the shared unfold
+   length (docs/web.md, the settings search); a reader who asked for less movement sees it go at once. The tint is a
+   tenth of the warning, a light wash in both themes, so the row's words read on it nearly as well as on the bare row. */
+.settings-hit {
+  background-color: color-mix(in oklab, var(--ui-warning) 10%, transparent);
+}
+
+/* A settings table is laid out as a spreadsheet (docs/web.md, 「Agent management screen」): by its columns' own widths
+   alone, and never narrower than its box. The room the columns do not use stands as one empty column at the right
+   edge, drawn in every row of the head and the body, so the head's background and every row's line run edge to edge;
+   it has no width of its own, so a fixed table gives it whatever the columns leave and nothing once they fill the
+   box, and the table then scrolls sideways inside it. That column is drawn by the rows themselves, so it has no name,
+   no cell, no edge to drag, and no place among the columns the shared table measures or holds. A cell cuts what
+   passes its column's width. While its content is measured, for the moment of one read, the table stands at its
+   content's width with no empty column, every column at what its name and widest cell take whole. A drag's held
+   widths are the shared table's, laid out the same way. */
+[data-settings-layout][data-laid-out] > table:not(.table-fixed) {
+  table-layout: fixed;
+  width: max(var(--settings-table-width), 100%);
+  min-width: 0;
+}
+
+/* Held by a drag, the columns keep the held widths and the empty column gives or takes what a drag moves, the table
+   growing past its box only once the held widths alone add up to more. */
+[data-settings-layout] > table.table-fixed {
+  width: max(var(--data-table-width), 100%);
+  min-width: 0;
+}
+
+[data-settings-layout] > table > thead > tr:has(> th)::after,
+[data-settings-layout] > table > tbody > tr::after {
+  content: "";
+  display: table-cell;
+}
+
+[data-settings-layout][data-laid-out] > table > tbody > tr > td {
+  overflow: hidden;
+}
+
+[data-settings-layout][data-measuring] > table {
+  table-layout: auto !important;
+  width: max-content !important;
+  min-width: 0 !important;
+}
+
+[data-settings-layout][data-measuring] > table > thead > tr > th {
+  width: auto !important;
+}
+
+[data-settings-layout][data-measuring] > table > * > tr::after {
+  display: none;
+}
+
+[id^="setting-"] {
+  transition: background-color var(--bmo-motion-unfold) var(--bmo-ease-exit);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [id^="setting-"] {
+    transition: none;
+  }
+}
+
+/* The whole window where nothing covers it: the dynamic viewport, and the window's own height in a browser that
+   knows no dvh (docs/web.md, 「Layout fundamentals」). */
+:root {
+  --bmo-screen: 100vh;
+  --bmo-screen: 100dvh;
+}
+
+/* The body spans the visible screen the shell stands in (docs/web.md, 「Layout fundamentals」): the shell is
+   fixed and leaves the body no height, and a library a screen brings measures the room under what it opens
+   from against the body. */
+body {
+  min-height: calc(var(--bmo-screen-top, 0px) + var(--bmo-screen));
+}
+
+/* The hits of a phrase found in a room (docs/web.md, the room screen's find), marked where they stand inside the bubbles by
+   the browser's own highlights: every hit on the warning's wash, the message being shown on a stronger one. */
+::highlight(room-found) {
+  background-color: color-mix(in oklab, var(--ui-warning) 25%, transparent);
+}
+
+::highlight(room-found-current) {
+  background-color: color-mix(in oklab, var(--ui-warning) 55%, transparent);
+  color: var(--ui-text-highlighted);
+}
+
+/* A file input the console hides stays hidden (docs/web.md, 「Screens a unit brings」). A unit's bundle lays
+   rules of its own on the page unlayered as its module runs, and an unlayered rule beats every rule of every
+   layer, so a utility class alone hands a hidden input back to the page — the browser's own file-picker text
+   under the box it was hidden from. This rule reads the native attribute and stands unlayered and `!important`,
+   above a bundle's rule for the element however that bundle lays its styles. */
+input[type="file"][hidden] {
+  display: none !important;
+}
+
+/* The desktop app's window (docs/web.md, 「The desktop app's window」): where the system's own window buttons stand
+   inset at the top left, the sidebar's head starts after them, a folded sidebar's head under them, and on a narrow
+   screen, whose sidebar is a drawer, the title bar starts after them. Only the app marks the page's root, so a
+   browser keeps no room. */
+html[data-window-controls="inset"] {
+  --bmo-window-inset: 5rem;
+}
+
+html[data-window-controls="inset"] .bmo-window-inset {
+  padding-inline-start: var(--bmo-window-inset);
+}
+
+html[data-window-controls="inset"] .bmo-window-inset-folded {
+  padding-top: 1.75rem;
+}
+
+@media (width < 64rem) {
+  html[data-window-controls="inset"] [data-title-bar] {
+    padding-inline-start: var(--bmo-window-inset);
+  }
+}

@@ -1,0 +1,3 @@
+# sumida is a git dependency, fetched through the git program so its remote is reached as git reaches it.
+[net]
+git-fetch-with-cli = true

@@ -1,0 +1,87 @@
+import type { CatalogueKind } from "./app-catalogue";
+import type { DecidedBy } from "./organisation-agents";
+
+// The apps a reader turns on and off (docs/web.md, 「System and organisation」, the apps tab, and 「Settings」, the own apps
+// section; docs/accounts.md, 「An app's two settings」): each app by its key, with the name and icon its screen's bundle
+// gives it where one does, and what the delegation chain says of it for the link the screen stands for.
+
+/** An app as a screen names it: its key, and its screen's title and icon, or none where no screen of it stands. */
+export interface AppName {
+  app: string;
+  title: string | null;
+  icon: string | null;
+}
+
+/** An app offered to the reader, as their own settings section shows it. */
+export interface OwnApp extends AppName {
+  // Whether it stands on for the reader.
+  on: boolean;
+  // The reader's own word where it is what stands, or null where what stands is no word of theirs.
+  own: boolean | null;
+  // Who decides the state from above the reader: a link holding a lock over them, or the platform or unit link that
+  // switched the app on for them and which they cannot switch off. Null where the row is theirs to decide.
+  decided: DecidedBy;
+}
+
+/** An app as a unit's row on the organisation screen shows it. */
+export interface UnitApp extends AppName {
+  // Whether the app is offered to the unit.
+  offered: boolean;
+  // Whether it stands on for the unit.
+  on: boolean;
+  // The unit's own word, or null where it follows the link above.
+  own: boolean | null;
+  // Whether the unit locks it for everything under it.
+  locks: boolean;
+  // Whether a link above locks it.
+  lockedAbove: boolean;
+  // Who locks it above the unit, for the line saying so.
+  locker: DecidedBy;
+  // Whether the reader may change the unit's word and lock now.
+  writable: boolean;
+  // Whether it is a company's own shared app, which a unit's head turns on and recalls through the agency so its
+  // people's PCs install it and give it up.
+  shared?: boolean;
+  // A shared item's kind, an app, a skill or an MCP server, read off the company's catalogue; absent where it is no
+  // shared item or the catalogue does not hold it for the reader.
+  kind?: CatalogueKind;
+  // The platform's rule offering the app to the unit or withholding it, null where none stands: read for the
+  // administrator alone, and absent for anyone else.
+  offer?: boolean | null;
+}
+
+/** A change of a unit's word on an app: its own value (null to follow above), its lock, and the administrator's
+ * offer (null to take the platform's rule for the unit away). */
+export interface UnitAppChange {
+  on?: boolean | null;
+  locks?: boolean;
+  offer?: boolean | null;
+}
+
+/** The platform's word on one of an app's settings: what stands where nobody below says otherwise, the platform's own
+ * word or none where it follows its publisher's declaration, and the value that declaration gives. */
+export interface PlatformWord {
+  value: boolean;
+  own: boolean | null;
+  declared: boolean;
+}
+
+/** An app as the organisation screen's apps tab shows it with the platform chosen: the platform's own link of it. */
+export interface PlatformApp extends AppName {
+  // Whether it is offered where no rule says otherwise; null where its publisher declared no offer.
+  offered: PlatformWord | null;
+  // Whether it is on where nobody below the platform says otherwise.
+  on: PlatformWord;
+  // Whether the platform locks its on for everything under it.
+  locks: boolean;
+  // Whether it is recalled: off under the platform's lock.
+  recalled: boolean;
+}
+
+/** A change of the platform's own word on an app: whether it is offered and whether it is on, each true or false, or
+ * null to follow its publisher's declaration, and its lock. */
+export interface PlatformAppChange {
+  offered?: boolean | null;
+  on?: boolean | null;
+  locks?: boolean;
+}

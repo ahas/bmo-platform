@@ -1,0 +1,4 @@
+# What `bmo job borrow` writes down where it puts a borrowed checkout on the job's branch (docs/worker-slots.md,
+# 「A job writes only in its own checkout」): the commit message the change a job before it left open is
+# parked under, {job} the borrowing job, {worker} the worker whose checkout it is, {branch} the job's branch.
+parked: "Job {job}가 {worker}를 빌려 {branch}로 넘어가며 앞 Job이 남긴 변경을 그 브랜치에 둔다"

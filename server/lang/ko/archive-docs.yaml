@@ -1,0 +1,25 @@
+# What a document the chat agent writes into the 아카이브 says of itself (docs/archive.md, 「A document the chat agent writes」): the
+# header its file opens with, under its title, and the time a document's moment is told in. Each `{name}` is
+# filled in with what it names.
+
+# The header's lines: the document's {kind} by the label below, the {request} it was written for, when it was
+# {time} written, and the {names} of the files it keeps, where it keeps any.
+header:
+  kind: "- 종류: {kind}"
+  request: "- 요청: {request}"
+  written: "- 작성: {time}"
+  attached: "- 첨부: {names}"
+
+# What each kind of document the chat agent writes is called, by the kind's own name.
+kinds:
+  record: "기록"
+  learning: "학습자료"
+  import: "원문"
+  page: "페이지"
+
+# A moment as the console's documents tell it, in Seoul's time: {year}, {month} and {day}, the half of the day,
+# and the {hour} on a twelve-hour clock with its {minute}.
+time:
+  line: "{year}. {month}. {day}. {half} {hour}:{minute}"
+  morning: "오전"
+  afternoon: "오후"

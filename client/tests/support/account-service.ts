@@ -1,0 +1,668 @@
+// A stand-in for the account service, for the tests of its callers (docs/accounts.md): the routes
+// `docs/boundary.md` states, on a loopback port of a test's own and behind a token of its own, answering
+// out of what the test seeds rather than out of sumida, so a console test needs neither the server's binary
+// nor Valkey. What it decides follows the rules the server's own tests hold sumida to: the administrator
+// passes every check.
+
+import type { SecretKind } from "../../apps/web/shared/secret-kinds";
+
+export interface StandInUser {
+  id: number;
+  name: string;
+  // The person's name people read the user by, where one stands; `name` is the login.
+  fullName?: string;
+  password?: string;
+  administrator?: boolean;
+  senders?: number[];
+  // The machine the account is bound to, whether the hub holds it now, and when it was last proven.
+  node?: { agent: string; shared?: boolean; attached: boolean; kind?: "desktop" | "installed"; provenAt?: number; boundAt?: number };
+}
+
+export interface StandInSeed {
+  inForce?: boolean;
+  users?: StandInUser[];
+  // A user's console sections; a user named in none is given the defaults.
+  sections?: StandInSection[];
+  // The machines the hub holds beside those the seeded users are bound to and attached.
+  hub?: string[];
+  // The machine names whose revoke the hub refuses.
+  refusedRevokes?: string[];
+}
+
+/** One section's permission as the stand-in keeps it, by the user's id. */
+export interface StandInSection {
+  user: number;
+  section: string;
+  read: boolean;
+  write: boolean;
+}
+
+// What the data move was handed, as the stand-in kept it.
+export interface StandInMove {
+  ownerSenders?: number[];
+}
+
+// A body any route of the stand-in reads. A route reads the fields it names; the rest stand unused.
+interface StandInBody {
+  // The machine an account is bound to, and whether it is one several accounts share.
+  agent?: string;
+  shared?: boolean;
+  username?: string;
+  password?: string;
+  current?: string;
+  next?: string;
+  name?: string;
+  relation?: string;
+  kind?: string;
+  object?: string;
+  user?: string;
+  key?: string;
+  token?: string;
+  // A secret's value, whether it replaces the one its name holds, and how the value carries its bytes.
+  value?: unknown;
+  replace?: boolean;
+  encoding?: unknown;
+  // A user's profile.
+  jobTitle?: string;
+  rank?: string;
+  duty?: string;
+  landline?: string;
+  mobile?: string;
+  email?: string;
+  // A user's console sections, written whole.
+  sections?: { section?: string; read?: boolean; write?: boolean }[];
+}
+
+/** A user's job title, rank, duty and contact details, as the stand-in keeps them. */
+export interface StandInProfile {
+  jobTitle: string;
+  rank: string;
+  duty: string;
+  landline: string;
+  mobile: string;
+  email: string;
+}
+
+// A secret the stand-in's store holds: the value a test reads back to see it arrived, and when it was written.
+// A kind as a body carries it, read whole; the kind's own rules are the server's tests'.
+function kindOf(body: unknown): SecretKind {
+  const raw = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
+
+  return {
+    key: String(raw.key ?? ""),
+    name: String(raw.name ?? ""),
+    description: String(raw.description ?? ""),
+    fields: Array.isArray(raw.fields) ? (raw.fields as SecretKind["fields"]) : []
+  };
+}
+
+export interface StandInSecret {
+  // The bytes written, as the server writes them: a text value's own, a base64 value's decoded.
+  bytes: Buffer;
+  changedAt: number;
+  // The kind the server's list would read off the file, where a test sets one; the stand-in reads none itself.
+  kind?: string;
+}
+
+/** A desktop pairing as the stand-in keeps it, by its id. */
+export interface StandInPairing {
+  code: string;
+  state: "waiting" | "approved" | "refused";
+  // The approver and the machine approved.
+  user?: number;
+  machine?: string;
+}
+
+export interface StandIn {
+  address: string;
+  token: string;
+  // The desktop pairings, by their id, and the address each ask named.
+  pairings: Map<string, StandInPairing>;
+  pairingAddresses: string[];
+  users: StandInUser[];
+  // Each user's sections, by the user's id and the section's name.
+  sections: Map<number, Map<string, { read: boolean; write: boolean }>>;
+  keys: Map<string, { user: number; key: string }>;
+  moves: StandInMove[];
+  state: { inForce: boolean };
+  // The secret store's files by their address under `env/`, the administrator's by name and anyone else's as
+  // `users/<user>/<name>`, and the user each call on the store was made by.
+  secrets: Map<string, StandInSecret>;
+  secretKeys: (string | null)[];
+  // The secret kinds by key, in the order they were added.
+  kinds: Map<string, SecretKind>;
+  // Each user's profile, by the user's id.
+  profiles: Map<number, StandInProfile>;
+  // The machines the hub holds beside those the seeded users are bound to and attached.
+  hub: Set<string>;
+  // The machine names revoked at the hub, in the order they were.
+  revoked: string[];
+  // The delegation chain's kinds a test declares, each with the value it resolves to for a person, by the person's
+  // id; a kind it does not hold is refused as no such kind.
+  chain: Map<string, Map<string, unknown>>;
+  stop(): void;
+}
+
+const TOKEN = "a stand-in token";
+
+function hashOf(key: string): string {
+  return new Bun.CryptoHasher("sha256").update(`stand-in:${key}`).digest("hex");
+}
+
+/** The stand-in, listening on a loopback port of its own until it is stopped. */
+export function standInAccountService(seed: StandInSeed = {}): StandIn {
+  const users = [...(seed.users ?? [])];
+  const sections = new Map<number, Map<string, { read: boolean; write: boolean }>>();
+
+  for (const one of seed.sections ?? []) {
+    const held = sections.get(one.user) ?? new Map<string, { read: boolean; write: boolean }>();
+
+    held.set(one.section, { read: one.read, write: one.write });
+    sections.set(one.user, held);
+  }
+
+  // The sections a user made without a word is given: their rooms and their own account.
+  const SECTIONS = [
+    "live", "mail", "siren", "db", "files", "artifact", "documents", "code", "supervisors", "roles", "repositories",
+    "models", "model-files", "research", "monitor", "remote", "brain", "rooms", "account"
+  ];
+  const sectionsOf = (user: StandInUser): Map<string, { read: boolean; write: boolean }> => {
+    const kept = sections.get(user.id);
+
+    if (kept !== undefined) return kept;
+    if (user.administrator === true) return new Map(SECTIONS.map((section) => [section, { read: true, write: true }]));
+
+    return new Map([
+      ["mail", { read: true, write: false }],
+      ["files", { read: true, write: false }],
+      ["artifact", { read: true, write: false }],
+      ["code", { read: true, write: false }],
+      ["remote", { read: true, write: false }],
+      ["brain", { read: true, write: false }],
+      ["rooms", { read: true, write: false }],
+      ["account", { read: true, write: true }]
+    ]);
+  };
+  const sessions = new Map<string, number>();
+  const keys = new Map<string, { user: number; key: string }>();
+  const moves: StandInMove[] = [];
+  const state = { inForce: seed.inForce ?? true };
+  const secrets = new Map<string, StandInSecret>();
+  const secretKeys: (string | null)[] = [];
+  const kinds = new Map<string, SecretKind>();
+  const profiles = new Map<number, StandInProfile>();
+  const hub = new Set(seed.hub ?? []);
+  const revoked: string[] = [];
+  const pairings = new Map<string, StandInPairing>();
+  const pairingAddresses: string[] = [];
+  const chain = new Map<string, Map<string, unknown>>();
+  const json = (body: object, status = 200, headers: Record<string, string> = {}): Response =>
+    new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
+  const refused = (status: number, code: string, error: string): Response => json({ code, error }, status);
+  const done = (): Response => new Response(null, { status: 204 });
+  const cookieOf = (request: Request): string | undefined => request.headers.get("cookie")?.split(";")[0]?.trim();
+  const userNamed = (id: string | number): StandInUser | undefined => users.find((one) => String(one.id) === String(id));
+
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(request) {
+      const path = new URL(request.url).pathname;
+      const body =
+        request.method === "GET" || request.method === "HEAD"
+          ? null
+          : ((await request.json().catch(() => null)) as StandInBody | null);
+
+      // sumida's own session routes take the session cookie, not the token.
+      // The service's own sign-in makes sumida's session, its cookie set on the answer.
+      if (path === "/sign-ins" && request.method === "POST") {
+        const asked = body as { login?: unknown; password?: unknown } | null;
+        const user = users.find((one) => one.name === asked?.login && one.password !== undefined && one.password === asked?.password);
+
+        if (user === undefined) return refused(401, "wrong-credentials", "the login or the password does not match");
+
+        const id = crypto.randomUUID();
+
+        sessions.set(`bmo.sid=${id}`, user.id);
+
+        return json({ outcome: "signed-in", user: String(user.id), enrol: false }, 200, { "set-cookie": `bmo.sid=${id}; HttpOnly; Path=/` });
+      }
+      if (path === "/sumida/auth/session" && request.method === "DELETE") {
+        sessions.delete(cookieOf(request) ?? "");
+
+        return json({});
+      }
+      if (path === "/sumida/me") {
+        const user = users.find((one) => one.id === sessions.get(cookieOf(request) ?? ""));
+
+        return user === undefined ? refused(401, "unauthorized", "no live session") : json({ id: user.id, username: user.name, ...(user.fullName === undefined ? {} : { fullName: user.fullName }) });
+      }
+
+      if (path === "/health") return json({ ok: true, version: "0.0.0", inForce: state.inForce });
+
+      const resolved = /^\/chain\/kinds\/([^/]+)\/resolve$/.exec(path);
+
+      if (resolved !== null && request.method === "GET") {
+        const key = decodeURIComponent(resolved[1]!);
+        const values = chain.get(key);
+        const person = new URL(request.url).searchParams.get("person") ?? "";
+
+        if (values === undefined) return refused(404, "no-such-kind", `no kind ${key}`);
+
+        return json({ kind: key, subject: `person:${person}`, layers: [], ...(values.has(person) ? { value: values.get(person) } : {}) });
+      }
+      if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return refused(401, "unauthorized", "the token is missing or wrong");
+      if (path === "/accounts/model") {
+        return json(state.inForce ? { inForce: true } : { inForce: false, why: "the data move has not been written" });
+      }
+      if (path === "/accounts/move") {
+        moves.push((body ?? {}) as StandInMove);
+
+        const administrator = users.find((one) => one.administrator);
+
+        return json({ done: true, written: moves.length === 1, administrator: administrator === undefined ? null : String(administrator.id) });
+      }
+      if (!state.inForce) return refused(503, "not-in-force", "the account model is not in force");
+      if (path === "/users" && request.method === "GET") {
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the users are the administrator's");
+
+        return json({ users: users.map((user) => ({ user: String(user.id), name: user.name, fullName: user.fullName ?? "", administrator: user.administrator === true })) });
+      }
+
+      // The desktop pairings: asked by an address, past the tenth from one address refused; read once approved; read,
+      // approved and refused by their code for the person `Owner-Key` names.
+      if (path === "/desktop/pairings" && request.method === "POST") {
+        const address = request.headers.get("x-real-ip") ?? "";
+
+        if (pairingAddresses.filter((one) => one === address).length >= 10) return refused(429, "too-many-pairings", "too many pairings");
+        pairingAddresses.push(address);
+
+        const pairing = (pairings.size + 1).toString(16).padStart(64, "0");
+        const code = `ABCD-${String(pairings.size + 1).padStart(4, "0")}`;
+
+        pairings.set(pairing, { code, state: "waiting" });
+
+        return json({ pairing, code, expiresAt: 600_000, pollAfterSeconds: 3 }, 201);
+      }
+
+      const pairingRead = path.match(/^\/desktop\/pairings\/([0-9a-f]{64})$/);
+
+      if (pairingRead !== null && request.method === "GET") {
+        const pending = pairings.get(pairingRead[1]!);
+
+        if (pending === undefined) return refused(404, "not-found", "no pairing has this id");
+        if (pending.state === "refused") return refused(410, "pairing-closed", "the pairing is closed");
+        if (pending.state === "waiting") return new Response(null, { status: 202 });
+
+        pairings.delete(pairingRead[1]!);
+
+        return json({ node: pending.machine, credential: `${pending.machine}.credential`, hubUrl: "wss://hub.invalid" });
+      }
+
+      const byCode = path.match(/^\/desktop\/pairings\/code\/([^/]+?)(\/approve|\/refuse)?$/);
+
+      if (byCode !== null) {
+        const reader = userNamed(request.headers.get("owner-key") ?? "");
+        const pending = [...pairings.values()].find((one) => one.code === decodeURIComponent(byCode[1]!));
+
+        if (reader === undefined) return refused(403, "forbidden", "the call names no user");
+        if (pending === undefined) return refused(404, "not-found", "no pairing has this code");
+        if (byCode[2] === undefined) {
+          const machine = pending.state === "waiting" ? reader.node?.agent : pending.user === reader.id ? pending.machine : undefined;
+
+          return json({ code: pending.code, expiresAt: 600_000, state: pending.state, ...(machine === undefined ? {} : { machine }) });
+        }
+        if (pending.state !== "waiting") return refused(410, "pairing-closed", "the pairing is closed");
+        if (byCode[2] === "/refuse") {
+          pending.state = "refused";
+
+          return done();
+        }
+
+        reader.node ??= { agent: `u${reader.id}-fresh`, attached: false };
+        Object.assign(pending, { state: "approved", user: reader.id, machine: reader.node.agent });
+
+        return json({ machine: reader.node.agent });
+      }
+
+      // The machine a user is bound to; a user bound to none answers no agent.
+      const nodeRoute = path.match(/^\/users\/([^/]+)\/node$/);
+
+      if (nodeRoute !== null && request.method === "GET") {
+        const user = userNamed(decodeURIComponent(nodeRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, kind: user.node?.kind ?? null, provenAt: user.node?.provenAt ?? null, boundAt: user.node?.boundAt ?? null, left: false });
+      }
+
+      // The machine an account is bound to again by the administrator alone, taken away by the administrator or by the
+      // account itself, and proven once the hub holds it.
+      const bindRoute = path.match(/^\/users\/([^/]+)\/node(\/proof|\/shared)?$/);
+
+      if (bindRoute !== null) {
+        const user = userNamed(decodeURIComponent(bindRoute[1]!));
+
+        const itself = request.method === "DELETE" && bindRoute[2] === undefined && request.headers.get("owner-key") === decodeURIComponent(bindRoute[1]!);
+
+        if (bindRoute[2] !== "/proof" && !itself && request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "a machine is bound by the administrator");
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        if (bindRoute[2] === "/shared" && request.method === "PUT") {
+          if (user.node === undefined) return refused(404, "not-found", "bound to no machine");
+
+          const shared = body?.shared === true;
+
+          if (!shared && users.some((other) => other !== user && other.node?.agent === user.node?.agent)) return refused(409, "node-taken", "another account is bound to it");
+          user.node = { ...user.node, shared, attached: user.node.attached || hub.has(user.node.agent) };
+
+          return json({ agent: user.node.agent, shared, attached: user.node.attached, provenAt: user.node.provenAt ?? null, left: false });
+        }
+        if (bindRoute[2] === "/proof" && request.method === "POST") {
+          if (user.node !== undefined && (user.node.attached || hub.has(user.node.agent))) user.node = { ...user.node, attached: true, provenAt: Date.now() };
+
+          return json({ agent: user.node?.agent ?? null, shared: user.node?.shared ?? false, attached: user.node?.attached ?? false, provenAt: user.node?.provenAt ?? null, left: false });
+        }
+        if (bindRoute[2] === undefined && request.method === "PUT") {
+          const agent = body?.agent ?? `u${user.id}-fresh`;
+          const shared = body?.shared === true;
+
+          if (users.some((other) => other !== user && other.node?.agent === agent && !(shared && other.node.shared))) return refused(409, "node-taken", "another account is bound to it");
+
+          const attached = hub.has(agent);
+
+          user.node = { agent, shared, attached, provenAt: attached ? Date.now() : undefined };
+
+          return json({ agent, shared, credential: `${agent}.credential`, hubUrl: "wss://hub.invalid", install: { linux: `install ${agent}`, windows: `install.ps1 ${agent}` }, attached });
+        }
+        if (request.method === "DELETE") {
+          if (user.node === undefined) return refused(404, "not-found", "bound to no machine");
+          user.node = undefined;
+
+          return done();
+        }
+      }
+
+      // A machine name revoked at the hub once no account is bound to it; the hub refuses the names the seed names.
+      const revokeRoute = path.match(/^\/machines\/([^/]+)\/revoke$/);
+
+      if (revokeRoute !== null && request.method === "POST") {
+        const agent = decodeURIComponent(revokeRoute[1]!);
+
+        if (users.some((user) => user.node?.agent === agent)) return refused(409, "node-taken", "an account is still bound to it");
+        if (seed.refusedRevokes?.includes(agent)) return refused(502, "upstream-failed", "the hub refused the revoke");
+        revoked.push(agent);
+
+        return json({ agent, left: hub.delete(agent) });
+      }
+
+      // A user's sections, read by their holder or the administrator and written by the administrator alone.
+      const sectionsRoute = path.match(/^\/users\/([^/]+)\/sections$/);
+
+      if (sectionsRoute !== null) {
+        const user = userNamed(decodeURIComponent(sectionsRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        const role = request.headers.get("owner-role");
+        const key = request.headers.get("owner-key");
+
+        if (request.method === "GET") {
+          if (role !== "administrator" && key !== String(user.id)) return refused(403, "forbidden", "a user's sections are their own or an administrator's");
+
+          const held = sectionsOf(user);
+          const names = [...new Set([...SECTIONS, ...held.keys()])];
+
+          return json({ sections: names.map((section) => ({ section, ...(held.get(section) ?? { read: false, write: false }) })) });
+        }
+
+        if (role !== "administrator") return refused(403, "forbidden", "the sections are an administrator's to set");
+
+        const held = new Map<string, { read: boolean; write: boolean }>();
+
+        for (const row of body?.sections ?? []) {
+          if (typeof row.section !== "string") return refused(400, "bad-request", "a section is named");
+
+          const write = row.write === true;
+
+          held.set(row.section, { read: row.read === true || write, write });
+        }
+
+        sections.set(user.id, held);
+
+        const names = [...new Set([...SECTIONS, ...held.keys()])];
+
+        return json({ sections: names.map((section) => ({ section, ...(held.get(section) ?? { read: false, write: false }) })) });
+      }
+
+      // A sender linked to a user where none holds it, by the administrator; one linked elsewhere is never moved.
+      const linkRoute = path.match(/^\/users\/([^/]+)\/senders\/(-?\d+)$/);
+
+      if (linkRoute !== null && request.method === "PUT") {
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the administrator's alone");
+
+        const user = userNamed(decodeURIComponent(linkRoute[1]!));
+        const sender = Number(linkRoute[2]);
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+        if (users.some((one) => one !== user && (one.senders ?? []).includes(sender))) return refused(409, "sender-linked", "linked to another user");
+        if (!(user.senders ?? []).includes(sender)) user.senders = [...(user.senders ?? []), sender];
+
+        return done();
+      }
+
+      const userRoute = path.match(/^\/users\/([^/]+)$/);
+
+      if (userRoute !== null) {
+        const user = userNamed(decodeURIComponent(userRoute[1]!));
+
+        return user === undefined
+          ? refused(404, "not-found", "no such user")
+          : json({ user: String(user.id), name: user.name, fullName: user.fullName ?? "", administrator: user.administrator === true, senders: user.senders ?? [] });
+      }
+
+      const passwordRoute = path.match(/^\/users\/([^/]+)\/password$/);
+
+      if (passwordRoute !== null) {
+        const user = userNamed(decodeURIComponent(passwordRoute[1]!));
+
+        if (user === undefined || user.password !== body?.current) return refused(401, "wrong-password", "the current password does not match");
+
+        user.password = body?.next ?? "";
+
+        return done();
+      }
+
+      const nameRoute = path.match(/^\/users\/([^/]+)\/name$/);
+
+      if (nameRoute !== null) {
+        const user = userNamed(decodeURIComponent(nameRoute[1]!));
+        const name = body?.name ?? "";
+
+        if (users.some((one) => one.name === name && one !== user)) return refused(409, "name-taken", "another user holds that name");
+        if (user !== undefined) user.name = name;
+
+        return done();
+      }
+
+      // A profile answers its account's holder or an administrator, as the login's user and role are handed on.
+      const profileRoute = path.match(/^\/users\/([^/]+)\/profile$/);
+
+      if (profileRoute !== null) {
+        const user = userNamed(decodeURIComponent(profileRoute[1]!));
+
+        if (user === undefined) return refused(404, "not-found", "no such user");
+
+        const role = request.headers.get("owner-role");
+        const key = request.headers.get("owner-key");
+
+        if (role !== "administrator" && key !== String(user.id)) {
+          return refused(403, "forbidden", "a profile is its account's holder's or an administrator's");
+        }
+
+        if (request.method === "GET") {
+          return json({ fullName: user.fullName ?? "", ...(profiles.get(user.id) ?? { jobTitle: "", rank: "", duty: "", landline: "", mobile: "", email: "" }) });
+        }
+
+        user.fullName = String((body as { fullName?: unknown } | undefined)?.fullName ?? "").trim();
+
+        const kept = profiles.get(user.id);
+        // The rank and the duty are left as they stand where the body names neither, as the service leaves them.
+        const profile = {
+          jobTitle: String(body?.jobTitle ?? ""),
+          rank: body?.rank === undefined ? (kept?.rank ?? "") : String(body.rank),
+          duty: body?.duty === undefined ? (kept?.duty ?? "") : String(body.duty),
+          landline: String(body?.landline ?? ""),
+          mobile: String(body?.mobile ?? ""),
+          email: String(body?.email ?? "")
+        };
+
+        profiles.set(user.id, profile);
+
+        return json({ fullName: user.fullName, ...profile });
+      }
+
+      if (path === "/phones" && request.method === "POST") {
+        const key = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+        const hash = hashOf(key);
+
+        keys.set(hash, { user: Number(body?.user), key });
+
+        return json({ key, hash });
+      }
+      if (path === "/phones/adopt") {
+        const token = body?.token ?? "";
+        const hash = hashOf(token);
+
+        keys.set(hash, { user: Number(body?.user), key: token });
+
+        return json({ hash });
+      }
+      if (path === "/phones/who") {
+        const hash = hashOf(body?.key ?? "");
+        const held = keys.get(hash);
+        const user = users.find((one) => one.id === held?.user);
+
+        return held === undefined || user === undefined
+          ? refused(401, "unauthorized", "no live key")
+          : json({ user: String(user.id), name: user.name, hash });
+      }
+
+      // The secret store, as the server's own tests hold it: each space its own user's alone, the administrator's
+      // the store's own folder, a plain name, and no value ever answered.
+      const secret = path.match(/^\/users\/([^/]+)\/secrets(?:\/([^/]+))?$/);
+
+      if (secret !== null) {
+        const key = request.headers.get("owner-key");
+        const owner = users.find((user) => String(user.id) === secret[1]);
+        const name = secret[2] === undefined ? null : decodeURIComponent(secret[2]);
+        const space = owner?.administrator === true ? "" : `users/${secret[1]}/`;
+        const kept = (one: string) => {
+          const held = secrets.get(space + one)!;
+
+          return { name: one, bytes: held.bytes.length, changedAt: held.changedAt, ...(held.kind === undefined ? {} : { kind: held.kind }) };
+        };
+
+        secretKeys.push(key);
+
+        if (key !== secret[1]) return refused(403, "forbidden", "a person's secrets are their own");
+        if (owner === undefined) return refused(404, "not-found", "no such user");
+        if (name === null) {
+          const names = [...secrets.keys()].filter((one) => one.startsWith(space) && !one.slice(space.length).includes("/")).map((one) => one.slice(space.length));
+
+          return json({ secrets: names.sort().map(kept) });
+        }
+        if (!/^[A-Za-z0-9._-]{1,200}$/.test(name) || name.startsWith(".") || name.endsWith(".previous")) {
+          return refused(400, "bad-name", "the name is no secret's");
+        }
+
+        if (request.method === "PUT") {
+          if (typeof body?.value !== "string") return refused(400, "bad-request", "the body does not read as a secret's");
+          if (body.value === "") return refused(400, "empty-value", "the value is empty");
+
+          const standing = secrets.has(space + name);
+
+          if (standing && body.replace !== true) return refused(409, "secret-exists", "a secret stands under the name");
+
+          secrets.set(space + name, { bytes: Buffer.from(body.value, body.encoding === "base64" ? "base64" : "utf8"), changedAt: Date.now() });
+
+          return json(kept(name), standing ? 200 : 201);
+        }
+
+        if (!secrets.delete(space + name)) return refused(404, "not-found", "no secret stands under the name");
+
+        return done();
+      }
+
+      // The secret kinds, read by any call and changed by the administrator alone; the kind's own rules are the
+      // server's tests'.
+      const kind = path.match(/^\/secret-kinds(?:\/([^/]+))?$/);
+
+      if (kind !== null) {
+        const key = kind[1] === undefined ? null : decodeURIComponent(kind[1]);
+
+        if (key === null && request.method === "GET") return json({ kinds: [...kinds.values()] });
+        if (request.headers.get("owner-role") !== "administrator") return refused(403, "forbidden", "the secret kinds are the administrator's");
+
+        if (key === null) {
+          const asked = kindOf(body);
+
+          if (kinds.has(asked.key)) return refused(409, "kind-exists", "a kind stands under the key");
+          if (asked.fields.length === 0) return refused(400, "bad-kind", "a kind holds one field or more");
+
+          kinds.set(asked.key, asked);
+
+          return json(asked, 201);
+        }
+
+        if (!kinds.has(key)) return refused(404, "not-found", "no kind stands under the key");
+
+        if (request.method === "PUT") {
+          const asked = kindOf(body);
+
+          if (asked.key !== key) return refused(400, "bad-kind", "a kind's key does not change");
+
+          kinds.set(key, asked);
+
+          return json(asked);
+        }
+
+        kinds.delete(key);
+
+        return done();
+      }
+
+      const phone = path.match(/^\/phones\/(.+)$/);
+
+      if (phone !== null && request.method === "DELETE") {
+        keys.delete(decodeURIComponent(phone[1]!));
+
+        return done();
+      }
+
+      return refused(404, "not-found", `no route ${request.method} ${path}`);
+    }
+  });
+
+  return {
+    address: `http://127.0.0.1:${server.port}`,
+    token: TOKEN,
+    users,
+    sections,
+    keys,
+    moves,
+    state,
+    secrets,
+    secretKeys,
+    kinds,
+    profiles,
+    hub,
+    revoked,
+    pairings,
+    pairingAddresses,
+    chain,
+    stop() {
+      server.stop(true);
+    }
+  };
+}

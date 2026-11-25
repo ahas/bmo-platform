@@ -1,0 +1,14 @@
+# What the console's sends in the owner's own name answer where a person reads them (docs/control-port.md,
+# `POST /say` and `POST /say-file`). Each `{name}` is filled in with what it names.
+
+# A reply naming a message the room's record does not hold.
+reply_missing: "답장할 메시지가 기록에 없습니다."
+
+# A room the console made for the supervisors it names, which takes words alone.
+words_only: "이 방은 글만 받아요. 파일은 보낼 수 없어요."
+
+# A file refused before anything goes: one with nothing in it, and one past the ceiling, {size} its own size
+# and {largest} the ceiling's, each as {megabytes} of `megabytes`.
+empty_file: "{name}: 빈 파일이라 보내지 않았어요."
+too_large: "{name}: {size}는 너무 커요. 한 파일에 {largest}까지 보낼 수 있어요."
+megabytes: "{megabytes}MB"

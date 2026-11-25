@@ -1,0 +1,58 @@
+# Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
+rest_begins:
+  until: "利用上限に達したため、{until}まで応答を停止します。"
+  soon: "利用上限に達したため、しばらく応答を停止します。"
+  today: "{hour}:{minute}"
+  another_day: "{month}{day}日 {hour}:{minute}"
+  months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+chat_denied: "このルームはブロックされたよ。ここでの話はもう聞かないし、保存もしないね。"
+still_working: "まだ回答を準備しています。少々お待ちください。"
+supervisor_cut: "{name} の今回のターンを打ち切りました。{reason} 次の発言からは新しいセッションで答えます。"
+memory_tidying: "記憶を整理しています。完了したら返答します。少々お待ちください。"
+account_let_in: "{by}さんが{account}さんをトークに招待しました。"
+account_left: "{account}さんが退出しました。"
+account_taken_out: "{by}さんが{account}さんを退出させました。"
+accounts_let_in: "{by}さんが{account}さんほか {others} 人をトークに招待しました。"
+unit_let_in: "{by}さんが{unit}をトークに招待しました。"
+person: "{name}さん"
+people_joiner: "、"
+people_joined: "{people}が参加しました。"
+people_joined_by: "{by}が{people}をトークに招待しました。"
+person_left: "{person}が退出しました。"
+person_taken_out: "{by}が{person}を退出させました。"
+supply_closed:
+  no_order: "このルームのエージェントが使う供給元が決まっていないため、今は返答できません。設定の供給で供給ログインか供給キーを追加してください。"
+  withheld: "組織の設定でエージェントの供給元がすべてオフになっているため、今は返答できません。組織の管理者に供給元をオンにするよう依頼してください。"
+  no_personal: "このエージェントが使う自分の供給ログインや供給キーがないため、今は返答できません。設定の供給で追加してください。"
+  own_refused: "自分の供給キーがプロバイダーに拒否されたため、今は返答できません。設定の供給でキーを登録し直してください。"
+  no_organisation: "組織の供給に今使える供給キーや供給ログインがないため、返答できません。組織の管理者に問い合わせてください。"
+  organisation_refused: "組織のクレジットが残っていないため、今は返答できません。組織の管理者にクレジットの付与を依頼してください。"
+  no_lendable: "今は他の人のエージェントに貸し出せる Claude アカウントがないため、返答できません。設定の供給で自分の Claude 供給ログインを追加するか、プラットフォームの管理者に問い合わせてください。"
+  shared_node: "今使っている PC を他の人と共有しているため、貸し出された Claude アカウントでは返答できません。設定の供給で自分の Claude 供給ログインを追加するか、プラットフォームの管理者に自分専用の PC を依頼してください。"
+  owned: "このエージェントのモデルは他の人のモデルのため、プラットフォームの供給では使えません。エージェントのモデルを変更してください。"
+  refused: "クレジットが残っていないため、今は返答できません。設定の供給でクレジットを確認するか、供給順序を変更してください。"
+  ran_out: "返答の途中でクレジットがなくなり、止まりました。設定の供給でクレジットを確認するか、供給順序を変更してください。"
+  other: "このエージェントが使える供給元が残っていないため、今は返答できません。設定の供給を確認してください。"
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject}が眠って記憶を整理し、新しいセッションで目覚めます"
+  # The session was reset, and the next turn opens a new one.
+  reset: "{agent}のセッションが眠って記憶を整理し、新しく始めました。会話の記録はそのまま残ります"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · {by}さんの依頼"
+  # Why, where no asker gave words.
+  causes:
+    full: "会話の文脈がいっぱいになった"
+    road: "プロバイダー · モデルが変わった"
+    documents: "指示が変わった"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject}が{date}の夜に眠って記憶を整理しました · 新しく覚えた {learned} · まとめた {merged} · 終えた {closed}"

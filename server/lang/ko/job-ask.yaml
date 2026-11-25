@@ -1,0 +1,39 @@
+# What `bmo job ask` says to the job that runs it (docs/jobs.md, 「A job's question to the owner」 and 「Talking
+# a job's question over」): its usage, its refusals, and what it hands the job when the owner talks instead
+# of choosing. The job reads all of it, so it is in the job's language; the Korean in it is the shape of
+# the words the job writes in. Each `{name}` is filled in with what it names.
+
+# The verb's two forms, printed under every refusal.
+usage: |-
+  usage: bmo job ask --todo <id> --question '<무엇을 정할지>' --option '<하나>' --option '<다른 하나>' --recommend <n> --why '<왜 묻는지 한 줄>' [--chat <chatId>]
+         bmo job ask --talk <질문 번호> --say '<답>' [--option '<하나>' --option '<다른 하나>' --recommend <n> [--question '<…>'] [--why '<…>']]
+
+# Why a question is turned away before its row is written: no chat other than {owner}'s private one, no
+# item, no question, fewer than two options, an option that is no line, a recommendation outside the
+# {count} options, no why, or words {owner} has banned, each in {terms} beside what to write.
+refusals:
+  room: "a question is put to {owner} in their private chat and nowhere else: leave --chat out."
+  item: "a question belongs to a TODO item: --todo <id>, the item this job is a run of."
+  question: "a question has to say what is being asked: --question '<무엇을 정할지>'."
+  options: "a question needs at least two options to choose between: --option '<하나>' --option '<다른 하나>'."
+  option: "every option is one line of its own with something on it."
+  recommend: "the recommendation is one of the options by its number: --recommend 1..{count}."
+  why: "a question has to say why it is being asked rather than decided: --why '<한 줄>'."
+  wait: "the wait is a number of milliseconds: --wait <ms>."
+  talk: "--talk names the question by the number its talk came back with: --talk <질문 번호>."
+  no_talk: "question #{id} takes no talk."
+  say: "a talk answers them with words of its own: --say '<답>'."
+  wording: "the words use terms {owner} has banned (WORDING.md): {terms}. Write them again with each one replaced, choosing among the words given by what the sentence means and fixing the particle after it."
+
+# What the waiting job is handed when {owner} talks on question #{id} instead of choosing: their {heard}
+# lines quoted, and the one call that answers them and waits again.
+heard: |-
+  {owner} talked instead of choosing on question #{id}; its clock stays stopped while you talk it over.
+  They said:
+  {heard}
+
+  Answer them from what you know of the work, and wait on the question again, in one call (timeout 600000):
+    bmo job ask --talk {id} --say '<답>'
+  Where the talk changed the choice, the same call puts it again: every option anew with the recommendation, and the question or the why where they changed:
+    --option '<하나>' --option '<다른 하나>' --recommend <n> [--question '<무엇을 정할지>'] [--why '<한 줄>']
+  They end it by choosing. Until then the question is open and the work waits on it.

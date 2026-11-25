@@ -1,0 +1,996 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { chromium } from "playwright-core";
+
+import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { wording } from "../../apps/web/shared/wording";
+
+import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-core";
+
+// The organisation screen chooses a node of one organisation tree first (docs/web.md, 「System and organisation」): the companies at
+// its left with their units under them, searched by name, each chosen as a step of the history that stands in the
+// address, the way down to a unit chosen open and marked, and on a phone the tree rises as a bottom drawer from the
+// button at the start of the tab row carrying the node's name; moving between tabs keeps the node; and a member is
+// listed the companies where they head a unit or hold a part of the supply, with the units they head under them. Its plans tab applies one of the
+// plans shown and switches which are shown; its supply tab's policy form stands a source the platform has off with its
+// switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
+// whose a gateway road and a Claude account are; the platform's ledger and audit stand last, one at a time by their
+// switch, and read their next page as its end comes into view, a failed page read again from its retry; and the
+// reader's own supply tab stands what the platform locks. Each is read at a desk's width and a phone's.
+//
+// The account service's plan, unit supply, supply reach, platform and personal supply routes are answered by a
+// stand-in on the page, so what they hold is the test's own; the organisations are the console's own, made for this
+// run, and the gateway's members and the Claude accounts are the agency stand-in's of tests/support/browser-console.ts.
+//
+// It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
+
+const origin = process.env.BMO_CONSOLE_TEST_URL;
+const ADMINISTRATOR = { name: "qa-admin", password: "fixture-password-3765" };
+const MEMBER = { name: "tester", password: "fixture-password-3766" };
+const RUN = Date.now().toString(36);
+const WIDTHS = [
+  [1280, 900],
+  [360, 780]
+] as const;
+
+let browser: Browser | null = null;
+const cookies = new Map<string, string>();
+let alpha = 0;
+let beta = 0;
+let team = 0;
+let member = "";
+
+async function login(account: { name: string; password: string }): Promise<string> {
+  const answer = await fetch(`${origin}/api/auth/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(account) });
+
+  expect(answer.ok).toBe(true);
+
+  return answer.headers.get("set-cookie")!.split(";")[0]!;
+}
+
+// A call of the console's own API as the administrator.
+async function administer<T>(path: string, method: string, body?: unknown): Promise<T> {
+  const answer = await fetch(`${origin}${path}`, {
+    method,
+    headers: { cookie: cookies.get(ADMINISTRATOR.name)!, "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+
+  expect({ path, ok: answer.ok }).toEqual({ path, ok: true });
+
+  return (answer.status === 204 ? null : await answer.json().catch(() => null)) as T;
+}
+
+beforeAll(async () => {
+  if (!origin || !touchReady()) return;
+
+  cookies.set(ADMINISTRATOR.name, await login(ADMINISTRATOR));
+  cookies.set(MEMBER.name, await login(MEMBER));
+
+  // Two companies named for this run, a team under the second, and the member standing in that team.
+  alpha = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `alpha-${RUN}`, parent: null })).id;
+  beta = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `beta-${RUN}`, parent: null })).id;
+  team = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `team-${RUN}`, parent: beta })).id;
+  member = (await administer<{ user: string; name: string }[]>("/api/users", "GET")).find((one) => one.name === MEMBER.name)!.user;
+  await administer(`/api/organization/users/${encodeURIComponent(member)}/unit`, "PUT", { unit: team });
+
+  browser = await chromium.launch();
+}, BROWSER_HOOK_MS);
+
+afterAll(async () => {
+  if (member !== "" && team !== 0) await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
+  await browser?.close();
+}, BROWSER_HOOK_MS);
+
+async function contextFor(account: string, width: number, height: number): Promise<BrowserContext> {
+  const context = await browser!.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: "reduce" });
+  const cookie = cookies.get(account)!;
+  const at = cookie.indexOf("=");
+
+  await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+
+  return context;
+}
+
+// The console's app standing on the page once it has taken it over.
+async function standing(page: Page): Promise<void> {
+  await page.waitForFunction(() => window.useNuxtApp?.().isHydrating === false, null, { timeout: 30_000 });
+}
+
+async function open(page: Page, path: string): Promise<void> {
+  await page.goto(`${origin}${path}`, { waitUntil: "load" });
+  await standing(page);
+}
+
+function company(page: Page): string | null {
+  return new URL(page.url()).searchParams.get("company");
+}
+
+function unit(page: Page): string | null {
+  return new URL(page.url()).searchParams.get("unit");
+}
+
+async function companyIs(page: Page, id: number): Promise<void> {
+  await page.waitForURL((url) => url.searchParams.get("company") === String(id), { timeout: 15_000 });
+  await page.locator(`[data-organization-chosen="${id}"]`).waitFor({ timeout: 15_000 });
+}
+
+// The organisation tree where it stands: beside the node chosen at a desk's width, in its drawer on a phone.
+async function organizationList(page: Page, width: number): Promise<Locator> {
+  if (width >= 640) return page.locator("[data-choice-sidebar-list]");
+
+  await page.locator("[data-choice-sidebar-open]").click();
+
+  const drawer = page.getByRole("dialog").last();
+
+  await drawer.locator("[data-choice-sidebar-list]").waitFor({ timeout: 10_000 });
+
+  return drawer.locator("[data-choice-sidebar-list]");
+}
+
+// The rows of this run's nodes the tree shows, top to bottom.
+async function runRows(list: Locator): Promise<string[]> {
+  return (await list.locator("[data-choice-tree-row]").allInnerTexts()).map((one) => one.trim()).filter((one) => one.endsWith(`-${RUN}`));
+}
+
+// The tree's row of a node, by its number.
+function nodeRow(list: Locator, id: number): Locator {
+  return list.locator(`[role=treeitem]:has([data-choice-tree-row="number:${id}"])`);
+}
+
+// The node chosen, a company or a unit of it, as the body stands for it.
+async function nodeIs(page: Page, id: number): Promise<void> {
+  await page.locator(`[data-organization-node="${id}"]`).waitFor({ timeout: 15_000 });
+}
+
+describe.skipIf(!origin || !touchReady())("the organisation list", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`is searched, and choosing one is a step of the history that the tabs keep, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+
+        await open(page, `/organization?company=${alpha}`);
+        await companyIs(page, alpha);
+
+        // At a desk's width the list's head and the tab row beside it draw one straight line under them.
+        if (width >= 640) {
+          const lines = await page.evaluate(() => ({
+            head: document.querySelector("[data-choice-sidebar-list]")!.firstElementChild!.getBoundingClientRect().bottom,
+            tabs: document.querySelector("[data-organization-chosen]")!.firstElementChild!.getBoundingClientRect().bottom
+          }));
+
+          expect(lines.head).toBe(lines.tabs);
+        }
+
+        // On a phone the organisation's head carries its name, and the list is in the drawer it opens.
+        if (width < 640) {
+          expect(await page.locator("[data-choice-sidebar-list]").count()).toBe(0);
+          expect(await page.locator("[data-choice-sidebar-open]").innerText()).toBe(`alpha-${RUN}`);
+        }
+
+        let list = await organizationList(page, width);
+
+        // Companies at the top, the one chosen open; the second's team stands folded under it.
+        expect(await runRows(list)).toEqual([`alpha-${RUN}`, `beta-${RUN}`]);
+        expect(await nodeRow(list, alpha).getAttribute("aria-selected")).toBe("true");
+        expect(await nodeRow(list, beta).getAttribute("aria-level")).toBe("1");
+        // The administrator adds a company from the tree's head.
+        expect(await list.locator("[data-organization-add]").count()).toBe(1);
+
+        // The search narrows the whole tree as it is typed, marking where it matched, keeping the nodes over a match
+        // open, and says so where none matches.
+        const search = list.locator("[data-choice-sidebar-search]");
+
+        await search.fill(`BETA-${RUN}`);
+        await list.locator(`[data-choice-tree-row="number:${alpha}"]`).waitFor({ state: "detached", timeout: 5_000 });
+        expect(await runRows(list)).toEqual([`beta-${RUN}`]);
+        expect(await list.locator(`[data-choice-tree-row="number:${beta}"] mark`).innerText()).toBe(`beta-${RUN}`);
+        await search.fill(`TEAM-${RUN}`);
+        await list.locator(`[data-choice-tree-row="number:${team}"] mark`).waitFor({ timeout: 5_000 });
+        expect(await runRows(list)).toEqual([`beta-${RUN}`, `team-${RUN}`]);
+        expect(await nodeRow(list, team).getAttribute("aria-level")).toBe("2");
+        await search.fill(`nowhere-${RUN}`);
+        expect(await list.locator("[data-choice-sidebar-empty]").innerText({ timeout: 5_000 })).toBe(wording("organization.label.list_no_match"));
+        await search.fill("");
+
+        // Choosing a company stands in the address as a step of the history, and on a phone closes the drawer.
+        await nodeRow(list, beta).locator("[data-choice-tree-row]").click();
+        await companyIs(page, beta);
+        await nodeIs(page, beta);
+        if (width < 640) await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+
+        // A unit under it is chosen the same way, beside its company; the company above it stands open and marked.
+        list = await organizationList(page, width);
+        await nodeRow(list, team).locator("[data-choice-tree-row]").click();
+        await page.waitForURL((url) => url.searchParams.get("unit") === String(team), { timeout: 15_000 });
+        await nodeIs(page, team);
+        expect(company(page)).toBe(String(beta));
+        if (width < 640) {
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+          expect(await page.locator("[data-choice-sidebar-open]").innerText()).toBe(`team-${RUN}`);
+          list = await organizationList(page, width);
+        }
+        expect(await nodeRow(list, team).getAttribute("aria-selected")).toBe("true");
+        expect(await nodeRow(list, beta).getAttribute("aria-expanded")).toBe("true");
+        expect(await nodeRow(list, beta).locator("[data-choice-tree-way]").count()).toBe(1);
+        if (width < 640) {
+          await page.goBack();
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+        }
+
+        // Moving between tabs keeps the node chosen.
+        await page.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).click();
+        await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
+        expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
+        await page.getByRole("tab", { name: wording("supply.label.tab"), exact: true }).click();
+        await page.waitForURL((url) => url.searchParams.get("tab") === "supply", { timeout: 15_000 });
+        expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
+
+        // Back walks the tabs and then each choice back, one step each.
+        await page.goBack();
+        await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
+        await page.goBack();
+        await page.waitForURL((url) => url.searchParams.get("tab") === null, { timeout: 15_000 });
+        await nodeIs(page, team);
+        await page.goBack();
+        await page.waitForURL((url) => url.searchParams.get("unit") === null, { timeout: 15_000 });
+        await nodeIs(page, beta);
+        await page.goBack();
+        await companyIs(page, alpha);
+
+        // On a phone Back closes the drawer and leaves the node where it is.
+        if (width < 640) {
+          list = await organizationList(page, width);
+          await page.goBack();
+          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+          expect(company(page)).toBe(String(alpha));
+        }
+
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+
+  test("lands a link made before the organisation came first in the organisation it named, and an address naming none in the first", async () => {
+    const context = await contextFor(ADMINISTRATOR.name, 1280, 900);
+
+    try {
+      const page = await context.newPage();
+
+      // The supply tab's own unit, as its links named it.
+      await open(page, `/organization?tab=supply&unit=${beta}`);
+      await companyIs(page, beta);
+
+      // The chart's unit, below its company, chosen in the tree.
+      await open(page, `/organization?unit=${team}`);
+      await companyIs(page, beta);
+      await nodeIs(page, team);
+      await page.locator(`[data-unit-chosen="${team}"]`).waitFor({ timeout: 20_000 });
+
+      // A unit the tree does not hold under the company named: the company itself, the unit gone from the address.
+      await open(page, `/organization?company=${alpha}&unit=${team}`);
+      await page.waitForURL((url) => url.searchParams.get("unit") === null, { timeout: 15_000 });
+      await nodeIs(page, alpha);
+
+      // No organisation named: the first is chosen and written into the address in place, with no step.
+      await open(page, "/organization?tab=catalogue");
+      await page.waitForURL((url) => url.searchParams.get("company") !== null, { timeout: 15_000 });
+
+      // The link nodes stand above the companies, so the first company is the first row naming a number.
+      const first = (await page.locator('[data-choice-tree-row^="number:"]').first().getAttribute("data-choice-tree-row"))!;
+
+      expect(`number:${company(page)}`).toBe(first);
+      expect(new URL(page.url()).searchParams.get("tab")).toBe("catalogue");
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
+  for (const [width, height] of WIDTHS) {
+    test(`keeps the administrator's tree and its add through an empty list, so the first company is made there, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+
+        // A deployment holding no company yet, as the list's read answers it.
+        await page.route(/\/api\/organization\/units$/, async (route) => (route.request().method() === "GET" ? await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }) : await route.continue()));
+        await open(page, "/organization");
+
+        // The link nodes stand with no company, the first of them chosen, and the add at the search's end.
+        const section = page.locator("[data-organization-node]");
+
+        await section.waitFor({ timeout: 20_000 });
+        expect(["me", "platform"]).toContain((await section.getAttribute("data-organization-node")) ?? "");
+        expect(await page.locator("[data-organization-none]").count()).toBe(0);
+
+        const list = await organizationList(page, width);
+        const add = list.locator("[data-organization-add]");
+
+        expect(await add.count()).toBe(1);
+
+        // Its add opens the form of one name, which closes untouched asking nothing.
+        await add.click();
+        await page.locator("[data-company-add-name]").waitFor({ timeout: 10_000 });
+        await page.keyboard.press("Escape");
+        await page.locator("[data-company-add-name]").waitFor({ state: "detached", timeout: 10_000 });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+
+  for (const [width, height] of WIDTHS) {
+    test(`holds a member the companies where they head a unit or hold a part of the supply, with no add, and their own node alone where they hold nothing, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+
+        // Holding nothing, their own node stands alone and chosen, with the tabs every member opens.
+        await open(page, "/organization");
+        await page.locator('[data-organization-node="me"]').waitFor({ timeout: 20_000 });
+        expect(await page.locator("[data-organization-none]").count()).toBe(0);
+        expect(await page.getByRole("tab").count()).toBeGreaterThan(0);
+
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
+        await open(page, "/organization");
+        await companyIs(page, beta);
+        // The company, and under it the unit they head.
+        expect(await runRows(await organizationList(page, width))).toEqual([`beta-${RUN}`, `team-${RUN}`]);
+        expect(await page.locator("[data-organization-add]").count()).toBe(0);
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE");
+
+        // Heading nothing, the company whose plan they hold, as the account service's supply reach names it, stands
+        // listed with its supply tab, which reads the company's plans, an old plans address landing there.
+        const fresh = await context.newPage();
+
+        await page.close();
+        await fresh.route(/\/api\/supply\/units$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([{ id: alpha, name: `alpha-${RUN}`, parent: null, policy: false, plan: true }]) }));
+        await plansStandIn(fresh, alpha);
+        await open(fresh, "/organization?tab=plans");
+        await fresh.waitForURL((url) => url.searchParams.get("tab") === "supply", { timeout: 15_000 });
+        await companyIs(fresh, alpha);
+        expect(await runRows(await organizationList(fresh, width))).toEqual([`alpha-${RUN}`]);
+        if (width < 640) {
+          await fresh.goBack();
+          await fresh.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
+        }
+        await fresh.locator("[data-plans-applied-row]").waitFor({ timeout: 20_000 });
+        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "apps.label.tab", "supply.label.tab"].map((key) => wording(key)));
+      } finally {
+        await context.close();
+        await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
+      }
+    }, 120_000);
+  }
+});
+
+// --- The plans tab, on a stand-in of the organisation's plans ---
+
+interface Plan {
+  id: number;
+  name: string;
+  price: number;
+  scope: "organisation";
+  period: string;
+  includedCredits: number | null;
+  creditsUsable: boolean;
+  exposed: boolean;
+}
+
+// A plan as the applied plan's answer carries it whole, read off the subscription.
+function planCard({ id: _, exposed: __, ...card }: Plan): Omit<Plan, "id" | "exposed"> {
+  return card;
+}
+
+// The organisation's plans as the account service would hold them, answered and written on the page.
+async function plansStandIn(page: Page, unit: number): Promise<{ writes: { path: string; body: unknown }[] }> {
+  const catalogue: Plan[] = [
+    { id: 9001, name: `starter-${RUN}`, price: 10_000, scope: "organisation", period: "month", includedCredits: 5_000, creditsUsable: true, exposed: true },
+    { id: 9002, name: `growth-${RUN}`, price: 30_000, scope: "organisation", period: "month", includedCredits: 20_000, creditsUsable: false, exposed: false }
+  ];
+  let applied: number | null = 9001;
+  const writes: { path: string; body: unknown }[] = [];
+  const answer = () => ({
+    exposed: catalogue.filter((one) => one.exposed).map(({ exposed: _, ...plan }) => plan),
+    applied: applied === null ? null : { ...planCard(catalogue.find((one) => one.id === applied)!), plan: applied, since: Date.UTC(2026, 10, 1), periodEnd: Date.UTC(2026, 11, 1) },
+    catalogue
+  });
+
+  await page.route(new RegExp(`/api/supply/org/${unit}/plans(/(exposed|applied))?$`), async (route: Route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+
+    if (request.method() === "PUT") {
+      const body = request.postDataJSON() as { plans?: number[]; plan?: number | null };
+
+      writes.push({ path: path.replace(/^.*\/plans/, "plans"), body });
+      if (path.endsWith("/exposed")) for (const one of catalogue) one.exposed = body.plans!.includes(one.id);
+      else applied = body.plan ?? null;
+    }
+
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(answer()) });
+  });
+
+  return { writes };
+}
+
+describe.skipIf(!origin || !touchReady())("the plans tab", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`applies one of the plans shown and switches which are shown, the applied one's switch held on, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const { writes } = await plansStandIn(page, beta);
+
+        await open(page, `/organization?company=${beta}&tab=supply`);
+
+        const appliedRow = page.locator("[data-plans-applied-row]");
+
+        await appliedRow.waitFor({ timeout: 20_000 });
+        expect(await appliedRow.innerText()).toContain(`starter-${RUN}`);
+        expect(await page.locator("[data-plans-term]").innerText()).toContain("2026-11-01");
+
+        // The applied plan's switch stands on and cannot be thrown; its tooltip says why.
+        const held = page.locator("[data-plans-applied-switch]");
+        const heldSwitch = held.getByRole("switch");
+
+        expect(await heldSwitch.getAttribute("aria-checked")).toBe("true");
+        expect(await heldSwitch.isDisabled()).toBe(true);
+        await held.hover();
+        expect(await page.locator('[role="tooltip"]').first().innerText({ timeout: 5_000 })).toBe(wording("supply.label.plan_applied_locked"));
+        await page.mouse.move(0, 0);
+
+        // Another plan's switch shows it as it is thrown.
+        const growth = page.locator('[data-plans-catalogue="9002"]').getByRole("switch");
+
+        expect(await growth.getAttribute("aria-checked")).toBe("false");
+        await growth.click();
+        await page.waitForFunction(() => document.querySelector('[data-plans-catalogue="9002"] [role="switch"]')?.getAttribute("aria-checked") === "true", null, { timeout: 10_000 });
+        expect(writes).toEqual([{ path: "plans/exposed", body: { plans: [9001, 9002] } }]);
+
+        // The change dialog: opened and closed untouched it asks nothing; none first, the plan applied chosen, and its
+        // way through open only once the choice differs.
+        const change = page.locator("[data-plans-change]");
+
+        await change.click();
+
+        let dialog = page.getByRole("dialog").last();
+
+        await dialog.locator("[data-plans-apply-choices]").waitFor({ timeout: 10_000 });
+        expect((await dialog.getByRole("radio").evaluateAll((radios) => radios.map((one) => one.getAttribute("aria-checked"))))).toEqual(["false", "true", "false"]);
+        expect(await dialog.getByRole("radio").first().locator("xpath=ancestor::*[2]").innerText()).toContain(wording("supply.label.plan_choice_none"));
+        expect(await dialog.locator("[data-plans-apply]").isDisabled()).toBe(true);
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+
+        await change.click();
+        dialog = page.getByRole("dialog").last();
+        await dialog.getByText(`growth-${RUN}`, { exact: true }).click();
+        expect(await dialog.locator("[data-plans-apply]").isDisabled()).toBe(false);
+        await dialog.locator("[data-plans-apply]").click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        await page.waitForFunction((name) => document.querySelector("[data-plans-applied-row]")?.textContent?.includes(name) === true, `growth-${RUN}`, { timeout: 10_000 });
+        expect(writes.at(-1)).toEqual({ path: "plans/applied", body: { plan: 9002 } });
+
+        // The plan now applied holds its switch, and the one before can be switched off again.
+        expect(await page.locator('[data-plans-catalogue="9002"] [data-plans-applied-switch]').count()).toBe(1);
+        expect(await page.locator('[data-plans-catalogue="9001"]').getByRole("switch").isDisabled()).toBe(false);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The supply tab, on a stand-in of the organisation's supply ---
+
+// An organisation's supply as the account service would answer it: no policy of its own, the platform's in force from
+// above, and the platform making the person's own supply and the organisation's credits available, the global supply
+// and the personal credits off and left to no person. A policy write naming a source the platform keeps off is
+// refused as the service refuses it.
+async function supplyStandIn(page: Page, unit: number): Promise<{ writes: unknown[]; refusals: unknown[] }> {
+  const available = ["personal", "org_credits"];
+  let view = { inherits: true, policy: { allowed: available, order: [...available, "stop"], memberCreditCredits: null as number | null, from: null }, plan: null, wallet: { balance: 0, reserved: 0, debt: 0 }, available, usage: [] };
+  const writes: unknown[] = [];
+  const refusals: unknown[] = [];
+
+  await page.route(new RegExp(`/api/supply/org/${unit}$`), async (route: Route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as { allowed: string[]; order: string[]; memberCreditCredits: number | null };
+
+      if (body.allowed.some((one) => !available.includes(one))) {
+        refusals.push(body);
+
+        return await route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ code: "source-not-allowed" }) });
+      }
+
+      writes.push(body);
+      view = { ...view, inherits: false, policy: { allowed: body.allowed, order: body.order, memberCreditCredits: body.memberCreditCredits, from: null } };
+    }
+
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(view) });
+  });
+
+  return { writes, refusals };
+}
+
+describe.skipIf(!origin || !touchReady())("the supply tab", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`stands a source the platform has off with its switch disabled and the words saying so, and saves the rest, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const { writes, refusals } = await supplyStandIn(page, beta);
+
+        await open(page, `/organization?company=${beta}&tab=supply`);
+        await page.locator('[data-supply-policy="inherits"]').waitFor({ timeout: 20_000 });
+        await page.getByRole("button", { name: wording("supply.action.policy_set"), exact: true }).click();
+
+        const dialog = page.getByRole("dialog").last();
+        const row = (source: string) => dialog.locator(`[data-supply-policy-row="${source}"]`);
+        const toggle = (source: string) => row(source).getByRole("switch", { name: wording("supply.aria.source_switch", { name: wording(`supply.label.source_${source}`) }), exact: true });
+
+        await row("personal").waitFor({ timeout: 10_000 });
+
+        // The sources the platform keeps off: off, their switch disabled, and the words under their name.
+        for (const source of ["global", "personal_credits"]) {
+          expect({ source, checked: await toggle(source).getAttribute("aria-checked"), disabled: await toggle(source).isDisabled() }).toEqual({ source, checked: "false", disabled: true });
+          expect(await row(source).locator("[data-supply-policy-platform-off]").innerText()).toBe(wording("supply.label.platform_off"));
+        }
+        // The sources it makes available stand as the policy in force has them, switched as the reader likes.
+        for (const source of ["personal", "org_credits"]) {
+          expect({ source, checked: await toggle(source).getAttribute("aria-checked"), disabled: await toggle(source).isDisabled() }).toEqual({ source, checked: "true", disabled: false });
+          expect(await row(source).locator("[data-supply-policy-platform-off]").count()).toBe(0);
+        }
+
+        // A source switched off is saved, and the save is not refused for anything the platform keeps off.
+        const save = dialog.getByRole("button", { name: wording("common.action.save"), exact: true });
+
+        expect(await save.isDisabled()).toBe(true);
+        await toggle("org_credits").click();
+        await save.click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect({ refusals, writes }).toMatchObject({ refusals: [], writes: [{ allowed: ["personal"], order: ["personal", "stop"] }] });
+        await page.locator('[data-supply-policy="own"]').waitFor({ timeout: 10_000 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The providers tab's owners, on the agency stand-in's gateway members and Claude accounts ---
+
+describe.skipIf(!origin || !touchReady())("the providers tab", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`says whose a gateway road one person owns and whose each Claude account is, and nothing for a road of the platform's, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        // The person the stand-in's DeepSeek road and second Claude account belong to, by the name their account goes by.
+        const users = await administer<{ name: string; fullName: string }[]>("/api/users", "GET");
+        const owner = users.find((one) => one.name === "person-tabs-subject")!;
+        const personal = wording("supply.label.owner_personal", { name: owner.fullName.trim() === "" ? owner.name : owner.fullName });
+
+        await open(page, "/organization?company=platform&tab=providers");
+
+        const road = (name: string) => page.locator(`[data-provider="${name}"]`);
+
+        await road("deepseek").locator("[data-provider-owner]").waitFor({ timeout: 20_000 });
+        expect(await road("deepseek").locator("[data-provider-owner]").innerText()).toBe(personal);
+        // A road of the platform's, and one with no gateway member at all, say nothing of whose they are.
+        await road("registered").waitFor({ timeout: 10_000 });
+        expect(await road("registered").locator("[data-provider-owner]").count()).toBe(0);
+        expect(await road("claude-code").locator("[data-provider-owner]").count()).toBe(0);
+
+        // The Claude accounts stand on the platform's supply: the person's says so by their name, the platform's as shared.
+        await open(page, "/organization?company=platform&tab=supply");
+
+        const account = (id: string) => page.locator(`[data-account="${id}"] [data-account-owner]`);
+
+        await account("acct-b").waitFor({ timeout: 20_000 });
+        expect(await account("acct-b").innerText()).toBe(personal);
+        expect(await account("acct-a").innerText()).toBe(wording("supply.label.owner_shared"));
+        expect(await account("acct-c").innerText()).toBe(wording("supply.label.owner_shared"));
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The platform's policy form, on a stand-in of the platform's supply ---
+
+describe.skipIf(!origin || !touchReady())("the platform's policy form", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`says beside each source and the order whether a person's own setting may change it, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        let platform = { allowed: ["personal", "global"], order: ["personal", "global", "stop"], overridable: ["personal"], orderOverridable: true, creditsPerDollar: 1_500, reservationCredits: 200, enforce: false };
+        const writes: unknown[] = [];
+
+        await page.route(/\/api\/supply\/platform$/, async (route) => {
+          if (route.request().method() === "PUT") {
+            const body = route.request().postDataJSON() as Partial<typeof platform>;
+            const next = { ...platform, ...body };
+            // As the account service judges it: the order names every source the platform opens — on or left to a
+            // person — each once and nothing else, `stop` allowed only trailing.
+            const order = (next.order.at(-1) === "stop" ? next.order.slice(0, -1) : next.order).filter((one) => one !== undefined);
+            const open = ["personal", "global", "org_credits", "personal_credits"].filter((one) => next.allowed.includes(one) || next.overridable.includes(one));
+
+            if (body.order !== undefined && (order.includes("stop") || new Set(order).size !== order.length || order.length !== open.length || open.some((one) => !order.includes(one)))) {
+              writes.push({ refused: body });
+
+              return await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ code: "bad-request" }) });
+            }
+
+            writes.push(body);
+            platform = { ...next, order: [...order, "stop"] };
+          }
+
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ policy: { allowed: platform.allowed, order: platform.order, memberCreditCredits: null }, overridable: platform.overridable, orderOverridable: platform.orderOverridable, creditsPerDollar: platform.creditsPerDollar, reservationCredits: platform.reservationCredits, enforce: platform.enforce }) });
+        });
+
+        await open(page, "/organization?company=platform&tab=supply");
+
+        const row = (source: string) => page.locator(`[data-platform-source="${source}"]`);
+
+        await row("personal").waitFor({ timeout: 20_000 });
+        expect(await row("personal").innerText()).toContain(wording("supply.label.overridable"));
+        expect(await row("personal").innerText()).toContain(wording("supply.label.source_on"));
+        expect(await row("global").innerText()).toContain(wording("supply.label.fixed"));
+        expect(await row("org_credits").innerText()).toContain(wording("supply.label.source_off"));
+        expect(await page.locator("[data-platform-order]").innerText()).toContain(wording("supply.label.overridable"));
+
+        // The form carries the second switch beside each source and one for the order, and saves both.
+        await page.locator("[data-platform-order]").locator("xpath=ancestor::section[1]").getByRole("button", { name: wording("common.action.edit"), exact: true }).click();
+
+        const dialog = page.getByRole("dialog").last();
+        const allow = dialog.locator("[data-supply-policy-overridable]");
+
+        await allow.first().waitFor({ timeout: 10_000 });
+        expect(await allow.count()).toBe(5);
+        expect(await dialog.locator('[data-supply-policy-row="order"]').count()).toBe(1);
+
+        const save = dialog.getByRole("button", { name: wording("common.action.save"), exact: true });
+
+        expect(await save.isDisabled()).toBe(true);
+        await dialog.getByRole("switch", { name: wording("supply.aria.source_overridable", { name: wording("supply.label.source_global") }), exact: true }).click();
+        // A source off but left to a person stands in the order the platform writes.
+        await dialog.getByRole("switch", { name: wording("supply.aria.source_overridable", { name: wording("supply.label.source_org_credits") }), exact: true }).click();
+        await dialog.getByRole("switch", { name: wording("supply.aria.order_overridable"), exact: true }).click();
+        expect(await save.isDisabled()).toBe(false);
+        await save.click();
+        await dialog.waitFor({ state: "detached", timeout: 10_000 });
+        expect(writes).toEqual([{ allowed: ["personal", "global"], order: ["personal", "global", "org_credits", "stop"], overridable: ["personal", "global", "org_credits"], orderOverridable: false }]);
+        await page.waitForFunction((words) => document.querySelector('[data-platform-source="global"]')?.textContent?.includes(words) === true, wording("supply.label.overridable"), { timeout: 10_000 });
+        expect(await row("global").innerText()).toContain(wording("supply.label.overridable"));
+        expect(await page.locator("[data-platform-order]").innerText()).toContain(wording("supply.label.fixed"));
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The platform's ledger and audit, read a page at a time, on a stand-in of the platform's credits ---
+
+describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () => {
+  for (const [width, height] of WIDTHS) {
+    test(`stand last, one at a time by their switch, each reading its next page as its end comes into view, a failed page read again from its retry, at ${width}px`, async () => {
+      const context = await contextFor(ADMINISTRATOR.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const HELD = 45;
+        const PAGE = 20;
+        const asked: (string | null)[] = [];
+        let failNext = true;
+        const entry = (n: number) => ({ id: n, at: 1_795_000_000_000 - n, ownerKind: "organisation", ownerId: 7, kind: "grant", amount: 100 + n, debtChange: 0, balanceAfter: n, words: `paged entry ${n}` });
+
+        await page.route(/\/api\/supply\/platform$/, async (route) => {
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ policy: { allowed: ["personal"], order: ["personal", "stop"], memberCreditCredits: null }, overridable: [], orderOverridable: false, creditsPerDollar: 1_500, reservationCredits: 200, enforce: false }) });
+        });
+        await page.route(/\/api\/supply\/credits\/ledger(\?.*)?$/, async (route) => {
+          const after = new URL(route.request().url()).searchParams.get("after");
+          const from = after === null ? 0 : Number(after);
+
+          asked.push(after);
+
+          // A status the fetcher does not retry on its own, so the one failure reaches the screen.
+          if (after !== null && failNext) {
+            failNext = false;
+
+            return await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ message: "unavailable" }) });
+          }
+
+          const entries = Array.from({ length: HELD }, (_, at) => entry(at + 1)).slice(from, from + PAGE);
+
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ entries, next: from + PAGE < HELD ? String(from + PAGE) : null }) });
+        });
+        await page.route(/\/api\/supply\/credits\/audit(\?.*)?$/, async (route) => {
+          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ entries: [{ id: 1, at: 1_795_000_000_000, by: "qa-admin", byName: "qa-admin", kind: "settings", subject: "", detail: "" }], next: null }) });
+        });
+
+        await open(page, "/organization?company=platform&tab=supply");
+
+        const ledger = page.locator("[data-credit-ledger]");
+        const shown = () => ledger.getByText(/^paged entry \d+$/).count();
+        const retry = ledger.locator("[data-next-page-foot]").getByRole("button", { name: wording("common.action.retry"), exact: true });
+
+        await ledger.getByText("paged entry 1", { exact: true }).waitFor({ timeout: 20_000 });
+        expect(await shown()).toBe(PAGE);
+        // Nothing at the foot is pressed for more, and the ledger is the tab's last group, nested in no scroll of its own.
+        expect(await ledger.locator("[data-next-page-foot] button").count()).toBe(0);
+        expect(await page.evaluate(() => {
+          const records = document.querySelector("[data-credit-records]")!;
+          let inner: Element | null = records;
+
+          while (inner !== null && getComputedStyle(inner).overflowY !== "auto" && getComputedStyle(inner).overflowY !== "scroll") inner = inner.parentElement;
+
+          return { last: records.parentElement!.lastElementChild === records, scroller: inner !== null && records.contains(inner) };
+        })).toEqual({ last: true, scroller: false });
+
+        // The wheel turned over the ledger, as a reader scrolling the tab does, until what is waited for holds; the point
+        // is taken afresh on every turn inside the part of the ledger the window shows, since the tab moves under it.
+        const scrollUntil = async (holds: () => Promise<boolean>) => {
+          const end = Date.now() + 20_000;
+
+          while (!(await holds())) {
+            if (Date.now() > end) throw new Error("scrolling the ledger did not bring it");
+
+            // The records stand last on the tab, under the plans and the accounts, so their top is brought into view
+            // before the wheel turns over them.
+            if ((await ledger.boundingBox())!.y >= height) await ledger.scrollIntoViewIfNeeded();
+
+            const box = (await ledger.boundingBox())!;
+            const top = Math.max(box.y, 0);
+            const bottom = Math.min(box.y + box.height, height);
+
+            await page.mouse.move(box.x + box.width / 2, (top + bottom) / 2);
+            await page.mouse.wheel(0, 600);
+            await page.waitForTimeout(50);
+          }
+        };
+
+        await scrollUntil(async () => (await retry.count()) > 0);
+        expect(await ledger.locator("[data-next-page-foot] [role=alert]").innerText()).toContain("unavailable");
+        expect(await shown()).toBe(PAGE);
+
+        await retry.click();
+        await scrollUntil(async () => (await shown()) === HELD);
+        expect(asked).toEqual([null, "20", "20", "40"]);
+        // The last page holds nothing under it, and the audit is reached by the switch, the ledger keeping its pages.
+        await ledger.locator("[data-next-page-foot]").waitFor({ state: "detached", timeout: 10_000 });
+        await page.locator("[data-credit-records]").getByRole("tab", { name: wording("supply.title.audit"), exact: true }).click();
+        await page.locator("[data-credit-audit]").getByText(wording("supply.label.kind_settings"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect(await ledger.isVisible()).toBe(false);
+        await page.locator("[data-credit-records]").getByRole("tab", { name: wording("supply.title.ledger"), exact: true }).click();
+        expect(await shown()).toBe(HELD);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});
+
+// --- The reader's own supply tab, on a stand-in of their own supply ---
+
+interface MeSource {
+  source: string;
+  allowed: boolean;
+  off: boolean;
+  locked: boolean;
+  own?: "on" | "off";
+  reason?: string;
+}
+
+// A person's own write judged as the account service judges it (docs/accounts.md, 「How an order is resolved」;
+// docs/boundary.md, 「Supply」): a source named both on and off is refused; a choice the person already holds passes as
+// it stands, while one newly switched against a locked platform value, or newly switched on where a layer above
+// closed it, is refused; while the order is read it names every source the layers above leave to the person, each
+// once, `stop` allowed only trailing, and every open source switched off stands in it. The refusal, where there is
+// one, is answered with its status and code; none is null.
+function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: { order: string[]; off: string[]; on: string[] }): { status: number; code: string } | null {
+  const state = (key: string) => sources.find((one) => one.source === key);
+  const payable = sources.filter((one) => one.source !== "stop");
+  const allowed = payable.filter((one) => one.allowed).map((one) => one.source);
+
+  if (body.on.some((one) => body.off.includes(one))) return { status: 400, code: "bad-request" };
+
+  for (const [list, to] of [[body.on, true], [body.off, false]] as const) {
+    for (const key of list) {
+      const one = state(key);
+
+      if (one === undefined || key === "stop") return { status: 400, code: "bad-request" };
+      if (one.own === (to ? "on" : "off")) continue;
+      if (one.locked && !one.off !== to) return { status: 403, code: "locked-by-platform" };
+      if (to && !one.allowed) return { status: 403, code: one.reason ?? "source-not-allowed" };
+    }
+  }
+
+  if (orderLocked) return null;
+
+  const order = body.order.at(-1) === "stop" ? body.order.slice(0, -1) : body.order;
+
+  if (order.includes("stop") || new Set(order).size !== order.length) return { status: 400, code: "bad-request" };
+  if (order.some((one) => !allowed.includes(one)) || allowed.some((one) => !order.includes(one))) return { status: 400, code: "bad-request" };
+  if (body.off.some((one) => allowed.includes(one) && !order.includes(one))) return { status: 400, code: "bad-request" };
+
+  return null;
+}
+
+// The reader's own supply tab at their own node, on a stand-in of the account service's view: the order of the
+// sources stands only where the reader may change it — the platform leaves the order to them and at least two
+// sources stand open for them to place. Where the platform holds the order, or the chain above leaves one source
+// standing, the order stands nowhere: no arrows, no end of the fall, no line saying the order is fixed, and the
+// group takes the sources' own name. The switches and the personal credits' cap keep their place throughout.
+describe.skipIf(!origin || !touchReady())("the reader's own supply order", () => {
+  const ME_SOURCES: MeSource[] = [
+    { source: "personal", allowed: true, off: false, locked: false },
+    { source: "global", allowed: false, off: true, locked: false, own: "on", reason: "not-in-plan" },
+    { source: "org_credits", allowed: true, off: false, locked: false },
+    { source: "personal_credits", allowed: true, off: true, locked: false, own: "off" },
+    { source: "stop", allowed: true, off: false, locked: true }
+  ];
+
+  // The reader's own supply as the account service answers it, the order standing as the layers above leave it.
+  interface OwnView {
+    order: string[];
+    sources: MeSource[];
+    orderLocked: boolean;
+    personalCreditCredits: number | null;
+    usage: unknown[];
+    globalRemaining: number | null;
+    personalCredits: number | null;
+  }
+
+  function ownSupply(order: string[], sources: readonly MeSource[], orderLocked: boolean): OwnView {
+    return { order, sources: [...sources], orderLocked, personalCreditCredits: null, usage: [], globalRemaining: null, personalCredits: null };
+  }
+
+  // The whole section read through one stand-in the test holds in its hand, so one change of the view is one line.
+  async function standIn(page: Page, me: { view: OwnView }): Promise<{ writes: unknown[]; refusals: unknown[] }> {
+    const writes: unknown[] = [];
+    const refusals: unknown[] = [];
+
+    await page.route(/\/api\/supply\/me$/, async (route) => {
+      if (route.request().method() === "PUT") {
+        const body = route.request().postDataJSON() as { order: string[]; off: string[]; on: string[] };
+        const refused = judgedWrite(me.view.sources, me.view.orderLocked, body);
+
+        if (refused !== null) {
+          refusals.push({ body, refused });
+
+          return await route.fulfill({ status: refused.status, contentType: "application/json", body: JSON.stringify({ code: refused.code }) });
+        }
+
+        writes.push(body);
+      }
+
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(me.view) });
+    });
+    await page.route(/\/api\/supply\/logins$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active: null, accounts: [] }) }));
+    await page.route(/\/api\/supply\/personal$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+
+    return { writes, refusals };
+  }
+
+  const sourceRow = (page: Page, name: string) => page.locator(`[data-supply-source="${name}"]`);
+  // The group holding the source rows, named by its own heading.
+  // The group's own heading: the section a source row stands in, which the section around the whole panel is not.
+  const groupName = async (page: Page): Promise<string> => (await page.locator("[data-supply-source]").first().locator("xpath=ancestor::section[1]").locator("h3").innerText()).trim();
+
+  for (const [width, height] of WIDTHS) {
+    test(`stands the order with its arrows and its end last where the reader may change it, and moves it, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const me = { view: ownSupply(["personal", "org_credits", "stop"], ME_SOURCES, false) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        expect(await groupName(page)).toBe(wording("supply.title.order"));
+        // The end of the fall stands last, and every source left open stands before it with its switch.
+        const rows = await page.locator("[data-supply-source], [data-supply-cap]").evaluateAll((held) => held.map((one) => one.getAttribute("data-supply-source") ?? "cap"));
+
+        expect(rows).toEqual(["personal", "org_credits", "personal_credits", "cap", "stop", "global"]);
+
+        const moved = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+
+        await sourceRow(page, "personal").getByRole("button", { name: wording("common.aria.move_down_named", { name: wording("supply.label.source_personal") }), exact: true }).click();
+        await moved;
+        expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: ["global"], personalCreditCredits: null } });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`leaves the order out where the platform holds it, with the switches and the cap in place, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const me = { view: ownSupply(["personal", "org_credits", "stop"], ME_SOURCES, true) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        // The group takes the sources' own name, and no arrow and no end of the fall stands anywhere.
+        expect(await groupName(page)).toBe(wording("supply.title.sources"));
+        expect(await page.locator("[data-supply-source]").getByRole("button", { name: /./ }).count()).toBe(0);
+        expect(await sourceRow(page, "stop").count()).toBe(0);
+        const rows = await page.locator("[data-supply-source], [data-supply-cap]").evaluateAll((held) => held.map((one) => one.getAttribute("data-supply-source") ?? "cap"));
+
+        expect(rows).toEqual(["personal", "org_credits", "personal_credits", "cap", "global"]);
+        // The locked source still says who holds it, and the others still switch.
+        expect(await sourceRow(page, "personal").getByRole("switch").isDisabled()).toBe(false);
+        expect(await sourceRow(page, "global").innerText()).toContain(wording("supply.label.reason_not_in_plan"));
+        expect(await sourceRow(page, "global").getByRole("switch").count()).toBe(0);
+
+        // A switch thrown still writes, the order left as the layers above settled it.
+        const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+
+        await sourceRow(page, "org_credits").getByRole("switch").click();
+        await written;
+        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal", "org_credits", "personal_credits"], off: ["org_credits", "personal_credits"], on: ["global"], personalCreditCredits: null }] });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`leaves the order out where the chain leaves one source standing, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        // The company's own policy allows personal supply alone: the rest stand closed with the reason that closed them.
+        const forced: MeSource[] = [
+          { source: "personal", allowed: true, off: false, locked: false },
+          { source: "global", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "org_credits", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "personal_credits", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "stop", allowed: true, off: false, locked: true }
+        ];
+        const me = { view: ownSupply(["personal", "stop"], forced, false) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        expect(await groupName(page)).toBe(wording("supply.title.sources"));
+        expect(await page.locator("[data-supply-source]").getByRole("button", { name: /./ }).count()).toBe(0);
+        expect(await sourceRow(page, "stop").count()).toBe(0);
+        expect(await sourceRow(page, "org_credits").innerText()).toContain(wording("supply.label.reason_blocked_by_organisation"));
+
+        // The one source left stands with its switch, and the source the company closed opens to nothing.
+        expect(await sourceRow(page, "personal").getByRole("switch").getAttribute("aria-checked")).toBe("true");
+        expect(await sourceRow(page, "personal").getByRole("switch").isDisabled()).toBe(false);
+
+        const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+
+        await sourceRow(page, "personal").getByRole("switch").click();
+        await written;
+        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal"], off: ["personal"], on: [], personalCreditCredits: null }] });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+  }
+});

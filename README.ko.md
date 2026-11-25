@@ -47,6 +47,8 @@ BMO 플랫폼을 하나로 합친 서비스입니다. 계정 모델과 조직, �
 | Folder | Holds |
 |---|---|
 | `crates/` | Rust 크레이트 |
+| `server/` | 계정 서비스: 크레이트, `server/client/`의 계약 클라이언트, 언어 팩과 설정 |
+| `client/` | 콘솔: Nuxt 앱, 하나의 Bun 워크스페이스 |
 | `deploy/` | 서비스 유닛 |
 | `docs/` | 정본 문서 |
 | `packages/` | TypeScript 패키지, 하나의 Bun 워크스페이스 |
@@ -75,6 +77,9 @@ BMO 플랫폼을 하나로 합친 서비스입니다. 계정 모델과 조직, �
 | `crates/store` | agency의 테이블, 그 마이그레이션, 그 위의 구문 |
 | `crates/tool-call` | 도구 호스트 호출 프로토콜의 agency 쪽 구현으로, agency의 도구들이 공유합니다 |
 | `crates/server` | 서비스 본체: 세션, 자리, 라인, 역할 슬롯, 제어 라우트, 동사. 바이너리는 `agency-server`와 `bmo-agency` |
+| `server/` | 계정 서비스: 로그인과 발신자, 조직과 단위, 위임 사슬, 비밀과 메일, 언어 팩. 바이너리는 `bmo-web-server` |
+| `server/client` | 계정 서비스의 계약: 모든 본문을 Rust 타입으로, OpenAPI 문서, 라우트마다 메서드 하나씩 |
+| `client/` | 콘솔: 사람이 로그인하는 화면과 조직 화면의 하나의 트리 |
 | `tools/` | agency가 도구 호스트에 제공하는 도구: 절차들과 규칙집 리더 |
 | `packages/` | TypeScript 패키지, 하나의 Bun 워크스페이스 |
 | `screen-kit/` | 사람의 PC에서 개인 앱 화면을 빌드하는 도구: 콘솔이 쓰는 릴리스의 bmo-ui 번들 빌드 |
@@ -92,6 +97,7 @@ cargo test --workspace
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 (cd packages && bun install && bunx tsc --noEmit)
+(cd client && bun install && bun run check)
 (cd tests/packages && bun test)
 ```
 

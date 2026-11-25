@@ -1,0 +1,124 @@
+# The words a TODO item is read in by a person and by the chat agent (docs/worker-language.md): one line of it in
+# a listing and the whole of it opened, written by the bun bot's TODO readings. A job reads its own English
+# rendering instead. Each `{name}` is filled in with what it names.
+
+# One line of a listing: a merge into the item {id}, the item finished, waiting on approval by its
+# {requester}, and the marks that follow the item's state.
+line:
+  merged: "#{id}에 병합됨"
+  merging: "#{id}에 병합"
+  done: "완료{merge}"
+  pending: "결재 대기 ({requester})"
+  cowork: " · 협업"
+  note: " · 결재 의견 있음"
+  report: " · 보고 있음"
+  unfinished: " · 미결 있음"
+  unfinished_resolved: " · 미결 해소"
+
+# The word a held item wears, by who set it aside and whether its run still ends: stopped by the owner, wound
+# down to resume, held after failing, or plain; and while its run still goes, stopping, winding down, or
+# waiting for the run to end.
+held:
+  stop: "중지"
+  stopping: "중지 중"
+  pause: "재개 대기"
+  pausing: "마무리 중"
+  failure: "실패로 보류"
+  plain: "보류"
+  pending: "중단 대기 중"
+
+# What a row linked to the item opened is: finished, still open, merged, held.
+row:
+  done: "완료"
+  open: "아직"
+  merged: "병합됨"
+  held: "보류"
+  opened: "열림"
+
+# The whole of one item opened, each line by its label. {state}, {held}, {requester}, {approved},
+# {priority}, {model}, {worker} and {cowork} are its values; its impact grounds, the chat agent's and a job's each under
+# its own head, are one line per node, by its {id} and the {contract} that changes on it or the word for a
+# change inside alone, and a line where a new home must be decided.
+show:
+  state: "상태: {state}"
+  state_merged: "병합됨"
+  state_done: "완료"
+  held: "보류: {at}{reason}"
+  requester: "요청자: {requester}"
+  approved: "결재: {approved}"
+  priority: "우선순위: {priority}"
+  model: "모델: {model}"
+  model_default: "기본"
+  # Beside the provider and model the work last went out on, wherever an item's model is shown: the mark of
+  # a road the provider order fell to, the mark of runs that went out on more than one, and in the detail
+  # alone the {requested} model where the two differ.
+  model_fallback: "(폴백)"
+  model_changed: "(모델 바뀜)"
+  model_requested: "(요청 {requested})"
+  worker: "워커: {worker}{unassigned}"
+  worker_unassigned: " (배정 없음, Built-in 워커)"
+  cowork: "협업: {cowork}"
+  cowork_on: "켬"
+  cowork_off: "끔 (한 세션으로 실행)"
+  impact: "영향 근거:"
+  impact_job: "Job이 다시 뽑은 영향 근거:"
+  impact_node: "- {id}: {contract}"
+  impact_inside: "안쪽만 바뀜"
+  impact_new_home: "- 새 위치를 정해야 함"
+  owner_note: "{owner}의 결재 의견 (원문 그대로):\n{note}"
+  owner_note_carried: "이 의견은 Job 프롬프트에 그대로 실어야 하고, Job은 보고에서 여기에 답해야 합니다."
+  report: "완료 보고:"
+  unfinished: "미결{resolved}:"
+  unfinished_resolved: " (해소됨)"
+  resolution: "해소 {on}: {resolution}"
+  raised: "이 미결에서 이미 만든 항목 (다시 만들지 않음):"
+  notes: "추가 지시:"
+  draft: "작업 지시서 초안 (항목 본문과 따로 적힘):"
+  draft_intent: "목적:\n{intent}"
+  draft_instruction: "지시:\n{instruction}"
+
+# The merge on both sides: into the item {id} with its {title}, at the moment {at}, and the items merged
+# into this one.
+merge:
+  into: "병합: #{id} {title}에 {at}병합됨{follows}"
+  follows: ". 그 항목이 완료되면 함께 완료됩니다"
+  merged: "병합된 항목:"
+  work: "병합된 항목 #{id} {title} (이 항목의 Job이 함께 하고, 이 항목을 닫으면 함께 완료):"
+
+# The repair link on both sides: the item {id} with its {title} this one repairs, and the items repairing
+# this one.
+repair:
+  target: "고치는 대상: #{id}{title}"
+  repairs: "이 항목을 고치는 항목:"
+
+# What the work stopped to ask the owner, and what each question became.
+questions:
+  heading: "Job의 질문:"
+  waiting: "아직 대기 중"
+  typed: "{answer} ({owner_subject} 직접 입력)"
+  chosen: "{owner_subject} 선택"
+  defaulted: "무응답 · 추천 답으로 결정"
+
+# How long the item took and what the time went to: the {attempts} runs, the {finished} of them ended, each
+# attempt by its {attempt} and {job}, the spans of the run phase {phase}, and the tokens of the {spending}
+# runs that left a record of them.
+time:
+  running: "시간: 아직 실행 중 ({attempts}번 실행)"
+  total: "시간: 총 {clock} ({attempts}번 실행{finished})"
+  finished: ", 끝난 것 {finished}번"
+  attempt_running: "- {attempt}번째 (Job {job}): 아직 실행 중"
+  attempt: "- {attempt}번째 (Job {job}): {clock} · {outcome}"
+  no_outcome: "기록 없음"
+  phases: "구간 (Job 전체를 나눈 것):"
+  split: "{phase} 세부 시간 (바로 위 {phase} 구간을 나눈 것):"
+  split_waiting: "- 브랜치를 기다린 시간 {clock}"
+  split_tooling: "- 직접 툴을 호출한 시간 {clock}"
+  split_generating: "- 모델이 생성한 시간 {clock}"
+  inside: "{phase} 중 도구별 시간 (동시에 실행된 도구는 시간이 겹쳐서 합계가 실제 시간보다 길 수 있습니다):"
+  inside_more: "- 기타 {count}가지"
+  no_spans: "구간 기록 없음 (구간을 남기기 전에 실행된 Job입니다)"
+  span_times: " · {times}회"
+  span_tokens: " · 토큰 {tokens}"
+  tokens: "토큰 (모델별, 사용량 기록이 있는 {spending}번의 합계):"
+  tokens_missing: "- 나머지 {missing}번은 사용량 기록이 없어 빠져 있습니다"
+  no_tokens: "토큰 기록 없음 (실행이 사용량을 남기지 못한 Job입니다)"

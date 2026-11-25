@@ -1,0 +1,9 @@
+{
+  // The console server's tests, on the server's config: its auto-imports and aliases as Nitro gives them,
+  // with Bun's types beside them.
+  "extends": "../../apps/web/.nuxt/tsconfig.server.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": ["./**/*", "../support/**/*", "../../apps/web/shared/**/*.d.ts", "../../apps/web/.nuxt/types/nitro-nuxt.d.ts", "../../apps/web/.nuxt/types/nitro.d.ts"]
+}

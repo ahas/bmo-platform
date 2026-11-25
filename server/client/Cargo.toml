@@ -1,0 +1,23 @@
+# The account service's contract in Rust: every body as a type, every route as a call, and the OpenAPI
+# document generated from those types (docs/boundary.md). The TypeScript package beside it is generated from
+# the same document.
+[package]
+name = "bmo-web-client"
+description = "The web console's server: the account service's fixed API, every body and member as a Rust type, one call for each route, and the OpenAPI document generated from them."
+version = "0.1.0-rev.1"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+# One test target, the harness at tests/main.rs (bmo-chat's docs/conventions.md, 「Rust builds」).
+autotests = false
+
+[dependencies]
+reqwest.workspace = true
+schemars = "1.2.3"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+url = "2.5.8"
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

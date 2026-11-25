@@ -1,0 +1,26 @@
+# The console's user unit (docs/web.md, 「Running as a service」). A deployment links it from the deploy tree and
+# restarts it on every deployment, just before the server; it runs the console the build wrote into the release,
+# with the environment each release links to the data root's env/web-console.env.
+[Unit]
+Description=bmo-web: the web console
+After=network-online.target bmo-web-server.service
+Wants=network-online.target
+# Without its environment the session cannot be sealed, so the unit does not start where the data root holds none.
+ConditionPathExists=%h/.local/share/bmo/data/env/web-console.env
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+WorkingDirectory=%h/.local/share/bmo-agency/deploy/client/apps/web
+EnvironmentFile=%h/.local/share/bmo-agency/deploy/client/apps/web/console.env
+ExecStart=%h/.bun/bin/bun .output/server/index.mjs
+Restart=on-failure
+RestartSec=5
+# The console ends on SIGTERM once its relays are told and its close hooks have run; a stop waits for that end.
+TimeoutStopSec=infinity
+Environment=PATH=%h/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=default.target
+# Restarted by every deployment, just before the server, since every release carries its own build.
+X-BMO-Deploy=restart

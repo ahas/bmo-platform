@@ -1,0 +1,466 @@
+import type { ResearchAsk, ResearchItem, ResearchItemChange, ResearchOrigin } from "#shared/research";
+import type { Translate } from "#shared/wording";
+
+// What the research screen's settings tab says of each research line: the name it stands under (docs/web.md,
+// 「Research screen」).
+
+// Each research key's name, by the key of the words it is said in.
+const PROFILE_LABELS: Record<string, string> = {
+  "search:basic": "research.label.profile_search_basic",
+  "search:thorough": "research.label.profile_search_thorough",
+  "search:exhaustive": "research.label.profile_search_exhaustive",
+  browse: "research.label.profile_browse"
+};
+
+// A research key this screen has no words for stands under the key the agency gave it.
+export function profileLabel(t: Translate, key: string): string {
+  const label = PROFILE_LABELS[key];
+
+  return label === undefined ? key : t(label);
+}
+
+// The fetch strategies the research unit holds a research run to, in the order the choice offers them, each by the
+// key of the words it is said in (bmo-research's `docs/runner.md`, 「What a run is held to: the research settings」).
+export const STRATEGY_LABELS: Record<string, string> = {
+  "direct-then-browser": "research.label.strategy_direct_then_browser",
+  "browser-first": "research.label.strategy_browser_first",
+  "direct-only": "research.label.strategy_direct_only"
+};
+
+/** A strategy's words; one this screen has no words for stands as a sentence naming it. */
+export function strategyLabel(t: Translate, strategy: string): string {
+  const label = STRATEGY_LABELS[strategy];
+
+  return label === undefined ? t("research.label.unknown_value", { value: strategy }) : t(label);
+}
+
+/** A gap between two requests, in milliseconds, or a dash where none is set: the web tools' own value is no route's
+ * answer, so it is never guessed (docs/web.md, 「The default among choices」). */
+export function gapText(t: Translate, ms: number | null): string {
+  return ms === null ? "—" : t("research.label.gap_value", { n: ms.toLocaleString("ko-KR") });
+}
+
+/** What a gap's box holds once saved: an emptied box sets the gap back to the web tools' own. */
+export function gapOf(text: string): number | null {
+  const trimmed = text.trim();
+
+  return trimmed === "" ? null : Number(trimmed);
+}
+
+// How a search engine's state stands: its mark, its tone and its words.
+export interface EngineLook {
+  icon: string;
+  tone: string;
+  label: string;
+}
+
+const ENGINE_LOOKS: Record<string, Omit<EngineLook, "label"> & { key: string }> = {
+  healthy: { icon: "i-material-symbols-check-circle-outline", tone: "text-success", key: "research.label.state_healthy" },
+  degraded: { icon: "i-material-symbols-warning-outline", tone: "text-warning", key: "research.label.state_degraded" },
+  suspended: { icon: "i-material-symbols-pause-circle-outline", tone: "text-error", key: "research.label.state_suspended" }
+};
+
+export function engineLook(t: Translate, state: string): EngineLook {
+  const look = ENGINE_LOOKS[state];
+
+  return look === undefined
+    ? { icon: "i-material-symbols-help-outline", tone: "text-muted", label: t("research.label.unknown_value", { value: state }) }
+    : { icon: look.icon, tone: look.tone, label: t(look.key) };
+}
+
+// What the research screen says about the research unit's state, its queue and a run (docs/web.md, 「Research
+// screen」). Every state, shape and kind is the unit's own word, and one this screen has no words for stands as a
+// sentence naming it.
+
+/** A word the unit names, said by the pack's key the table holds for it. */
+function said(t: Translate, table: Readonly<Record<string, string>>, value: string): string {
+  const label = table[value];
+
+  return label === undefined ? t("research.label.unknown_value", { value }) : t(label);
+}
+
+// A chip's colour, as Nuxt UI names its colours.
+export type ChipColor = "neutral" | "primary" | "info" | "success" | "warning" | "error";
+
+export interface ChipLook {
+  label: string;
+  color: ChipColor;
+}
+
+// A state chip's look: besides its words and colour, the icon an item in a list carries for its state, which spins
+// while the state is work under way.
+export interface StateChipLook extends ChipLook {
+  icon: string;
+  spins: boolean;
+}
+
+type StateLook = { key: string; color: ChipColor; icon: string; spins?: boolean };
+
+const UNKNOWN_ICON = "i-material-symbols-help-outline";
+
+function lookOf(t: Translate, looks: Record<string, StateLook>, state: string): StateChipLook {
+  const look = looks[state];
+
+  return look === undefined
+    ? { label: t("research.label.unknown_value", { value: state }), color: "neutral", icon: UNKNOWN_ICON, spins: false }
+    : { label: t(look.key), color: look.color, icon: look.icon, spins: look.spins === true };
+}
+
+// The research screen's tabs, the queue first (docs/web.md, 「Research screen」).
+export const RESEARCH_TABS = [
+  { value: "queue", label: "research.label.tab_queue", icon: "i-material-symbols-format-list-bulleted" },
+  { value: "topics", label: "research.label.tab_topics", icon: "i-material-symbols-topic-outline" },
+  { value: "sources", label: "research.label.tab_sources", icon: "i-material-symbols-rss-feed" },
+  { value: "settings", label: "research.label.tab_settings", icon: "i-material-symbols-tune" }
+] as const;
+
+export type ResearchTab = (typeof RESEARCH_TABS)[number]["value"];
+
+export function isResearchTab(value: unknown): value is ResearchTab {
+  return RESEARCH_TABS.some((tab) => tab.value === value);
+}
+
+// An item's states, in the order the state choice offers them.
+export const ITEM_STATES: readonly string[] = ["waiting", "running", "finishing", "reported", "fit", "stuck", "taken", "dismissed"];
+
+const ITEM_STATE_LOOKS: Record<string, StateLook> = {
+  waiting: { key: "research.label.item_state_waiting", color: "neutral", icon: "i-material-symbols-schedule-outline" },
+  running: { key: "research.label.item_state_running", color: "info", icon: "i-material-symbols-progress-activity", spins: true },
+  finishing: { key: "research.label.item_state_finishing", color: "info", icon: "i-material-symbols-progress-activity", spins: true },
+  reported: { key: "research.label.item_state_reported", color: "success", icon: "i-material-symbols-description-outline" },
+  fit: { key: "research.label.item_state_fit", color: "primary", icon: "i-material-symbols-thumb-up-outline" },
+  stuck: { key: "research.label.item_state_stuck", color: "error", icon: "i-material-symbols-error-outline" },
+  taken: { key: "research.label.item_state_taken", color: "success", icon: "i-material-symbols-check-circle-outline" },
+  dismissed: { key: "research.label.item_state_dismissed", color: "neutral", icon: "i-material-symbols-block" }
+};
+
+export function itemStateLook(t: Translate, state: string): StateChipLook {
+  return lookOf(t, ITEM_STATE_LOOKS, state);
+}
+
+/** Whether the unit still dismisses an item: in every state but taken and dismissed. */
+export function dismissible(state: string): boolean {
+  return state !== "taken" && state !== "dismissed";
+}
+
+/** Whether an item is stuck past its retries, so the unit takes it asked again afresh or moved to the front. */
+export function isStuck(state: string): boolean {
+  return state === "stuck";
+}
+
+/** When an item's next try is due on its retry wait: a waiting or a stuck item's, null for any other or where none stands. */
+export function retryDue(item: { state: string; retryAt: number | null }): number | null {
+  return item.state === "waiting" || isStuck(item.state) ? item.retryAt : null;
+}
+
+/** A change the screen makes on an item: its dismissal, a stuck one asked again, or a stuck one moved to the front. */
+export type ItemChange = "dismiss" | "reask" | "front";
+
+/** Each change as the unit is asked it (bmo-research's `docs/api.md`, 「queue」), with the pack's words for its failure. */
+export const ITEM_CHANGES: Readonly<Record<ItemChange, { body: ResearchItemChange; failed: string }>> = {
+  dismiss: { body: { state: "dismissed" }, failed: "research.error.dismiss_failed" },
+  reask: { body: { state: "waiting" }, failed: "research.error.reask_failed" },
+  front: { body: { front: true }, failed: "research.error.front_failed" }
+};
+
+const SHAPE_LABELS: Record<string, string> = {
+  manual: "research.label.shape_manual",
+  investigation: "research.label.shape_investigation",
+  advisory: "research.label.shape_advisory",
+  brief: "research.label.shape_brief",
+  "manual-or-investigation": "research.label.shape_manual_or_investigation"
+};
+
+/** An item's or a category's shape. */
+export function shapeLabel(t: Translate, shape: string): string {
+  return said(t, SHAPE_LABELS, shape);
+}
+
+const CATEGORY_STATE_LOOKS: Record<string, StateLook> = {
+  running: { key: "research.label.state_running", color: "success", icon: "i-material-symbols-play-circle-outline" },
+  stopped: { key: "research.label.state_stopped", color: "neutral", icon: "i-material-symbols-pause-circle-outline" }
+};
+
+export function categoryStateLook(t: Translate, state: string): StateChipLook {
+  return lookOf(t, CATEGORY_STATE_LOOKS, state);
+}
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  ko: "research.label.language_ko",
+  en: "research.label.language_en"
+};
+
+/** A language a document's page holds; one this screen has no word for stands as the code the unit gave. */
+export function languageLabel(t: Translate, language: string): string {
+  const label = LANGUAGE_LABELS[language];
+
+  return label === undefined ? language : t(label);
+}
+
+const LOG_KIND_LOOKS: Record<string, { key: string; color: ChipColor }> = {
+  asked: { key: "research.label.log_kind_asked", color: "neutral" },
+  seated: { key: "research.label.log_kind_seated", color: "neutral" },
+  answer: { key: "research.label.log_kind_answer", color: "primary" },
+  round: { key: "research.label.log_kind_round", color: "primary" },
+  branch: { key: "research.label.log_kind_branch", color: "info" },
+  filed: { key: "research.label.log_kind_filed", color: "success" },
+  told: { key: "research.label.log_kind_told", color: "success" },
+  ended: { key: "research.label.log_kind_ended", color: "warning" }
+};
+
+export function logKindLook(t: Translate, kind: string): ChipLook {
+  const look = LOG_KIND_LOOKS[kind];
+
+  return look === undefined ? { label: t("research.label.unknown_value", { value: kind }), color: "neutral" } : { label: t(look.key), color: look.color };
+}
+
+const RUN_STATE_LABELS: Record<string, string> = {
+  waiting: "research.label.run_state_waiting",
+  running: "research.label.run_state_running",
+  closed: "research.label.run_state_closed"
+};
+
+export function runStateLabel(t: Translate, state: string): string {
+  return said(t, RUN_STATE_LABELS, state);
+}
+
+const OUTCOME_LABELS: Record<string, string> = {
+  answered: "research.label.outcome_answered",
+  failed: "research.label.outcome_failed",
+  cut: "research.label.outcome_cut"
+};
+
+export function outcomeLabel(t: Translate, outcome: string): string {
+  return said(t, OUTCOME_LABELS, outcome);
+}
+
+/** Whether a run may still move, so its sheet asks again on its clock: every state but closed. */
+export function runOpen(state: string): boolean {
+  return state !== "closed";
+}
+
+/** A hold's reason in words: a bench on its node, the wait on the model's health, or the wait for its engine's card. */
+export function holdReasonText(t: Translate, hold: { reason: string }): string {
+  if (hold.reason === "bench") return t("research.label.hold_bench");
+  if (hold.reason === "restore") return t("research.label.hold_restore");
+  if (hold.reason === "waiting-card") return t("research.label.hold_waiting_card");
+
+  return t("research.label.unknown_value", { value: hold.reason });
+}
+
+/** The holds that name a category. */
+export function holdsOf<T extends { categoryNames: readonly string[] }>(holds: readonly T[], categoryName: string): T[] {
+  return holds.filter((hold) => hold.categoryNames.includes(categoryName));
+}
+
+/** A category's road: its provider and model, or the settings' road where it names none. */
+export function roadText(t: Translate, category: { provider: string | null; model: string | null }): string {
+  const parts = [category.provider, category.model].filter((part): part is string => part !== null && part !== "");
+
+  return parts.length === 0 ? t("research.label.default_road") : parts.join(" · ");
+}
+
+/** What an item's maker link reads as: the maker, else the address's host, else the address as it stands. */
+export function makerText(item: { maker: string | null; address: string | null }): string | null {
+  if (item.maker !== null && item.maker !== "") return item.maker;
+  if (item.address === null) return null;
+
+  try {
+    return new URL(item.address).host;
+  } catch {
+    return item.address;
+  }
+}
+
+/** An address a link may open: an http or https one alone. */
+export function openableAddress(address: string | null): string | null {
+  if (address === null) return null;
+
+  try {
+    const url = new URL(address);
+
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Where an item came from, as one line: its words, the parent's link for a follow-up, and the words it was asked with after them. */
+export interface OriginLine {
+  text: string;
+  link: string | null;
+  because: string | null;
+}
+
+/** The research a follow-up follows from, by its title, else by its document's number. */
+export function parentText(t: Translate, parent: { title: string | null; documentId: number | null }): string {
+  if (parent.title !== null) return t("research.label.origin_follow_up", { title: parent.title });
+
+  return t("research.label.origin_follow_up_document", { id: parent.documentId === null ? "—" : String(parent.documentId) });
+}
+
+/**
+ * An item's origin in words (docs/web.md, 「Research screen」): a scan's source, an ask's words, or the research a
+ * follow-up follows from, by its title, else its document's number; an ask made with no words says nothing beyond its
+ * asked chip, and a kind this screen has no words for stands as a sentence naming it.
+ */
+export function originLine(t: Translate, origin: ResearchOrigin): OriginLine | null {
+  if (origin.kind === "source") {
+    return { text: origin.source === null ? t("research.label.origin_source_gone") : t("research.label.origin_source", { source: origin.source }), link: null, because: null };
+  }
+
+  if (origin.kind === "asked") return origin.because === null ? null : { text: t("research.label.origin_asked", { because: origin.because }), link: null, because: null };
+
+  if (origin.kind === "follow-up") return { text: parentText(t, origin), link: openableAddress(origin.shareUrl), because: origin.because };
+
+  return { text: t("research.label.unknown_value", { value: origin.kind }), link: null, because: origin.because };
+}
+
+/**
+ * The research a follow-up ask follows from: an item, with the category and the maker's address the ask starts from,
+ * or a document by its number alone.
+ */
+export interface ResearchFollow {
+  itemId: number | null;
+  documentId: number | null;
+  title: string | null;
+  categoryName: string | null;
+  address: string | null;
+}
+
+/** The follow-up of an item, offered once the item has filed a document. */
+export function followOfItem(item: Pick<ResearchItem, "id" | "documentId" | "title" | "name" | "categoryName" | "address">): ResearchFollow | null {
+  return item.documentId === null ? null : { itemId: item.id, documentId: item.documentId, title: item.title ?? item.name, categoryName: item.categoryName, address: item.address };
+}
+
+/** The follow-up of the document the screen's address names by its number, or none where it names none. */
+export function followOfAddress(value: unknown): ResearchFollow | null {
+  const number = typeof value === "string" && /^\d+$/.test(value) ? Number(value) : null;
+
+  return number === null || number < 1 || !Number.isSafeInteger(number) ? null : { itemId: null, documentId: number, title: null, categoryName: null, address: null };
+}
+
+/** What an ask carries of its parent and of the owner's words: the item where it follows one, else the document. */
+export function followFields(follow: ResearchFollow | null, because: string): Pick<ResearchAsk, "because" | "followsItemId" | "followsDocumentId"> {
+  const words = because.trim();
+  const fields: Pick<ResearchAsk, "because" | "followsItemId" | "followsDocumentId"> = words === "" ? {} : { because: words };
+
+  if (follow === null) return fields;
+  if (follow.itemId !== null) fields.followsItemId = follow.itemId;
+  else if (follow.documentId !== null) fields.followsDocumentId = follow.documentId;
+
+  return fields;
+}
+
+// Where an item stands in the queue's order: what runs, then what is stuck, then what is done with, then what still
+// waits.
+function queueGroup(state: string): number {
+  if (state === "running") return 0;
+  if (isStuck(state)) return 1;
+  if (state === "waiting") return 3;
+
+  return 2;
+}
+
+/**
+ * The items read in the queue's order (docs/web.md, 「Research screen」): the running first, in the order they started;
+ * then the stuck, the oldest made first; then every item no longer waiting, running or stuck, the one that last changed
+ * first; then the waiting, the oldest made first, the order they run in. An id breaks a tie, the older first except
+ * among the finished.
+ */
+export function queueOrder<T extends { id: number; state: string; createdAt: number; changedAt: number }>(items: readonly T[]): T[] {
+  return [...items].sort((one, other) => {
+    const group = queueGroup(one.state) - queueGroup(other.state);
+
+    if (group !== 0) return group;
+    if (one.state === "running") return one.changedAt - other.changedAt || one.id - other.id;
+    if (one.state === "waiting" || isStuck(one.state)) return one.createdAt - other.createdAt || one.id - other.id;
+
+    return other.changedAt - one.changedAt || other.id - one.id;
+  });
+}
+
+/** Pages read one after the other, an item read again standing once, as its latest page has it. */
+export function mergedPages<T extends { id: number }>(pages: readonly (readonly T[])[]): T[] {
+  const byId = new Map<number, T>();
+
+  for (const page of pages) {
+    for (const item of page) byId.set(item.id, item);
+  }
+
+  return [...byId.values()];
+}
+
+// The kinds of source the research unit reads, in the order the kind choice offers them (bmo-research's
+// `docs/sources.md`, 「The kinds」).
+export const SOURCE_KIND_LABELS: Record<string, string> = {
+  "huggingface-trending": "research.label.kind_huggingface_trending",
+  "huggingface-search": "research.label.kind_huggingface_search",
+  arxiv: "research.label.kind_arxiv",
+  "github-releases": "research.label.kind_github_releases",
+  rss: "research.label.kind_rss"
+};
+
+export function sourceKindLabel(t: Translate, kind: string): string {
+  return said(t, SOURCE_KIND_LABELS, kind);
+}
+
+/** A list of words as a box holds it, comma-separated, and back. */
+export function wordsText(words: readonly string[]): string {
+  return words.join(", ");
+}
+
+export function wordsOf(text: string): string[] {
+  return text.split(",").map((word) => word.trim()).filter((word) => word !== "");
+}
+
+/** How often a source is read: its own cadence, or its category's where it names none. */
+/** The shape of a category that is a topic: gathered under its own instruction. */
+export const TOPIC_SHAPE = "topic";
+
+/** A topic's name: a lower-case letter, then lower-case letters, digits and `-`, at most 32. */
+export const TOPIC_NAME = /^[a-z][a-z0-9-]{0,31}$/;
+
+/** The units a topic's period is written in, each with how many minutes it is, its word and the sentence a period
+ * of it is said in. */
+export const PERIOD_UNITS = [
+  { value: "day", minutes: 1_440, label: "research.label.period_day", every: "research.label.period_every_day" },
+  { value: "hour", minutes: 60, label: "research.label.period_hour", every: "research.label.period_every_hour" },
+  { value: "minute", minutes: 1, label: "research.label.period_minute", every: "research.label.period_every_minute" }
+] as const;
+
+export type PeriodUnit = (typeof PERIOD_UNITS)[number]["value"];
+
+/** A period in minutes as a number and the largest unit that divides it whole. */
+export function periodOf(minutes: number): { count: number; unit: PeriodUnit } {
+  const unit = PERIOD_UNITS.find((one) => minutes % one.minutes === 0) ?? PERIOD_UNITS[2];
+
+  return { count: minutes / unit.minutes, unit: unit.value };
+}
+
+/** A period written as a number and a unit, in minutes. */
+export function periodMinutes(count: number, unit: PeriodUnit): number {
+  return count * (PERIOD_UNITS.find((one) => one.value === unit)?.minutes ?? 1);
+}
+
+/** How often a topic is gathered, in words: in days, hours or minutes, whichever divides it whole. */
+export function periodText(t: Translate, minutes: number | null): string {
+  if (minutes === null || minutes < 1) return "—";
+
+  const { count, unit } = periodOf(minutes);
+
+  return t(PERIOD_UNITS.find((one) => one.value === unit)!.every, { n: count.toLocaleString("ko-KR") });
+}
+
+/** The calendar a topic writes to, in words: the realm's word and the calendar's id, or the pack's word for none. */
+export function calendarText(t: Translate, calendar: { realm: string; calendarId: string } | null): string {
+  if (calendar === null) return t("common.label.none");
+
+  return `${t(calendar.realm === "organization" ? "research.label.calendar_organization" : "research.label.calendar_mine")} · ${calendar.calendarId}`;
+}
+
+export function everyText(t: Translate, everyMinutes: number | null, cadenceMinutes: number | null): string {
+  if (everyMinutes !== null) return t("research.label.every_value", { n: everyMinutes.toLocaleString("ko-KR") });
+
+  return cadenceMinutes === null ? "—" : t("research.label.every_category", { n: cadenceMinutes.toLocaleString("ko-KR") });
+}

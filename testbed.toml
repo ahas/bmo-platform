@@ -9,7 +9,8 @@ name = "platform"
 # bunfig.toml in tests/packages preloads the same setup for a run started there.
 languages = ["cargo", "bun"]
 # A release runs the TypeScript half of agency, so its packages are installed in every fresh tree.
-setup = ["cd packages && bun install --frozen-lockfile", "cd screen-kit && bun install --frozen-lockfile"]
+setup = ["cd packages && bun install --frozen-lockfile", "cd screen-kit && bun install --frozen-lockfile",
+  "cd client && bun install --frozen-lockfile"]
 # The root package's test harness holds every Rust test this repository keeps, and several of its modules
 # run a server against the test database; as one unit it needs more than the testbed's default guard on a
 # machine carrying other work, so the guards stand above that harness's measured time here (the testbed's
@@ -25,21 +26,32 @@ silence_seconds = 1800
 # The tests make their own scratch databases on the server, so no template is named.
 [test.database]
 
+# The console-driven browser files under client/tests read the address of a console standing on this
+# machine's loopback, so a run naming one stays on this machine (docs/checks.md, 「Running the
+# console-driven browser files」).
+[runner]
+local_variables = ["BMO_CONSOLE_TEST_URL", "BMO_SKELETON_TEST_URL", "BMO_CONSOLE_TEST_MAIL"]
+
 # A test server reaches no peer of the deployment's. It is started with an environment built for it — no
 # address or token inherited from the worker that runs the suite — and marked a test's, so every peer
 # call is refused and logged; a test that needs a stand-in calls the call itself with a map of its own
 # (docs/api.md, 「Calls agency makes」).
 
 [projects]
-# packages/ is the Bun workspace; its type check covers the tests under tests/packages as well.
-check_script = "check:types"
+# Each Bun project's own `check` script: the packages workspace's type check (whose tests the gathered
+# TypeScript run covers under tests/packages), the console's typecheck and its tests, and screen-kit's
+# build check.
+check_script = "check"
 
 [tools]
 # Agency's own tools, each checked by the command its tool.toml names.
 dir = "tools"
 
 [check]
-quick = ["layout", "dependencies", "cargo-profile", "shared-versions", "personal-data"]
+quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions", "personal-data"]
+# The ledger of Korean left in the account service's and the console's code files, carried with the tree
+# that owes it; no other code file of this repository holds any.
+korean_ledger = "korean-ledger.json"
 base_libraries = [
   "bmo-chat",
   "bmo-chat-client",
@@ -51,6 +63,11 @@ base_libraries = [
   "bmo-node-client",
   "bmo-pocket-client",
   "bmo-testbed-client",
+  "bmo-text",
+  "sumida",
+  "@agency/client",
+  "bmo-job-client",
+  "@bmo/receiver-client",
 ]
 
 # The repository whose root holds the shared versions the manifests and the lock hold to.
@@ -61,11 +78,25 @@ repository = "bmo-chat"
 # every target compiled, through its Cargo verb in the shared build directory, wherever a change marks a crate,
 # and the change check compiles every crate a change marks; a change that marks none has no Rust to judge.
 
+# The console's production build, wherever a change reaches what decides what it bundles: the client's
+# manifests, its lock, its patches and vendored packages, the Nuxt configuration and the app's modules.
+# The typecheck and the browser files run on the dev server, which loads a module only once it is asked
+# for, so neither stops at a module the production build cannot bundle. The build writes its generated
+# project and its output into the ignored `.check-build`, leaving what a typecheck and a standing dev
+# console use alone (docs/checks.md, 「The console's production build」).
+[[check.step]]
+id = "console-build"
+dir = "client/apps/web"
+lane = "wide"
+when = ["client/package.json", "client/bun.lock", "client/patches/**", "client/vendor/**", "client/apps/web/package.json", "client/apps/web/nuxt.config.ts", "client/apps/web/modules/**"]
+command = "{ [ -f .nuxt/tsconfig.app.json ] || bun x nuxi prepare; } && BMO_WEB_BUILD_DIR=.check-build/nuxt BMO_WEB_OUTPUT_DIR=.check-build/output bun run build"
+
 [build]
 # The server and the verbs, the agent host and the programs it runs out of bin/, the model gateway, and
 # the executables of agency's tools.
 binaries = [
   "agency-server",
+  "bmo-web-server",
   "bmo-agency",
   "agent-host",
   "pane-head",
@@ -82,6 +113,17 @@ binaries = [
   "deepseek-top-up-tool",
 ]
 
+[[build.step]]
+id = "console-install"
+dir = "client"
+command = "bun install --frozen-lockfile"
+
+[[build.step]]
+id = "console-build"
+dir = "client/apps/web"
+lane = "wide"
+command = "set -a && . ~/.local/share/bmo/data/env/web-console.env && set +a && BMO_WEB_OUTPUT_DIR=\"$(git rev-parse --show-toplevel)/../deploy-releases/$(git rev-parse HEAD | cut -c1-12)/client/apps/web/.output\" bun run build"
+
 # Agency's own deploy tree, which every unit, tool and document of agency names and which holds nothing
 # of another service's, and the data root agency shares with the services that read its files
 # (docs/agent-control.md, 「The job's release」). The server and the agent host carry the restart mark, the
@@ -92,12 +134,42 @@ binaries = [
 root = "~/.local/share/bmo-agency"
 link = "deploy"
 data_root = "~/.local/share/bmo/data"
+env_links = [
+  { link = "server/settings.local.toml", target = "env/web.toml" },
+  { link = "client/apps/web/console.env", target = "env/web-console.env" }
+]
 units = ["deploy/*.service"]
+# Answers 0 once the account server the deployed settings name answers its health route
+# (docs/accounts.md, 「Where it answers」).
+health = "cd ~/.local/share/bmo-agency/deploy/server && ../bin/bmo-web-server health"
 # Answers 0 where agency's server holds no work its restart would cut: a turn it carries that no program has
 # taken yet, which the next server could not pick up (the testbed's docs/deploy.md). A turn a program carries
 # is not counted, since the next server picks it up and its caller re-attaches by its key, nor is a running
 # job, whose lease pass takes its item again (docs/sessions.md, 「A restart hands the session over」).
 quiet = "sh deploy/quiet"
+
+# The account service's settings held to what it stands on before the flip: a release is never put live on
+# settings that name no token or no chat agent (docs/boundary.md, 「Settings」), since `serve` refuses to
+# stand without either.
+[[deploy.step]]
+id = "account-settings"
+phase = "before-flip"
+command = "cd server && ../bin/bmo-web-server settings"
+
+# The document wording files, one to a language, written from the release's own pack into the release,
+# where bmo-artifact's `[wording] file` names one through the deploy tree (docs/boundary.md, 「The document
+# wording file」).
+[[deploy.step]]
+id = "wording"
+phase = "before-flip"
+command = "bin/bmo-web-server wording ."
+
+# The account service's database brought up to date before the flip; every migration only adds, or takes
+# away only what no caller of the release still serving asks it for, so that release reads on through it.
+[[deploy.step]]
+id = "account-migrate"
+phase = "before-flip"
+command = "cd server && ../bin/bmo-web-server migrate"
 
 # The verbs' binary, linked into `.local/bin` under the home directory beside `bmo`, which serves the nouns it
 # declares from there (bmo-cli's docs/api.md, 「The unit command」).

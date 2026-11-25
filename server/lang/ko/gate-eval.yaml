@@ -1,0 +1,45 @@
+# What `bmo gate eval` says (docs/gate-eval.md): its usage, its refusals, the generation's start, and the
+# two tables, how far each gate's set has come and the last score of each gate on each road. Each `{name}` is
+# filled in with what it names.
+
+# The whole usage, printed for `--help` alone.
+usage: |-
+  usage: bmo gate eval <start|generate|status|score|report> [옵션]
+
+  게이트별 정답 붙은 평가 문제를 Codex로 만들고, 그 문제로 게이트를 길마다 채점한다.
+
+    start     생성을 사용자 유닛 bmo-gate-eval 로 띄운다(이 명령을 실행한 바이너리로 실행된다).
+    generate  같은 생성을 포그라운드에서 실행한다. 유닛이 이것을 실행한다.
+    status    게이트마다 만든 수, 물은 수, 거부된 수, 버린 수, 남은 양, 상태를 보인다.
+    score     --road claude|kakia 로 게이트에 물어 채점한다. --limit <수> 는 게이트마다 세트 전체에 고르게 그만큼만.
+    report    길마다 게이트별 마지막 채점을 나란히 보인다.
+
+    --set <이름>      세트 이름(기본 v1). 데이터는 데이터 루트의 gate-eval/<이름>/ 에 있다.
+    --gate <게이트>   그 게이트만. 여러 번 줄 수 있다.
+    --per-gate <수>   게이트마다 만들 문제 수(기본은 게이트마다 정한 수).
+    --batch <수>      한 묶음에 청할 문제 수(기본은 게이트마다 정한 수).
+
+# Why the words given are refused: no command or another, a count that is no whole number from one, a gate
+# the set has none of ({unknown} those asked, {known} those it has), and a road that is none of {roads}.
+refusals:
+  command: "명령 하나를 주세요(start, generate, status, score, report)."
+  unknown_command: "모르는 명령이에요: {command}"
+  count: "{flag} 는 1 이상의 정수예요."
+  gate: "평가셋에 없는 게이트예요: {unknown} (있는 것: {known})"
+  road: "--road 는 {roads} 예요."
+  roads_joined: " 또는 "
+  running: "{unit} 가 이미 실행 중이에요. journalctl --user -u {unit} 로 보세요."
+
+# The generation started as its unit ({tree} the folder it runs in).
+started: "{unit} 를 띄웠어요({tree}). 진행: bmo gate eval status --set {set} · 로그: journalctl --user -u {unit}"
+
+# How far each gate's set has come: the set and its folder, the table's head, and the sanitizer's own line.
+status:
+  set: "세트 {set} · {folder}"
+  head: "게이트 | 상태 | 만든 수 | 목표 | 남은 양 | 묶음 | 물은 수 | 거부 | 버림 | 이유"
+  sanitizer: "sanitizer | Codex로 만들지 않음 | 보안 침해 문장이 문제 자체라 {supervisor} 몫으로 남김"
+
+# The last score of each gate on each road: a set with none, and the table's head.
+report:
+  none: "세트 {set}에는 아직 채점이 없어요."
+  head: "게이트 | 길 | 모델 | 문제 | 답함 | 통과 | 정답률 | 쉬움 | 경계 | 체크 충족 | 중앙 초 | 90% 초"

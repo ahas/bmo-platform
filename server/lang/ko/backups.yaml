@@ -1,0 +1,23 @@
+# What the archive's hourly snapshot and its restore drill say where a person or the chat agent reads it
+# (docs/archive-backup.md): the verbs' usage, and the account a failed drill hands the chat agent. Each `{name}` is
+# filled in with what it names.
+
+# Under `usage: bmo backup snapshot`.
+snapshot_usage: "아카이브·브레인·데이터 루트를 시간별 슬롯에 담는다(docs/archive-backup.md)."
+# Under `usage: bmo backup drill [--from <directory>] [--keep <database | file>]`, one line to an entry.
+drill_usage:
+  - "최신 시간별 스냅숏(또는 --from 디렉터리)을 임시 DB나 임시 파일에 복원해 매니페스트의 표마다 행 수와 맞춰 본다."
+  - "--keep은 복원한 사본을 그 이름(DB 이름이나 파일 경로)으로 남긴다. 실제 복원 절차는 docs/RUNBOOK.md 「Database」."
+# The account of a failed drill: {dir} the snapshot, {step} where it failed, {said} what was said there,
+# {differ} the tables that differ where some do.
+drill_failed: "매일 실행되는 복원 연습이 {dir}에서 실패했다({step}): {said}.{differ} 시간별 스냅숏(bmo-snapshot-backup)과 그 로그(journalctl --user -u bmo-snapshot-backup)를 먼저 본다."
+# The tables that differ, the first ten of them, {more} where there are more.
+drill_differ: " 다른 표: {tables}{more}."
+drill_more: " 외 {count}개"
+# Under `usage: bmo deploy backups`, one line to an entry: {bucket} and {prefix} where the backups stand on
+# Garage.
+upload_usage:
+  - "배포 백업 중 확인되지 않은 것을 garage(s3://{bucket}/{prefix})에 올리고 다시 읽어 크기·체크섬을 맞춰 본 뒤,"
+  - "garage에는 최신 5개, 로컬에는 최신 1개만 남긴다(docs/deploy.md 「Sending them to Garage」)."
+# The note a failed upload's fact carries to the chat agent.
+upload_failed_note: "배포는 이미 끝났고 막히지 않았다. 확인되지 않은 백업은 로컬 디스크에 남아 있고 다음 배포의 업로드가 다시 보낸다."

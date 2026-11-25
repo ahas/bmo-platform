@@ -1,0 +1,27 @@
+# What `bmo gate laya-agreement` says (docs/laya.md, 「Agreement」): its usage, and the table of how often Laya
+# agrees with each gate's LLM. Each `{name}` is filled in with what it names.
+
+# The whole usage, printed for `--help` alone.
+usage: |-
+  usage: bmo gate laya-agreement [--stage <게이트>] [--db <주소>] [--json]
+
+  게이트마다 Laya와 LLM 판정의 일치율을 보인다: 쌍 수, 실패 수, 전체 일치율, 그리고 τ마다
+  Laya가 맡게 될 몫(덮음)과 그 안의 일치율. 후보마다 따로 정하는 게이트는 쌍 대신 문항으로 세고,
+  Laya가 답한 문항 중 게이트 대신 정한 몫(Laya가 정함)을 더 보인다. 안전 판정이 있는 게이트는 Laya가 안전이라 한 수와
+  그중 LLM도 안전이라 한 비율을 더 보인다.
+  --db 없이는 이 기계의 설정이 가리키는 아카이브를 읽는다. 읽기만 하고 쓰지 않는다.
+  --json은 게이트별 수치를 그대로 JSON으로 내놓는다.
+
+# No gate has recorded a pair yet.
+none: "기록된 Laya 판정이 아직 없어요."
+
+# A gate's opening line: what it is counted over ({counted}, one of the two below), its failures, its
+# agreement, and for a gate counted by question the share Laya settled ({settled}, the line below or nothing).
+gate: "{stage}: {counted} · 실패 {failures} · 일치 {agreement}{settled}"
+questions: "문항 {count}"
+pairs: "쌍 {count}"
+settled: " · Laya가 정함 {share}"
+
+# The head of a gate's τ lines, and the two columns a gate with a safe verdict adds to it.
+head: "  τ      덮음     일치"
+safe_head: "     안전 판정  그중 LLM도 안전"

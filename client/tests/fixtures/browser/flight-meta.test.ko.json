@@ -1,0 +1,4 @@
+{
+  "line_32": "\n  </style>\n  <div style=\"position:fixed;inset:0;display:flex;flex-direction:column\">\n    <div style=\"flex:1;overflow-y:auto\">\n      <div data-flight-layer style=\"position:relative;isolation:isolate;display:flex;flex-direction:column;padding:16px\">\n        <div data-list style=\"display:flex;flex-direction:column;align-items:flex-end;gap:8px\">\n          <div style=\"height:200px\">앞선 말</div>\n          <div data-row=\"out1\"><div data-bubble><div class=\"body\" data-meta-room style=\"--chat-meta-room: ",
+  "line_39": "px\"><div data-words><p>짧은 말</p></div><span data-meta></span></div></div></div>\n        </div>\n        <div data-flight-host style=\"display:contents\"></div>\n      </div>\n    </div>\n    <div style=\"height:80px\"><textarea></textarea></div>\n  </div>"
+}

@@ -1,0 +1,112 @@
+# What a work order's editing answers the owner and the chat agent with (docs/work-orders.md): the refusals of a plan
+# that does not read, of a step verb the order's state does not allow, and of the control route's own
+# verbs, said alike by the bun bot and `bmo-server` where each answers them; and what the work order script
+# says of its own flags and of a bot it could not reach. Each `{name}` is filled in with what it names:
+# {task} a step's id, {item} the TODO item's number, {cwd} a checkout.
+
+# A plan that does not read: what it lacks, the {name} of a part that is empty or too long, the {most}
+# things a synthesis may build, the {roles} a task may take.
+plan:
+  not_object: "JSON 객체가 필요합니다."
+  empty: "{name}이 비어 있거나 너무 깁니다."
+  stages: "단계 목록(stages)이 필요합니다."
+  stage_tasks: "단계마다 작업이 하나 이상 있어야 합니다."
+  stage_title: "단계 이름"
+  role: "역할은 {roles} 중 하나입니다."
+  model: "모델"
+  model_form: "모델은 공급자::모델 형식으로 지정합니다."
+  task_instruction: "개별 지시"
+  task_title: "작업 이름"
+  builds: "구현할 일은 최대 {most}개입니다."
+  build_instruction: "구현 지시"
+
+# A step verb the order's state does not allow, or one given what it does not take: the {tiers} a model
+# or a co-worker may be, those only a worker is ({worker_only}), a job named by its {job} with the
+# particle its number takes, its {unit}, and the {base} a step's prompt was read for.
+steps:
+  no_task: "{task} 작업이 이 지시서에 없습니다."
+  control: "계획·종합·최종 턴은 단계 동사로 손대지 않습니다. 지시서를 도중에 끝내려면 --close 를 씁니다."
+  finished: "끝난 지시서입니다. 다시 실행하려면 --reopen 으로 엽니다."
+  draft: "아직 실행 전인 초안입니다."
+  closing: "종료 중인 지시서입니다. 체크아웃에 연 변경을 거두고 완료가 된 뒤 --reopen 으로 엽니다."
+  instruction_size: "작업 지시는 1~30000자로 입력합니다."
+  model_tier: "모델 등급은 {tiers} 중 하나입니다."
+  coworker_tier: "코워커 등급은 {tiers} 중 하나입니다. {worker_only} 등급은 코워커로 빌리지 않습니다."
+  history_edit: "앞 차수의 작업은 고치지 않습니다."
+  history_rerun: "앞 차수의 작업은 다시 실행하지 않습니다. 앞 차수부터 다시 하려면 지시서를 다시 엽니다."
+  history_restore: "앞 차수의 작업은 되돌리지 않습니다. 앞 차수부터 다시 하려면 지시서를 다시 엽니다."
+  running_edit: "실행 중인 작업의 저장된 지시를 바꿔도 이미 시작된 실행은 모릅니다. 실행 중인 것에 말을 넣으려면 bmo todo --append {item} 로 덧붙입니다."
+  done_edit: "완료된 작업은 --rerun {task} 에서 지시와 함께 고칩니다."
+  nothing_to_edit: "고칠 지시나 모델이 없습니다."
+  skip_reason: "건너뛰는 사유를 1~2000자로 적습니다."
+  skipped_already: "{task} 작업은 이미 건너뜀입니다."
+  running_builder: "실행 중인 builder 턴은 세우지 않습니다. 그만두게 하려면 bmo todo --stop {item} --why '<사유>' 으로 항목을 중지합니다."
+  not_yet: "작업 {task}의 단계는 아직 오지 않았습니다. 건너뜀을 풀려면 --restore 를 씁니다."
+  stage_running: "지금 단계에 실행 중인 작업이 있어 단계를 되돌리지 않습니다."
+  build_running: "실행 중인 구현할 일이 있는 동안에는 받지 않습니다."
+  research_over: "조사 국면이 끝난 뒤에는 조사 단계를 다시 실행하지 않습니다. 조사부터 다시 하려면 지시서를 다시 엽니다."
+  phase: "지금 국면에서는 이 작업을 다시 실행하지 않습니다."
+  running: "{task} 작업은 실행 중입니다."
+  pending: "{task} 작업은 이미 대기입니다."
+  not_skipped: "{task} 작업은 건너뜀이 아닙니다."
+  same_anchor: "같은 작업을 기준으로 옮기지 않습니다."
+  add_anchor: "새 일은 대기 중인 구현할 일의 앞이나 뒤에만 둡니다."
+  build_move: "구현할 일은 두 일 모두 대기일 때만 옮깁니다."
+  task_move: "작업 하나를 단계 안에서나 다른 단계로 옮기지 않습니다. 단계는 통째로 옮깁니다."
+  stage_move_past: "지금 단계보다 뒤에 있는 단계만 옮깁니다."
+  stage_move_pending: "작업이 전부 대기인 단계만 옮깁니다."
+  move_kinds: "구현할 일은 구현할 일끼리, 조사 단계의 작업은 조사 단계의 작업끼리만 옮깁니다."
+  stop_reason: "중지 사유를 1~2000자로 적습니다."
+  close_reason: "종료 사유를 1~2000자로 적습니다."
+  close_builder: "실행 중인 builder 턴이 있어 종료하지 않습니다. 그만두게 하려면 bmo todo --stop {item} --why '<사유>' 으로 항목을 중지합니다."
+  recover_done: "끝난 지시서만 되살립니다. 러너가 드는 지시서에 되살린 기록은 러너의 저장에 덮입니다."
+  recover_no_jobs: "그 범위에 이 항목의 Job이 없습니다."
+  recover_known: "Job {job} 지시서가 이미 기록한 Job입니다. 덮인 실행의 Job 번호만 적습니다."
+  recover_running: "Job {job} 아직 끝나지 않았습니다."
+  recover_not_step: "#{job} Job({unit})은 이 항목의 작업 지시서 단계가 아닙니다."
+  recover_unread: "Job #{job}의 프롬프트에서 {base}의 역할과 지시를 읽지 못했습니다."
+  recover_twice: "{task} 작업이 이미 지시서에 있습니다."
+  recover_none: "그 범위에 성공한 단계가 없어 되살릴 작업이 없습니다."
+  recover_no_builder: "그 범위에 앞 실행의 목적과 지시를 읽을 builder 턴이 없습니다."
+
+# The control route's verbs on a work order and an item: a stopped order's place in its line, a body
+# field by its {name}, runs asked to stop that are still {alive}, a result document already at its {path}.
+orders:
+  paused: "TODO #{item}의 작업 지시서는 멈춰 있어요. 그 워커 줄에서 차례가 오면 봇이 스스로 재개하고, 지금 재개하려면 bmo work-order --todo {item} --resume 을 씁니다."
+  not_text: "{name} 값은 문자열입니다."
+  missing: "{name} 값이 필요합니다."
+  still_running: "실행 중지를 요청했지만 아직 끝났다고 확인되지 않았습니다: {alive}"
+  document_there: "{path}에 결과 문서가 이미 있어 덮지 않습니다."
+  reopen_done: "완료된 작업 지시서만 다시 엽니다."
+  draft_only: "실행 전 초안만 수정할 수 있습니다."
+  order_and_model: "작업 지시서와 모델을 확인하세요."
+  approved_only: "승인된 진행 가능 TODO만 실행합니다."
+  active: "TODO #{item}: 저장된 단계가 이미 진행 중입니다."
+  done: "완료된 작업 지시서는 다시 실행하지 않습니다. 앞 결과를 살려 다시 실행하려면 bmo work-order --todo {item} --reopen 으로 엽니다."
+  model: "올바르지 않은 작업 모델입니다."
+  chat: "chatId가 올바르지 않습니다."
+  not_checkout: "{cwd}는 git 저장소가 아니라 협업을 실행하지 않습니다."
+  not_checkout_run: "{cwd}는 git 저장소가 아니라 협업을 실행하지 않습니다. 협업 없이 일반 Job으로 실행해 주세요."
+  item_number: "TODO 번호가 올바르지 않습니다."
+  no_item: "TODO가 없습니다."
+  resume_held: "승인되고 보류·병합되지 않은 중단 작업만 재개합니다."
+  resume_paused: "중단된 작업만 재개할 수 있습니다."
+  before_after: "before와 after 중 하나만 적습니다."
+  checkout_done: "완료된 작업 지시서의 체크아웃은 그 일이 어디서 되었는지의 기록이라 바꾸지 않습니다."
+  job_range: "Job 번호 범위는 <첫 Job>-<끝 Job>으로 적습니다."
+  action: "올바르지 않은 작업입니다."
+  stop_done: "완료된 항목은 중지하지 않습니다."
+
+# The work order script's own flags, and a bot it could not reach to stop an item or edit an order: the
+# {flag} lacking a value, the {verbs} named together, the {error} the call gave and the {status} the bot
+# answered with.
+script:
+  value: "{flag} 뒤에 값이 필요합니다."
+  verbs: "한 번에 동사 하나만 씁니다: {verbs}"
+  recover: "--recover 는 <첫 Job>-<끝 Job> 으로 적습니다."
+  stop_no_token: "봇의 control API 토큰(BMO_CONTROL_TOKEN)이 없어 중지하지 않았습니다."
+  stop_unreachable: "봇이 답하지 않아 중지하지 않았습니다. 봇이 떠 있을 때 다시 부릅니다. ({error})"
+  stop_refused: "봇이 중지를 받지 않았습니다 (HTTP {status})."
+  edit_no_token: "봇의 control API 토큰(BMO_CONTROL_TOKEN)이 없어 지시서를 고치지 않았습니다."
+  edit_unreachable: "봇이 답하지 않아 지시서를 고치지 않았습니다. 봇이 떠 있을 때 다시 부릅니다. ({error})"
+  edit_refused: "봇이 요청을 받지 않았습니다 (HTTP {status})."

@@ -18,7 +18,10 @@ BMO プラットフォームを一つにまとめたサービスです。アカ�
 あるパスでロールの実行（run）を求めると、そのロールの上限の範囲でそれを受け入れ、ロールの順序のうち
 クォータが残っているプロバイダーを割り当てて起動します。そのうえでターンを運び、エージェントの発言を
 読み取り、実行を終了させます。herdr はセッション契約の背後にある
-バックエンドの一つです。
+バックエンドの一つです。アカウントサービスとコンソールもここに立っています。`server/` は
+アカウントサービスで、人と結びつけられた送信者、会社と組織ユニット、すべての設定が従う委任チェーン、
+秘密の保管とその種類、システムメール、言語パックを持ち、その契約クレートは `server/client/` に
+置かれています。`client/` はコンソールで、人がサインインする画面であり、一つの Bun ワークスペースです。
 
 ## ドキュメント
 
@@ -49,6 +52,8 @@ BMO プラットフォームを一つにまとめたサービスです。アカ�
 | Folder | Holds |
 |---|---|
 | `crates/` | Rust のクレート |
+| `server/` | アカウントサービス：クレート、`server/client/` の契約クライアント、言語パックと設定 |
+| `client/` | コンソール：Nuxt アプリ、一つの Bun ワークスペース |
 | `deploy/` | サービスユニット |
 | `docs/` | 正本となるドキュメント |
 | `packages/` | TypeScript パッケージ（一つの Bun ワークスペース） |
@@ -94,6 +99,7 @@ cargo test --workspace
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 (cd packages && bun install && bunx tsc --noEmit)
+(cd client && bun install && bun run check)
 (cd tests/packages && bun test)
 ```
 

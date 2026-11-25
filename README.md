@@ -21,14 +21,18 @@ caller asks for a run of a role at a path; the platform lets it in under the rol
 gives it the provider its role's order holds quota on, starts it, carries its turns, reads
 what it says and ends it. herdr is one backend behind the session contract.
 
-The web part, the account service and the console, moves in behind it in the steps that
-follow this one. Until it lands, `bmo-web` is where that part stands.
+The account service and the console stand here too: `server/` is the account service, the
+people and the senders linked to them, the companies and organisation units, the delegation
+chain every setting follows, the secret store and its kinds, the system mail and the language
+packs, with its contract crate beside it under `server/client/`; `client/` is the console, the
+screen a person signs in to, which shows the platform's one tree and speaks to both servers.
 
 ## Documents
 
 The documents in `docs/` are the agency's, canonical for the part that stands here:
 
-- `docs/api.md`: the boundary contract, every route and event the platform exposes or calls from this part.
+- `docs/api.md`: the boundary contract of the agency part, every route and event it exposes or calls.
+- `docs/boundary.md`: the boundary contract of the account service, every route it serves and every call it makes.
 - `docs/agents.md`: the two axes, supervisors and roles, a run, and the one interface every agent is reached
   through.
 - `docs/supervisors.md`: what a supervisor row holds and how one runner carries every supervisor's turns.
@@ -50,6 +54,8 @@ The documents in `docs/` are the agency's, canonical for the part that stands he
 | Folder | Holds |
 |---|---|
 | `crates/` | the Rust crates |
+| `server/` | the account service: its crate, its contract client under `server/client/`, its language packs and its settings |
+| `client/` | the console: a Nuxt app, a Bun workspace of its own |
 | `deploy/` | the service units |
 | `docs/` | the canonical documents |
 | `packages/` | the TypeScript packages, one Bun workspace |
@@ -68,6 +74,7 @@ cargo test --workspace
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 (cd packages && bun install && bunx tsc --noEmit)
+(cd client && bun install && bun run check)
 (cd tests/packages && bun test)
 ```
 

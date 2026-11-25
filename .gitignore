@@ -1,5 +1,12 @@
 /target
+/documents.ko.yaml
 node_modules/
+.nuxt/
+.output/
+.data/
+*.local.toml
+.env
+console.env
 __pycache__/
 .graph/
 .claude/

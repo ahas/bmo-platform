@@ -1,0 +1,58 @@
+# Translation of server/lang/ko/fixed-lines.yaml; that file says what each line is for.
+rest_begins:
+  until: "The usage limit was reached. Answers pause until {until}."
+  soon: "The usage limit was reached. Answers pause for a while."
+  today: "{hour}:{minute}"
+  another_day: "{month} {day}, {hour}:{minute}"
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+chat_denied: "This room is blocked. I won't listen to or save anything said here anymore."
+still_working: "Still preparing an answer. Please wait a moment."
+supervisor_cut: "Cut {name}'s turn short. {reason} From the next message on, it answers in a new session."
+memory_tidying: "Tidying up memory. I'll answer once it's done. Please wait a moment."
+account_let_in: "{by} added {account} to the chat."
+account_left: "{account} left."
+account_taken_out: "{by} removed {account}."
+accounts_let_in: "{by} added {account} and {others} others to the chat."
+unit_let_in: "{by} added {unit} to the chat."
+person: "{name}"
+people_joiner: ", "
+people_joined: "{people} joined."
+people_joined_by: "{by} added {people} to the chat."
+person_left: "{person} left."
+person_taken_out: "{by} removed {person}."
+supply_closed:
+  no_order: "No supply source is set for this room's agent, so it can't answer right now. Add a supply sign-in or supply key under Supply in your settings."
+  withheld: "Your organisation's settings turn every agent supply source off, so it can't answer right now. Ask your organisation's administrator to turn a source on."
+  no_personal: "You have no supply sign-in or supply key of your own for this agent, so it can't answer right now. Add one under Supply in your settings."
+  own_refused: "The provider refused your supply key, so it can't answer right now. Register a new key under Supply in your settings."
+  no_organisation: "Your organisation's supply has no key or sign-in that works right now, so it can't answer. Ask your organisation's administrator."
+  organisation_refused: "Your organisation has no credits left, so it can't answer right now. Ask your organisation's administrator to grant credits."
+  no_lendable: "No Claude account can be lent to other people's agents right now, so it can't answer. Add your own Claude supply sign-in under Supply in your settings, or ask the platform administrator."
+  shared_node: "Your PC is shared with other people, where no lent Claude account is used, so it can't answer. Add your own Claude supply sign-in under Supply in your settings, or ask the platform administrator for a PC of your own."
+  owned: "This agent's model belongs to another person, so platform supply can't run it. Change the agent's model."
+  refused: "You have no credits left, so it can't answer right now. Check your credits or change the supply order under Supply in your settings."
+  ran_out: "The credits ran out partway through the answer, so it stopped. Check your credits or change the supply order under Supply in your settings."
+  other: "No supply source is left for this agent, so it can't answer right now. Check Supply in your settings."
+
+# What a room is told as an agent's session is handed over or reset (the receiver's docs/unified-bmo.md,
+# 「Replacing the session」): the line, by the {agent}'s name with its subject particle, {subject}, then why and who
+# asked where the line names them. Nothing of the room's record goes with it.
+session_handed_over:
+  # The session wrote its handoff note, and the next turn opens a fresh session reading it.
+  handed_over: "{subject} went to sleep to tidy its memories and wakes in a fresh session"
+  # The session was reset, and the next turn opens a new one.
+  reset: "{agent}'s session slept to tidy its memories and started afresh. The conversation history stays as it is"
+  # Why, after the line: the asker's words, or the words of its cause.
+  why: " · {why}"
+  # Who asked, after the line and its why, by their shown name.
+  by: " · asked by {by}"
+  # Why, where no asker gave words.
+  causes:
+    full: "its context was full"
+    road: "its provider · model changed"
+    documents: "its instructions changed"
+
+# What the owner's private room keeps, in its record alone, as an agent slept the night through (the agency's
+# docs/sleep.md): the {agent}'s name with its subject particle, {subject}, the {date} it slept for, and how many
+# memories it {learned}, {merged} and {closed}.
+slept: "{subject} slept on the night of {date} and tidied its memories · learned {learned} · merged {merged} · closed {closed}"

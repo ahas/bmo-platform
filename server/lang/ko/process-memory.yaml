@@ -1,0 +1,14 @@
+# What `bmo machine memory` and the bun script beside it print (docs/agent-control.md, 「What each program
+# holds」): the machine's memory, then a table per grouping under its title. Each `{name}` is filled in with
+# what it names.
+
+# The machine: when it was read, its total and available memory and its swap, each in MB.
+machine: "{at} · 메모리 {total}MB 중 사용 가능 {available}MB · 스왑 {swap_total}MB 중 남은 {swap_free}MB"
+# How many processes were counted, and how many could not be read.
+counted: "센 프로세스 {counted}개 · 읽지 못한 프로세스 {unreadable}개"
+# The title over the total for each runtime.
+runtimes: "실행 파일별"
+# The title over the programs of one runtime or one unit, {name} the runtime or the unit.
+programs: "{name}의 프로그램별"
+# What stands under a title with no process in it.
+none: "(없음)"

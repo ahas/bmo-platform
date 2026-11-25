@@ -1,0 +1,90 @@
+# The lines a road says of itself where a person reads them (docs/chat-providers.md, 「Where the receiver
+# runs」), said by whichever process speaks on the road.
+
+# The lines the service says as itself rather than in the chat agent's voice (the receiver's docs/voiced-notices.md,
+# 「System notices」), kept as fixed lines the console draws as system lines and so opening with no mark: what the
+# service says as it stops, for a deployment with the {items} going live where it named any, and for a stop no
+# deployment announced.
+service:
+  stopping:
+    deploying: "업데이트{items}로 서비스가 잠시 중지됩니다."
+    items: "({items})"
+    restarting: "서비스가 잠시 재시작됩니다."
+
+# Why a road refuses a send while the machine has not stood its road up yet, set into the road's own refusal
+# as its {why}.
+not_standing: "기계가 아직 서지 않았어요"
+
+# The KakaoTalk road's refusals: where its values are missing or the machine does not stand ({why}), to a
+# room it has never heard from ({chat}), in an account whose values are missing ({why}), and on the PC
+# road where its server cannot be reached ({why}) or the send itself failed ({why}).
+kakao:
+  refusals:
+    unconfigured: "카카오톡으로 보낼 수 없어요: {why}."
+    unknown_room: "카카오톡에 {chat} 방이 없어요."
+    voice_unconfigured: "카카오톡에서 그 계정으로 보낼 수 없어요: {why}."
+    pc_unreachable: "카카오톡 PC로 보낼 수 없어요: {why}."
+    pc_failed: "카카오톡 PC로 보내지 못했어요: {why}"
+
+# The Discord road's refusals: where its values are missing or the machine does not stand ({why}), to a room
+# it does not know ({chat}), in an account whose values are missing ({why}), on a message it cannot find
+# ({message}), and with a sticker the server does not carry ({emoji}).
+discord:
+  refusals:
+    unconfigured: "디스코드로 보낼 수 없어요: {why}."
+    unknown_room: "디스코드에 {chat} 방이 없어요."
+    voice_unconfigured: "디스코드에서 그 계정으로 보낼 수 없어요: {why}."
+    message_missing: "디스코드에서 메시지 {message}를 찾을 수 없어요."
+    sticker_missing: "디스코드에 {emoji} 스티커가 없어요."
+
+# The Teams road's refusals of a send in the {owner}'s own account: anything but words, where the account's
+# values are missing ({why}), and to a room it does not know ({chat}).
+teams:
+  refusals:
+    owner_text_only: "팀즈에서 {owner} 계정으로는 글만 보낼 수 있어요."
+    owner_unconfigured: "팀즈에서 {owner} 계정으로 보낼 수 없어요: {why}."
+    owner_unknown_room: "팀즈에 {chat} 방이 없어요."
+
+# The Telegram road.
+telegram:
+  # What a send is refused with: while the machine does not stand, {why}; and where it asks to be spoken
+  # in a {mode} of the {road} that is not running, {why}, or that the road does not read by.
+  refusals:
+    unconfigured: "텔레그램으로 보낼 수 없어요: {why}."
+    mode_down: "{road}의 {mode} 길이 지금 서 있지 않아요: {why}."
+    mode_missing: "이 로드에 없는 길이에요"
+  # What a message that is not plain text is kept as in the room's record, by its kind, followed by its
+  # {caption} where it has one: a forward {from} somebody or some chat, the {duration} of a sound or a
+  # video, a place by its {latitude} and {longitude}, a contact's {name} and {phone}, a poll's {question}
+  # and {options}, a sticker's {emoji} and {set}, an audio or a document by its {name}, who joined or
+  # left, and what was pinned or what the room was renamed to. A part marked as `{name}` on its own
+  # carries its own lead space, so a part the message lacks leaves nothing behind.
+  kinds:
+    forwarded: "[전달: {from}] "
+    forwarded_bare: "[전달] "
+    forwarded_chat: "채팅"
+    photo: "[사진]{caption}"
+    location: "[위치] 위도 {latitude}, 경도 {longitude}{live} https://maps.google.com/?q={latitude},{longitude}"
+    location_live: ", 실시간 공유"
+    venue: "[장소] {title}, {address} https://maps.google.com/?q={latitude},{longitude}"
+    contact: "[연락처] {name} {phone}"
+    poll: "[투표] {question} ({options})"
+    sticker: "[스티커{emoji}{set}]"
+    sticker_set: " ({set})"
+    video: "[동영상{duration}]{caption}"
+    video_note: "[동영상 메모{duration}]"
+    voice: "[음성{duration}]{caption}"
+    audio: "[오디오{name}{duration}]{caption}"
+    document: "[파일{name}]{caption}"
+    story: "[스토리]"
+    paid_media: "[유료 미디어]{caption}"
+    giveaway: "[경품 추첨]"
+    joined: "[입장] {members}"
+    left: "[퇴장] {member}"
+    pinned: "[고정] {text}"
+    pinned_message: "메시지 {id}"
+    renamed: "[방 이름 변경] {title}"
+    photo_changed: "[방 사진 변경]"
+    photo_deleted: "[방 사진 삭제]"
+    call_started: "[영상 통화 시작]"
+    call_ended: "[영상 통화 종료{duration}]"

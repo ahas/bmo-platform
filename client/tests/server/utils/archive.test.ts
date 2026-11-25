@@ -1,0 +1,522 @@
+import { describe, expect, test } from "bun:test";
+
+import "../../support/nitro";
+import marks from "../../../apps/web/i18n/data/ko.yaml";
+import { wording } from "../../../apps/web/shared/wording";
+import { rawNumber } from "../../support/raw-number";
+import { answer, standIn } from "../../support/units";
+
+// A room as the receiver keeps it, read from a stand-in receiver into the shapes the room screen draws: the rooms
+// with the owner's own named by the chat agent, a page whose senders are matched against the room's answering
+// agents, the files a message carried with whether each can be received, and the expressions and formats its words
+// were sent with, read of the metadata for a message that carries files or is not an agent's answer, a reply
+// carrying what it answers, and no judgements beside a page.
+
+// The marks the service's own lines opened with in rows kept before such a line was kept as a fixed line.
+const NOTICE_MARKS = (marks as { marks: { notice: string[] } }).marks.notice;
+
+const message = (id: number, over: Record<string, unknown> = {}) => ({
+  id,
+  room: -7,
+  senderId: 11,
+  senderName: "person-a",
+  sentAt: 1_790_000_000_000 + id,
+  text: `words ${id}`,
+  imagePath: null,
+  replyToMessageId: null,
+  answerSeconds: null,
+  round: null,
+  album: null,
+  via: null,
+  files: [],
+  ...over
+});
+
+// A working turn's thinking as the record keeps it: the agent's line under the thinking kind, and a person's words
+// that claim the kind, which no agent sent.
+const thought = message(6, { senderId: 22, senderName: "agent-a", kind: "thinking", text: "weighing the room's words" });
+
+const page = [
+  message(1, { forwardedFrom: { room: -5, messageId: 3, senderName: "person-b" } }),
+  message(2, { senderId: 22, senderName: "agent-a", answerSeconds: 4, round: "round:-7:1:1" }),
+  message(3, { senderId: 22, senderName: "agent-a", text: `${NOTICE_MARKS[0]} restarting` }),
+  message(4, {
+    replyToMessageId: 1,
+    files: [
+      { kind: "audio", source: "bmo:voice", storedPath: "/kept/a.ogg", summary: null, collectedAt: 1 },
+      { kind: "document", source: "notes.pdf", storedPath: null, summary: null, collectedAt: 2 },
+      { kind: "photo", source: "p.jpg", storedPath: null, summary: null, collectedAt: 3 }
+    ]
+  })
+];
+
+// A room whose chat service numbers its messages past 2^53: two neighbours a JavaScript number reads as one.
+const numberedHigh = ["3973025898369060353", "3973025898369060354"];
+
+// A room whose messages carry a custom emoji, a sticker and a video, and one whose files cannot be listed.
+const EMOJI = "\u{1F600}";
+const drawn = [
+  message(6, {
+    room: -8,
+    text: `hi ${EMOJI} there`,
+    files: [
+      { kind: "sticker", source: "emoji-123.webp", storedPath: "/kept/e.webp", summary: null, collectedAt: 1 },
+      { kind: "sticker", source: "sticker.webp", storedPath: "/kept/s.webp", summary: null, collectedAt: 2 },
+      { kind: "video", source: "clip.mp4", storedPath: "/kept/c.mp4", summary: null, collectedAt: 3 }
+    ]
+  }),
+  message(7, { room: -8, files: [{ kind: "document", source: "lost.pdf", storedPath: null, summary: null, collectedAt: 4 }] }),
+  // A sticker another chat service kept as a file under a name of its own, with no metadata, and one it handed over as
+  // the message's picture under the sticker kind.
+  message(8, { room: -8, text: "[Sticker]", kind: "sticker", files: [{ kind: "sticker", source: "item-1.emot_001.gif", storedPath: "/kept/g.gif", summary: null, collectedAt: 5 }] }),
+  message(9, { room: -8, text: "[Sticker]", kind: "sticker", imagePath: "/kept/9.webp" })
+];
+// In the owner's own account: an answer the receiver named the agent and the voice on, one it named in the agent's own
+// bot account, and one written before it named either and so read by the number it went out under.
+const voiced = [
+  message(20, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:1", agentName: "agent-a", voice: "human-avatar" }),
+  message(21, { room: -9, senderId: 33, senderName: "person-owner", agentName: "agent-a", voice: "bot-account" }),
+  message(22, { room: -9, senderId: 33, senderName: "person-owner", round: "round:-9:1:2" })
+];
+// A room's change in its members as the record files it, a fixed line under no sender of the room, and a person's
+// words that read the same under no kind; then the service's stop as rows kept before it was kept as a fixed line
+// hold it, its mark in each language it was written in, filed under a sender the room does not answer as.
+const membership = [
+  message(50, { room: -14, senderId: null, senderName: "agent-a", kind: "fixed-line", line: { code: "account-let-in", fields: { account: 4, by: 3 } }, text: "person-a let person-b in" }),
+  message(51, { room: -14, text: "person-a let person-b in" }),
+  ...NOTICE_MARKS.map((mark, at) => message(52 + at, { room: -14, senderId: 99, senderName: "service", text: `${mark} restarting` }))
+];
+// Lines a chat service handed over, kept as fixed lines beside the plain sentence it wrote: two the server's pack
+// words, the first of them twice, one whose code it holds no sentence for, and a reply quoting the first.
+const joinedLine = { code: "people-joined", fields: { people: [{ senderId: 11, name: "person-a" }], by: { senderId: 12, name: "person-b" } } };
+const handedOver = [
+  message(60, { room: -15, kind: "fixed-line", line: joinedLine, text: "person-b added person-a" }),
+  message(61, { room: -15, kind: "fixed-line", line: { code: "person-left", fields: { person: { senderId: 11, name: "person-a" } } }, text: "person-a left" }),
+  message(62, { room: -15, kind: "fixed-line", line: { code: "no-such-line", fields: {} }, text: "something happened" }),
+  message(63, { room: -15, kind: "fixed-line", line: joinedLine, text: "person-b added person-a" }),
+  message(64, { room: -15, replyToMessageId: 60, text: "welcome" })
+];
+// A room two supervisors answer under numbers of their own: one the agency gives a label, one it gives none.
+const labelled = [
+  message(30, { room: -13, senderId: 44, senderName: "u44", agentName: "agent-a" }),
+  message(31, { room: -13, senderId: 45, senderName: "u45", agentName: "agent-b" })
+];
+// A room whose message carries reactions: one by a person whose words stand on the page, one by a person with none
+// there whom the receiver names, one by a person it names nobody for, and one by an agent.
+const reacted = [
+  message(70, {
+    room: -16,
+    reactions: [
+      { emoji: "\u{1F44D}", by: "11" },
+      { emoji: "\u{1F44D}", by: "56" },
+      { emoji: "\u{2764}", by: "57" },
+      { emoji: "\u{2764}", by: "agent-a" }
+    ]
+  })
+];
+// The names the receiver says people last went by, by their numbers.
+const lastNames: Record<string, string> = { "5": "Person A", "11": "person-a", "56": "person-c" };
+const keptFile = (place: number, kind: string, name: string, type: string | null, size: number | null, kept = true) => ({ place, kind, name, type, size, kept });
+
+function room(id: number, over: Record<string, unknown> = {}): Record<string, unknown> {
+  return { id, title: null, messageCount: 1, lastMessageAt: 1, pinned: false, senders: [], supervisors: [], ownerRoom: false, registered: true, workRoom: 0, mode: null, listened: false, ...over };
+}
+
+// The receiver's room list, one room for each mark of a room added, one a chat service merely numbered and one the
+// owner's words stand in with no mode, which a test adds and removes as the receiver's own routes would.
+const numbered = room(-20, { title: "Numbered", lastMessageAt: 150_000 });
+// The owner's sender is 5, as the stand-in's `/owner` names it.
+const spoken = room(-21, { title: "Spoken", lastMessageAt: 50_000, senders: [9, 5] });
+const rooms: Record<string, unknown>[] = [
+  room(5, { messageCount: 3, lastMessageAt: 100_000, pinned: true }),
+  numbered,
+  room(-7, { title: "Room A", messageCount: 4, lastMessageAt: 200_000, supervisors: ["agent-b"] }),
+  // The owner's private chat, a room the console made on the record road.
+  room(-11, { messageCount: 1, lastMessageAt: 300_000, ownerRoom: true }),
+  spoken,
+  room(-22, { title: "Listened", lastMessageAt: 40_000, listened: true }),
+  room(-23, { title: "Added", lastMessageAt: 30_000, mode: "record-only" })
+];
+
+const receiver = standIn("RECEIVER", (one) => {
+  const path = one.path.split("?")[0]!;
+
+  if (path === "/rooms/-7/messages/4/files") {
+    return answer({ items: [keptFile(0, "audio", "bmo:voice", "audio/ogg", 1200), keptFile(1, "document", "notes.pdf", "application/pdf", null, false), keptFile(2, "photo", "p.jpg", "image/jpeg", 50)], more: false });
+  }
+  if (path === "/rooms/-7/messages/4/metadata") return answer({ metadata: null });
+  if (path === "/rooms/-7/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
+  if (path === "/rooms/-7/own-number") return answer({ number: 22 });
+  if (path === "/rooms/-8/messages") return answer({ items: drawn, more: false });
+  if (path === "/rooms/-8/messages/6/files") {
+    return answer({ items: [keptFile(0, "sticker", "emoji-123.webp", "image/webp", 40), keptFile(1, "sticker", "sticker.webp", "image/webp", 90), keptFile(2, "video", "clip.mp4", "video/mp4", 5000)], more: false });
+  }
+  if (path === "/rooms/-8/messages/6/metadata") {
+    return answer({
+      metadata: {
+        text: `hi ${EMOJI} there`,
+        entities: [{ type: "custom_emoji", offset: 3, length: 2, custom_emoji_id: "123" }, { type: "bold", offset: 0, length: 2 }],
+        sticker: { set: "set-a" },
+        attachment: { width: 640, height: 360 }
+      }
+    });
+  }
+  if (path === "/rooms/-8/messages/8/files") return answer({ items: [keptFile(0, "sticker", "item-1.emot_001.gif", null, 70)], more: false });
+  if (path === "/rooms/-8/messages/8/metadata") return answer({ metadata: null });
+  if (path === "/rooms/-8/messages/9/metadata") return answer({ metadata: null });
+  if (path === "/rooms/-8/messages/7/files") return answer({ code: "upstream-failed", error: "the store did not answer" }, 503);
+  if (path === "/rooms/-8/answerers") return answer({ default: "", voice: "", items: [], more: false });
+  // A room answered in the owner's own account: the voice agent's number there is the owner's.
+  if (path === "/rooms/-9/answerers") return answer({ default: "agent-a", voice: "agent-a", items: [{ agentName: "agent-a", defaultAnswerer: true }], more: false });
+  if (path === "/rooms/-9/own-number") return answer({ number: 33 });
+  if (path === "/rooms/-9/messages") return answer({ items: voiced, more: false });
+  if (path === "/rooms/-12/messages") return answer({ items: numberedHigh.map((id) => message(0, { id: rawNumber(id), room: -12, text: "" })), more: false });
+  if (path === "/rooms/-9/messages/22/sender-is-owner") return answer({ owner: true });
+  if (path === "/rooms/-13/answerers") return answer({ default: "", voice: "", items: [], more: false });
+  if (path === "/rooms/-13/messages") return answer({ items: labelled, more: false });
+  if (path === "/rooms/-14/messages") return answer({ items: membership, more: false });
+  if (path === "/rooms/-15/messages") return answer({ items: handedOver, more: false });
+  if (path === "/rooms/-16/messages") return answer({ items: reacted, more: false });
+
+  if (path === "/rooms") return answer({ items: rooms, more: false });
+  // A person's own BMO's private room, one line its agent said in it.
+  if (path === "/rooms/-24/answerers") return answer({ default: "", voice: "", items: [{ agentName: "u7", defaultAnswerer: false }], more: false });
+  if (path === "/rooms/-24/messages") return answer({ items: [message(31, { room: -24, senderId: null, senderName: "Person B Dear", agentName: "u7", text: "an answer" })], more: false });
+  // One room's own read, as the list holds it.
+  const listedRoom = rooms.find((one) => path === `/rooms/${String(one.id)}`);
+  if (listedRoom !== undefined) return answer(listedRoom);
+
+  // The owner's room is the console-made one; their chat service's one-to-one is a room like any other.
+  if (path === "/owner") return answer({ room: -11, senderId: 5 });
+  if (path === "/people") {
+    const ids = new URL(one.path, "http://receiver").searchParams.get("ids")!.split(",");
+
+    return answer({ items: ids.map((id) => ({ id: Number(id), name: lastNames[id] ?? null })), more: false });
+  }
+  if (path === "/rooms/5/title" || path === "/rooms/-11/title") return answer({ title: null });
+  if (path === "/rooms/-7/title") return answer({ title: "Room A" });
+  if (path === "/rooms/-7/messages") {
+    const after = new URL(one.path, "http://receiver").searchParams.get("after");
+
+    return answer(after === null ? { items: page, more: true } : { items: [message(5), thought], more: false });
+  }
+  if (path === "/rooms/-7/messages/1") return answer(page[0]);
+  if (path === "/rooms/-7/messages/2") return answer(page[1]);
+  if (path === "/rooms/-7/day-start") return answer({ messageId: 2 });
+
+  return answer({ code: "no-route", error: "no route" }, 404);
+});
+
+// The agency holding the two runs of the room's one round: its own turn, which called a tool, and a question its draft
+// process asked, each with what it spent.
+const usage = (inputTokens: number) => ({ inputTokens, outputTokens: 2, cacheReadTokens: 0, cacheWriteTokens: 0 });
+const agency = standIn("AGENCY", (one) => {
+  const url = new URL(one.path, "http://agency");
+
+  if (url.pathname === "/runs" && url.searchParams.get("names") === "round:-7:1:1") {
+    return answer({
+      items: [
+        { id: 41, agentName: "agent-a", unitName: "chat:-7:1", usage: usage(10) },
+        { id: 42, agentName: "agent-a", unitName: "chat:-7:2", usage: usage(5) }
+      ],
+      more: false
+    });
+  }
+  if (url.pathname === "/runs") return answer({ items: [], more: false });
+  if (url.pathname === "/log-lines" && url.searchParams.get("runId") === "41") {
+    return answer({ items: [{ id: 1, runId: 41, kind: "tool", text: "read a file", fields: { name: "read" }, at: 1 }], more: false });
+  }
+  if (url.pathname === "/log-lines") return answer({ items: [], more: false });
+  // What each supervisor is called: one with a label, one the agency gives none, and two people's own BMOs, each
+  // labelled with its person's name.
+  if (url.pathname === "/supervisors") {
+    return answer({
+      items: [
+        { name: "agent-a", label: "Agent A" },
+        { name: "agent-b", label: null },
+        { name: "u7", label: "Person B Dear", ownerAccount: 7 },
+        { name: "u8", label: "Person C BMO", ownerAccount: 8 }
+      ],
+      more: false
+    });
+  }
+
+  return answer({ code: "no-route", error: "no route" }, 404);
+});
+
+// The account service, rendering the lines its pack holds a sentence for as their code, and refusing any other as
+// its pack would.
+const accounts = standIn("WEB_SERVER", (one) => {
+  const code = one.body?.code;
+
+  if (one.path === "/words/render" && (code === "people-joined" || code === "person-left")) return answer({ text: `said ${code}` });
+  // The BMO profiles standing for two people: one named by their company, one the deployment's own.
+  if (one.path === "/users/7/agent") return answer(profileNamed({ from: "company", name: "Dear" }));
+  if (one.path === "/users/8/agent") return answer(profileNamed({ from: "deployment" }));
+
+  return answer({ code: "unknown-code", error: "the pack holds no line" }, 404);
+});
+
+function profileNamed(name: Record<string, unknown>): Record<string, unknown> {
+  const deployment = { from: "deployment" };
+
+  return { personalize: false, name, callNames: { ...deployment, callNames: [] }, persona: deployment, picture: deployment, own: { callNames: [], picture: false } };
+}
+
+const { listRooms, readDayStart, readMessagePage, readMessagesAfter, readWholeJudgements, roundFigures, roomTitleOf } = await import("../../../apps/web/server/utils/archive");
+const { registerChatAgent } = await import("../../../apps/web/shared/agent-names");
+
+registerChatAgent({ name: "agent-a", label: "Agent A" });
+
+describe("the rooms", () => {
+  test("stand in the receiver's order, the owner's own named by the chat agent, each pinned or not", async () => {
+    expect(await listRooms()).toEqual([
+      { chatId: 5, title: "Person A", agent: null, messageCount: 3, lastMessageAt: 100, pinned: true },
+      { chatId: -7, title: "Room A", agent: null, messageCount: 4, lastMessageAt: 200, pinned: false },
+      { chatId: -11, title: "Agent A", agent: "agent-a", messageCount: 1, lastMessageAt: 300, pinned: false },
+      { chatId: -22, title: "Listened", agent: null, messageCount: 1, lastMessageAt: 40, pinned: false },
+      { chatId: -23, title: "Added", agent: null, messageCount: 1, lastMessageAt: 30, pinned: false }
+    ]);
+    expect(await roomTitleOf(-7)).toBe("Room A");
+  });
+
+  test("stand only once added: the owner's private chat always, a room his words stand in not until it carries a mode", async () => {
+    const listed = async () => (await listRooms()).map((one) => one.chatId);
+
+    expect(await listed()).toContain(-11);
+    expect(await listed()).not.toContain(-21);
+
+    spoken.mode = "avatar";
+    expect(await listed()).toEqual([5, -7, -11, -21, -22, -23]);
+
+    spoken.mode = null;
+  });
+
+  test("a room a chat service merely numbered comes in once the add flow gives it a mode, and leaves once removed", async () => {
+    const listed = async () => (await listRooms()).map((one) => one.chatId);
+
+    expect(await listed()).not.toContain(-20);
+
+    numbered.mode = "record-only";
+    expect(await listed()).toEqual([5, -20, -7, -11, -22, -23]);
+
+    rooms.splice(rooms.indexOf(numbered), 1);
+    expect(await listed()).toEqual([5, -7, -11, -22, -23]);
+
+    rooms.splice(1, 0, numbered);
+    numbered.mode = null;
+  });
+
+  test("the owner's private chat is the room the receiver names, and their one-to-one is called by the person it is with", async () => {
+    expect(await roomTitleOf(-11)).toBe("Agent A");
+    expect(await roomTitleOf(5)).toBe("Person A");
+  });
+
+  test("an agent's private room stands as its agent: the name its profile stands with, never its person's", async () => {
+    const own = [
+      room(-24, { title: "Person B", lastMessageAt: 20_000, supervisors: ["u7"], privateOf: 7 }),
+      room(-25, { title: "Person C", lastMessageAt: 10_000, supervisors: ["u8"], privateOf: 8 })
+    ];
+
+    rooms.push(...own);
+
+    try {
+      const listed = (await listRooms()).map(({ chatId, title, agent }) => ({ chatId, title, agent }));
+
+      expect(listed.filter((one) => one.agent !== null)).toEqual([
+        { chatId: -11, title: "Agent A", agent: "agent-a" },
+        { chatId: -24, title: "Dear", agent: "u7" },
+        { chatId: -25, title: wording("account.label.bmo_name"), agent: "u8" }
+      ]);
+      expect(await roomTitleOf(-24)).toBe("Dear");
+
+      const line = await readMessagePage(-24, null, 50);
+
+      expect(line.messages.map((one) => one.speakerLabel)).toEqual(["Dear"]);
+    } finally {
+      rooms.splice(rooms.length - own.length, own.length);
+    }
+  });
+});
+
+describe("a page of a room", () => {
+  test("is asked by its cursor, and its senders are matched against the room's answering agents", async () => {
+    receiver.asked.length = 0;
+
+    const read = await readMessagePage(-7, "9", 50);
+
+    expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/messages?")).map((one) => one.path)).toEqual(["/rooms/-7/messages?limit=50&before=9"]);
+    expect(receiver.asked.filter((one) => one.path.startsWith("/rooms/-7/answerers") || one.path.startsWith("/rooms/-7/own-number")).map((one) => one.path).sort()).toEqual([
+      "/rooms/-7/answerers",
+      "/rooms/-7/own-number?agentName=agent-a"
+    ]);
+    expect(read.hasMore).toBe(true);
+    expect(read.judgements).toEqual([]);
+    expect(read.messages.map((one) => [one.messageId, one.agent, one.notice])).toEqual([
+      ["1", false, false],
+      ["2", true, false],
+      ["3", true, true],
+      ["4", false, false]
+    ]);
+    expect(read.messages[2]!.text).toBe("restarting");
+    expect(read.messages[1]).toMatchObject({ answerSeconds: 4, round: "round:-7:1:1", spend: null, actions: null });
+    // What the round spent and did is read apart from the page, so the page asks the agency for nothing but its agents'
+    // labels.
+    expect(agency.asked.filter((one) => one.path !== "/supervisors")).toEqual([]);
+    // The agent's number is not the owner's here, so no answer is said to have gone out in the owner's account.
+    expect(read.messages.some((one) => one.voicedBy !== undefined)).toBe(false);
+    // Where a forwarded message came from, on the row the record marks and no other.
+    expect(read.messages.map((one) => one.forwardedFrom ?? null)).toEqual([{ room: -5, messageId: "3", senderName: "person-b" }, null, null, null]);
+  });
+
+  test("hands each agent's row the label the agency holds for it, and none where the agency gives none", async () => {
+    const read = await readMessagePage(-13, null, 50);
+
+    expect(read.messages.map((one) => [one.messageId, one.voicedBy, one.speakerLabel])).toEqual([
+      ["30", "agent-a", "Agent A"],
+      ["31", "agent-b", undefined]
+    ]);
+  });
+
+  test("names the agent of an answer sent in the owner's own account from the send itself, and asks the number's owner only where the send names no agent", async () => {
+    receiver.asked.length = 0;
+
+    const read = await readMessagePage(-9, null, 50);
+
+    // Every send the receiver names its agent on is that agent's words, whichever voice it went out in: another supervisor's
+    // own bot account names it as a person's account does (docs/web.md, the naming rule).
+    expect(read.messages.map((one) => [one.messageId, one.agent, one.voicedBy, one.senderName])).toEqual([
+      ["20", true, "agent-a", "person-owner"],
+      ["21", true, "agent-a", "person-owner"],
+      ["22", true, "agent-a", "person-owner"]
+    ]);
+    // The two sends that name their agent need no question; the one written before the receiver named it is asked once.
+    expect(receiver.asked.filter((one) => one.path.includes("sender-is-owner")).map((one) => one.path)).toEqual(["/rooms/-9/messages/22/sender-is-owner"]);
+  });
+
+  test("carries each file a message kept, by its place, with its size and type and whether it can be received, and what a reply answers", async () => {
+    receiver.asked.length = 0;
+
+    const reply = (await readMessagePage(-7, null, 100)).messages[3]!;
+
+    expect(reply.attachments).toEqual([
+      { id: 0, kind: "audio", name: wording("room.label.voice_message"), bytes: 1200, type: "audio/ogg", available: true },
+      { id: 1, kind: "document", name: "notes.pdf", bytes: null, type: null, available: false, impliedType: "application/pdf" }
+    ]);
+    expect(reply.expressions).toEqual([]);
+    expect(reply.formats).toEqual([]);
+    expect(reply.replyQuote).toEqual({ messageId: "1", senderName: "person-a", text: "words 1", pictured: false, attachment: null });
+    // The metadata of the person's words is asked even of a message that carries no file; an agent's answer that
+    // carries none stands as its markdown and is asked nothing; the files are listed only where the page names one.
+    expect(receiver.asked.filter((one) => /\/(files|metadata)$/.test(one.path)).map((one) => one.path).sort()).toEqual([
+      "/rooms/-7/messages/1/metadata",
+      "/rooms/-7/messages/4/files",
+      "/rooms/-7/messages/4/metadata"
+    ]);
+  });
+
+  test("draws a custom emoji over the words it stands for, the latest sticker alone, and a video in the shape it arrived in", async () => {
+    const [shown, unlisted, other, pictured] = (await readMessagePage(-8, null, 100)).messages;
+    const emoji = { id: 0, kind: "sticker" as const, name: "emoji-123.webp", bytes: 40, type: "image/webp", available: true };
+
+    expect(shown!.expressions).toEqual([{ offset: 3, length: 2, attachment: emoji }]);
+    expect(shown!.attachments).toEqual([
+      { id: 1, kind: "sticker", name: "sticker.webp", bytes: 90, type: "image/webp", available: true },
+      { id: 2, kind: "video", name: "clip.mp4", bytes: 5000, type: "video/mp4", available: true, shape: { width: 640, height: 360 } }
+    ]);
+    // A list the receiver could not give leaves the files named and unavailable, and the page stands.
+    expect(unlisted!.attachments).toEqual([{ id: 0, kind: "document", name: "lost.pdf", bytes: null, type: null, available: false }]);
+    // A sticker file stands whatever chat service kept it and whatever it is named, a GIF among them, and a message the
+    // record keeps under the sticker kind says so.
+    expect(other!.attachments).toEqual([{ id: 0, kind: "sticker", name: "item-1.emot_001.gif", bytes: 70, type: "image/gif", available: true }]);
+    expect([shown!.sticker, other!.sticker, pictured!.sticker]).toEqual([undefined, true, true]);
+  });
+
+  test("a thinking message is told by the kind the record names, and carries no voice briefing chip", async () => {
+    const read = (await readMessagesAfter(-7, "4", 20)).messages;
+
+    expect(read.map((one) => [one.messageId, one.agent, one.thinking === true])).toEqual([
+      ["5", false, false],
+      ["6", true, true]
+    ]);
+    expect(read[1]!.briefing ?? null).toBeNull();
+  });
+
+  test("a fixed line stands as a system line by its kind, never by its words", async () => {
+    const read = (await readMessagePage(-14, null, 50)).messages;
+
+    expect(read.map((one) => [one.messageId, one.notice])).toEqual([
+      ["50", true],
+      ["51", false],
+      ...NOTICE_MARKS.map((_, at) => [String(52 + at), true])
+    ]);
+  });
+
+  test("a row kept as the service's marked line stands as a system line, its words without the mark", async () => {
+    const read = (await readMessagePage(-14, null, 50)).messages.filter((one) => Number(one.messageId) >= 52);
+
+    expect(NOTICE_MARKS.length).toBe(4);
+    expect(read.map((one) => [one.notice, one.agent, one.text])).toEqual(NOTICE_MARKS.map(() => [true, false, "restarting"]));
+  });
+
+  test("a fixed line's words, and a reply's quote of it, are the server's rendering of its line, and the kept words where it renders none", async () => {
+    const read = (await readMessagePage(-15, null, 50)).messages;
+
+    expect(read.map((one) => [one.messageId, one.notice, one.text])).toEqual([
+      ["60", true, "said people-joined"],
+      ["61", true, "said person-left"],
+      ["62", true, "something happened"],
+      ["63", true, "said people-joined"],
+      ["64", false, "welcome"]
+    ]);
+    expect(read[4]!.replyQuote?.text).toBe("said people-joined");
+    // Each line is asked once a page, as its code and fields in the pack's language. The page asks its lines at
+    // once, so the stand-in hears them in whatever order they arrive.
+    const renders = accounts.asked.filter((one) => one.path === "/words/render" && one.body?.code !== "account-let-in");
+    const byCode = (one: unknown): string => String((one as { code?: unknown }).code);
+
+    expect(renders.map((one) => one.body).toSorted((a, b) => byCode(a).localeCompare(byCode(b)))).toEqual([
+      { code: "no-such-line", language: "ko" },
+      { ...joinedLine.fields, code: "people-joined", language: "ko" },
+      { person: { senderId: 11, name: "person-a" }, code: "person-left", language: "ko" }
+    ]);
+  });
+
+  test("names each reactor of the page as the receiver says they last went by, asking once for every person", async () => {
+    const read = (await readMessagePage(-16, null, 50)).messages;
+
+    expect(read[0]!.reactions).toEqual([
+      { emoji: "\u{1F44D}", by: "11", name: "person-a" },
+      { emoji: "\u{1F44D}", by: "56", name: "person-c" },
+      { emoji: "\u{2764}", by: "57", name: null },
+      { emoji: "\u{2764}", by: "agent-a", name: null }
+    ]);
+    expect(receiver.asked.filter((one) => one.path.startsWith("/people?")).at(-1)?.path).toBe("/people?ids=11%2C56%2C57");
+  });
+
+  test("a message numbered past 2^53 carries its exact id", async () => {
+    const read = (await readMessagePage(-12, null, 50)).messages;
+
+    expect(read.map((one) => one.messageId)).toEqual(numberedHigh);
+  });
+
+  test("past a message, and where a day begins", async () => {
+    expect((await readMessagesAfter(-7, "4", 20)).messages.map((one) => one.messageId)).toEqual(["5", "6"]);
+    expect(await readDayStart(-7, 1_790_000_000)).toEqual({ messageId: "2" });
+    expect(await readWholeJudgements(-7, [1], { from: 0, to: 1 })).toEqual([]);
+  });
+});
+
+describe("a round's figures", () => {
+  test("are read for the rounds of the room's own answers, each round once with its runs side by side", async () => {
+    agency.asked.length = 0;
+
+    const read = await roundFigures(-7, ["2", "1", "99"]);
+
+    expect(read).toHaveLength(1);
+    expect(read[0]).toMatchObject({ messageId: "2", round: "round:-7:1:1", spend: { inputTokens: 15, outputTokens: 4, measured: 2 } });
+    expect(read[0]!.actions).toMatchObject({ agent: "agent-a", runs: ["chat:-7:1", "chat:-7:2"], tools: 1 });
+    expect(agency.asked.filter((one) => one.path.startsWith("/runs?")).map((one) => one.path)).toEqual(["/runs?names=round%3A-7%3A1%3A1&limit=50"]);
+    expect(agency.asked.filter((one) => one.path.startsWith("/log-lines?")).map((one) => new URL(one.path, "http://agency").searchParams.get("runId")).sort()).toEqual(["41", "42"]);
+  });
+});

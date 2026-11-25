@@ -1,0 +1,493 @@
+<template>
+  <!-- One person on the people tab (docs/web.md, 「System and organisation」, the people tab): the head with the person's picture,
+       name, login, marks and the management menu at its right end, over a row of tabs, one tab a part of what is the
+       person's. The head scrolls away with the content and the row stays at the top of the region once it reaches it,
+       its hairline running the region from edge to edge; the head, the row's tabs and the tab open stand in one reading
+       column. Each tab is loaded and read as it is first opened and kept while the person stays open. Every change but
+       the sections of the permissions tab is an act of the menu, opening the dialog it opens on its own tab. -->
+  <article ref="article" class="flex w-full min-w-0 flex-col" :data-roster-person="props.user">
+    <div class="p-4">
+      <header class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-2">
+        <div class="flex min-h-10 min-w-0 items-center gap-3">
+          <IconButton v-if="props.back" icon="i-material-symbols-arrow-back" :label="$t('common.action.back')" data-roster-back @click="emit('back')" />
+          <template v-if="person !== null">
+            <UAvatar v-bind="face" size="xl" class="shrink-0" />
+            <div class="flex min-w-0 flex-col">
+              <h2 class="text-lg font-semibold break-words text-highlighted">{{ person.name }}</h2>
+              <span class="text-sm break-all text-muted">{{ person.login }}</span>
+            </div>
+          </template>
+          <SkeletonStatus v-else-if="personFailure === ''" as="div" class="flex min-w-0 flex-1 items-center gap-3" :label="$t('roster.status.person_loading')">
+            <SkeletonBar class="size-10 shrink-0 rounded-full" />
+            <span class="flex min-w-0 flex-1 flex-col">
+              <SkeletonLine size="lg" width="w-1/2" />
+              <SkeletonLine width="w-1/3" />
+            </span>
+          </SkeletonStatus>
+        </div>
+
+        <div v-if="person !== null" class="flex min-h-8 flex-wrap items-center gap-2" data-roster-person-marks>
+          <UBadge v-if="person.administrator" color="primary" variant="subtle" :label="$t('roster.label.administrator')" />
+          <UBadge :color="stateFace.color" variant="subtle" :icon="stateFace.icon" :label="$t(stateFace.label)" data-roster-person-state />
+          <UDropdownMenu v-if="menu.length > 0" :items="menu" :content="{ align: 'end', onCloseAutoFocus: keepDialogFocus }">
+            <UButton
+              class="ms-auto"
+              color="neutral"
+              variant="outline"
+              :label="$t('roster.action.manage')"
+              trailing-icon="i-material-symbols-keyboard-arrow-down"
+              :loading="acting"
+              data-roster-manage
+            />
+          </UDropdownMenu>
+        </div>
+        <!-- The marks' row keeps its place while the person is read, the state's chip standing as a bar. -->
+        <div v-else-if="personFailure === ''" class="flex min-h-8 items-center">
+          <SkeletonBar class="h-7 w-16 rounded-sm" />
+        </div>
+        <p v-if="actFailure !== ''" role="alert" class="text-sm break-words whitespace-pre-line text-error">{{ actFailure }}</p>
+      </header>
+    </div>
+
+    <!-- The tabs' words start on the column's edge, as the head's and the tab's content do: the row is pulled out by
+         a tab's own inner padding. -->
+    <div ref="paneRow" :class="['sticky top-0 z-10 h-12 shrink-0 bg-default px-4', TAB_ROW_LINE]" data-person-tabs>
+      <div class="mx-auto flex h-full w-full min-w-0 max-w-3xl">
+        <UTabs
+          :model-value="pane.value"
+          :items="paneItems"
+          :content="false"
+          color="neutral"
+          variant="link"
+          size="sm"
+          class="-ms-2.5 min-w-0 flex-1 self-stretch"
+          :ui="TAB_ROW_UI"
+          :aria-label="$t('roster.aria.person_tabs')"
+          @update:model-value="(value: string | number) => setPane(String(value))"
+        />
+      </div>
+    </div>
+
+    <div class="p-4">
+      <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" :data-person-pane="pane.value">
+        <KeepAlive>
+          <component :is="paneComponent" :key="pane.value" :user="props.user" :person="person" :failure="personFailure" :reading="personReading" :administrator="targetAdministrator" @retry="readPerson" />
+        </KeepAlive>
+      </div>
+    </div>
+
+    <OrganizationMoveDialog ref="moveDialog" v-model:open="moving" :units="units" :name-of="nameOf" :roles-of="rolesOfUnit" @moved="actDone" />
+    <OrganizationPostDialog
+      v-model:open="postOpen"
+      :title="$t('organization.action.add_post')"
+      :unit="null"
+      :user="props.user"
+      :units="postUnits"
+      :roles="personRoles"
+      @saved="actDone"
+    />
+    <PermanentDeleteDialog v-model:open="removalOpen" kind="account" :subject="props.user" :name="person?.name ?? ''" @removed="emit('removed', String(props.user))" />
+    <OrganizationMachineDialog v-model:open="machineOpen" :user="props.user" :name="person?.name ?? ''" @changed="actDone" />
+    <ProfileDialog v-model:open="profileOpen" :user="props.user" :profile="profile" :description="person?.name" @saved="actDone" />
+    <SettingsDialog v-model:open="resetOpen" :title="$t('security.action.reset_password')">
+      <template v-if="resetMade !== null">
+        <p v-if="resetMade.mailed" class="text-sm text-default" data-reset-mailed>{{ $t("security.message.reset_mailed", { address: resetMade.address ?? "" }) }}</p>
+        <template v-else>
+          <p class="whitespace-pre-line text-sm text-default">{{ $t("security.message.reset_handed") }}</p>
+          <code class="break-all rounded-md bg-elevated p-3 font-mono text-sm text-highlighted" data-reset-link>{{ resetMade.link }}</code>
+        </template>
+      </template>
+      <template #footer>
+        <UButton v-if="resetMade?.link" color="neutral" variant="outline" icon="i-material-symbols-content-copy-outline" :label="copied ? $t('security.message.copied') : $t('security.action.copy')" data-reset-copy @click="void copyLink()" />
+        <UButton :label="$t('security.action.done')" @click="resetOpen = false" />
+      </template>
+    </SettingsDialog>
+  </article>
+</template>
+
+<script setup lang="ts">
+import { failureText } from "bmo-ui/app/domain/errors";
+import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
+
+import { useAdministrator, useSignedUser } from "~/domain/access";
+import { securityActs, usePersonSecurity } from "~/domain/account-security";
+import { identityMark } from "~/domain/avatars";
+import { useConfirm } from "~/domain/confirm";
+import { copyText } from "~/domain/copy";
+import { keepDialogFocus } from "~/domain/menu-focus";
+import { organizationAddress } from "~/domain/organization";
+import { PERSON_PANES, personAdministrator, personBase, personPaneOf, personPaneRefused, personPanesFor, withPersonPane } from "~/domain/person-panes";
+import { useSupplyReader, useSupplyUnits } from "~/domain/supply";
+import { ROSTER_STATE_FACES, rosterActs } from "~/domain/roster";
+import { revealOpenTab } from "~/domain/tab-row";
+
+import type { SecurityAct } from "~/domain/account-security";
+import type { RosterAct } from "~/domain/roster";
+import type { RoleView, RosterDetail, RosterPerson } from "#shared/roster";
+import type { InviteUnit, UnitRow } from "@web/server-client";
+import type { UserProfile } from "#shared/types";
+import type { DropdownMenuItem } from "@nuxt/ui";
+import type { Component } from "vue";
+
+interface Props {
+  user: string;
+  // The person's row in the list they were opened from, where it holds them, which says some of what their read will.
+  listed?: RosterPerson | null;
+  // Whether the person stands over the list on a narrow screen, with the way back at the head.
+  back?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), { back: false, listed: null });
+// `back` asks for the list again; `changed` hands on the person as read again after an act, for their row.
+// `removed` says the person was deleted for good, so the list drops them and closes them.
+const emit = defineEmits<{ back: []; changed: [person: RosterDetail]; removed: [user: string] }>();
+
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const confirm = useConfirm();
+const administrator = useAdministrator();
+const signed = useSignedUser();
+
+const base = computed(() => personBase(props.user));
+
+// --- The person ---
+
+const person = ref<RosterDetail | null>(null);
+const personFailure = ref("");
+const personReading = ref(false);
+
+// A failure stands until a read goes through; a person read again after an act keeps what stood meanwhile.
+async function readPerson(): Promise<void> {
+  personReading.value = true;
+
+  try {
+    person.value = await $fetch<RosterDetail>(base.value);
+    personFailure.value = "";
+  } catch (error) {
+    personFailure.value = failureText(error, t("roster.error.person_read_failed"));
+  } finally {
+    personReading.value = false;
+  }
+}
+
+const targetAdministrator = computed(() => personAdministrator(person.value, props.listed));
+const face = computed(() => identityMark(`user:${props.user}`, person.value?.name ?? ""));
+const stateFace = computed(() => ROSTER_STATE_FACES[person.value?.state ?? "active"]);
+
+// --- The management menu ---
+
+const acts = computed<RosterAct[]>(() => (person.value === null ? [] : rosterActs({ administrator: administrator.value, user: signed.value === null ? null : String(signed.value) }, person.value)));
+const acting = ref(false);
+const actFailure = ref("");
+
+const ACT_ITEMS: Readonly<Record<RosterAct, { label: string; icon: string; color?: "error" }>> = {
+  move: { label: "organization.action.move", icon: "i-material-symbols-move-item-outline" },
+  post: { label: "roster.action.add_post", icon: "i-material-symbols-group-add-outline" },
+  machine: { label: "organization.action.bind", icon: "i-material-symbols-computer-outline" },
+  profile: { label: "roster.action.profile", icon: "i-material-symbols-badge-outline" },
+  bmo: { label: "bmo_profile.label.permission", icon: "i-material-symbols-face-outline" },
+  leave: { label: "organization.action.mark_left_confirm", icon: "i-material-symbols-person-off-outline", color: "error" }
+};
+
+// The account acts (docs/web.md, 「System and organisation」, the people tab): they stand before marking the person left.
+const { security, read: readSecurity } = usePersonSecurity(() => String(props.user));
+const accountActs = computed<SecurityAct[]>(() =>
+  securityActs({ administrator: administrator.value, user: signed.value === null ? null : String(signed.value) }, String(props.user), security.value)
+);
+
+const SECURITY_ITEMS: Readonly<Record<SecurityAct, { label: string; icon: string; color?: "error" }>> = {
+  password: { label: "security.action.reset_password", icon: "i-material-symbols-lock-reset" },
+  factor: { label: "security.action.reset_factor", icon: "i-material-symbols-phonelink-lock-outline" },
+  disable: { label: "security.action.disable", icon: "i-material-symbols-block", color: "error" },
+  enable: { label: "security.action.enable", icon: "i-material-symbols-check-circle-outline" }
+};
+
+const menu = computed<DropdownMenuItem[]>(() => {
+  const items = (list: RosterAct[]): DropdownMenuItem[] =>
+    list.map((act) => ({ label: t(ACT_ITEMS[act].label), icon: ACT_ITEMS[act].icon, color: ACT_ITEMS[act].color, onSelect: () => void take(act) }));
+  const before = acts.value.filter((act) => act !== "leave");
+  const leaving = acts.value.filter((act) => act === "leave");
+  const account = accountActs.value.map((act) => ({ label: t(SECURITY_ITEMS[act].label), icon: SECURITY_ITEMS[act].icon, color: SECURITY_ITEMS[act].color, onSelect: () => void takeSecurity(act) }));
+
+  // The platform administrator's permanent delete, never of the reader themselves (docs/web.md, the organisation screen's permanent delete).
+  const removing: DropdownMenuItem[] =
+    administrator.value && String(signed.value ?? "") !== String(props.user)
+      ? [{ label: t("removal.action.delete"), icon: "i-material-symbols-delete-forever-outline", color: "error", onSelect: () => void (removalOpen.value = true) }]
+      : [];
+
+  return [...items(before), ...account, ...items(leaving), ...removing];
+});
+
+// The link a reset handed back, shown once for the reader to give the person, or the address it was mailed to.
+const resetMade = ref<{ mailed: boolean; address?: string | null; link?: string | null } | null>(null);
+const resetOpen = ref(false);
+// The permanent delete's dialog.
+const removalOpen = ref(false);
+
+async function takeSecurity(act: SecurityAct): Promise<void> {
+  actFailure.value = "";
+
+  const name = person.value?.name ?? "";
+  const asked =
+    act === "password"
+      ? { title: t("security.message.reset_ask"), effect: t("security.message.reset_ask_detail"), confirm: t("security.action.reset_password") }
+      : act === "factor"
+        ? { title: t("security.message.factor_reset_ask"), effect: t("security.message.factor_reset_detail"), confirm: t("security.action.reset_factor") }
+        : act === "disable"
+          ? { title: t("security.message.disable_ask"), effect: t("security.message.disable_detail"), confirm: t("security.action.disable") }
+          : { title: t("security.message.enable_ask"), effect: t("security.message.enable_detail"), confirm: t("security.action.enable") };
+
+  if (!(await confirm({ ...asked, item: name }))) return;
+
+  const base = `/api/organization/users/${encodeURIComponent(props.user)}`;
+  const done = await prepared(async () => {
+    if (act === "password") return await $fetch<{ mailed: boolean; address?: string | null; link?: string | null }>(`${base}/password-reset`, { method: "POST" });
+    if (act === "factor") return await $fetch(`${base}/second-factor`, { method: "DELETE" });
+
+    return await $fetch(`${base}/enabled`, { method: "PUT", body: { enabled: act === "enable" } });
+  });
+
+  if (done === null) return;
+
+  if (act === "password") {
+    resetMade.value = done as { mailed: boolean; address?: string | null; link?: string | null };
+    resetOpen.value = true;
+  }
+
+  await readSecurity(t("security.error.read_failed"));
+  await actDone();
+}
+
+async function take(act: RosterAct): Promise<void> {
+  actFailure.value = "";
+
+  if (act === "move") await startMove();
+  else if (act === "post") await startPost();
+  else if (act === "machine") machineOpen.value = true;
+  else if (act === "profile") await openProfile();
+  else if (act === "bmo") openBmoPermission();
+  else await markLeft();
+}
+
+// An act that went through: the person read again, and their row with them.
+async function actDone(): Promise<void> {
+  await readPerson();
+  if (person.value !== null) emit("changed", person.value);
+}
+
+// Something an act needs read first, its control spinning meanwhile; a refusal said under the head.
+async function prepared<T>(work: () => Promise<T>): Promise<T | null> {
+  acting.value = true;
+
+  try {
+    return await work();
+  } catch (error) {
+    actFailure.value = failureText(error, t("organization.error.failed"));
+
+    return null;
+  } finally {
+    acting.value = false;
+  }
+}
+
+// The move: the chart's move dialog, for this person alone, at its first step; it reads the units as they stand.
+const moving = ref(false);
+const units = ref<UnitRow[]>([]);
+const moveDialog = useTemplateRef<{ start: (people: readonly string[], to?: number | null) => void }>("moveDialog");
+
+function nameOf(user: string): string {
+  return user === props.user ? (person.value?.name ?? user) : user;
+}
+
+async function startMove(): Promise<void> {
+  const read = await prepared(async () => {
+    const all = await $fetch<UnitRow[]>("/api/organization/units");
+    const companies = all.filter((unit) => unit.parent === undefined || unit.parent === null);
+    const roles = await Promise.all(companies.map(async (company) => [company.id, await $fetch<RoleView[]>(`/api/organization/companies/${company.id}/roles`)] as const));
+
+    return { all, roles: new Map(roles) };
+  });
+
+  if (read === null) return;
+
+  units.value = read.all;
+  companyRoles.value = read.roles;
+  moveDialog.value?.start([props.user]);
+}
+
+// Each company's roles, lowest first, for the move's choice of the role a person carries where they go.
+const companyRoles = ref(new Map<number, RoleView[]>());
+
+function rolesOfUnit(unit: number): RoleView[] {
+  const byId = new Map(units.value.map((one) => [one.id, one]));
+  let at = byId.get(unit);
+
+  while (at !== undefined && at.parent !== undefined && at.parent !== null) at = byId.get(at.parent);
+
+  return at === undefined ? [] : (companyRoles.value.get(at.id) ?? []);
+}
+
+// A post given to the person: the units of their company the reader may give one in, but their home unit, and the
+// company's roles.
+const postOpen = ref(false);
+const postUnits = ref<{ label: string; value: string }[]>([]);
+const personRoles = ref<RoleView[]>([]);
+
+async function startPost(): Promise<void> {
+  const one = person.value;
+
+  if (one === null) return;
+
+  const read = await prepared(() =>
+    Promise.all([$fetch<InviteUnit[]>("/api/invites/units"), $fetch<RoleView[]>(`/api/organization/companies/${one.company.id}/roles`)])
+  );
+
+  if (read === null) return;
+
+  const [mayGive, roles] = read;
+  const byId = new Map(mayGive.map((unit) => [unit.id, unit]));
+  const path = (unit: InviteUnit): string => {
+    const names: string[] = [];
+    let at: InviteUnit | undefined = unit;
+
+    while (at !== undefined && !names.includes(at.name)) {
+      names.unshift(at.name);
+      at = at.parent === undefined || at.parent === null ? undefined : byId.get(at.parent);
+    }
+
+    return names.join(" › ");
+  };
+
+  postUnits.value = mayGive.filter((unit) => unit.company.id === one.company.id && unit.id !== one.unit.id).map((unit) => ({ label: path(unit), value: String(unit.id) }));
+  personRoles.value = roles;
+  postOpen.value = true;
+}
+
+// The machine: the chart's machine dialog.
+const machineOpen = ref(false);
+
+// The profile: the profile form of the account section, for this person, opened on their profile as it stands.
+const profileOpen = ref(false);
+const profile = ref<UserProfile | null>(null);
+
+async function openProfile(): Promise<void> {
+  const read = await prepared(() => $fetch<UserProfile>(`/api/users/${encodeURIComponent(props.user)}/profile`));
+
+  if (read === null) return;
+
+  profile.value = read;
+  profileOpen.value = true;
+}
+
+// The BMO permission: the BMO tab at the person's company, their unit open.
+function openBmoPermission(): void {
+  const one = person.value;
+
+  if (one !== null) void router.push(organizationAddress("agents", route.query, { company: String(one.company.id), unit: String(one.unit.id) }));
+}
+
+// Marking the person left, asked first as the chart asks it.
+async function markLeft(): Promise<void> {
+  const taken = await confirm({
+    title: t("organization.title.mark_left"),
+    item: person.value?.name ?? "",
+    effect: t("organization.message.mark_left"),
+    confirm: t("organization.action.mark_left_confirm")
+  });
+
+  if (!taken) return;
+
+  const done = await prepared(() => $fetch(`/api/organization/users/${encodeURIComponent(props.user)}/leave`, { method: "POST" }));
+
+  if (done !== null) await actDone();
+}
+
+const copied = ref(false);
+
+async function copyLink(): Promise<void> {
+  copied.value = await copyText(resetMade.value?.link ?? "");
+}
+
+watch(resetOpen, (opened) => {
+  if (!opened) copied.value = false;
+});
+
+// --- The tabs ---
+
+// Each tab says which readers it stands for, and the address names the one open. The supply tab stands for the
+// administrator at once and for a member once the person's unit and the member's supply reach have both answered.
+const supplyUnits = useSupplyUnits();
+const supplyStanding = useSupplyReader();
+// A person's policy is the credit manager's of their unit, so the reach that counts is a unit's policy, not its plan.
+const supplyManages = computed(() => person.value !== null && supplyUnits.value.some((one) => one.policy && one.id === person.value?.unit.id));
+// Who opens the tabs is known at once for the administrator, and for anyone else once the person's read and the
+// supply reach have both answered; a read that failed answers it too, and leaves its tab standing for nothing.
+const panesSettled = computed(() => administrator.value || (person.value !== null || personFailure.value !== "") && supplyStanding.value.known);
+const panes = computed(() => personPanesFor({ administrator: administrator.value, supply: supplyManages.value }));
+const pane = computed(() => personPaneOf(route.query, panes.value));
+const paneItems = computed(() => panes.value.map((one) => ({ value: one.value, label: t(one.label) })));
+
+// A tab the address names that the reader may not open, or that is no tab, is taken off it with no step of the
+// history, the person opening at their first tab. The watch stands on the settling and on the tabs themselves, so
+// it decides again as the reader comes to be known, as the screen's own tabs do: until then no key is cut, and a
+// tab that answers later never has its key taken away for standing unknown.
+onMounted(() =>
+  watch(
+    () => [route.query, panes.value, panesSettled.value] as const,
+    ([query, list, settled]) => {
+      if (!settled) return;
+
+      if (personPaneRefused(query, list)) void router.replace({ query: withPersonPane(query, PERSON_PANES[0]!.value) });
+    },
+    { immediate: true }
+  )
+);
+
+// Moving to another tab is a step of the history, as the screen's tabs are.
+function setPane(next: string): void {
+  if (next !== pane.value.value) void router.push({ query: withPersonPane(route.query, next) });
+}
+
+// Each tab's component, made once and loaded the first time it is opened.
+const components = new Map<string, Component>();
+const paneComponent = computed(() => {
+  const { value, load } = pane.value;
+
+  if (!components.has(value)) components.set(value, defineAsyncComponent(load));
+
+  return components.get(value)!;
+});
+
+// The open tab brought into the row's view on a narrow region where the row scrolls sideways, and, where the head has
+// scrolled away, the region brought back to the tab's start, which the row stays over: the person is the whole of the
+// region it scrolls in.
+const article = useTemplateRef<HTMLElement>("article");
+const paneRow = useTemplateRef<HTMLElement>("paneRow");
+
+watch(
+  () => [pane.value.value, paneRow.value] as const,
+  () => void nextTick(() => revealOpenTab(paneRow.value)),
+  { immediate: true, flush: "post" }
+);
+
+watch(
+  () => pane.value.value,
+  () => {
+    const region = article.value?.parentElement;
+    const start = paneRow.value?.previousElementSibling;
+
+    if (region instanceof HTMLElement && start instanceof HTMLElement && region.scrollTop > start.offsetHeight) region.scrollTop = start.offsetHeight;
+  },
+  { flush: "post" }
+);
+
+onMounted(() => {
+  void readPerson();
+  void readSecurity(t("security.error.read_failed"));
+});
+watch(
+  () => props.user,
+  () => void readSecurity(t("security.error.read_failed"))
+);
+</script>

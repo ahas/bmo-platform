@@ -1,0 +1,32 @@
+# The server's settings (docs/boundary.md, 「Settings」). A deployment overrides them in settings.local.toml,
+# which git ignores, or in the environment: a variable named BMO_WEB_SERVER_, then the table, two
+# underscores and the key, sets that key, so BMO_WEB_SERVER_DATABASE__URL sets the database's address.
+
+# The server does not stand without `token`, the bearer every caller presents; a deployment sets it.
+[server]
+listen = "127.0.0.1:3240"
+
+[database]
+url = "postgres://localhost/bmo_web"
+
+# The Valkey sumida keeps its sessions in.
+[sessions]
+valkey = "redis://127.0.0.1:6379/13"
+
+# The receiver's base address and its token, which a message check asks for a message's sender; a
+# deployment sets them.
+[receiver]
+
+# The folder the secret store writes: the data root's env/, where every unit reads a secret by its file name. A
+# leading ~/ stands for the home of the user the server runs as.
+[secrets]
+dir = "~/.local/share/bmo/data/env"
+
+# The names the language pack's lines are filled with: `chat_agent`, the name the chat agent goes by in a room,
+# without which the server does not stand; a deployment sets it.
+[names]
+
+# The owner's time zone, an IANA name, which a fixed line naming a moment tells it in: the zone the console shows
+# every time in.
+[time]
+zone = "Asia/Seoul"

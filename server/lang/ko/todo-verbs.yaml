@@ -1,0 +1,218 @@
+# The answers and refusals of the TODO verbs (docs/todo.md) as a person or the chat agent reads them; run inside
+# a job, the same verbs answer in the worker's English, written beside where each line is said. Each
+# `{name}` is filled in with what it names: {id} and {title} an item's, {selector} what was named.
+
+# A resume condition put with a hold that cannot stand.
+condition:
+  both: "--after 와 --after-deploy 는 함께 받지 않아요. 보류의 재개 조건은 하나예요"
+  after: "--after 는 아직 끝나지 않은 다른 항목이어야 해요. #{id}은 {why}이에요"
+  after_itself: "이 항목 자신"
+  after_finished: "이미 끝났"
+  no_commits: "#{id}에는 배포를 기다리는 커밋이 없어요. 그 일을 먼저 닫아 커밋이 배포를 기다리게 하거나, 커밋을 직접 적어요 (--after-deploy <커밋>)"
+  not_commit: "--after-deploy {selector}: 이 저장소의 커밋이 아니에요"
+  not_on_main: "--after-deploy {selector}: main에 없는 커밋이라 배포로 라이브가 되지 않아요"
+  live: "--after-deploy {selector}: 이미 라이브인 커밋이에요"
+
+# The words added to an item: none, those taken back ({count} of them, each by its {note} number, its
+# {author}, who took it back {by} and when {at}), and one taken back now by its {note} number.
+notes:
+  none: "todo: #{id} '{title}' 덧붙은 말 없음"
+  withdrawn: "지운 말 {count}건:"
+  withdrawn_note: "- 말 {note} ({author} 덧붙임, {by} 지움 {at})"
+  removed: "todo: #{id} '{title}' 말 {note} 지웠습니다. 어느 Job에도 실리지 않습니다"
+  removed_delivered: "todo: #{id} '{title}' 말 {note} 지웠습니다. 이 말을 담은 {chat_agent}의 수정 내용이 이미 실행 중인 Job에 전달되어 그 Job에는 그대로 남습니다"
+
+# An item rewritten: the parts named by what was {changed}.
+edit:
+  nothing: "--edit는 고칠 것을 하나는 받아야 해요: --title, --what, --do, --conclusion, --judgement, --intent, --order 중에서."
+  title: "제목"
+  intent: "작업 지시서 목적"
+  order: "작업 지시서 지시"
+  done: "todo: #{id} '{title}' 고쳐 썼습니다: {changed}"
+
+# The queue's switches: auto-progress paused or resumed, and the deployment's {hold} standing or let go.
+queue:
+  paused: "todo: 자동 진행 일시정지. {chat_agent}에게 큐가 기다린다고 알리지 않습니다. 실행 중인 Job과 단계는 끝까지 갑니다."
+  resumed: "todo: 자동 진행 재개. {chat_agent}에게 큐가 선 모습을 알립니다."
+  hold_stands: "todo: 배포 대기는 그대로 섭니다: {hold}. 이 대기는 재개로 풀리지 않고, 푸는 것은 --release-deploy-hold 입니다."
+  no_hold: "todo: 배포 대기가 서 있지 않습니다."
+  hold_released: "todo: 배포 대기를 풀었습니다: {hold}. 배포는 아무것도 올리지 않고 물러나며, 커밋은 그대로 기다립니다."
+
+# An item set aside, stopped, wound down or left where its run stopped, and a hold let go: with its
+# {reason}, the {runs} asked to stop, the {job} told to stop at its stage, the {note} left and the {held}
+# word it stays under.
+hold:
+  after: "--hold 는 --after 를 받지 않아요. 항목이 끝나기를 기다리는 보류는 --wind-down <id> --why '<사유>' --after <항목 id> 예요"
+  held: "todo: #{id} '{title}' 보류. 큐가 더는 집지 않습니다{reason}"
+  stop_why: "todo: --stop 에는 --why '<사유>' 이 필요합니다"
+  stopped: "todo: #{id} '{title}' 중지. 실행 {runs}개에 멈춤을 요청했고 항목은 중지로 보류됐습니다 ({reason}). 보류를 풀면 끊긴 곳부터 이어 갑니다"
+  wind_down_why: "--wind-down 에는 --why '<사유>' 이 필요합니다"
+  wound_down: "todo: #{id} '{title}' 재개 대기. {told}. 사유: {reason}"
+  wound_down_idle: "실행 중인 Job이 없어 보류만 걸었습니다"
+  wound_down_running: "실행 중인 Job {job}에게 하던 단계까지만 하고 멈추라고 전합니다"
+  stop_here_report: "--stop-here 는 --report '<끝낸 것·이어갈 곳>' 을 받아요"
+  stop_here_closed: "#{id} '{title}'은 끝났거나 다른 항목에 합쳐져 멈춰 둘 수 없어요"
+  stopped_here: "todo: #{id} '{title}' 멈춘 지점을 남겼습니다 (말 {note}). 완료로 닫지 않고 {held}로 둡니다{reason}"
+  job_unhold: "Job은 보류를 풀지 않아요"
+  unheld: "todo: #{id} '{title}' 보류 해제. 우선순위 {priority}의 순서로 돌아왔습니다"
+
+# Items merged into the item {into} and taken out again, with its {priority}; {target} is the merge target
+# named with its subject particle.
+merge:
+  usage: "--merge는 합칠 항목 번호와 --into <번호>를 받아요. 번호는 쉼표로 잇습니다."
+  merged: "todo: {ids} → #{into} '{title}' 병합. 큐가 더는 집지 않고, {target} 완료되면 함께 완료됩니다"
+  unmerged: "todo: #{id} '{title}' 병합 해제. 우선순위 {priority}의 원래 항목으로 돌아왔습니다"
+
+# An item closed or opened again: what the closing wrote, the items finished with it ({ids}), a the chat agent's share
+# strand handed to the chat agent as the memory {memory} with its {head}, an item waiting on it whose condition the
+# closing met, and on opening again the merge it leaves ({into}), the items merged again and the notes it
+# came out of opened again ({ids}).
+close:
+  resolve_why: "--resolve는 --why로 무엇 때문에 더는 미결이 아닌지를 받아요."
+  report: "보고"
+  unfinished: "미결"
+  written: " ({parts} 적음)"
+  written_joint: "·"
+  carried: " (병합된 항목 함께 완료: {ids})"
+  handed: "todo: {chat_agent} 몫 미결을 {chat_agent}에게 넘겼어요. 기억 #{memory}: {head}"
+  resumable: "todo: #{id} '{title}' 재개 조건(#{after} 끝남)이 채워져 {chat_agent}에게 알렸어요. 보류는 {chat_agent_subject} 풀어요"
+  reopened: "대기"
+  reopened_unmerged: " (#{into} 병합에서 빠짐)"
+  reopened_merged: " (병합된 항목 다시 병합됨: {ids})"
+  reopened_sources: " (출처 미결 다시 열림: {ids})"
+  # The section a closing puts on the report over what the live-Claude guard kept, and its line for one
+  # opening: its {at} number, what it was for {purpose} and how many {runs} it let through.
+  live_claude_heading: "실측 기록 (가드가 남긴 것)"
+  # The resolution a 미결 gets once every row it was broken into is finished, naming those {rows}.
+  settled: "이 미결에서 세운 줄이 전부 끝나서 해소됐습니다: {rows}."
+  # The word an item is named by in an instruction that names it by its number.
+  item_word: "항목"
+  # The report an item merged into the {target} is closed with when that item is.
+  merged_report: "#{target}에 병합되어 함께 완료됐습니다. 어떻게 했는지는 #{target}의 완료 보고에 있습니다."
+  live_claude_line: "{at}. {purpose}: 진짜 Claude 실행 {runs}회"
+
+# The item's settings: its state line, its {worker} (and the base it is a {support} worker of), the
+# {target} it repairs as the {round} of {rounds} repairs of the item {root}, its co-work, its impact grounds
+# (read or refused for {why}, the nodes whose outward contract changes counted as {contracts}, a new home
+# marked, the {verdict} they come to beside the {cowork} setting the item stands at; a job's own grounds
+# kept quietly, or kept and told to the chat agent for the {reason} that they differ or that the chat agent filed none), its
+# priority and its job {model}.
+settings:
+  mark_status: "--mark는 --status로 적을 상태 한 줄을 받아요."
+  worker_usage: "--worker는 항목 뒤에 워커 이름 하나를 받아요. 배정을 떼려면 - 를 주세요."
+  worker_support: "{worker}는 {base}의 추가지원 워커예요. 항목은 {base}에 배정하고, 어느 체크아웃에서 돌지는 실행이 고릅니다."
+  worker_cleared: "todo: #{id} '{title}' 워커 배정 해제. Built-in 워커가 맡습니다"
+  worker_set: "todo: #{id} '{title}' 워커 {worker}가 맡습니다"
+  repairs_with_add: "--repairs는 접수와 함께 쓰지 않아요. 먼저 --add로 접수하고, 찍힌 번호로 --repairs <고치는 항목 번호> <대상 번호>를 주세요."
+  repairs_usage: "--repairs는 항목 뒤에 고치는 대상의 번호 하나를 받아요. 연결을 떼려면 - 를 주세요."
+  repairs_cleared: "todo: #{id} '{title}' 고치는 대상 연결 해제"
+  repairs_set: "todo: #{id} '{title}'이 #{target}을 고칩니다 (#{root}의 고치는 작업 {round}/{rounds}번째)"
+  cowork_usage: "--cowork는 항목 뒤에 on 또는 off를 받아요."
+  cowork_on: "todo: #{id} '{title}' 협업으로 돕니다"
+  cowork_off: "todo: #{id} '{title}' 협업을 껐습니다. 한 세션으로 돕니다"
+  impact_usage: '영향 근거는 JSON 하나로 받아요 ({why}): {"nodes":[{"id":"<그래프 노드 id>","contract":"<바뀌는 바깥 계약>" 또는 null}],"new_home":<새 위치를 정해야 하면 true>}'
+  impact_set: "todo: #{id} '{title}' 영향 근거를 적었습니다. 바깥 계약이 바뀌는 노드 {contracts}개{new_home}, 판정은 {verdict}이고 협업 설정은 {cowork}입니다"
+  impact_new_home: ", 새 위치 필요"
+  impact_single: "한 Job"
+  impact_cowork: "협업"
+  impact_on: "켬"
+  impact_off: "끔"
+  impact_check_kept: "todo: #{id} Job이 다시 뽑은 영향 근거를 적었습니다. 판정이 협업 설정과 같아 {chat_agent}에게 알리지 않습니다"
+  impact_check_told: "todo: #{id} Job이 다시 뽑은 영향 근거를 적고 {chat_agent}에게 알렸습니다({reason}). 협업 설정은 {chat_agent_subject} 바꾸고, 이 Job은 시작된 대로 계속합니다"
+  impact_check_differs: "판정은 {verdict}인데 협업 설정은 {cowork}"
+  impact_check_unfiled: "항목에 {chat_agent}의 영향 근거가 없음"
+  priority_usage: "--priority는 항목 뒤에 수 하나를 받아요."
+  model_needed: "--model auto 또는 명시적인 모델이 필요합니다."
+  model_set: "todo: #{id} 모델 {model}"
+  model_wrong: "올바르지 않은 작업 모델입니다."
+  no_verb: "어느 동사인지 알 수 없어요. 이 스크립트는 위의 동사 하나를 받습니다."
+
+# Filing a row: a raised row short of its title or its room, and a filing short of the {missing} parts named,
+# the reply named by its {reply_part}; a row filed as {id} with its {title}, its {cowork} mark and the head of
+# the message that asked for it {clip}; a row raised on the chat agent's judgement out of the work of the item {item},
+# out of the strands of {sources}, each by its {id} and {strand}, with its {cowork} mark and the notes it
+# opened again {ids}; and a title or summary that uses a term set aside, the {terms} named.
+add:
+  judgement_needs: "--judgement로 세우는 항목에는 --title이 있어야 하고, --chat이나 이 기계의 설정이 방 번호를 줘야 해요."
+  missing: "--add에 {missing}가 없거나 비어 있어요. 항목은 이 부분들로 이루어져서, 하나라도 비면 행을 쓰지 않습니다."
+  reply_part: "--reply 또는 --reply-text"
+  filed: "todo: added #{id} '{title}': 결재 대기{cowork}, 승인해야 큐에 들어갑니다 ({clip})"
+  raised: "todo: added #{id} '{title}': {chat_agent} 판단으로 올림 (항목 #{item}의 작업{sources}), {chat_agent} 승인 대기{cowork}{reopened}"
+  raised_sources: ", 출처 미결 {sources}"
+  raised_source: "#{id}의 {strand}번"
+  raised_reopened: " (출처 미결 다시 열림: {ids})"
+  cowork: ", 협업"
+  wording: "제목과 요약에 쓰지 않기로 한 말이 있어 아무것도 쓰지 않았어요: {terms} (WORDING.md). 바꿔 쓰고 다시 실행해 주세요."
+
+# Words added to an item: none given; told to the chat agent, who folds them into the brief; the chat agent's own, kept as
+# the record its --brief folds in; and the account of the fact the chat agent is told, of the words {by} added to the item
+# {id} {title}, with no job at work on it or with the running {job}.
+append:
+  empty: "--append writes words onto the item, so it takes some: --text '<말>', or the words on stdin"
+  told: "todo: #{id} '{title}' 말 덧붙였습니다. {chat_agent}에게 알렸고, {chat_agent_subject} 지시에 정리해 넣습니다"
+  own: "todo: #{id} '{title}' 말 덧붙였습니다. 기록으로 남습니다. 지시에는 --brief로 고쳐 넣고 바뀐 점을 적습니다"
+  fact_idle: "#{id} {title}에 {by}의 말이 덧붙었다. 그 항목에 실행 중인 Job은 없다."
+  fact_running: "#{id} {title}에 {by}의 말이 덧붙었다. Job {job}이 그 항목을 하고 있다."
+
+# the chat agent's rewrite of an item's brief: refused to anyone but the chat agent, with no change named, with no brief on
+# stdin and with either not in English; written with no job running, or with the change handed to the running {job}.
+brief:
+  not_bmo: "--brief는 {chat_agent}만 씁니다. 더할 말은 --append로 적으면 {chat_agent_subject} 지시에 정리해 넣습니다"
+  no_change: "--brief는 무엇이 바뀌었는지 영어로 함께 받습니다: --change '<what changed>'"
+  empty: "--brief는 새 지시 전문을 stdin으로 받습니다"
+  not_english: "지시와 바뀐 점은 워커가 읽는 영어로 씁니다. {owner}의 말은 ```text 울타리 안에 그대로 둡니다"
+  idle: "todo: #{id} '{title}' 지시를 고쳤습니다. 실행 중인 Job이 없어 다음 Job이 새 지시로 시작합니다"
+  running: "todo: #{id} '{title}' 지시를 고쳤습니다. 실행 중인 Job {job}에게 바뀐 점만 보고 전에 전달됩니다"
+
+# An approval that carried the owner's word.
+approve:
+  noted: " (의견 함께 적음)"
+# A wind-down: its resume condition said as a reason, waiting on the item {id} to finish or on {what} going
+# live; the note the run it interrupts is handed, opening with the wind-down {mark}, the {why} the owner gave,
+# how it {resume}s and the {verb} with the item {id} it closes with; and the mark the note a run leaves where it
+# stopped opens with.
+wind_down:
+  finished: "#{id} 끝나면 재개"
+  deployed: "{what} 배포 뒤 재개"
+  resume_plain: "재개는 {chat_agent_subject} 보류를 풀 때"
+  resume_condition: "재개는 조건({condition})이 채워져 {chat_agent_subject} 보류를 풀 때"
+  note: |-
+    {mark} {owner} 지시로 이 항목을 여기까지만 하고 멈춘다 ({why}). {resume}.
+    지금 하던 단계까지만 끝내고 새 단계·학습·유닛은 띄우지 않는다. 이 실행이 띄운 유닛·프로세스는 남기지 않는다.
+    커밋할 것은 커밋하고 저장소의 방식대로 닫은 뒤,
+    항목은 완료로 닫지 않는다: {verb} --stop-here {id} --report '<끝낸 것·이어갈 곳>'
+    --done 은 이 항목을 거절한다.
+  stopped_here_mark: "[멈춘 지점]"
+  # A held or stopped reason written in English by a person, which the screens show as written.
+  reason_korean: "사유는 한국어로 적어 주세요. 보류 사유는 콘솔과 목록에 적은 그대로 보입니다."
+# The whole usage `bmo todo --help` prints, every verb with its flags.
+usage: |-
+  usage: bmo todo --add --title '<title>' --what '<what the work is>' --do '<what has to be done>' --conclusion '<conclusion>' --instruction <messageId>[,<messageId>] [--reply <messageId>[,<messageId>]] [--reply-text '<text>'] [--chat <chatId>] [--requester '<name>'] [--fasttrack <tool>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --add --title '<title>' --judgement '<the chat agent's judgement>' --from-todo <id>:<strand>[,<id>:<strand>] --raised-by <id> [--chat <chatId>] [--model <model>] [--status '<text>'] [--cowork] [--impact '<grounds JSON>']
+         bmo todo --list [--all] [--pending] [--held] [--merged] [--chat <chatId>]
+         bmo todo --show <id|title>
+         bmo todo --set-model <id> --model <auto|model>
+         bmo todo --notes <id|title>
+         bmo todo --append <id|title> [--text '<words to add>'] [--by '<who>']   (stdin without --text)
+         bmo todo --unappend <id|title> --note-id <note number> [--by '<who>']   (--notes prints the note numbers)
+         bmo todo --brief <id|title> --change '<what changed, in English>'   (the whole new brief in English on stdin; chat the chat agent's alone, and a running job is handed only the change)
+         bmo todo --edit <id|title> [--title '<title>'] [--what '<...>'] [--do '<...>'] [--conclusion '<...>'] [--judgement '<...>'] [--intent '<work order purpose>'] [--order '<work order instruction>']   (only an item not finished and with no job running; the conversation's originals cannot be changed)
+         bmo todo --done <id|title> [--report '<how the work was done>'] [--unfinished '<what was left as 미결>'] | --reopen <id|title>
+         bmo todo --resolve <id> --why '<what makes it no longer 미결>'
+         bmo todo --mark <id|title> --status '<text>'
+         bmo todo --approve <id> [--note '<the owner's further word or question>'] | --unapprove <id>
+         bmo todo --hold <id|title> [--why '<why it waits>'] [--after-deploy <item id|commit>] | --unhold <id|title>   (--hold lets the running turn finish; --unhold is never a job's)
+         bmo todo --stop <id|title> --why '<reason>'   (stops the running job and its co-workers now and holds the item as stopped; finished stages stay)
+         bmo todo --wind-down <id|title> --why '<reason>' [--after <item id> | --after-deploy <item id|commit>]   (stop at the end of the current stage: held as 재개 대기 and told to the running job at once)
+                  (a condition releases nothing: when the --after item finishes, or the item's waiting commits or the commit go live, the chat agent is told and takes the hold off)
+         bmo todo --stop-here <id|title> [--why '<reason>' [--after <item id> | --after-deploy <item id|commit>]] --report '<what is finished and where the next run picks up>'   (leaves where a wound-down or stopped item's job stopped; the item stays open and held. A job told in words to stop puts its own item at 재개 대기 with --why)
+         bmo todo --merge <id>[,<id>] --into <id> | --unmerge <id|title>   (the merged items are finished when the item they merged into is)
+         bmo todo --worker <id|title> <worker name | ->
+         bmo todo --repairs <id|title> <id of the item it repairs | ->   (this item was filed to repair the other's failure; repairs chain in one line, up to 3)
+         bmo todo --cowork <id|title> <on|off>
+         bmo todo --impact <id|title> '<grounds JSON>'   (the parts of the code the change reaches and the outward contract that changes on each; docs/todo.md)
+         bmo todo --impact-check <id|title> '<grounds JSON>'   (a job's own grounds, weighed again before it changes anything; the chat agent is told where they come to another verdict than the co-work setting)
+         bmo todo --priority <id|title> <n>
+         bmo todo --drop <id>
+         bmo todo --pause | --resume   (the whole queue's automatic progress; the owner's pause only)
+         bmo todo --release-deploy-hold   (releases by hand the wait a deployment put on while a job ends; the deployment backs off without putting anything live)

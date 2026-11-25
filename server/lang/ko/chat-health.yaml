@@ -1,0 +1,55 @@
+# What the owner and a room read of the health of the chat agent's own chat session (docs/doctor.md; docs/sessions.md):
+# why a run died and where its record is, the line the bot sends itself where the chat agent cannot answer an order, the
+# outage's rest, and the fold of a full session. Each `{name}` is filled in with what it names.
+
+# Why a run died, out of what was read where it ended: an exit with its {code}, a signal from outside with its
+# number {signal}, an error handed back in place of an answer, a run that only asked to wait, a pane it never
+# had, and an ending nothing could read.
+causes:
+  exit: "실행이 비정상으로 끝났어 (종료 코드 {code})"
+  signal: "밖에서 실행이 끊겼어 (신호 {signal})"
+  error_result: "실행은 끝까지 갔는데 답 대신 오류가 돌아왔어"
+  silent: "실행 자체는 멀쩡했고, 답할 차례에 기다리겠다고만 했어"
+  transport: "실행을 세울 팬을 얻지 못했어"
+  unknown: "실행이 어떻게 끝났는지는 읽히지 않았어"
+
+# The account of a dead run, in two lines: {opening}, the room {room} it was in, its {cause} and what it {said},
+# then the {rest} of it, what it was doing and where its record is.
+account:
+  line: "{opening}{room}. {cause}.{said}\n{rest}"
+  # The opening for a run that broke ({agent}), and for one that held together and said nothing ({subject} is
+  # the agent with its subject particle).
+  broke: "{agent} 실행이 실패했어"
+  silent: "{subject} 이번 차례에 답을 내지 못했어"
+  room: " ({room})"
+  said: " 돌아온 말: {said}"
+  # The tool the run was last calling, with what it was handed where that reads in a breath ({detail}).
+  action: "마지막으로 {tool} 도구를 쓰고 있었어{detail}."
+  detail: " ({detail})"
+  record: "기록은 {record}에 있어."
+  # Where the run's own account is: its log under the agent's name ({agent}) and the run ({run}).
+  run_log: "{agent} 실행 로그 {run}"
+  # A tool call whose log names no tool.
+  unnamed_tool: "이름 없는 도구"
+
+# The bot's own line where the chat agent cannot answer an order: the journal {windows}, how many times the same cause
+# has come ({count}), and why the bot speaks ({subject} is the agent with its subject particle).
+last_resort:
+  journal: "저널 (한국 시각): {windows}"
+  repeated: "같은 원인으로 {count}번째야. "
+  speaking: "{subject} 이 일을 넘겨받고도 답하지 못하고 있어서 봇이 직접 보내."
+
+# What the owner is told as an outage's rest begins.
+rest:
+  outage: "{chat_agent} 머리가 연결이 안 돼... 서버가 말을 안 들어서 잠깐 쉬다 올게."
+
+# A full session folded: the line before it where the session cannot be asked, the line where it did not
+# happen, what the owner hears of a room's fold failing ({room}, {reason}), and why the room's next turn is
+# told its memory was replaced.
+fold:
+  going: "으으, 머리가 꽉 찼어... 잠깐만 자고 올게."
+  failed: "어, 못 잤어... 머리 접기가 안 돼서 그냥 계속 깨어 있을게."
+  failed_owner: "{room} 방의 문맥 접기가 실패했어요: {reason}"
+  woken: "문맥 접기"
+  # Why a fold waits, where the Claude Code road is off.
+  deferred: "문맥 접기를 미룹니다."

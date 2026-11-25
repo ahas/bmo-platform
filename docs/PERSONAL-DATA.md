@@ -13,6 +13,8 @@ a comment, a document, a test fixture or a commit message.
 - **An example is neutral.** A person is `tester`, `qa-admin` or `someone`; a mailbox stands at
   `example.com` or another reserved example domain; a home path names `user`; a token is written in
   lowercase, where a generated secret is mixed case.
+- **An agent is named by its registration id,** never by the name it is given. The label a person sees
+  stands in the deployment's settings.
 - **A test's fixtures carry no real person, account, room or message.** A conversation line a test reads is
   written for the test.
 

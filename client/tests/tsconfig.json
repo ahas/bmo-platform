@@ -1,0 +1,12 @@
+{
+  // The console's tests read its code through the aliases Nuxt gives the app, and run under Bun, so they
+  // take the app's config with Bun's types beside it. Bun maps an import through the tsconfig nearest the
+  // file doing the importing, which for a test is this one. The server's tests are a project of their own
+  // under server/, on the server's config.
+  "extends": "../apps/web/.nuxt/tsconfig.app.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": ["./**/*", "../apps/web/.nuxt/nuxt.d.ts", "../apps/web/shared/**/*.d.ts", "../apps/web/*.d.ts"],
+  "exclude": ["./server/**/*"]
+}

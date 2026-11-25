@@ -1,0 +1,324 @@
+import { loginNumbers } from "#shared/claude-logins";
+
+import type { components } from "@agency/client/schema";
+import type { LoginRow } from "#shared/claude-logins";
+import type { AccountUsage, ActiveUsage, AgentContext, AgentTokenUsage, HeadlineWindow, RoadUsage, UsageBalance, UsageView } from "#shared/types";
+
+type Schemas = components["schemas"];
+
+// The usage view out of the agency's answers (docs/web.md, 「Usage in the title bar」; docs/boundary.md, 「Gaps the
+// console meets」): the slot the chat runs on and the accounts' names from its fallback answer, each account's own
+// window from its account list, and each worker's week from its usage. What an answer does not state stands as
+// absent, never as a nought and never as another slot's figure.
+
+const SESSION_MINUTES = 5 * 60;
+const WEEK_MINUTES = 7 * 24 * 60;
+
+type Held = Record<string, unknown>;
+
+function held(value: unknown): Held | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Held) : null;
+}
+
+function text(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+function count(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** One window as the agency's headline pick states it, or none where the value is not one. */
+export function headlineOf(value: unknown): HeadlineWindow | null {
+  const window = held(value);
+  const name = text(window?.name);
+  const utilization = count(window?.utilization);
+
+  if (window === null || name === null || utilization === null) return null;
+
+  return {
+    name,
+    utilization,
+    resetsAt: count(window.resetsAt),
+    durationMinutes: count(window.durationMinutes),
+    limitName: text(window.limitName)
+  };
+}
+
+/** A balance as the agency answers it, or none where it states no amount and currency. */
+export function balanceOf(value: unknown): UsageBalance | null {
+  const balance = held(value);
+  const amount = typeof balance?.amount === "number" && Number.isFinite(balance.amount) ? balance.amount : null;
+  const currency = text(balance?.currency);
+  const seenAt = count(balance?.seenAt);
+
+  return amount === null || currency === null || seenAt === null ? null : { amount, currency, seenAt, requests: requestsOf(balance?.requests) };
+}
+
+// A request allowance as the agency answers it, or none where it states no figure of the three.
+function requestsOf(value: unknown): UsageBalance["requests"] {
+  const requests = held(value);
+  const used = count(requests?.used);
+  const limit = count(requests?.limit);
+  const left = count(requests?.left);
+
+  return used === null || limit === null || left === null ? null : { used, limit, left, scope: text(requests?.scope) };
+}
+
+/**
+ * Each provider's own road that keeps a balance: a provider that is switched on, whose quota states a balance with
+ * its currency and when it was seen, other than the provider the chat runs on, whose slot stands for it already.
+ */
+export function roadUsages(providers: readonly unknown[], active: ActiveUsage | null): RoadUsage[] {
+  const roads: RoadUsage[] = [];
+
+  for (const one of providers) {
+    const provider = held(one);
+    const name = text(provider?.name);
+    const quota = held(provider?.quota);
+
+    if (name === null || provider?.enabled === false || name === active?.provider) continue;
+
+    const balance = balanceOf({ amount: quota?.balance, currency: quota?.currency, seenAt: quota?.balanceSeenAt, requests: quota?.requests });
+
+    if (balance !== null) roads.push({ provider: name, label: text(provider?.label) ?? name, balance });
+  }
+
+  return roads;
+}
+
+function windowAt(name: string, minutes: number, utilization: number | null, resetsAt: number | null): HeadlineWindow | null {
+  return utilization === null
+    ? null
+    : { name, utilization, resetsAt: resetsAt === null ? null : Math.floor(resetsAt), durationMinutes: minutes, limitName: null };
+}
+
+/**
+ * An account's session and weekly windows out of the window its list entry carries, in the shape the agency records
+ * an account's usage in: the session's share and reset, and the week's beside them where it was read.
+ */
+export function accountWindows(value: unknown): [HeadlineWindow | null, HeadlineWindow | null] {
+  const window = held(value);
+
+  if (window === null) return [null, null];
+
+  return [
+    windowAt("five_hour", SESSION_MINUTES, count(window.utilization), count(window.resetsAt)),
+    windowAt("seven_day", WEEK_MINUTES, count(window.weeklyUtilization), count(window.weeklyResetsAt))
+  ];
+}
+
+/** Each provider's label, by its name, as the fallback's roads give it. */
+function providerLabels(fallback: Held | null): Map<string, string> {
+  const labels = new Map<string, string>();
+
+  for (const road of Array.isArray(fallback?.routes) ? fallback.routes : []) {
+    const name = text(held(road)?.name);
+    const label = text(held(road)?.label);
+
+    if (name !== null && label !== null) labels.set(name, label);
+  }
+
+  return labels;
+}
+
+/** Each account's name, by its id, as the fallback names its Claude accounts. */
+function accountNames(fallback: Held | null): Map<string, string> {
+  const names = new Map<string, string>();
+
+  for (const account of Array.isArray(fallback?.accounts) ? fallback.accounts : []) {
+    const id = text(held(account)?.id);
+    const name = text(held(account)?.name);
+
+    if (id !== null && name !== null) names.set(id, name);
+  }
+
+  return names;
+}
+
+/**
+ * Every Claude login the fallback answer states, each with the account it belongs to. The answer is the whole list
+ * the reader is told of — the panel leaves an account the owner switched off out of its groups, and the number still
+ * counts it — so it is what a login's number is counted over, wherever the figures are read from.
+ */
+function loginRows(fallback: Held | null): LoginRow[] {
+  const rows: LoginRow[] = [];
+
+  for (const account of Array.isArray(fallback?.accounts) ? fallback.accounts : []) {
+    const one = held(account);
+    const id = text(one?.id);
+    const name = text(one?.name);
+
+    if (id === null || name === null) continue;
+
+    rows.push({
+      id,
+      name,
+      // Absent where the answer states no owner, which is not the same as the platform's own.
+      ...(one?.userId === undefined ? {} : { userId: one.userId === null ? null : String(one.userId) })
+    });
+  }
+
+  return rows;
+}
+
+/**
+ * The slot the chat runs on: the provider the chat agent runs on, which is the default answerer's own `provider`
+ * where it is named, with the login and windows the fallback answer states for that provider; none where neither
+ * names a provider. A provider the fallback's slot is not on stands with no login and no window, never another
+ * provider's figures.
+ */
+export function activeUsage(answer: unknown, chatProvider: string | null = null): ActiveUsage | null {
+  const fallback = held(answer);
+  const named = held(fallback?.active);
+  const active = named !== null && (chatProvider === null || text(named.provider) === chatProvider) ? named : null;
+  const provider = text(active?.provider) ?? chatProvider;
+
+  if (provider === null) return null;
+
+  if (active === null) {
+    return { provider, label: providerLabels(fallback).get(provider) ?? provider, account: null, accountName: null, loginNumber: null, logins: 0, session: null, week: null, balance: null };
+  }
+
+  const account = text(active.account);
+
+  return {
+    provider,
+    label: providerLabels(fallback).get(provider) ?? provider,
+    account,
+    accountName: account === null ? null : (text(active.accountName) ?? accountNames(fallback).get(account) ?? account),
+    loginNumber: account === null ? null : (loginNumbers(loginRows(fallback)).get(account) ?? null),
+    logins: count(active.accounts) ?? 0,
+    session: headlineOf(active.session),
+    week: headlineOf(active.week),
+    balance: balanceOf(active.balance)
+  };
+}
+
+/** The accounts the fallback says the owner switched off, by id; one it does not say of is on. */
+function accountsOff(fallback: Held | null): Set<string> {
+  const off = new Set<string>();
+
+  for (const account of Array.isArray(fallback?.accounts) ? fallback.accounts : []) {
+    const id = text(held(account)?.id);
+
+    if (id !== null && held(account)?.enabled === false) off.add(id);
+  }
+
+  return off;
+}
+
+/**
+ * Every account the agency lists that is switched on, on a provider that is switched on, in its order, each with its
+ * own windows: `providersOff` names the providers the owner switched off. The account the chat runs on takes the
+ * slot's windows where its own entry states none, since those are the same login's; no other account takes them.
+ */
+export function accountUsages(
+  answer: unknown,
+  accounts: readonly Schemas["Account"][],
+  active: ActiveUsage | null,
+  providersOff: ReadonlySet<string> = new Set()
+): AccountUsage[] {
+  const fallback = held(answer);
+  const names = accountNames(fallback);
+  const labels = providerLabels(fallback);
+  const numbers = loginNumbers(loginRows(fallback));
+  const off = accountsOff(fallback);
+
+  return accounts.filter((account) => !off.has(account.id) && !providersOff.has(account.provider)).map((account) => {
+    const isSlotAccount = active !== null && active.provider === account.provider && active.account === account.id;
+    // An account's own windows as the agency answers them, or read off the usage it last reported where it names
+    // none of its own.
+    const [reported, reportedWeek] = accountWindows(account.window);
+    const session = headlineOf((account as { session?: unknown }).session) ?? reported;
+    const week = headlineOf((account as { week?: unknown }).week) ?? reportedWeek;
+
+    return {
+      id: account.id,
+      name: names.get(account.id) ?? account.id,
+      loginNumber: numbers.get(account.id) ?? null,
+      provider: account.provider,
+      label: labels.get(account.provider) ?? account.provider,
+      session: session ?? (isSlotAccount ? active.session : null),
+      week: week ?? (isSlotAccount ? active.week : null),
+      balance: balanceOf((account as { balance?: unknown }).balance)
+    };
+  });
+}
+
+interface UsageGroup {
+  key: string;
+  tokens: number;
+  jobs: number;
+  contextTokens: number | null;
+  // What the group's jobs spent apart, summed over the jobs that reported it, and what the rest spent whole.
+  split: Pick<AgentTokenUsage, "inputTokens" | "outputTokens" | "cacheReadTokens" | "cacheWriteTokens" | "unsplitRuns" | "unsplitTokens">;
+}
+
+// A group that names no jobs left unsplit is read as wholly unsplit: the agency then counts no kinds at all.
+function splitOf(group: Held, tokens: number, jobs: number): UsageGroup["split"] {
+  const unsplitRuns = count(group.unsplitJobs);
+
+  return {
+    inputTokens: count(group.inputTokens),
+    outputTokens: count(group.outputTokens),
+    cacheReadTokens: count(group.cacheReadTokens),
+    cacheWriteTokens: count(group.cacheWriteTokens),
+    unsplitRuns: unsplitRuns ?? jobs,
+    unsplitTokens: unsplitRuns === null ? tokens : (count(group.unsplitTokens) ?? 0)
+  };
+}
+
+function groupOf(value: unknown): UsageGroup | null {
+  const group = held(value);
+  const key = text(group?.key);
+
+  if (group === null || key === null) return null;
+
+  const tokens = count(group.tokens) ?? 0;
+  const jobs = count(group.jobs) ?? 0;
+
+  return { key, tokens, jobs, contextTokens: count(group.contextTokens), split: splitOf(group, tokens, jobs) };
+}
+
+/**
+ * Each worker's week, where its jobs carry a figure. A worker whose jobs carry no tokens is one the agency recorded
+ * none for, and it stands absent rather than as having spent nothing. The four kinds are the agency's sums over the
+ * jobs that reported their spend apart, and what the other jobs spent stands as not split.
+ */
+export function workerUsages(usage: Schemas["Usage"]): AgentTokenUsage[] {
+  return usage.groups.flatMap((value) => {
+    const group = groupOf(value);
+
+    return group === null || group.tokens <= 0 ? [] : [{ agent: group.key, tokens: group.tokens, runs: group.jobs, ...group.split }];
+  });
+}
+
+/** What each worker's sessions carry now, where the agency counts it. */
+export function workerContexts(usage: Schemas["Usage"]): AgentContext[] {
+  return usage.groups.flatMap((value) => {
+    const group = groupOf(value);
+
+    return group === null || group.contextTokens === null ? [] : [{ agent: group.key, contextTokens: group.contextTokens }];
+  });
+}
+
+/** The whole view out of the three answers, the provider the chat agent runs on and the providers switched off. */
+export function usageView(
+  fallback: unknown,
+  accounts: readonly Schemas["Account"][],
+  usage: Schemas["Usage"],
+  chatProvider: string | null = null,
+  providersOff: ReadonlySet<string> = new Set(),
+  providers: readonly unknown[] = []
+): UsageView {
+  const active = activeUsage(fallback, chatProvider);
+
+  return {
+    active,
+    roads: roadUsages(providers, active),
+    accounts: accountUsages(fallback, accounts, active, providersOff),
+    agents: workerUsages(usage),
+    contexts: workerContexts(usage)
+  };
+}

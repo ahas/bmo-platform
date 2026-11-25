@@ -1,0 +1,23 @@
+# One Claude account's token for the work nodes, made and kept on this machine by `bmo node claude-token`
+# (docs/work-nodes.md, 「The logins on a node」). Each `{name}` is filled in with what it names.
+
+# No account is registered under the name or id given, {named}.
+unknown_account: 'claude-token: 등록된 Claude 계정 중 "{named}"이 없습니다. bmo agent로 계정 목록을 확인해 주세요.'
+# The verb starts on the account {name}.
+making: 'Claude 계정 "{name}"의 노드용 토큰을 만듭니다.'
+# The browser's sign-in is to be approved as the account, its address {email} where its directory names one.
+approve: "브라우저가 열리면 이 계정으로 로그인된 상태인지 확인하고 승인해 주세요."
+approve_as: "브라우저가 열리면 {email} 계정으로 로그인된 상태인지 확인하고 승인해 주세요."
+# The CLI's sign-in did not run through.
+sign_in_failed: "claude-token: claude setup-token이 끝까지 진행되지 않았습니다. 저장한 것은 없습니다."
+# The prompt for the token, which is not shown as it is typed.
+paste: "위에 출력된 토큰을 붙여 넣고 Enter를 눌러 주세요(화면에는 표시되지 않습니다): "
+# The paste was given up.
+stopped: "claude-token: 중지했습니다. 저장한 것은 없습니다."
+# Why a pasted text, refused as {fault}, was not kept.
+refused: "claude-token: {fault} 저장한 것은 없습니다."
+not_a_token: "claude setup-token이 출력한 토큰(sk-ant-oat로 시작)이 아닙니다."
+cut: "토큰이 중간에 끊기거나 공백이 섞였습니다. 한 줄 그대로 다시 붙여 넣어 주세요."
+# Where the token was kept, {file}, and what follows from it.
+kept: "저장했습니다: {file}"
+from_next_run: "다음 실행부터 모든 노드가 이 토큰으로 Claude Code를 실행합니다."

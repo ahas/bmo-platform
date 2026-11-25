@@ -1,0 +1,53 @@
+# What a job's spans are called where a person reads a breakdown of them (docs/todo.md, 「Reading an
+# item」): the CLI's own tools and the MCP servers by the act they do, a co-worker and a branch, a length
+# of time, and the kinds a run's tokens divide into. Each `{name}` is filled in with what it names.
+
+# The CLI's own tools, by the name the protocol calls each.
+tools:
+  Bash: "셸"
+  BashOutput: "셸 출력"
+  KillShell: "셸 종료"
+  Read: "읽기"
+  Write: "쓰기"
+  Edit: "편집"
+  NotebookEdit: "노트북 편집"
+  Glob: "파일 검색"
+  Grep: "내용 검색"
+  Task: "코워커"
+  Agent: "코워커"
+  TaskOutput: "브랜치 대기"
+  TaskStop: "브랜치 중지"
+  Workflow: "워크플로"
+  ToolSearch: "툴 검색"
+  Skill: "스킬"
+  Monitor: "모니터"
+  SendMessage: "메시지 보내기"
+  ScheduleWakeup: "깨우기 예약"
+  TodoWrite: "할 일 작성"
+  WebSearch: "웹 검색"
+  WebFetch: "웹 페이지 읽기"
+
+# The MCP servers a tool is called through, by the name each is registered under.
+servers:
+  chrome-devtools: "브라우저"
+  toolbook: "툴북"
+  web: "웹"
+
+# A co-worker a run handed work to, alone or with its {kind}.
+coworker: "코워커"
+coworker_kind: "코워커 {kind}"
+
+# A length of time: under a minute in {seconds}, under an hour in {minutes} and {seconds}, and past it in
+# {hours} and {minutes}.
+clock:
+  seconds: "{seconds}초"
+  minutes: "{minutes}분 {seconds}초"
+  hours: "{hours}시간 {minutes}분"
+
+# The four kinds a run's tokens divide into, and the {tokens} it saw go past whichever kinds.
+kinds:
+  input: "읽기"
+  output: "쓰기"
+  cache_read: "캐시읽기"
+  cache_write: "캐시쓰기"
+total: "총 {tokens}"

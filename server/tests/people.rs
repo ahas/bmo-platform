@@ -1,0 +1,525 @@
+//! The people directory (docs/accounts.md, 「The people directory」): the users of the reader's own
+//! company, and of every company for the platform administrator, found by name, organisation and the contact
+//! details the reader may see. A member's search matches no contact detail but their own, and a member neither
+//! finds nor reads a person of another company.
+
+use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
+use axum::Router;
+use axum::body::Body;
+use axum::http::{Method, Request, StatusCode, header};
+use bmo_web_client::ProfileAsk;
+use bmo_web_server::data_move::{MoveAsk, run_move};
+use bmo_web_server::one;
+use bmo_web_server::routes::in_force;
+use bmo_web_server::users::{set_profile, set_sign_in};
+use http_body_util::BodyExt;
+use serde_json::Value;
+use tower::ServiceExt;
+
+const TOKEN: &str = "the server's token";
+
+async fn moved(name: &str) -> Scratch {
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &console_hash("the password")).await;
+  run_move(
+    scratch.db(),
+    MoveAsk {
+      owner_senders: vec![OWNER],
+    },
+  )
+  .await
+  .unwrap();
+  let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
+  let profile = ProfileAsk {
+    full_name: String::new(),
+    job_title: "Engineer".into(),
+    landline: "landline-a".into(),
+    mobile: "mobile-a".into(),
+    email: "member@example.com".into(),
+    ..ProfileAsk::default()
+  };
+
+  set_profile(scratch.db(), user, &profile).await.unwrap();
+
+  scratch
+}
+
+async fn app(scratch: &Scratch) -> Router {
+  in_force(scratch.service.clone(), TOKEN.into()).await.unwrap()
+}
+
+async fn asked(app: &Router, path: &str, key: Option<&str>, role: Option<&str>) -> (StatusCode, Value) {
+  let mut request = Request::builder()
+    .method(Method::GET)
+    .uri(path)
+    .header("x-real-ip", "127.0.0.1")
+    .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"));
+
+  if let Some(key) = key {
+    request = request.header("owner-key", key);
+  }
+  if let Some(role) = role {
+    request = request.header("owner-role", role);
+  }
+
+  let answer = app.clone().oneshot(request.body(Body::empty()).unwrap()).await.unwrap();
+  let status = answer.status();
+  let bytes = answer.into_body().collect().await.unwrap().to_bytes();
+  let body = if bytes.is_empty() { Value::Null } else { serde_json::from_slice(&bytes).unwrap() };
+
+  (status, body)
+}
+
+async fn owner(app: &Router) -> String {
+  let request = Request::builder()
+    .method(Method::GET)
+    .uri(format!("/senders/{OWNER}/user"))
+    .header("x-real-ip", "127.0.0.1")
+    .header(header::AUTHORIZATION, format!("Bearer {TOKEN}"));
+  let answer = app.clone().oneshot(request.body(Body::empty()).unwrap()).await.unwrap();
+
+  assert_eq!(answer.status(), StatusCode::OK);
+
+  let bytes = answer.into_body().collect().await.unwrap().to_bytes();
+  let said: Value = serde_json::from_slice(&bytes).unwrap();
+
+  said["user"].as_str().unwrap().to_owned()
+}
+
+fn people(said: &Value) -> &Vec<Value> {
+  said["people"].as_array().expect("people is a list")
+}
+
+fn names(said: &Value) -> Vec<&str> {
+  people(said).iter().map(|one| one["name"].as_str().unwrap()).collect()
+}
+
+#[tokio::test]
+async fn an_administrator_finds_people_of_the_organisation_by_name_organisation_and_contact() {
+  ready();
+  let scratch = moved("member-a").await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+
+  for words in ["member-a", "Engineer", "bmo", "member@example.com"] {
+    let (status, said) =
+      asked(&app, &format!("/users/search?q={words}"), Some(&boss), Some("administrator")).await;
+
+    assert_eq!(status, StatusCode::OK, "{said}");
+    assert!(names(&said).contains(&"member-a"), "{words}: {said}");
+  }
+
+  // The administrator sees the contact details.
+  let (_, said) = asked(&app, "/users/search?q=Engineer", Some(&boss), Some("administrator")).await;
+  let member = people(&said).iter().find(|one| one["name"] == "member-a").unwrap();
+
+  assert_eq!(member["email"], "member@example.com", "{said}");
+  assert_eq!(member["mobile"], "mobile-a", "{said}");
+
+  // A search that finds nothing answers nobody.
+  let (status, said) = asked(&app, "/users/search?q=nobody-here", Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(people(&said).is_empty(), "{said}");
+}
+
+/// A user standing in a unit of a company of its own, with contact details, and their id.
+async fn outsider(scratch: &Scratch) -> i32 {
+  let outside = set_sign_in(scratch.db(), "outsider", "the password", false).await.unwrap().user;
+  let other = one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name") VALUES ('elsewhere') RETURNING "id""#,
+    vec![],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap();
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![other.into(), outside.into()],
+    )
+    .await;
+  set_profile(
+    scratch.db(),
+    outside,
+    &ProfileAsk {
+      full_name: String::new(),
+      job_title: "Engineer".into(),
+      landline: "landline-c".into(),
+      mobile: "mobile-c".into(),
+      email: "outsider@example.com".into(),
+      ..ProfileAsk::default()
+    },
+  )
+  .await
+  .unwrap();
+
+  outside
+}
+
+#[tokio::test]
+async fn the_administrator_finds_and_reads_a_person_of_another_company() {
+  ready();
+  let scratch = moved("member-b").await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let outside = outsider(&scratch).await;
+
+  let (status, said) = asked(&app, "/users/search?q=outsider", Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["outsider"], "{said}");
+  assert_eq!(people(&said)[0]["organization"], "elsewhere", "{said}");
+
+  let (status, said) =
+    asked(&app, &format!("/users/{outside}/person"), Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["name"], "outsider", "{said}");
+  assert_eq!(said["organization"], "elsewhere", "{said}");
+}
+
+#[tokio::test]
+async fn a_member_neither_finds_nor_reads_a_person_of_another_company() {
+  ready();
+  let scratch = moved("member-g").await;
+  let app = app(&scratch).await;
+  let member = one(scratch.db(), r#"SELECT "id" FROM "users" WHERE "username" = 'member-g'"#, vec![])
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get::<i32>("", "id")
+    .unwrap()
+    .to_string();
+  let outside = outsider(&scratch).await;
+
+  let (status, said) = asked(&app, "/users/search?q=outsider", Some(&member), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(people(&said).is_empty(), "{said}");
+
+  let (status, said) =
+    asked(&app, &format!("/users/{outside}/person"), Some(&member), Some("member")).await;
+
+  assert_eq!(status, StatusCode::NOT_FOUND, "{said}");
+}
+
+#[tokio::test]
+async fn a_member_sees_no_contact_detail_and_matches_none_but_their_own() {
+  ready();
+  let scratch = moved("member-c").await;
+  let app = app(&scratch).await;
+  let member = one(scratch.db(), r#"SELECT "id" FROM "users" WHERE "username" = 'member-c'"#, vec![])
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get::<i32>("", "id")
+    .unwrap();
+  let other = set_sign_in(scratch.db(), "member-e", "the password", false).await.unwrap().user;
+
+  set_profile(
+    scratch.db(),
+    other,
+    &ProfileAsk {
+      full_name: String::new(),
+      job_title: "Designer".into(),
+      landline: "landline-b".into(),
+      mobile: "mobile-b".into(),
+      email: "other@example.com".into(),
+      ..ProfileAsk::default()
+    },
+  )
+  .await
+  .unwrap();
+  let key = member.to_string();
+
+  // Another person's name and job title are read, and their contact details are not.
+  let (status, said) = asked(&app, "/users/search?q=Designer", Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let found = people(&said).iter().find(|one| one["name"] == "member-e").unwrap();
+
+  assert_eq!(found["jobTitle"], "Designer", "{said}");
+  assert!(found.get("email").is_none(), "{said}");
+  assert!(found.get("mobile").is_none(), "{said}");
+
+  // Another person's contact detail is no answer to a member.
+  let (status, said) = asked(&app, "/users/search?q=mobile-b", Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(people(&said).is_empty(), "{said}");
+
+  // Their own is.
+  let (status, said) = asked(&app, "/users/search?q=mobile-a", Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["member-c"], "{said}");
+
+  // The person's page carries the same fields as the search.
+  let (status, said) = asked(&app, &format!("/users/{other}/person"), Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(said.get("email").is_none(), "{said}");
+
+  let (status, said) = asked(&app, &format!("/users/{member}/person"), Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["email"], "member@example.com", "{said}");
+}
+
+#[tokio::test]
+async fn a_login_that_names_no_user_is_refused_and_an_empty_search_answers_nobody() {
+  ready();
+  let scratch = moved("member-d").await;
+  let app = app(&scratch).await;
+
+  for key in [None, Some("999999")] {
+    let (status, said) = asked(&app, "/users/search?q=Engineer", key, Some("member")).await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+    assert_eq!(said["code"], "forbidden", "{said}");
+  }
+
+  // A user of the deployment whose words are empty is answered nobody.
+  let boss = owner(&app).await;
+  let (status, said) = asked(&app, "/users/search?q=", Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert!(people(&said).is_empty(), "{said}");
+}
+
+#[tokio::test]
+async fn the_members_list_is_the_whole_company_by_key_and_name_alone() {
+  ready();
+  let scratch = moved("member-f").await;
+  let app = app(&scratch).await;
+  let boss = owner(&app).await;
+  let member = one(scratch.db(), r#"SELECT "id" FROM "users" WHERE "username" = 'member-f'"#, vec![])
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get::<i32>("", "id")
+    .unwrap();
+  let outside = set_sign_in(scratch.db(), "outsider", "the password", false).await.unwrap().user;
+  let other = one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name") VALUES ('elsewhere') RETURNING "id""#,
+    vec![],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap();
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![other.into(), outside.into()],
+    )
+    .await;
+  let gone = set_sign_in(scratch.db(), "member-gone", "the password", false).await.unwrap().user;
+
+  scratch
+    .run(
+      r#"INSERT INTO "user_departures" ("user_id", "left_at", "left_by") VALUES ($1::bigint, 0, $1::bigint)"#,
+      vec![gone.into()],
+    )
+    .await;
+
+  // A member reads every person of their company, the administrator and themselves among them, each by key and
+  // name and nothing else, and nobody of another company or who has left.
+  let key = member.to_string();
+  let (status, said) = asked(&app, "/users/members", Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let members = said["members"].as_array().expect("members is a list");
+  let keys: Vec<&str> = members.iter().map(|one| one["user"].as_str().unwrap()).collect();
+
+  assert!(keys.contains(&key.as_str()), "{said}");
+  assert!(keys.contains(&boss.as_str()), "{said}");
+  assert!(!keys.contains(&outside.to_string().as_str()), "{said}");
+  assert!(!keys.contains(&gone.to_string().as_str()), "{said}");
+  for one in members {
+    let mut fields: Vec<&str> = one.as_object().unwrap().keys().map(String::as_str).collect();
+
+    fields.sort_unstable();
+    assert_eq!(fields, vec!["name", "user"], "{said}");
+  }
+  let named = members.iter().find(|one| one["user"] == key.as_str()).unwrap();
+
+  assert_eq!(named["name"], "member-f", "{said}");
+
+  // A call naming no user of the deployment is refused, as a search is.
+  for key in [None, Some("999999")] {
+    let (status, said) = asked(&app, "/users/members", key, Some("member")).await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN, "{said}");
+  }
+}
+
+/// A unit of the standing model, made for a room bound.
+async fn deep_unit(scratch: &Scratch, name: &str, parent: Option<i32>) -> i32 {
+  one(
+    scratch.db(),
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ($1, $2) RETURNING "id""#,
+    vec![name.into(), parent.into()],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get::<i32>("", "id")
+  .unwrap()
+}
+
+/// A user who may sign in, stood in `unit`.
+async fn stood(scratch: &Scratch, name: &str, unit: i32) -> i32 {
+  let user = set_sign_in(scratch.db(), name, "the password", false).await.unwrap().user;
+
+  scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![unit.into(), user.into()],
+    )
+    .await;
+
+  user
+}
+
+#[tokio::test]
+async fn a_room_named_search_and_members_list_answer_the_people_the_reader_may_let_in() {
+  ready();
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &console_hash("the password")).await;
+  run_move(
+    scratch.db(),
+    MoveAsk {
+      owner_senders: vec![OWNER],
+    },
+  )
+  .await
+  .unwrap();
+
+  let company = deep_unit(&scratch, "company-a", None).await;
+  let team = deep_unit(&scratch, "team-a", Some(company)).await;
+  let other = deep_unit(&scratch, "company-b", None).await;
+  let opener = stood(&scratch, "opener-a", team).await;
+  let member = stood(&scratch, "member-a", company).await;
+  stood(&scratch, "colleague-a", team).await;
+  let lefter = stood(&scratch, "lefter-a", company).await;
+  let outsider = stood(&scratch, "outsider-b", other).await;
+
+  scratch.rooms.leaders.lock().unwrap().insert(ROOM, vec![opener]);
+  scratch.rooms.members.lock().unwrap().insert(ROOM, vec![opener, member]);
+  scratch
+    .run(
+      r#"INSERT INTO "user_departures" ("user_id", "left_at", "left_by") VALUES ($1::bigint, 0, $1::bigint)"#,
+      vec![lefter.into()],
+    )
+    .await;
+
+  let app = app(&scratch).await;
+  let named = format!("/users/search?room={ROOM}");
+  let key = member.to_string();
+
+  // Opened on the room, with no words, the search answers the whole set this member may let in: the room's
+  // company's people, the one marked left and every other company's left out.
+  let (status, said) = asked(&app, &named, Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  // Words narrow that set; a word standing for the reader's own company answers nobody, for the room's
+  // bound stands over the search, not the reader's directory.
+  let (_, said) = asked(&app, &format!("{named}&q=col"), Some(&key), Some("member")).await;
+
+  assert_eq!(names(&said), vec!["colleague-a"], "{said}");
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={ROOM}&q=outsider"), Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  // The administrator, asked of a standing room, is bounded by its company like every other reader.
+  let boss = owner(&app).await;
+  let (status, said) = asked(&app, &named, Some(&boss), Some("administrator")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  // One who stands in no relation to the room may let nobody in and is answered nobody, words or none.
+  let (_, said) = asked(&app, &named, Some(&outsider.to_string()), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  let (_, said) = asked(
+    &app,
+    &format!("/users/search?room={ROOM}&q=outsider"),
+    Some(&outsider.to_string()),
+    Some("member"),
+  )
+  .await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  // The members list named for the room answers the same set, each by key and name alone, with no limit.
+  let (status, said) =
+    asked(&app, &format!("/users/members?room={ROOM}"), Some(&key), Some("member")).await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+  let members = said["members"].as_array().expect("members is a list");
+  let listed: Vec<&str> = members.iter().map(|one| one["name"].as_str().unwrap()).collect();
+
+  assert_eq!(listed, vec!["colleague-a", "member-a", "opener-a"], "{said}");
+  for one in members {
+    let mut fields: Vec<&str> = one.as_object().unwrap().keys().map(String::as_str).collect();
+
+    fields.sort_unstable();
+    assert_eq!(fields, vec!["name", "user"], "{said}");
+  }
+
+  // A room with no leader bounds on the reader's own company, and only once the reader may let in at all;
+  // the administrator reads every company of the deployment for it, still no one marked left.
+  let leaderless = ROOM - 1;
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+
+  scratch.rooms.members.lock().unwrap().insert(leaderless, vec![member]);
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&key), Some("member")).await;
+
+  assert_eq!(names(&said), vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  let (_, said) =
+    asked(&app, &format!("/users/search?room={leaderless}"), Some(&boss), Some("administrator")).await;
+
+  assert!(names(&said).contains(&"outsider-b"), "{said}");
+  assert!(names(&said).contains(&"member-a"), "{said}");
+  assert!(!names(&said).contains(&"lefter-a"), "{said}");
+
+  // The roads without a room stand as they were: the reader's own company, the marked left kept out of the
+  // members list alone.
+  let (_, said) = asked(&app, "/users/members", Some(&key), Some("member")).await;
+  let listed: Vec<&str> = said["members"]
+    .as_array()
+    .expect("members is a list")
+    .iter()
+    .map(|one| one["name"].as_str().unwrap())
+    .collect();
+
+  assert_eq!(listed, vec!["colleague-a", "member-a", "opener-a"], "{said}");
+
+  let (_, said) = asked(&app, "/users/search?q=outsider", Some(&key), Some("member")).await;
+
+  assert!(people(&said).is_empty(), "{said}");
+}

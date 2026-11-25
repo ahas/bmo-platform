@@ -1,0 +1,25 @@
+# The tool probe's reading as `bmo tool probe` prints it (docs/toolbook.md, 「Measuring」): a title line, and
+# one row to a line under the columns named here. Each `{name}` is filled in with what it names.
+
+# The title line: {at} the Seoul time the reading was printed.
+title: "툴 프로브 · {at}"
+# The columns, in the order they stand.
+columns:
+  line: "줄"
+  tools_shown: "보인 도구"
+  first_request: "첫 요청 토큰"
+  input: "입력"
+  cache_write: "캐시 쓰기"
+  cache_read: "캐시 읽기"
+  tool: "도구"
+  way: "길"
+  to_result: "결과까지 초"
+  whole: "전체 초"
+  exit: "종료"
+# How the session reached its tool: not at all, through the toolbook, or directly.
+ways:
+  unreached: "닿지 못함"
+  toolbook: "툴북"
+  direct: "직접"
+# A line asked for that no probe measures: {unknown} the lines asked, {lines} the lines there are.
+unknown_line: "모르는 줄이에요: {unknown}. 잴 수 있는 줄: {lines}"

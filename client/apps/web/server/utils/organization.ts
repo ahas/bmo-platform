@@ -1,0 +1,91 @@
+import { isError } from "h3";
+
+import { AccountRefusal, AccountServiceDown } from "./account-service";
+import { fail } from "./fail";
+import { ownerKeyOf, ownerRoleOf } from "./owner-key";
+
+import { wording } from "#shared/wording";
+
+import type { ProfileCaller } from "./account-service";
+import type { SignedIn } from "./accounts";
+
+// The organisation section's calls and refusals (docs/web.md, 「Organisation settings」, the units tab): the
+// administrator's login handed on, and the account service's codes (docs/boundary.md, 「Organisation units」) said in
+// the pack's words.
+
+const ORGANIZATION_CODES: Record<string, string> = {
+  "other-company": "organization.error.other_company",
+  cycle: "organization.error.cycle",
+  "short-name-taken": "organization.error.short_name_taken",
+  "no-such-kind": "organization.error.no_such_kind",
+  "no-such-role": "organization.error.no_such_role",
+  "not-found": "organization.error.not_found",
+  "bad-request": "organization.error.bad_request",
+  forbidden: "common.error.administrator_only"
+};
+
+/** The codes of the calls on a person's machine (docs/boundary.md, 「Invitations」), over the section's own. */
+export const MACHINE_CODES: Readonly<Record<string, string>> = {
+  "bad-request": "organization.error.machine_name",
+  left: "organization.error.left",
+  "node-taken": "organization.error.node_taken",
+  "no-hub": "organization.error.no_hub"
+};
+
+/** The codes of a machine declared shared or no longer shared, over the machine's own. */
+export const SHARING_CODES: Readonly<Record<string, string>> = { ...MACHINE_CODES, "node-taken": "organization.error.shared_in_use" };
+
+/** The codes of a move of several people (docs/boundary.md, 「Organisation units」), over the section's own. */
+export const MOVE_CODES: Readonly<Record<string, string>> = {
+  left: "organization.error.move_left",
+  "no-such-role": "organization.error.no_such_role",
+  moved: "organization.error.moved"
+};
+
+/** The codes of a person marked left (docs/boundary.md, 「Invitations」), which the administrator and the person's heads
+ * may do, over the section's own. */
+export const LEAVE_CODES: Readonly<Record<string, string>> = { forbidden: "organization.error.leave_head_only" };
+
+/** The codes of the calls a head of a unit may make as well as the administrator — a post, an acting appointment, a
+ * company's lists (docs/boundary.md, 「Organisation units」, 「Roles and unit kinds」) — over the section's own. */
+export const HEAD_CODES: Readonly<Record<string, string>> = {
+  forbidden: "organization.error.head_only",
+  left: "organization.error.post_left",
+  "home-unit": "organization.error.home_unit",
+  "already-head": "organization.error.already_head",
+  "bad-period": "organization.error.bad_period",
+  "bad-catalogue": "organization.error.bad_catalogue",
+  "role-held": "organization.error.role_held",
+  "kind-held": "organization.error.kind_held",
+  "other-company": "organization.error.post_other_company"
+};
+
+/** The login a section's call is made for. */
+export function callerOf(signed: SignedIn): ProfileCaller {
+  return { key: ownerKeyOf(signed) ?? "", role: ownerRoleOf(signed) };
+}
+
+/** What a call came to, said in the pack's words, a call's own `codes` before the section's; a refusal already said
+ * in them, such as agency's, is handed on as it stands. */
+export function organizationFailure(error: unknown, codes: Readonly<Record<string, string>> = {}): Error {
+  if (isError(error)) return error;
+
+  if (error instanceof AccountServiceDown) return fail(503, wording("organization.error.unreachable"));
+
+  if (error instanceof AccountRefusal) {
+    const key = codes[error.code] ?? ORGANIZATION_CODES[error.code];
+
+    return fail(key === undefined ? 502 : error.status, wording(key ?? "organization.error.failed"));
+  }
+
+  return fail(500, wording("organization.error.failed"));
+}
+
+/** A whole number a path or a body names, or a refusal saying it names none. */
+export function unitNumber(value: unknown): number {
+  const number = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+
+  if (!Number.isInteger(number) || number <= 0) throw fail(400, wording("organization.error.bad_request"));
+
+  return number;
+}

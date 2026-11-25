@@ -1,0 +1,101 @@
+# What the control port's routes answer the console with where they refuse a change (docs/control-port.md,
+# 「How a request is answered」), said alike by the bun bot's routes and `bmo-server`'s where each answers
+# them, and the words the console shows of Laya. Each `{name}` is filled in with what it names.
+
+# A request no route can read.
+request:
+  not_json: "요청 본문이 JSON이 아닙니다."
+  action: "요청한 동작이 올바르지 않습니다."
+
+# The fallback roads and the run modes: a work key no provider can answer ({key} unknown to the routes),
+# a {provider} model list that could not be had for {why}, the provider order and switches, and the
+# model settings retired for the tiers.
+fallback:
+  no_laya: "Laya에 물을 수 없어 이 게이트는 기본값으로만 보냅니다. BMO_LAYA_URL을 확인해 주세요."
+  no_provider: "이 작업 키에 답할 수 있는 켜진 공급자가 없습니다. 공급자 설치·키·모델 설정을 확인해 주세요."
+  models_unread: "{provider} 모델 목록을 받지 못했습니다: {why}"
+  unknown_key: "알 수 없는 fallback key입니다: {key}"
+  models_retired: "개별 모델 설정은 종료되었습니다. 모델 등급 설정을 사용해 주세요."
+  order: "순서는 {providers}를 한 번씩 담아야 합니다."
+  provider_switch: "공급자 이름과 켬·끔 값이 필요합니다."
+  run_mode: "실행 모드는 자동 또는 공급자 하나여야 합니다."
+  tier_provider: "공급자를 선택해 주세요."
+
+# The Claude accounts: what a change to one names wrongly, an {id} or a {name} not known or already
+# taken, a name longer than its {most} characters, a credential path that is not what it says, and the
+# order and switches that would leave no account to run on.
+accounts:
+  switch: "계정과 켬·끔 값이 필요합니다."
+  run_on: "실행할 계정이 필요합니다."
+  credential_kind: "자격 증명은 설정 디렉터리이거나 토큰 파일입니다."
+  credential_path: "자격 증명 파일 경로를 입력해 주세요."
+  name_needed: "계정 이름을 적어 주세요."
+  which_to_change: "어느 계정을 고칠지가 필요합니다."
+  which_to_remove: "어느 계정을 지울지가 필요합니다."
+  choice: "계정은 자동이거나 계정 하나여야 합니다."
+  unknown: "{id}이라는 계정이 없습니다."
+  off: "{name}은 꺼져 있습니다."
+  no_id: "계정 식별자를 만들 수 없습니다."
+  id_shape: "식별자는 영소문자·숫자로 시작하는 2~32자여야 하고, 점·밑줄·붙임표만 쓸 수 있습니다."
+  id_taken: "이미 {id}이라는 계정이 있습니다."
+  name_empty: "계정 이름이 비어 있습니다."
+  name_long: "계정 이름은 {most}자까지입니다."
+  name_taken: "이미 \"{name}\"이라는 계정이 있습니다."
+  path_empty: "자격 증명 경로가 비어 있습니다."
+  path_relative: "경로는 절대 경로여야 합니다."
+  path_missing: "그 경로가 없습니다."
+  path_not_directory: "그 경로는 디렉터리가 아닙니다."
+  path_not_file: "토큰 경로는 파일이어야 합니다."
+  order: "순서는 등록된 계정을 한 번씩 담아야 합니다."
+  last_off: "계정을 모두 끌 수는 없습니다. 적어도 하나는 켜 두어야 합니다."
+  last_gone: "마지막 계정은 지울 수 없습니다."
+  chosen_off: "꺼진 계정은 고를 수 없습니다. 먼저 켜 주세요."
+
+# A gate's options: a {key} that is no gate or may not be turned off, the values a change may carry and
+# their bounds ({least} to {most} seconds, the Laya {modes}, the {fallback} word for no stand-in), and a
+# Laya {mode} a gate cannot take.
+gates:
+  not_gate: "게이트가 아닙니다: {key}"
+  own_llm: "게이트의 생각과 출력 크기는 모델 등급의 자체 LLM 설정에서 정합니다."
+  nothing: "바꿀 값이 없습니다: 제한시간, Laya 모드, τ, 사용, Laya 대체 LLM 가운데 하나를 보내 주세요."
+  fallback: "Laya 대체 LLM은 공급자 이름이나 {fallback}여야 합니다."
+  switch: "사용은 켬(true)이나 끔(false)이어야 합니다."
+  always_on: "이 게이트는 끌 수 없습니다: {key}"
+  timeout: "제한시간은 {least}초에서 {most}초 사이여야 합니다."
+  mode: "Laya 모드는 {modes} 가운데 하나여야 합니다."
+  tau: "τ는 0에서 1 사이의 숫자여야 합니다."
+  no_question: "이 게이트에는 Laya 질문이 없어 off 말고는 둘 수 없습니다: {key}"
+  no_safety: "이 게이트에는 안전 판정이 없어 비대칭 모드로 둘 수 없습니다: {key}"
+  no_checkpoint: "Laya 서버에 이 게이트의 체크포인트가 없어 {mode} 모드로 켜지 않았습니다. 마지막 상태 확인이 이 게이트를 말하지 않습니다: {key}"
+  needs_tau: "{mode} 모드에는 τ가 있어야 합니다."
+# A worker brought back to this machine with no path of this machine, and a worker's own sampling: an
+# {agent} not known, one whose {label} is no worker's or a support worker's that follows its base, a save that
+# is not names with values, and a setting {name} the sampling does not take.
+workers:
+  back_here_path: "이 기기로 돌아올 때는 이 기기의 경로를 입력해 주세요."
+  sampling:
+    no_agent: "에이전트를 찾을 수 없습니다: {agent}"
+    not_worker: "{label}은(는) 워커가 아니어서 샘플링을 따로 두지 않습니다."
+    follows_base: "{label}의 샘플링은 기본 워커의 설정을 따릅니다."
+    shape: "샘플링은 이름과 값의 짝이어야 합니다."
+    unknown: "샘플링에 {name} 설정은 없습니다."
+
+laya:
+
+  # A Laya mode as a sentence or the console names it.
+  modes:
+    off: "꺼짐"
+    shadow: "그림자"
+    filter: "필터"
+    asymmetric: "비대칭"
+
+  # How the Laya server last answered, as the console shows it.
+  states:
+    up: "응답함"
+    off: "주소 없음"
+    unknown: "확인 전"
+    unreachable: "닿지 않음"
+    timeout: "응답 없음"
+    refused: "거부됨"
+    bad-answer: "잘못된 답"
+    too-large: "너무 큼"

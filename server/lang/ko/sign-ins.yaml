@@ -1,0 +1,23 @@
+# What the sign-in scripts a person runs once say to that person: the Telegram reader's login
+# (docs/reader.md) and the Teams avatar's delegated sign-in (docs/teams.md, 「The avatar mode」). Each `{name}` is
+# filled in with what it names.
+
+# The Telegram reader's login.
+telegram:
+  # The API id and hash missing from the environment.
+  unconfigured: "BMO_TG_API_ID와 BMO_TG_API_HASH를 먼저 환경(.env)에 넣어주세요. my.telegram.org에서 발급받습니다."
+  # The questions asked in turn while signing in.
+  phone: "전화번호 (+8210...): "
+  code: "텔레그램으로 받은 코드: "
+  password: "2단계 인증 비밀번호 (없으면 엔터): "
+  # The sign-in done, over the line to add to the environment.
+  signed_in: "로그인 성공. 아래 한 줄을 .env에 추가한 뒤 서비스를 재시작하세요:"
+
+# The Teams avatar's sign-in.
+teams:
+  # The Graph app's id missing, after {missing}, what the configuration says is not set.
+  unconfigured: "{missing}: 공개 클라이언트 흐름을 허용한 Entra 앱의 id를 env/bot.env에 넣어주세요."
+  # Where to enter the device code, {address}, and the {code}, where Microsoft's answer carried no message.
+  enter_code: "{address} 에서 {code} 를 입력하세요."
+  # The sign-in done, as the {account} signed in, with the {path} its token was written to.
+  signed_in: "로그인했어요: {account}. 토큰은 {path} 에 있어요."

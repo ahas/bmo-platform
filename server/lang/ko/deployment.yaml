@@ -1,0 +1,126 @@
+# What the deployment's verbs tell the owner in their own chat, on the road that needs no bot
+# (docs/deploy.md). Each `{name}` is filled in with what it names.
+
+rollback:
+  # The line the owner reads in their own chat when a deployment's bot did not come up: first why, then
+  # what the rollback came to, then where to read the cause. {commit} and {to} are short commits.
+  restart_refused: "배포 실패: {commit}로 올린 봇을 systemctl로 다시 띄우지 못했어요."
+  not_answering: "배포 실패: {commit}로 올린 봇이 다시 띄운 뒤 {seconds}초 안에 응답하지 않았어요."
+  died_after_start: "배포 실패: {commit}로 올린 봇이 응답한 뒤 {seconds}초를 버티지 못하고 멈췄어요."
+  # {detail} is what the archive lacks, with a space before it, or nothing.
+  archive_short: "배포 실패: {commit}의 마이그레이션이 PostgreSQL 아카이브를 이 코드의 모양으로 맞추지 못했어요.{detail}"
+  # Before the deploy tree was flipped: nothing changed, so nothing is rolled back.
+  untouched: "배포 트리를 넘기기 전이라 서비스도 배포 트리도 바뀐 것이 없어요. 봇은 이전 코드로 그대로 실행 중이에요."
+  answers: "이전 배포 {to}로 되돌렸고, 봇은 다시 응답해요."
+  silent: "이전 배포 {to}로 되돌렸지만 봇이 여전히 응답하지 않아요. 봇은 내려가 있어요."
+  # Why nothing was rolled back, followed by the line after them.
+  first: "이전에 올라간 커밋이 없어 되돌리지 못했어요."
+  before_start: "시작 전 명령이 아카이브를 새 코드에 맞춰 바꿔서 자동으로 되돌리지 않았어요. docs/deploy.md의 Restoring이 되돌리는 길이에요."
+  tree: "배포 트리를 되돌리지 못했어요: {detail}"
+  bot_down: "봇은 내려가 있어요."
+  # Where the cause is read: {cause} is a journal command, or the line below.
+  cause: "원인: {cause}"
+  output: "배포 출력"
+  # The restart reason the bot that comes back says, never sent as written.
+  reason: "배포 실패로 되돌림: {commit}의 봇이 켜지지 않아 이전 배포 {back}로 돌아왔다"
+
+down:
+  # The line the owner reads when systemd has given up on the bot's unit {unit}, a line apiece: how it
+  # ended, its last exit status, the error it last wrote, the deployments at work, and where to look.
+  given_up: "systemd가 {unit}을(를) {restarts}번 다시 띄운 끝에 포기했어요(재시도 한도). 봇은 지금 꺼져 있어요."
+  failed: "{unit}이(가) 실패 상태로 멈췄어요({result}). 봇은 지금 꺼져 있어요."
+  exit: "마지막 종료 코드 {status}."
+  last_error: "마지막 오류: {line}"
+  deploying_unread: "진행 중인 배포는 읽지 못했어요."
+  deploying: "진행 중인 배포: {units}"
+  look: "살펴보기: journalctl --user -u {unit} -n 50 / 다시 띄우기: systemctl --user restart {unit}"
+
+suite:
+  # What the chat agent is told of a hand deployment that put nothing live; {main} is main with its short commit.
+  refused_unread: "손으로 건 배포가 main을 읽지 못해 아무것도 올리지 않았다."
+  refused: "손으로 건 {main} 배포를 거절해 아무것도 올리지 않았다. Job이 닫은 커밋이 배포를 기다리고 있어({waiting}) main은 bmo deploy backlog로 그것들과 함께 올라간다."
+  check_failed: "손으로 건 {main} 배포가 정적 검사를 통과하지 못해 아무것도 올리지 않았다."
+  # {files} is the line after it, or nothing.
+  suite_failed: "손으로 건 {main} 배포가 테스트 스위트를 통과하지 못해 아무것도 올리지 않았다.{files}"
+  files: " 깨진 파일: {files}."
+  failed: "손으로 건 {main} 배포가 끝나지 못했다(종료 코드 {code}). 무엇이 어디서 멈췄는지는 배포 유닛의 저널에 있다."
+  # A hand deployment refused while a backlog deployment holds the lock.
+  locked: "손으로 건 배포를 거절해 아무것도 올리지 않았다. 다른 배포가 실행 중이어서 그것이 끝난 뒤 다시 걸어야 한다."
+
+backlog:
+  # What the chat agent is told of the backlog's deployment, as facts' accounts, and what the owner is told when the
+  # bot does not stand. Every count is a number and every list is joined with ", ".
+  # One waiting commit named: its short commit, then its item, or the words for none.
+  item: "항목 #{item}"
+  no_item: "항목 없음"
+  # The jobs the deployment waits for, or the words for a reading that failed.
+  running: "Job {count}개({jobs})가 실행 중이라"
+  running_unread: "무엇이 실행 중인지 읽지 못해"
+  # The jobs it lets go on through the restart, with a space before it.
+  passing: " Job {count}개({jobs})는 기다리지 않는다."
+  # {taken} is what the batch takes away, below; {running} and {passing} the lines above.
+  waiting_gap: "{taken} {running}, 새 Job을 띄우지 않고 그것들이 끝나기를 기다렸다가 올린다. 길어야 {minutes}분.{passing} 콘솔의 배포 대기 띠가 무엇을 기다리는지 보인다."
+  hold_released: "배포 대기를 손으로 풀어, 아무것도 올리지 않고 대기열을 다시 움직였다. 밀린 커밋 {count}개는 그대로 기다리며, Job이 없을 때 다시 올린다."
+  # {running} is one of the two lines after it.
+  gap_missed: "옛 코드가 아직 쓰는 것을 걷는 배치를 올리려고 {minutes}분 동안 Job이 끝나기를 기다렸지만 {running} 아무것도 올리지 않고 배포 대기를 풀었다. 밀린 커밋 {count}개는 그대로 기다린다."
+  gap_missed_unread: "무엇이 실행 중인지 끝내 읽지 못해"
+  gap_missed_running: "Job {count}개가 아직 실행 중이라"
+  # A batch whose check failed: {broke} is one of the three reasons after it, {files} the line after them
+  # or nothing.
+  batch_failed: "밀린 커밋 {count}개를 함께 올리기 전 {broke} 아무것도 올리지 않았다: {commits}.{files}"
+  check_broke: "정적 검사가 깨져"
+  suite_unstarted: "스위트가 일부 파일을 시작하지 못해"
+  suite_broke: "스위트가 깨져"
+  broken_files: " 깨진 파일: {files}."
+  # A batch cut at its first failing commit: {broke} as above, {first} that commit named with its item, its
+  # worker and its Job, {ahead} how many commits before it go live alone, {held} each commit held back from
+  # it on, and {files} the line above or nothing.
+  batch_cut: "밀린 커밋 {count}개를 함께 올리기 전 {broke} 커밋을 절반씩 좁혀 보니 처음 깨지는 커밋은 {first}이다. 그 앞 커밋 {ahead}개만 따로 올리고, {held}는 그대로 기다린다.{files}"
+  # The Job a first failing commit came from, inside its name.
+  first_job: "Job #{job}"
+  # A batch whose first commit already fails, after `batch_failed`, with a space before it.
+  first_broke: " 첫 커밋 {first}부터 깨진다."
+  # The reason a batch fails whole where the commits before its first failing one did not pass either.
+  cut_broke: "처음 깨지는 커밋 앞까지만 다시 검사했는데도 깨져"
+  # Nothing waiting, but main past the live commit: {head} is main's short commit, {commits} each short
+  # commit with its subject, oldest first, and {more} the line after it or nothing.
+  main_ahead: "배포를 기다리는 커밋은 없지만 main({head})에 라이브 커밋 뒤로 들어온 커밋 {count}개가 있다: {commits}{more}. 대기 목록에 오르지 않은 커밋이라 bmo deploy backlog로는 올라가지 않으니, bmo deploy main --then '<왜>'로 올린다."
+  main_ahead_more: " 외 {count}개"
+  not_contained: "밀린 커밋 가운데 {commits}가 main({head})에 없어 아무것도 올리지 않았다. 커밋은 그대로 기다린다."
+  deploy_failed: "밀린 커밋 {count}개를 올리는 배포가 끝나지 못했다(종료 코드 {code}). 커밋은 그대로 기다리고, 무엇이 어디서 멈췄는지는 배포 유닛의 저널에 있다."
+  # A round that went live: {items} is the line after it or nothing, and one of the two lines after that
+  # follows where commits landed after the round read main — the first where the run has a round left, the
+  # second where it went its {rounds} rounds.
+  deployed: "밀린 커밋 {count}개가 라이브에 올라갔다{items}."
+  deployed_items: " (항목 {items})"
+  still_waiting: " 이 배포가 main을 읽은 뒤 들어온 {commits}는 아직 기다리고, 같은 실행의 다음 회차가 올린다."
+  still_waiting_last: " 이 배포가 main을 읽은 뒤 들어온 {commits}는 아직 기다리는데, 이 실행의 {rounds}회차가 모두 끝났으니 bmo deploy backlog를 다시 실행한다."
+  # What the batch's check printed as warnings, beside the last deployment whose check ran: {before} is
+  # one of the two lines after `counted`, and `new` or `seen` follows it where it applies.
+  warnings:
+    counted: " 검사 경고는 빌드 {build}건, 테스트 {test}건{before}."
+    before: "(지난 배포 빌드 {build}건, 테스트 {test}건)"
+    unrecorded: "(비교할 지난 배포 기록 없음)"
+    new: " 최근 배포에서 보지 못한 새 경고 {count}건:\n{lines}"
+    more: "- 그 밖에 {count}건"
+    seen: " 늘어난 경고는 모두 최근 배포에서 이미 본 것이다."
+  # The owner's own line when the bot does not stand, and the chat agent's account of it; {unit} is the bot's unit.
+  bot_down_owner: "배포 보류: 봇이 떠 있지 않아 밀린 커밋 {count}개를 올리지 않았어요({why}). 커밋은 그대로 기다려요. 봇 상태: systemctl --user status {unit}"
+  bot_down: "봇이 떠 있지 않아({why}) 밀린 커밋 {count}개를 올리지 않았다. 커밋은 그대로 기다리고, 봇이 다시 서면 bmo deploy backlog를 다시 실행한다."
+  # What a batch that takes something away is said to take, joined with ", ".
+  taken:
+    breaks_unread: "아카이브 모양을 옮기는 커밋({commits})이 옛 코드가 읽는 것을 걷는지 읽지 못해"
+    breaks: "아카이브 모양을 옮기는 커밋({commits})이 옛 코드가 읽는 것을 걷어({breaks})"
+    moved_unread: "배치가 코드 파일을 지우거나 옮기는지 읽지 못해"
+    moved: "배치가 먼저 뜬 프로세스가 아직 import할 수 있는 코드 파일을 지우거나 옮겨({files})"
+  # Why the deployment waits for a job at work, or lets it go on; {place} is where the job works, and
+  # {release} the release it reads its code from.
+  gap:
+    breaks_unread: "아카이브 모양을 옮기는 커밋이 옛 러너가 읽는 것을 걷는지 읽지 못했다"
+    breaks_every_runner: "아카이브 모양을 옮기는 커밋이 모든 러너가 읽는 것을 걷는다"
+    moved_unread: "배치가 지우거나 옮기는 코드 파일을 읽지 못했다"
+    processes_unread: "Job의 프로세스가 어느 릴리스의 코드를 읽는지 읽지 못했다"
+    pinned: "릴리스 {release}에 고정된 Job이라, 배포 트리가 옮겨 가도 제 코드를 그대로 읽는다"
+    reach_unread: "릴리스에 고정되지 않은 Job({place})인데, 러너와 Job이 쓰는 배포 트리 스크립트가 무엇을 부르는지 읽지 못했다"
+    reaches: "릴리스에 고정되지 않은 Job({place})이고, 러너와 Job이 쓰는 배포 트리 스크립트가 {files}를 부를 수 있다"
+    reaches_none: "릴리스에 고정되지 않은 Job({place})이지만, 러너와 Job이 쓰는 배포 트리 스크립트가 걷는 파일을 부르지 않는다"

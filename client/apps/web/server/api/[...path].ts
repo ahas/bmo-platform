@@ -1,0 +1,247 @@
+import { defineEventHandler } from "h3";
+
+import type { H3Event } from "h3";
+
+import { wording } from "#shared/wording";
+
+import { CONTROL_UNREACHABLE } from "#shared/config";
+import { shareRead } from "bmo-ui/shared/console-manifest";
+
+import { APP_OFF, appGateOf } from "../utils/app-gate";
+import { relayedRest, socketRelay } from "../utils/bundle-relay";
+import { attachedService, bundleFile, bundleFiles, bundleOfPage, pageReaches, pageTranslates, readManifestAgain, readerMay, readerOf, relayedCall, translatorAsk } from "../utils/console-manifests";
+import { ownerHeaders } from "../utils/owner-key";
+import { personalName, personalPageService, readerScreen, relayPersonal } from "../utils/personal-screens";
+import { requestStream } from "../utils/streamed-forms";
+import { unitAt } from "../utils/units";
+
+// One service's own paths, handed on whole (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」;
+// `docs/boundary.md`, 「Calls the console makes」): a console bundle's screens call their service at the
+// relay base, the service's name and the path the service's own API writes, and the console relays the
+// call to the address the service's setting names, with the service's token and the owner key and role of the
+// person signed in, behind its own sign-in.
+// The method, the query, the body, the headers that say what is asked and the answer — its status, its
+// bytes and the headers a browser reads of them — go as they came, so a bundle reads its service's own
+// shapes and refusals.
+//
+// A service a manifest names is relayed at the address of the unit that answered it, and only for the paths under
+// its API prefix, the routes it names under `relays`, its module and its stylesheet, to a reader its manifest's role
+// and owner key allow (docs/web.md, 「Screens a unit brings」). A unit the console calls directly, which answers no
+// manifest, is relayed at the address its setting names, for a read alone and from no bundle's page, but for the
+// translator's ask: where the console's translator setting names such a unit, a `POST` of the route it names is
+// relayed from a bundle's page whose manifest names the unit under `calls` and that the reader may open, since a
+// bundle's screen translates through that route (bmo-ui's `docs/console-bundles.md`, 「Translation」).
+//
+// A bundle's page reaches another service a manifest names only where its own manifest names that service under
+// `calls`, on that service's own terms; the page is the address the browser sends as the call's referrer. Any other
+// bundle's page is refused, but for a read of that service's own files, which a screen opened from it loads.
+//
+// A service that is an app turned off for the reader by the delegation chain is refused 403 `app-off` (docs/web.md,
+// 「Screens a unit brings」), its share reads aside.
+//
+// A share link is the one road with no session behind it: a reader holding the token opens the bundle's
+// share page, and every read that page makes is a share read its manifest names, each carrying the token, which
+// is relayed without a session and, whoever is signed in, with no owner key and no role, so every holder of the
+// token reads the same (bmo-ui's `docs/console-bundles.md`, 「Share pages」). The bundle's module and stylesheet
+// the page is drawn by are relayed without a session as well. Nothing else is.
+//
+// A bundle's files carry their content in their names, so a read of one its unit answers 404 is a unit released
+// since its manifest was last read: the unit is asked for it again before the 404 goes back, and the list the
+// browser reads after it names the release the unit serves (docs/web.md, 「Screens a unit brings」).
+//
+// A socket a bundle declares stands at the same path, and the route carries the relay's socket hooks for it
+// (`utils/bundle-relay.ts`).
+//
+// A reader's own screen is relayed under its `my-` name for the signed-in reader alone, and only where it is theirs
+// (docs/web.md, 「A reader's own screens」): its files read through the tool host's app face, and its tool's calls
+// made there, each from its own page. Its page reaches no other service, but for a read of a unit's bundle files.
+
+/** The headers a request is handed on with, and an answer's headers a browser reads. A streamed body goes with the
+ * length the browser named, since without it the fetch sends the stream in chunks, which a service reading a body by
+ * its stated length refuses. */
+const ASKED_HEADERS = ["accept", "content-type", "content-length", "range", "if-none-match", "if-modified-since", "last-event-id", "cache-control"];
+
+const ANSWERED_HEADERS = [
+  "content-type",
+  "content-length",
+  "content-disposition",
+  "cache-control",
+  "x-content-type-options",
+  "etag",
+  "last-modified",
+  "accept-ranges",
+  "content-range",
+  "retry-after",
+  // The lines a service sets ahead of a page it hosts and of a read another origin makes: a hosted page reaches the
+  // browser under its own policy, and a sandboxed page's own fetch of the service's bytes is let through.
+  "content-security-policy",
+  "referrer-policy",
+  "access-control-allow-origin"
+];
+
+// The policy a relayed answer carries where its unit set none.
+const RELAYED_FRAMING = "frame-ancestors 'self'";
+
+function queryOf(event: Parameters<typeof getQuery>[0]): string {
+  const asked = new URLSearchParams();
+
+  for (const [name, value] of Object.entries(getQuery(event))) {
+    for (const one of Array.isArray(value) ? value : [value]) {
+      if (one !== undefined && one !== null) asked.append(name, String(one));
+    }
+  }
+
+  const text = asked.toString();
+
+  return text === "" ? "" : `?${text}`;
+}
+
+async function relayed(event: H3Event): Promise<Response> {
+  // The path is split where the request wrote a slash and nowhere else: a slash a segment carries escaped is that
+  // segment's own, and the segment is handed on still escaped, so the service reads the segment the bundle wrote. A
+  // segment that reads as `.` or `..` would walk out of the path once the unit's address resolves it, and is refused
+  // before any unit is asked.
+  const path = (getRouterParam(event, "path") ?? "").split("/").filter((part) => part !== "");
+  const service = path.shift() ?? "";
+  const rest = relayedRest(path);
+
+  if (rest === null) throw createError({ statusCode: 400, statusMessage: "Bad Request" });
+
+  const baseURL = useRuntimeConfig().app.baseURL;
+  const fromPersonal = personalPageService(baseURL, getRequestHeader(event, "referer"));
+
+  if (personalName(service)) return await relayedPersonal(event, service, rest, fromPersonal);
+
+  const attached = attachedService(service);
+  const unit = attached?.unit ?? unitAt(service.replaceAll("-", "_").toUpperCase());
+  const method = getMethod(event).toUpperCase();
+
+  const reading = method === "GET" || method === "HEAD";
+  const translating = attached === null && translatorAsk(service, method, `/${rest}`);
+
+  // A reader's own screen's page reaches no service but its own, a read of a unit's bundle files aside.
+  if (fromPersonal !== null && !(attached !== null && reading && bundleFiles(attached.manifest, `/${rest}`))) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
+
+  // A name neither a manifest nor a setting names is this console's own absence, not a unit's. A unit the console
+  // calls directly — the agency, bmo-job, the receiver, the brain — stands beside the bundles, and its own paths are
+  // handed on to be read as they are; every change of one is made through the console's own routes, each held to the
+  // rules of what it changes (docs/web.md, 「Access」), so a change asked here is absent. A path of a bundle's service
+  // outside what its manifest lets through is absent as well.
+  if (unit === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached === null && !reading && !translating) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  if (attached !== null && !relayedCall(attached.manifest, method, `/${rest}`)) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+
+  const session = await getUserSession(event);
+  // A share read is a pattern the manifest names under `shareReads` (docs/web.md, 「Access」); a manifest naming none
+  // has none.
+  const shared = reading && attached !== null && shareRead(attached.manifest, method, `/${rest}`);
+  const unsigned = shared || (reading && attached !== null && bundleFile(attached.manifest, `/${rest}`));
+
+  if (session.user === undefined && !unsigned) {
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+  }
+
+  // A screen a reader may not open is one that does not stand for them, and so is its service.
+  if (session.user !== undefined && attached !== null && !shared && !readerMay(readerOf(await signedInUser(event)), attached.manifest)) {
+    throw createError({ statusCode: 404, statusMessage: "Not Found" });
+  }
+
+  // A service whose app the delegation chain does not stand on for the reader is refused by the console's own policy,
+  // in words saying so, whatever its manifest opens (docs/web.md, 「Screens a unit brings」); a share read is held to
+  // its token alone.
+  if (session.user !== undefined && attached !== null && !shared && !(await appGateOf(event, await signedInUser(event)).opens(attached.manifest))) {
+    throw createError({ statusCode: 403, message: wording("apps.error.off"), data: { code: APP_OFF } });
+  }
+
+  // A bundle's page calling a service its manifest does not name is refused, whatever the reader may open; a unit the
+  // console calls directly is no service a manifest names, so a bundle's page reaches none of them, but for the
+  // translator's ask, which only a bundle's page naming the unit makes.
+  if (attached === null) {
+    const page = bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer"));
+    const reaches = translating ? pageTranslates(page, service, readerOf(await signedInUser(event))) : page === null;
+
+    if (!reaches) throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
+
+  if (attached !== null && !pageReaches(bundleOfPage(useRuntimeConfig().app.baseURL, getRequestHeader(event, "referer")), attached, method, `/${rest}`)) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
+
+  const headers: Record<string, string> = {};
+
+  for (const name of ASKED_HEADERS) {
+    const value = getRequestHeader(event, name);
+
+    if (value !== undefined) headers[name] = value;
+  }
+
+  if (unit.token !== null) headers.authorization = `Bearer ${unit.token}`;
+
+  // The owner the unit acts for, and the role they act in, are the person signed in, never what the browser says.
+  // A share read carries neither: the token is the whole of what it is held to.
+  if (session.user !== undefined && !shared) Object.assign(headers, ownerHeaders(await signedInUser(event)));
+
+  // The body goes as the bytes it came as and as they come, so a bundle's file upload is neither read as text on the
+  // way nor held whole in this process.
+  const body = reading ? undefined : requestStream(event);
+  // The call waits for the service's answer however long it takes to begin; it ends only on that answer or on
+  // its connection refused or broken (docs/web.md, 「Screens a unit brings」).
+  const waiting = new AbortController();
+  let response: Response;
+
+  try {
+    response = await fetch(`${unit.address}/${rest}${queryOf(event)}`, { method, headers, body, duplex: "half", signal: waiting.signal } as RequestInit);
+  } catch {
+    throw fail(503, wording(CONTROL_UNREACHABLE));
+  }
+
+  // A stream the browser lets go of is a call to the service let go of too, so a closed tab leaves no
+  // stream open on the unit.
+  event.node.res?.on("close", () => waiting.abort());
+
+  if (reading && attached !== null && response.status === 404 && bundleFiles(attached.manifest, `/${rest}`)) {
+    await readManifestAgain(attached).catch((error: unknown) => console.error("console bundles: the manifest was not read again:", error));
+  }
+
+  const answered = new Headers();
+
+  for (const header of ANSWERED_HEADERS) {
+    const value = response.headers.get(header);
+
+    if (value !== null) answered.set(header, value);
+  }
+
+  // A unit that sets no policy of its own is framed by the console's screens and by no other site, in place of the
+  // console's own answers' `frame-ancestors 'none'` (docs/web.md, 「Access」).
+  if (!answered.has("content-security-policy")) answered.set("content-security-policy", RELAYED_FRAMING);
+
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers: answered });
+}
+
+// A reader's own screen's call: for the signed-in reader alone, of a screen of theirs, a call of its tool from its own
+// page alone.
+async function relayedPersonal(event: H3Event, service: string, rest: string, fromPage: string | null): Promise<Response> {
+  const session = await getUserSession(event);
+
+  if (session.user === undefined) throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+
+  const signed = await signedInUser(event);
+  const bundle = await readerScreen(signed, service);
+
+  if (bundle === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+
+  const method = getMethod(event).toUpperCase();
+  const reading = method === "GET" || method === "HEAD";
+
+  if (!reading && fromPage !== service) throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+
+  const answered = await relayPersonal(signed, bundle, method, rest.split("/"), async () => (await readRawBody(event, "utf8")) ?? "");
+
+  if (answered === null) throw createError({ statusCode: 404, statusMessage: "Not Found" });
+
+  return answered;
+}
+
+export default defineEventHandler({ handler: relayed, websocket: socketRelay });

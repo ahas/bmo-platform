@@ -1,0 +1,38 @@
+# What went on inside a Claude Workflow's branches, as `bmo job branches` reads it out of the records the
+# workflow kept for them (docs/jobs.md). Each `{name}` is filled in with what it names.
+
+# A length of time the way a person reads one at a glance: under a minute in seconds, under an hour in
+# minutes and seconds, and beyond that in hours and the minutes past them.
+clock:
+  seconds: "{seconds}초"
+  minutes: "{minutes}분 {seconds}초"
+  hours: "{hours}시간 {minutes}분"
+
+# No workflow record is left under the project folder {project}.
+none_left: "{project} 아래에 남아 있는 워크플로 기록이 없습니다."
+# The workflow asked for, {workflow}, has no record under {project}.
+not_found: "워크플로 {workflow}의 기록을 {project} 아래에서 찾지 못했습니다. --list로 남아 있는 것을 볼 수 있습니다."
+# How many branches a workflow ran, {count}, on its heading and its line in the list.
+branches: "브랜치 {count}개"
+# The session a listed workflow ran in, {session}.
+session: "세션 {session}"
+# The branches' own records are gone with their session.
+records_gone: "  브랜치의 기록이 남아 있지 않습니다. 세션이 쓸려 나가면 이 안쪽은 다시 볼 수 없습니다."
+
+# One branch: its place {index}, the tokens it spent {tokens}, and the type it ran as where none was
+# written down.
+branch: "- 브랜치 {index}"
+tokens: "토큰 {tokens}"
+no_type: "타입 기록 없음"
+# A branch whose record has no length to divide.
+no_split: "  기록이 없거나 나눌 길이가 없습니다."
+# A tool call that carried no name.
+unnamed_tool: "이름 없는 툴"
+
+# How a branch's time divided: the whole {total}, the tools' stretch {tooling} with its share and how many
+# calls {calls} with the calls left unanswered {open}, and the model's own stretch {generating} with its
+# share.
+split: "  전체 {total} · 툴 {tooling} ({tooling_share}, {calls}회{open}) · 모델이 쓴 시간 {generating} ({generating_share})"
+open: ", 답 못 받은 것 {open}회"
+# One tool by name {name}: how long its calls ran {clock} and how many there were {times}.
+tool: "{name} {clock} {times}회"

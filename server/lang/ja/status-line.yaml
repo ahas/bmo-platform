@@ -1,0 +1,6 @@
+# The one line at the foot of a resident program's screen (docs/agent-control.md, 「What a resident turn
+# reads」): what is going and since when. A run is named by its {name} and {title}, and each moment is an {at} on
+# Seoul's clock.
+
+person: "直接入力 · {at} 開始"
+running: "実行中 · {name} · {title} · {at} 開始"

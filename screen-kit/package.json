@@ -5,6 +5,7 @@
   "type": "module",
   "description": "What a personal app's screen is built with on a person's PC: bmo-ui's bundle build on the release the console runs.",
   "scripts": {
+    "check": "bun build build.mjs --target bun --packages external > /dev/null",
     "build-screen": "bun build.mjs",
     "check:types": "bun build build.mjs --target bun --packages external > /dev/null"
   },

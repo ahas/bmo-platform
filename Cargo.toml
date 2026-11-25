@@ -1,7 +1,8 @@
-# The workspace: the crates agency is built from under `crates/`, the tools it provides under `tools/`, and
-# the repository's own package at the root, which publishes nothing and holds every test in `tests/`. The
-# version is the repository's one version, in semver: the major moves on a change to the boundary API or to
-# a table's contract.
+# The workspace: the crates agency is built from under `crates/`, the account service and its Rust client
+# under `server/`, the tools it provides under `tools/`, and the repository's own package at the root, which
+# publishes nothing and holds the tests of every crate but the account service's in `tests/`. The version is
+# the repository's one version, in semver: the major moves on a change to the boundary API or to a table's
+# contract.
 [workspace]
 members = [
   "crates/client",
@@ -18,6 +19,8 @@ members = [
   "crates/tool-call",
   "crates/cache-siren",
   "crates/server",
+  "server",
+  "server/client",
   "tools/app_put",
   "tools/deepseek_top_up",
   "tools/jobs",
@@ -32,6 +35,7 @@ resolver = "3"
 version = "0.1.0-rev.81"
 edition = "2024"
 license = "MIT"
+publish = false
 
 [workspace.dependencies]
 bmo-agency-client = { path = "crates/client" }

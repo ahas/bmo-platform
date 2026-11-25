@@ -1,0 +1,112 @@
+# What a game of 끝말잇기 says in the room and what its start and stop answer the chat agent with
+# (docs/word-chain.md), said alike by the bun bot and bmo-server.
+
+# What a game says in the room, in the chat agent's voice, and what its start and stop answer the chat agent with.
+# Each `{name}` is filled in with what it names: {word} a word as played, {topic} a word quoted with its
+# topic particle, {openings} the syllables a word may start with and the particle after them, {name} a
+# player's name and {subject} a name with its subject particle. The particles are chosen by the code
+# saying the line, by the sound a word ends on.
+lines:
+  # A game's name: the first players' {shown} names, and the {rest} counted.
+  game: "[{shown} 판]"
+  game_more: "[{shown} 외 {rest}명 판]"
+  game_joint: "·"
+  # Why a word the asker gave cannot open a game.
+  opening_not_in_book: "{topic} 사전에 없어서"
+  opening_loanword: "{topic} 외래어라서"
+  opening_no_follower: "{topic} 이을 단어가 없어서"
+  # The asker asked for another opening word, the one that could not open it said {unusable}.
+  ask_again: "{unusable} 제시어로 못 써. {name}, 다른 제시어를 줘. 받으면 판을 열게."
+  ask_again_bare: "{unusable} 제시어로 못 써. 다른 단어를 줘."
+  ask_first: "{name}, 판을 열 제시어를 먼저 줘. 「시작 강아지」처럼 단어를 붙여도 돼."
+  no_opening: "제시어를 못 받아서 끝말잇기는 접을게."
+  folded: "끝말잇기를 접을게."
+  # The call for players: its rules, how to join, the {seconds} until it starts, and its opening word.
+  call: "끝말잇기 참가자 모집!"
+  call_join: "「참가」라고"
+  call_join_named: "모집 중인 판이 여럿이라 「참가 {name}」처럼 이 판 사람 이름을 붙여서"
+  call_how: "{how} 치면 들어와. {seconds}초 뒤나 참가자가 「시작」이라고 하면 시작할게."
+  call_opening: "제시어는 {openings} 할게."
+  call_moves: "차례가 오면 단어만 쳐 줘. 「기권」은 기권, 「끝말잇기 그만」은 게임 종료야."
+  rule_joint: " · "
+  rule_nouns: "명사만"
+  rule_loanwords_on: "외래어 허용"
+  rule_loanwords_off: "외래어 금지"
+  rule_manner_on: "한방단어 금지"
+  rule_manner_off: "한방단어 허용"
+  rule_no_limit: "시간 제한 없음 ({minutes}분 동안 아무도 안 두면 종료)"
+  rule_limit: "한 차례 {seconds}초"
+  rule_robot: "{agent}도 참가 ({difficulty})"
+  # A move refused, and why.
+  off_chain: "{topic} 이을 수 없어. {openings} 시작하는 단어를 줘."
+  not_in_book: "{topic} 사전에 없어."
+  loanword: "{topic} 외래어라 이번 판에선 안 돼."
+  used: "{topic} 이미 나왔어."
+  manner: "{topic} 한방단어라 이번 판에선 안 돼."
+  # What happens in a game: a player joins with {count} in it, a round starts in an {order}, a turn with
+  # its {limit}, a word taken for its {points}, what a word means, a player out ({by} scoring the 한방 its
+  # {points}), and the end with each {place} of the ranking and its {score} and {words}.
+  joined: "{name} 참가 ({count}명)"
+  started: "시작! 순서: {order}"
+  order_joint: " → "
+  first_word: "제시어: {word}"
+  new_word: "새 제시어: {word}"
+  meaning: "{word}: {meaning}"
+  turn: "{name} 차례: {openings} 시작{limit}"
+  turn_limit: " · {seconds}초"
+  taken: "좋아, {word} (+{points})"
+  taken_robot: "{name}: {word} (+{points})"
+  timeout: "시간 끝! {name} 탈락."
+  hanbang: "한방! {openings} 시작하는 단어가 없어서 {name} 탈락.{by}"
+  hanbang_by: " ({name} +{points})"
+  gave_up: "{name} 기권."
+  stuck: "{subject} 이을 단어를 못 찾았어. {name} 탈락."
+  nobody: "아무도 참가하지 않아서 끝말잇기는 접을게."
+  stopped: "끝말잇기를 멈췄어. 여기까지 점수:"
+  idle: "{minutes}분 동안 아무도 안 둬서 끝말잇기를 접을게. 여기까지 점수:"
+  decided: "게임 끝! 최종 순위:"
+  ranking: "{place}위 {name} {score}점 (단어 {words}개)"
+  # Where a word to a game could be for several standing ones: which to pick with the {verb} it was said
+  # for, the word to say and an {example} of it.
+  pick: "{verb} 판을 골라 줘: {games}. 「{word} {example}」처럼 판에 있는 사람 이름을 붙이면 돼."
+  pick_stop: "멈출"
+  pick_join: "참가할"
+  pick_stop_word: "끝말잇기 그만"
+  pick_join_word: "참가"
+
+  # The robot's difficulty as the call names it.
+  difficulty:
+    easy: "쉬움"
+    normal: "보통"
+    hard: "어려움"
+
+# What starting and stopping a game answer the chat agent with: the word book missing at its {path}, a
+# {subject} already in a {game} of the room, an opening word {unusable}, a game opened in the room {chat}
+# with {more} standing beside it, or none to stop.
+answers:
+  no_book: "단어 사전이 설치되어 있지 않아요: {path} (bmo word-chain install)"
+  in_game: "{subject} 이미 이 방의 {game}에 끼어 있어요."
+  unusable: "{unusable} 판을 열 수 없어요. 다른 제시어를 받아서 다시 열어 주세요."
+  asked_again: "{unusable} 방에서 {name}에게 다른 제시어를 청했어요. 쓸 수 있는 단어가 오면 판을 열어요."
+  opened: "끝말잇기를 열었어요: 방 {chat}, 참가 모집 중.{more}"
+  opened_more: " 이 방에 선 판은 {count}개예요."
+  none: "이 방에는 진행 중인 끝말잇기가 없어요."
+  several: "이 방에는 판이 {count}개 서 있어요: {games}. 멈추길 청한 사람을 player로 주세요."
+  not_theirs: "그 사람이 낀 끝말잇기 판이 이 방에 없어요."
+  # The bot asked to start or stop a game from a shell not answering at all, with {why}, or answering the
+  # {status} of a request it did not take.
+  unreached: "봇이 답하지 않습니다 ({why})"
+  not_taken: "봇이 받지 않았습니다 (HTTP {status})."
+
+# What the word book's own verbs answer: the book installed with its {count} words at its {path} out of its
+# {source} at its {commit} under its {licence}, the {count} meanings read into it out of theirs, and a {word}
+# looked up — absent, or present with whether it is a {loanword}, the {openings} it hands on and how many
+# {count} words follow, and its {meaning}, a basic word's or a hard one's.
+book:
+  installed: "단어 {count}개를 {path}에 설치했어요 ({source} @ {commit}, {licence})."
+  meanings: "뜻풀이 {count}개를 넣었어요 ({source} @ {commit}, {licence})."
+  absent: "「{word}」: 사전에 없음"
+  found: "「{word}」: 있음{loanword} · {openings} 잇는 단어 {count}개"
+  loanword: " (외래어)"
+  basic: "기초어: {meaning}"
+  hard: "어려운 말: {meaning}"
