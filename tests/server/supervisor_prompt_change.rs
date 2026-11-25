@@ -139,7 +139,7 @@ fn a_prompt_that_moved_hands_over_a_held_session_and_one_that_did_not_keeps_it()
 #[tokio::test]
 async fn a_hand_over_keeps_the_rooms_conversation_and_logs_whole() {
   let scratch = Scratch::new().await;
-  let agent = "kakia-chat";
+  let agent = "kiki-chat";
   let chat = -9_000_000_000_002;
 
   supervisor(

@@ -20,19 +20,19 @@ async fn a_fresh_generation_clears_the_spent_figures() {
 
   crate::support::rows::supervisor(
     scratch.db(),
-    "kakia-chat",
+    "kiki-chat",
     &[("session_scope", "room".into()), ("turn_shape", "pieces".into())],
   )
   .await;
   scratch
     .run(
       r#"INSERT INTO "room_sessions" ("agent", "chat_id", "generation", "opened_at", "spent_calls", "spent_ms")
-         VALUES ('kakia-chat', -9000000000002, 1, 0, 3, 1801569)"#,
+         VALUES ('kiki-chat', -9000000000002, 1, 0, 3, 1801569)"#,
       vec![],
     )
     .await;
 
-  let session = open_generation(scratch.db(), "kakia-chat", -9_000_000_000_002).await.unwrap();
+  let session = open_generation(scratch.db(), "kiki-chat", -9_000_000_000_002).await.unwrap();
 
   assert_eq!((session.spent.calls, session.spent.ms), (0, 0));
   assert_eq!(session.generation, 2);
@@ -40,11 +40,11 @@ async fn a_fresh_generation_clears_the_spent_figures() {
   scratch
     .run(
       r#"UPDATE "room_sessions" SET "spent_calls" = 5, "spent_ms" = 900000
-         WHERE "agent" = 'kakia-chat'"#,
+         WHERE "agent" = 'kiki-chat'"#,
       vec![],
     )
     .await;
-  let handed = hand_over(scratch.db(), "kakia-chat", -9_000_000_000_002, "a note").await.unwrap();
+  let handed = hand_over(scratch.db(), "kiki-chat", -9_000_000_000_002, "a note").await.unwrap();
 
   assert_eq!((handed.spent.calls, handed.spent.ms), (0, 0));
 }
@@ -52,7 +52,7 @@ async fn a_fresh_generation_clears_the_spent_figures() {
 #[tokio::test]
 async fn a_room_generation_that_opens_forgets_the_documents_loaded_under_its_id() {
   let scratch = Scratch::new().await;
-  let agent = "kakia-chat";
+  let agent = "kiki-chat";
   let chat = -9_000_000_000_002;
   let id = format!("{agent}@{chat}");
   let elsewhere = "another-agent@-9";
@@ -99,7 +99,7 @@ async fn a_room_generation_that_opens_forgets_the_documents_loaded_under_its_id(
 #[tokio::test]
 async fn a_resumed_room_session_keeps_the_documents_it_loaded() {
   let scratch = Scratch::new().await;
-  let agent = "kakia-chat";
+  let agent = "kiki-chat";
   let chat = -9_000_000_000_002;
   let id = format!("{agent}@{chat}");
 
