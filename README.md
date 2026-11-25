@@ -54,6 +54,7 @@ The documents in `docs/` are the agency's, canonical for the part that stands he
 | Folder | Holds |
 |---|---|
 | `crates/` | the Rust crates |
+| `.cargo/` | Cargo's configuration for the checkout, which fetches git dependencies through the git program |
 | `server/` | the account service: its crate, its contract client under `server/client/`, its language packs and its settings |
 | `client/` | the console: a Nuxt app, a Bun workspace of its own |
 | `deploy/` | the service units |

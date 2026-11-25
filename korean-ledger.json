@@ -1,1 +1,13 @@
-{}
+{
+  "crates/server/src/wording.rs": 3,
+  "crates/server/src/worker_english.rs": 1,
+  "tests/literals.rs": 2,
+  "tests/packages/agent/execution-identity.test.ts": 1,
+  "tests/packages/agent/pane-process.test.ts": 2,
+  "tests/server/control/preamble.rs": 3,
+  "tests/server/control/supervisor_road.rs": 2,
+  "tests/server/job_words.rs": 2,
+  "tests/server/watches/job_events.rs": 4,
+  "tests/server/wording.rs": 2,
+  "tests/server/worker_english.rs": 1
+}

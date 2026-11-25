@@ -47,6 +47,7 @@ BMO 플랫폼을 하나로 합친 서비스입니다. 계정 모델과 조직, �
 | Folder | Holds |
 |---|---|
 | `crates/` | Rust 크레이트 |
+| `.cargo/` | 체크아웃의 Cargo 설정, git 의존성을 git 프로그램으로 가져온다 |
 | `server/` | 계정 서비스: 크레이트, `server/client/`의 계약 클라이언트, 언어 팩과 설정 |
 | `client/` | 콘솔: Nuxt 앱, 하나의 Bun 워크스페이스 |
 | `deploy/` | 서비스 유닛 |

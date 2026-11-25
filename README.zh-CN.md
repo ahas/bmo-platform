@@ -38,6 +38,7 @@
 | Folder | Holds |
 |---|---|
 | `crates/` | Rust crate |
+| `.cargo/` | 检出的 Cargo 配置，经 git 程序拉取 git 依赖 |
 | `server/` | 账户服务：crate、`server/client/` 的契约客户端、语言包与设置 |
 | `client/` | 控制台：Nuxt 应用，自成一个 Bun 工作区 |
 | `deploy/` | 服务单元 |
