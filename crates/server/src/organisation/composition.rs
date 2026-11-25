@@ -178,6 +178,7 @@ pub(crate) fn fresh(role: &str, name: Option<String>) -> RoleAgent {
     skills: None,
     added_at: crate::now_ms(),
     owner_account: None,
+    owner_unit: None,
     follows_asker: None,
   }
 }
@@ -222,7 +223,12 @@ pub async fn compose(ground: &Ground, user: i64) -> Result<Vec<RoleAgent>, Refus
 
     let template = held
       .iter()
-      .find(|agent| agent.role == role.name && agent.owner_account.is_none() && agent.enabled)
+      .find(|agent| {
+        agent.role == role.name
+          && agent.owner_account.is_none()
+          && agent.owner_unit.is_none()
+          && agent.enabled
+      })
       .cloned();
     let roads: Vec<Option<Road>> = match said.and_then(|said| said.agents.clone()) {
       Some(agents) => agents.into_iter().map(|road| road.provider.is_some().then_some(road)).collect(),

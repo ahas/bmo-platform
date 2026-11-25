@@ -1,7 +1,7 @@
 //! The deploy queue flushed every hour (docs/agent-control.md, 「The deploy queue is flushed every hour」), read on a
 //! clock the test sets: nothing started before the flush minutes have passed since the last flush, and then every
-//! repository with a commit waiting put live at its main's commit, related work still open or not; the owner's row
-//! setting the minutes; a commit its repository's deployment holds waiting no more; a main its last run failed
+//! repository with a commit waiting put live at its main's commit, related work still open or not; the minutes the
+//! reader brings setting the pace; a commit its repository's deployment holds waiting no more; a main its last run failed
 //! at left for its mend; a repository nothing here deploys told once for each set of its waiting commits; and a
 //! commit waiting past the stale minutes told once, with why it is not going live.
 
@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use agency_server::queue::settings;
-use agency_server::watches::deploy_flush::{Deployments, LAST_KEY, MINUTES_KEY, flush};
+use agency_server::watches::deploy_flush::{Deployments, LAST_KEY, flush};
 use policy::job_notices::JOB_NOTICES;
 use serde_json::{Value, json};
 
@@ -71,7 +71,13 @@ fn waiting(id: i64, repository: &str, commit: &str) -> Value {
 }
 
 fn interval() -> i64 {
-  JOB_NOTICES.deploy_flush_minutes * MINUTE
+  minutes() * MINUTE
+}
+
+// The flush minutes a test hands the flush: the policy's, which is what the chain says with no chain stood;
+// the reading of the chain's word is the pass's, and a test hands the flush the number it read.
+fn minutes() -> i64 {
+  JOB_NOTICES.deploy_flush_minutes
 }
 
 #[tokio::test]
@@ -113,14 +119,18 @@ async fn every_repository_with_a_waiting_commit_is_put_live_once_the_flush_minut
     held.items.insert(85, item(85, "open", json!({ "assigneeName": "web" })));
   }
 
-  flush(db, &vars, &checkouts, home, T0, &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0, minutes(), &deployments).await.unwrap();
   assert!(deployments.started().is_empty(), "the first read only starts the clock");
   assert_eq!(settings::get(db, LAST_KEY).await.unwrap(), Some(T0.to_string()));
 
-  flush(db, &vars, &checkouts, home, T0 + interval() - 1, &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + interval() - 1, minutes(), &deployments)
+    .await
+    .unwrap();
   assert!(deployments.started().is_empty(), "a moment short of the mark starts nothing");
 
-  flush(db, &vars, &checkouts, home, T0 + interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + interval(), minutes(), &deployments)
+    .await
+    .unwrap();
 
   let flushed = deployments.started();
 
@@ -141,16 +151,17 @@ async fn every_repository_with_a_waiting_commit_is_put_live_once_the_flush_minut
     "every repository with a commit waiting, at its main, the done item's commit left out"
   );
 
-  flush(db, &vars, &checkouts, home, T0 + interval() + MINUTE, &deployments)
+  flush(db, &vars, &checkouts, home, T0 + interval() + MINUTE, minutes(), &deployments)
     .await
     .unwrap();
   assert!(deployments.started().is_empty(), "the clock starts again from the flush");
 
-  settings::set(db, MINUTES_KEY, "15").await.unwrap();
-  flush(db, &vars, &checkouts, home, T0 + interval() + 15 * MINUTE, &deployments)
+  // The minutes in force are the reader's of the moment: a tick told fifteen since the last flush starts where
+  // a tick told the policy's fifteen would not (docs/api.md, 「settings」).
+  flush(db, &vars, &checkouts, home, T0 + interval() + 15 * MINUTE, 15, &deployments)
     .await
     .unwrap();
-  assert_eq!(deployments.started().len(), 2, "the owner's row sets the minutes, read at each tick");
+  assert_eq!(deployments.started().len(), 2, "the minutes the reader brings set the pace");
 }
 
 // "A refusal ... is written to agency's log and nothing else ... the next flush asks again, the other repositories
@@ -189,8 +200,10 @@ async fn a_deploy_the_testbed_refuses_is_asked_again_at_the_next_flush_and_holds
     held.items.insert(83, waiting(83, "drive", "cccc3333"));
   }
 
-  flush(db, &vars, &checkouts, home, T0, &deployments).await.unwrap();
-  flush(db, &vars, &checkouts, home, T0 + interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0, minutes(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + interval(), minutes(), &deployments)
+    .await
+    .unwrap();
 
   assert_eq!(
     asked(deployments.started()),
@@ -199,12 +212,14 @@ async fn a_deploy_the_testbed_refuses_is_asked_again_at_the_next_flush_and_holds
   );
   assert_eq!(settings::get(db, LAST_KEY).await.unwrap(), Some((T0 + interval()).to_string()));
 
-  flush(db, &vars, &checkouts, home, T0 + interval() + MINUTE, &deployments)
+  flush(db, &vars, &checkouts, home, T0 + interval() + MINUTE, minutes(), &deployments)
     .await
     .unwrap();
   assert!(deployments.started().is_empty(), "a refusal is not asked again before the next flush");
 
-  flush(db, &vars, &checkouts, home, T0 + 2 * interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + 2 * interval(), minutes(), &deployments)
+    .await
+    .unwrap();
   assert_eq!(
     asked(deployments.started()),
     [drive.path().to_path_buf(), web.path().to_path_buf()],
@@ -246,7 +261,9 @@ async fn a_live_commit_waits_no_more_and_a_main_its_last_run_failed_at_waits_for
   let mut hour = 0;
   let mut flushed = async |deployments: &StandIn| {
     hour += 1;
-    flush(db, &vars, &checkouts, home, T0 + hour * interval(), deployments).await.unwrap();
+    flush(db, &vars, &checkouts, home, T0 + hour * interval(), minutes(), deployments)
+      .await
+      .unwrap();
 
     deployments.started()
   };
@@ -318,7 +335,9 @@ async fn a_repository_nothing_here_deploys_is_told_once_for_each_set_of_its_wait
   }
 
   settings::set(db, LAST_KEY, &T0.to_string()).await.unwrap();
-  flush(db, &vars, &checkouts, home, T0 + interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + interval(), minutes(), &deployments)
+    .await
+    .unwrap();
 
   let site_told = told_of(&peers, "deploy-undeployable:site");
   let lost_told = told_of(&peers, "deploy-undeployable:lost");
@@ -335,7 +354,9 @@ async fn a_repository_nothing_here_deploys_is_told_once_for_each_set_of_its_wait
     order(&lost_told[0])
   );
 
-  flush(db, &vars, &checkouts, home, T0 + 2 * interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + 2 * interval(), minutes(), &deployments)
+    .await
+    .unwrap();
   assert_eq!(
     told_of(&peers, "deploy-undeployable:site").len(),
     1,
@@ -343,7 +364,9 @@ async fn a_repository_nothing_here_deploys_is_told_once_for_each_set_of_its_wait
   );
 
   peers.lock().unwrap().items.insert(83, waiting(83, "site", "cccc3333"));
-  flush(db, &vars, &checkouts, home, T0 + 3 * interval(), &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, T0 + 3 * interval(), minutes(), &deployments)
+    .await
+    .unwrap();
 
   let site_told = told_of(&peers, "deploy-undeployable:site");
 
@@ -379,7 +402,7 @@ async fn a_commit_still_waiting_past_the_stale_minutes_is_told_once_with_why_it_
 
   while at < T0 + interval() + stale - interval() {
     at += interval();
-    flush(db, &vars, &checkouts, home, at, &deployments).await.unwrap();
+    flush(db, &vars, &checkouts, home, at, minutes(), &deployments).await.unwrap();
   }
 
   assert!(
@@ -388,7 +411,7 @@ async fn a_commit_still_waiting_past_the_stale_minutes_is_told_once_with_why_it_
   );
 
   at += interval();
-  flush(db, &vars, &checkouts, home, at, &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, at, minutes(), &deployments).await.unwrap();
 
   let told = told_of(&peers, "deploy-stale:web");
   let hours = (JOB_NOTICES.deploy_stale_minutes / 60).to_string();
@@ -408,7 +431,7 @@ async fn a_commit_still_waiting_past_the_stale_minutes_is_told_once_with_why_it_
   );
 
   at += interval();
-  flush(db, &vars, &checkouts, home, at, &deployments).await.unwrap();
+  flush(db, &vars, &checkouts, home, at, minutes(), &deployments).await.unwrap();
   assert_eq!(told_of(&peers, "deploy-stale:web").len(), 1, "told once for the item and commit");
 
   // Another item whose commit has waited as long behind a failed run is told with that run's reason.
@@ -423,7 +446,7 @@ async fn a_commit_still_waiting_past_the_stale_minutes_is_told_once_with_why_it_
 
   for _ in 0..=JOB_NOTICES.deploy_stale_minutes / JOB_NOTICES.deploy_flush_minutes {
     at += interval();
-    flush(db, &vars, &checkouts, home, at, &deployments).await.unwrap();
+    flush(db, &vars, &checkouts, home, at, minutes(), &deployments).await.unwrap();
   }
 
   let told = told_of(&peers, "deploy-stale:web");

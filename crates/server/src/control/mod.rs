@@ -66,7 +66,7 @@ pub mod supply_test;
 pub(crate) mod support_growth;
 pub mod translation_runs;
 pub mod typed_line;
-mod walk_reads;
+pub(crate) mod walk_reads;
 pub mod words;
 pub mod work;
 mod worker_runtime;

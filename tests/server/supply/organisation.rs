@@ -50,6 +50,11 @@ fn organisation_supply_opens_on_the_platform_s_word_alone() {
 fn resolved(key: &str) -> Value {
   let path = json!(["platform", "unit:3", "unit:4", format!("person:{PERSON}")]);
 
+  // The provider families the walk asks stay on: this stand-in's word is about the order's settings.
+  if key.starts_with("provider.") {
+    return json!({ "value": true, "layers": [{ "link": "platform", "value": true }], "path": path });
+  }
+
   assert_eq!(key, "supply.organisation", "agency reads no other supply setting");
 
   json!({

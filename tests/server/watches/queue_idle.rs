@@ -71,6 +71,7 @@ fn agent(name: &str, role: &str, model: &str) -> RoleAgent {
     name: name.to_owned(),
     role: role.to_owned(),
     owner_account: None,
+    owner_unit: None,
     provider: Some("claude-code".to_owned()),
     model: Some(model.to_owned()),
     effort: None,

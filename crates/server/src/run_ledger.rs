@@ -107,6 +107,13 @@ pub struct Run {
   /// The unit of work the run is, answered to a caller under `unit`.
   #[serde(rename = "unit")]
   pub work_unit: String,
+  /// The account the run's agent is filed under, none for the platform's; kept for the reach of a list, never
+  /// answered whole.
+  #[serde(skip)]
+  pub owner_account: Option<i64>,
+  /// The organisation unit the run's agent is filed under, none where it is no unit's.
+  #[serde(skip)]
+  pub owner_unit: Option<i64>,
   pub title: Option<String>,
   pub depth: i64,
   pub started_at: i64,
@@ -127,6 +134,8 @@ impl Run {
       agent: row.try_get("", "agent")?,
       chat_id: row.try_get("", "chat_id")?,
       work_unit: row.try_get("", "work_unit")?,
+      owner_account: row.try_get("", "owner_account")?,
+      owner_unit: row.try_get("", "owner_unit")?,
       title: row.try_get("", "title")?,
       depth: row.try_get("", "depth")?,
       started_at: row.try_get("", "started_at")?,
@@ -180,17 +189,37 @@ impl From<Refusal> for NotClosed {
 
 /// Opens a run, answering its id.
 pub async fn open<C: ConnectionTrait>(db: &C, opening: &Opening) -> Result<i64, Refusal> {
+  // The run stands under its agent's owners: the account or unit the agent row is filed under, none for the
+  // platform's, so a head's list and a stranger's are each read by the row's own ground (docs/api.md, 「runs」).
+  let owners = one(
+    db,
+    r#"SELECT "owner_account", "owner_unit" FROM "supervisors" WHERE "name" = $1
+       UNION ALL
+       SELECT "owner_account", "owner_unit" FROM "role_agents" WHERE "name" = $1 LIMIT 1"#,
+    vec![opening.agent.clone().into()],
+  )
+  .await?;
+  let (owner_account, owner_unit) = owners.map_or((None, None), |row| {
+    (
+      row.try_get::<Option<i64>>("", "owner_account").unwrap_or(None),
+      row.try_get::<Option<i64>>("", "owner_unit").unwrap_or(None),
+    )
+  });
+
   let row = one(
     db,
     r#"INSERT INTO "runs"
-         ("agent", "chat_id", "work_unit", "depth", "cap_ms", "started_at", "started_by", "search_id", "round",
+         ("agent", "chat_id", "work_unit", "owner_account", "owner_unit", "depth", "cap_ms", "started_at",
+          "started_by", "search_id", "round",
           "message_id",
           "title", "carried")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING "id""#,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING "id""#,
     vec![
       opening.agent.clone().into(),
       opening.chat_id.into(),
       opening.work_unit.clone().into(),
+      owner_account.into(),
+      owner_unit.into(),
       i64::from(opening.depth).into(),
       opening.cap_ms.into(),
       opening.started_at.into(),
@@ -244,7 +273,8 @@ pub async fn close<C: ConnectionTrait>(db: &C, id: i64, closing: &Closing) -> Re
 }
 
 // What a run is read with.
-const RUN_FIELDS: &str = r#""id", "agent", "chat_id", "work_unit", "title", "depth", "started_at", "finished_at", "outcome",
+const RUN_FIELDS: &str = r#""id", "agent", "chat_id", "work_unit", "owner_account", "owner_unit", "title", "depth",
+  "started_at", "finished_at", "outcome",
   "context_tokens", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost_micros", "round",
   "message_id", "tool_count""#;
 

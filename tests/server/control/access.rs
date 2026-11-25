@@ -442,7 +442,7 @@ async fn a_member_adds_under_their_own_account_and_never_under_another_s() {
 
   let (status, agent) = as_member("/role-agents", json!({ "role": "worker", "name": "worker-mine" })).await;
 
-  assert_eq!((status, &agent["ownerAccount"]), (201, &json!("7")), "{agent}");
+  assert_eq!((status, &agent["ownerAccount"]), (201, &json!(7)), "{agent}");
 
   let path = home.path().join("mine").to_string_lossy().into_owned();
   let (status, repository) = as_member("/repositories", json!({ "name": "mine", "path": path })).await;

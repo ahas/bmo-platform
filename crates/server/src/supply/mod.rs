@@ -487,6 +487,21 @@ pub async fn platform_open(
   model: &str,
 ) -> Result<bool, Refusal> {
   if provider != CLAUDE_CODE {
+    // A registration filed under a unit stands with the unit's things: no one's personal supply and no
+    // platform source (docs/supply.md, 「Owned supply」).
+    if provider == REGISTERED
+      && one(
+        &ground.db,
+        r#"SELECT 1 AS "held" FROM "registered_models"
+           WHERE "name" = $1 AND ("owner_account" IS NOT NULL OR "owner_unit" IS NOT NULL)"#,
+        vec![model.into()],
+      )
+      .await?
+      .is_some()
+    {
+      return Ok(false);
+    }
+
     return Ok(owner_of(ground, provider, model).await?.is_none());
   }
 
@@ -632,9 +647,51 @@ pub async fn choose(ground: &Ground, asked: &Asked<'_>) -> Result<Choice, Refusa
   }
 }
 
+// Whether the walk may go out on the provider's sources at all: the chain kind `provider.<code>.offered`
+// (docs/supply.md, 「The sources a run walks」). A link of it saying false turns every source of that provider
+// off below it — the person's own, the units' and the platform's alike; none turns it back on. A road the
+// build carries no kind for, and a chain that says nothing, stand open.
+async fn provider_offered(ground: &Ground, provider: &str, account: Option<i64>) -> Result<bool, Refusal> {
+  if !harness_providers::ARCHIVE_PROVIDERS.contains(&provider) {
+    return Ok(true);
+  }
+
+  let key = format!("provider.{provider}.offered");
+
+  if let Some(account) = account {
+    let answer =
+      crate::chain::resolve(&crate::apps::service(ground), &key, crate::chain::Subject::Person(account))
+        .await
+        .map_err(Refusal::failed)?;
+
+    return Ok(crate::chain::flag(answer.as_ref(), true));
+  }
+
+  // A run of no account stands on the platform alone, so the platform link's own word closes it.
+  match crate::chain_settings::platform(ground, &key).await {
+    Ok(Some(serde_json::Value::Bool(on))) => Ok(on),
+    _ => Ok(true),
+  }
+}
+
 /// The first source of `sources` that can take the run, written on it; where none can, why the last one tried
 /// could not.
 pub async fn next_source(
+  ground: &Ground,
+  chosen: &mut Chosen,
+  sources: &[String],
+) -> Result<Result<(), Closed>, Refusal> {
+  if !provider_offered(ground, &chosen.provider, chosen.account).await? {
+    let reason = fill_marks(&SUPPLY.words.provider_off, &[("provider", &chosen.provider)]);
+
+    return Ok(Err(Closed::of(Shortfall::Withheld, PLATFORM, reason, None)));
+  }
+
+  next_walked_source(ground, chosen, sources).await
+}
+
+// The walk itself, once the provider stands open below the run's links.
+async fn next_walked_source(
   ground: &Ground,
   chosen: &mut Chosen,
   sources: &[String],

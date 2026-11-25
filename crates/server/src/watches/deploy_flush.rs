@@ -181,22 +181,22 @@ fn failed_why(record: &Value, commit: &str) -> String {
   )
 }
 
-// The flush minutes as milliseconds: the owner's own row, else the policy's.
-async fn interval_ms(db: &DatabaseConnection) -> Result<i64, String> {
-  Ok(minutes(db).await? * 60_000)
-}
+/// The flush minutes in force: the platform's word on the chain where it says one, else the settings row that
+/// stood until the value moved, else the policy's (docs/api.md, 「settings」).
+pub async fn minutes(ground: &crate::places::Ground) -> i64 {
+  let Some(standing) =
+    crate::chain_settings::of(&policy::organisation::ORGANISATION.settings.deploy_flush_minutes.key)
+  else {
+    return JOB_NOTICES.deploy_flush_minutes;
+  };
 
-/// The flush minutes in force: the owner's own settings row where it names a positive whole number, else the
-/// policy's.
-pub async fn minutes(db: &DatabaseConnection) -> Result<i64, String> {
-  Ok(
-    settings::get(db, MINUTES_KEY)
-      .await
-      .map_err(|why| why.detail)?
-      .and_then(|value| value.trim().parse::<i64>().ok())
-      .filter(|minutes| *minutes > 0)
-      .unwrap_or(JOB_NOTICES.deploy_flush_minutes),
-  )
+  crate::chain_settings::text(ground, &standing)
+    .await
+    .ok()
+    .flatten()
+    .and_then(|value| value.trim().parse::<i64>().ok())
+    .filter(|minutes| *minutes > 0)
+    .unwrap_or(JOB_NOTICES.deploy_flush_minutes)
 }
 
 /// One read of the clock at `now`: where no flush was kept, `now` kept as the last and nothing started; where the
@@ -211,6 +211,7 @@ pub async fn flush(
   checkouts: &BTreeMap<String, PathBuf>,
   home: &Path,
   now: i64,
+  minutes: i64,
   deployments: &impl Deployments,
 ) -> Result<(), String> {
   let Some(service) = JobService::of(vars) else {
@@ -223,7 +224,7 @@ pub async fn flush(
 
   match last {
     None => return settings::set(db, LAST_KEY, &now.to_string()).await.map_err(|why| why.detail),
-    Some(last) if now - last < interval_ms(db).await? => return Ok(()),
+    Some(last) if now - last < minutes * 60_000 => return Ok(()),
     Some(_) => {}
   }
 
@@ -299,14 +300,25 @@ async fn flushed_one(
 }
 
 /// One read of this machine's repositories at the present moment; a test's ground reads nothing.
-pub async fn pass(db: &DatabaseConnection, vars: &BTreeMap<String, String>, home: &Path) {
-  if crate::job_end::test_ground(vars) {
+pub async fn pass(ground: &crate::places::Ground) {
+  if crate::job_end::test_ground(ground.vars()) {
     return;
   }
 
-  let checkouts = crate::watches::machine_turn::local_checkouts(db).await;
+  let checkouts = crate::watches::machine_turn::local_checkouts(&ground.db).await;
+  let minutes = minutes(ground).await;
 
-  if let Err(why) = flush(db, vars, &checkouts, home, crate::now_ms(), &Testbed).await {
+  if let Err(why) = flush(
+    &ground.db,
+    ground.vars(),
+    &checkouts,
+    &ground.roots.home,
+    crate::now_ms(),
+    minutes,
+    &Testbed,
+  )
+  .await
+  {
     eprintln!("deploy flush: the read did not end: {why}");
   }
 }

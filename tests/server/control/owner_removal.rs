@@ -145,7 +145,7 @@ async fn three_owners(scratch: &Scratch, data: &Path) {
     scratch
       .run(
         r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens",
-             "thinking", "walked", "added_at", "keeps_research", "account")
+             "thinking", "walked", "added_at", "keeps_research", "owner_account")
            VALUES ($1, $1, 'served', 200000, 8000, 1, 1, 1, 0, $2)"#,
         vec![name.into(), account.into()],
       )
@@ -303,7 +303,7 @@ async fn an_owner_s_count_is_what_its_removal_takes_and_another_s_and_the_platfo
     ("repositories", r#""owner_account" = 7"#),
     ("repository_node_checkouts", r#""repository" = 'seven-repo'"#),
     ("support_checkouts", r#""repository" = 'seven-repo'"#),
-    ("registered_models", r#""account" = 7"#),
+    ("registered_models", r#""owner_account" = 7"#),
     ("claude_accounts", r#""owner_account" = 7"#),
     ("personal_supply", r#""owner_account" = 7"#),
     ("supply_reservations", r#""account" = 7"#),
@@ -347,7 +347,7 @@ async fn an_owner_s_count_is_what_its_removal_takes_and_another_s_and_the_platfo
       2,
     ),
     ("repository_node_checkouts", r#""repository" = 'eight-repo'"#, 1),
-    ("registered_models", r#""account" = 8 OR "account" IS NULL"#, 2),
+    ("registered_models", r#""owner_account" = 8 OR "owner_account" IS NULL"#, 2),
     ("claude_accounts", r#""owner_account" = 8"#, 1),
     ("personal_supply", r#""owner_account" = 8"#, 1),
     ("supply_reservations", r#""account" IN (8, 9)"#, 3),
@@ -381,10 +381,33 @@ async fn a_unit_s_count_is_what_its_removal_takes_and_another_unit_s_stand() {
 
   three_owners(&scratch, &home.path().join("data")).await;
 
+  // A supervisor, a seat and a registration filed under each unit, so the unit's own kinds are counted and
+  // taken beside the ones the fixture stands.
+  for unit in [40i64, 41] {
+    rows::supervisor(scratch.db(), &format!("bmo-unit-{unit}"), &[("owner_unit", unit.into())]).await;
+    scratch
+      .run(
+        r#"INSERT INTO "role_agents" ("name", "role", "owner_unit") VALUES ($1, 'worker', $2)"#,
+        vec![format!("seat-unit-{unit}").into(), unit.into()],
+      )
+      .await;
+    scratch
+      .run(
+        r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens",
+             "thinking", "walked", "added_at", "owner_unit")
+           VALUES ($1, $1, 'some-model', 8192, 1024, 0, 0, 0, $2)"#,
+        vec![format!("model-unit-{unit}").into(), unit.into()],
+      )
+      .await;
+  }
+
   let port = front(ground_on(scratch.db().clone(), home.path())).await;
   let owner = administrator(port);
   let company = OrgUnitRemovalQuery { company: Some(40) };
   let expected = kinds(&[
+    ("supervisors", 1),
+    ("role-agents", 1),
+    ("registered-models", 1),
     ("repositories", 1),
     ("repository-checkouts", 0),
     ("organisation-supply", 1),
@@ -398,6 +421,12 @@ async fn a_unit_s_count_is_what_its_removal_takes_and_another_unit_s_stand() {
   assert_eq!(owner.remove_org_unit(40, &company).await.unwrap().removed, zeros(&expected));
 
   for (table, column, left) in [
+    ("supervisors", r#""owner_unit" = 40"#, 0),
+    ("role_agents", r#""owner_unit" = 40"#, 0),
+    ("registered_models", r#""owner_unit" = 40"#, 0),
+    ("supervisors", r#""owner_unit" = 41"#, 1),
+    ("role_agents", r#""owner_unit" = 41"#, 1),
+    ("registered_models", r#""owner_unit" = 41"#, 1),
     ("repositories", r#""owner_unit" = 40"#, 0),
     ("personal_supply", r#""owner_unit" = 40"#, 0),
     ("claude_accounts", r#""owner_unit" = 40"#, 0),

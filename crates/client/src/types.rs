@@ -471,6 +471,12 @@ pub struct Run {
   pub name: String,
   pub agent_name: String,
   pub unit_name: String,
+  /// the account the run's agent was seated on when it opened; null where it is none's or predates the column
+  #[serde(default)]
+  pub owner_account: Option<i64>,
+  /// the organisation unit the run's agent was seated on when it opened; null where it is none's
+  #[serde(default)]
+  pub owner_unit: Option<i64>,
   /// What the run was asked to do: a role session's turn's title, or the title the body opening it named.
   #[serde(default)]
   pub title: Option<String>,
@@ -739,6 +745,9 @@ pub struct Model {
   /// The user id the registration belongs to; null for the platform's.
   #[serde(default)]
   pub account: Option<i64>,
+  /// the organisation unit the registration is filed under; null where it is no unit's
+  #[serde(default)]
+  pub unit: Option<i64>,
 }
 
 /// ModelCatalogueEntry:
@@ -3543,6 +3552,9 @@ pub struct Supervisor {
   pub name: String,
   pub label: Option<String>,
   pub owner_account: Option<i64>,
+  /// the organisation unit it is filed under; null where it is no unit's
+  #[serde(default)]
+  pub owner_unit: Option<i64>,
   /// its call names as one line, joined by a comma and a space; null for none
   pub aliases: Option<String>,
   pub icon: Option<String>,
@@ -3830,6 +3842,12 @@ pub struct RoleChange {
 pub struct RoleAgent {
   pub name: String,
   pub role: String,
+  /// the login account whose seat it is; null for the deployment's own
+  #[serde(default)]
+  pub owner_account: Option<i64>,
+  /// the organisation unit whose seat it is; null where it is no unit's
+  #[serde(default)]
+  pub owner_unit: Option<i64>,
   /// its road's provider, or null where it follows the supervisor that asks it
   pub provider: Option<String>,
   pub model: Option<String>,

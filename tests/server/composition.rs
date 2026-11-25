@@ -103,6 +103,7 @@ fn template(role: &str) -> RoleAgent {
     skills: None,
     added_at: 1,
     owner_account: None,
+    owner_unit: None,
     follows_asker: None,
   }
 }

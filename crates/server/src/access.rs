@@ -52,9 +52,9 @@ impl Part {
   /// The path the part's routes stand under.
   fn root(self) -> &'static str {
     match self {
-      Self::Supervisors => "/supervisors",
+      Part::Supervisors => "/supervisors",
       Self::Roles => "/roles",
-      Self::RoleAgents => "/role-agents",
+      Part::RoleAgents => "/role-agents",
       Self::Repositories => "/repositories",
       Self::Models => "/models",
       Self::ModelFiles => "/model-catalogue",
@@ -64,7 +64,7 @@ impl Part {
   /// The console section the part stands under.
   fn section(self) -> &'static str {
     match self {
-      Self::Supervisors => "supervisors",
+      Part::Supervisors => "supervisors",
       Self::Roles | Self::RoleAgents => "roles",
       Self::Repositories => "repositories",
       Self::Models => "models",
@@ -75,9 +75,9 @@ impl Part {
   /// The part alone, as the parts a change of it is allowed under.
   fn alone(self) -> &'static [Self] {
     match self {
-      Self::Supervisors => &[Self::Supervisors],
+      Part::Supervisors => &[Self::Supervisors],
       Self::Roles => &[Self::Roles],
-      Self::RoleAgents => &[Self::RoleAgents],
+      Part::RoleAgents => &[Self::RoleAgents],
       Self::Repositories => &[Self::Repositories],
       Self::Models => &[Self::Models],
       Self::ModelFiles => &[Self::ModelFiles],
@@ -97,10 +97,11 @@ impl Part {
   /// whatever the path names.
   fn row_param(self) -> Option<&'static str> {
     match self {
-      Self::Supervisors => Some("supervisorName"),
+      Part::Supervisors => Some("supervisorName"),
       Self::Repositories => Some("repositoryName"),
-      Self::RoleAgents => Some("agentName"),
-      Self::Roles | Self::Models | Self::ModelFiles => None,
+      Part::RoleAgents => Some("agentName"),
+      Self::Models => Some("modelKey"),
+      Self::Roles | Self::ModelFiles => None,
     }
   }
 
@@ -116,14 +117,14 @@ impl Part {
       (_, None) => Row::Unnamed,
       (Self::Supervisors, Some(name)) => crate::supervisors::named(db, &name)
         .await?
-        .map_or(Row::Unnamed, |held| Row::Owned("supervisor", name, held.owner_account)),
+        .map_or(Row::Unnamed, |held| Row::Owned("supervisor", name, held.owner_account, held.owner_unit)),
       (Self::Repositories, Some(name)) => crate::repositories::named(db, &name)
         .await?
-        .map_or(Row::Unnamed, |held| Row::Owned("repository", name, held.owner_account)),
-      // A role agent is a seat of its account.
+        .map_or(Row::Unnamed, |held| Row::Owned("repository", name, held.owner_account, held.owner_unit)),
+      // A role agent is a seat of its account or of a unit.
       (Self::RoleAgents, Some(name)) => crate::role_agents::named(db, &name)
         .await?
-        .map_or(Row::Unnamed, |held| Row::Owned("role agent", name, held.owner_account)),
+        .map_or(Row::Unnamed, |held| Row::Owned("role agent", name, held.owner_account, held.owner_unit)),
     })
   }
 
@@ -173,36 +174,65 @@ pub fn asked(call: &Call, method: &Method, path: &str) -> Option<Check> {
   })
 }
 
-/// Whether a member's write is on a repository an organisation unit owns, or adds one under a unit: such a call asks
+/// Whether a member's write is on a row an organisation unit owns, or adds one under a unit: such a call asks
 /// no console section, since heading the unit is the whole of who may, and the chain's checks after it judge that
-/// (docs/api.md, 「Who a caller acts for」; docs/repositories.md, 「An organisation's repository」). A change names
-/// the row, read for its unit; an add names the unit in its body, read ahead of the route and put back.
+/// (docs/api.md, 「Who a caller acts for」; docs/repositories.md, 「An organisation's repository」). A change
+/// names the row, read for its unit; an add names the unit in its body,
+/// read ahead of the route and put back.
 pub async fn unit_repository(call: &mut Call, method: &Method, path: &str) -> bool {
-  if Part::of(path) != Some(Part::Repositories) || matches!(method, &Method::GET | &Method::HEAD) {
+  let Some(part) = Part::of(path) else { return false };
+
+  if !matches!(part, Part::Supervisors | Part::RoleAgents | Part::Repositories | Part::Models)
+    || matches!(method, &Method::GET | &Method::HEAD)
+  {
     return false;
   }
 
-  if let Some(name) = call.param("repositoryName").map(str::to_owned) {
-    return matches!(
-      crate::repositories::named(&call.ground().db, &name).await,
-      Ok(Some(held)) if held.owner_unit.is_some()
-    );
+  if let Some(name) = part.row_param().and_then(|param| call.param(param)).map(str::to_owned) {
+    let db = &call.ground().db;
+
+    return match part {
+      Part::Supervisors => matches!(
+        crate::supervisors::named(db, &name).await,
+        Ok(Some(held)) if held.owner_unit.is_some()
+      ),
+      Part::RoleAgents => matches!(
+        crate::role_agents::named(db, &name).await,
+        Ok(Some(held)) if held.owner_unit.is_some()
+      ),
+      Part::Models => {
+        // A model route names its row by its key, whose name part the registry keeps.
+        let (_, name) = crate::control::walk_reads::model_key(&name, call.query("provider").as_deref());
+
+        matches!(
+          crate::control::registry::registration(db, &name).await,
+          Ok(Some(held)) if held.owner_unit.is_some()
+        )
+      }
+      _ => matches!(
+        crate::repositories::named(db, &name).await,
+        Ok(Some(held)) if held.owner_unit.is_some()
+      ),
+    };
   }
 
-  if method != Method::POST || path != Part::Repositories.root() {
+  if method != Method::POST || path != part.root() {
     return false;
   }
+
+  // A model body names its unit owner by `unit`; the other resources by `ownerUnit`.
+  let axis = if part == Part::Models { "unit" } else { "ownerUnit" };
 
   call
     .peek_body()
     .await
-    .is_some_and(|body| body.get("ownerUnit").and_then(Value::as_i64).is_some())
+    .is_some_and(|body| body.get(axis).and_then(Value::as_i64).is_some())
 }
 
 /// Whose the row a managed route changes is (「Part::row」).
 enum Row {
-  /// A row of the kind named, by its name, filed under an account or, with none, the platform's.
-  Owned(&'static str, String, Option<i64>),
+  /// A row of the kind named, by its name, filed under an account or, with neither owner, the platform's.
+  Owned(&'static str, String, Option<i64>, Option<i64>),
   /// A row no account owns: a role, the platform's preset.
   Platform,
   /// No row the store holds, or none the route names.
@@ -259,7 +289,18 @@ pub async fn judge(owning: Owning) -> Result<(), Refused> {
   }
 
   match owning.part.row(&owning.ground, owning.name).await? {
-    Row::Owned(kind, name, owner) => owning.acting.may_change(owner, &format!("the {kind} {name}")),
+    // A row a unit owns is its heads' alone, the chain's answer of who writes the unit's link; the same rule a
+    // unit's repository stands on.
+    Row::Owned(kind, name, _, Some(unit)) => {
+      if crate::organisation::resources::heads(&owning.ground, owning.acting, unit).await? {
+        Ok(())
+      } else {
+        Err(crate::organisation::resources::refused(&format!("the {kind} {name}")))
+      }
+    }
+    Row::Owned(kind, name, owner, None) => {
+      owning.acting.may_change(owner, &format!("the {kind} {name}"))
+    }
     Row::Platform => Err(forbidden(
       "The signed-in person may not change a role: the roles are the platform's presets, the administrator's alone"
         .to_owned(),

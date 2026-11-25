@@ -72,7 +72,7 @@ pub fn kinds() -> Vec<Kind> {
     default: kind.default.clone(),
   };
 
-  vec![
+  let mut kinds = vec![
     own(&PROMPT_LAYERS.organisation.kind),
     own(&PROMPT_LAYERS.persona.kind),
     own(&PROMPT_LAYERS.personal.allowed),
@@ -88,7 +88,32 @@ pub fn kinds() -> Vec<Kind> {
     own(&organisation.personal_local_ai),
     own(&organisation.own_agents.add),
     own(&organisation.own_agents.road),
-  ]
+    own(&organisation.resources),
+    own(&organisation.settings.research_supervisor),
+    own(&organisation.settings.deploy_flush_minutes),
+    own(&organisation.settings.deepseek_card_secret),
+    own(&organisation.settings.deepseek_login_secret),
+  ];
+
+  // One kind per provider this build carries, saying whether its sources may be gone out on under a link
+  // (docs/supply.md, 「The sources a run walks」): a link turns a provider off below it, none turns it back on.
+  kinds.extend(harness_providers::ARCHIVE_PROVIDERS.map(|code| Kind {
+    key: format!("provider.{code}.offered"),
+    description: format!(
+      "Whether {code} may be gone out on under this link: a link turns the provider's sources, the platform's \
+       and its units' and its people's, off for everyone below it; none turns it back on."
+    ),
+    shape: "flag".to_owned(),
+    choices: Vec::new(),
+    mode: "narrowing".to_owned(),
+    rules: true,
+    levels: vec!["platform".to_owned(), "unit".to_owned()],
+    unit_permission: "manage".to_owned(),
+    person_writer: "heads".to_owned(),
+    default: Some(toml::Value::Boolean(true)),
+  }));
+
+  kinds
 }
 
 /// The body the account service takes a kind's declaration in.

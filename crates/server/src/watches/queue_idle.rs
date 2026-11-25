@@ -171,6 +171,7 @@ impl Standing {
   pub fn free_agent(&self, agent: &RoleAgent) -> bool {
     agent.enabled
       && agent.owner_account.is_none()
+      && agent.owner_unit.is_none()
       && agent.provider.is_some()
       && agent.model.is_some()
       && !self.carrying.contains(&agent.name)

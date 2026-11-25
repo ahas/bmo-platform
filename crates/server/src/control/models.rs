@@ -857,7 +857,9 @@ fn faulted(fault: Fault) -> Refused {
 
 /// Every model the boundary holds: the registry's registrations, each with the orders and pins that name it.
 /// A provider the query names is the registry's alone, since every other provider's models are its own
-/// catalogue.
+/// catalogue. A member sees the registrations filed under their own account and those filed under the units
+/// they head (docs/api.md, 「Who a caller acts for」), narrowed further by the list's `ownerAccount`, `unit`
+/// and `unitSubtree` parameters.
 pub struct ListModels;
 
 impl Route for ListModels {
@@ -876,9 +878,25 @@ impl Route for ListModels {
       ));
     }
 
-    let listed = super::registry::listed_models(call.store(), &call.data_root()).await?;
+    let mut reach = crate::organisation::resources::Reach::listed(
+      call.ground(),
+      Acting::of(&call)?,
+      call.query("ownerAccount").as_deref(),
+      call.query("unit").as_deref(),
+      call.query("unitSubtree").as_deref(),
+    )
+    .await?;
+    let mut items = vec![];
 
-    Ok(answer(StatusCode::OK, json!({ "items": listed, "more": false })))
+    for model in super::registry::listed_models(call.store(), &call.data_root()).await? {
+      if !reach.reaches_row(model["account"].as_i64(), model["unit"].as_i64()).await? {
+        continue;
+      }
+
+      items.push(model);
+    }
+
+    Ok(answer(StatusCode::OK, json!({ "items": items, "more": false })))
   }
 }
 
@@ -933,6 +951,23 @@ impl Route for CreateModel {
       return Err(Refused::new(StatusCode::CONFLICT, format!("a model is already registered as {name}")));
     }
 
+    // A registration filed under a unit is filed there by the platform's call or by a head of that unit;
+    // heading the unit is the whole of who may file there (docs/api.md, 「Who a caller acts for」).
+    if let Some(unit) =
+      super::registry::checked_unit(body.get("unit").unwrap_or(&Value::Null)).map_err(faulted)?
+      && !crate::organisation::resources::heads(call.ground(), Acting::of(&call)?, unit).await?
+    {
+      return Err(
+        Refused::new(
+          StatusCode::FORBIDDEN,
+          format!(
+            "The signed-in person may not file the model {name} under the unit {unit}: they do not head it"
+          ),
+        )
+        .with_code("forbidden"),
+      );
+    }
+
     let mut change = json!({
       "action": "save",
       "name": name,
@@ -942,7 +977,7 @@ impl Route for CreateModel {
       "answerTokens": REGISTRY.answer_tokens.min,
     });
 
-    for field in ["cardService", "roleFiles", "languages"] {
+    for field in ["cardService", "roleFiles", "languages", "unit"] {
       if let Some(value) = body.get(field) {
         change[field] = value.clone();
       }
@@ -965,13 +1000,15 @@ impl Route for CreateModel {
 crate::moved!(CreateModel);
 
 /// A model's registration changed: the model name it is registered under, the card service its engine is,
-/// whether that service's instances keep role files, the languages it writes results in and the account it
-/// belongs to, each where the body names it. Who owns a registration is the owner's to set: a member's call
-/// naming it is refused (docs/supply.md, 「Owned supply」).
+/// whether that service's instances keep role files, the languages it writes results in, the account it
+/// belongs to and the unit it stands under, each where the body names it. The account a registration belongs
+/// to is the owner's to set: a member's call naming it is refused (docs/supply.md, 「Owned supply」). A unit
+/// it stands under is the platform's or a head of that unit's to set, and a registration a unit owns is that
+/// unit's heads' to change (docs/api.md, 「Who a caller acts for」).
 pub struct ChangeModel;
 
 // The fields of a registration a change hands to the registry beside its model name.
-const CHANGED_FIELDS: [&str; 4] = ["cardService", "roleFiles", "languages", "account"];
+const CHANGED_FIELDS: [&str; 5] = ["cardService", "roleFiles", "languages", "account", "unit"];
 
 impl Route for ChangeModel {
   const METHOD: Method = Method::PATCH;
@@ -1005,7 +1042,7 @@ impl Route for ChangeModel {
     if model.is_none() && !fields {
       return Err(Refused::new(
         StatusCode::BAD_REQUEST,
-        "model, cardService, roleFiles, languages or account is required",
+        "model, cardService, roleFiles, languages, account or unit is required",
       ));
     }
 
@@ -1024,8 +1061,33 @@ impl Route for ChangeModel {
     let db = call.store();
     let data_root = call.data_root();
 
-    if super::registry::registered_model(db, &data_root, &name).await?.is_none() {
-      return Err(Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {name}")));
+    let held = super::registry::registration(db, &name)
+      .await?
+      .ok_or_else(|| Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {name}")))?;
+
+    // A registration a unit owns is its heads' to change, heading the unit being the whole of who may; the
+    // console section asks none of such a call (docs/api.md, 「Who a caller acts for」).
+    if let Some(unit) = held.owner_unit
+      && !crate::organisation::resources::heads(call.ground(), Acting::of(&call)?, unit).await?
+    {
+      return Err(crate::organisation::resources::refused(&format!("the model {name}")));
+    }
+
+    // Refiling a registration under a unit is the platform's call's or a head of that unit's, and a row
+    // carries one owner at most.
+    if let Some(unit) = super::registry::checked_unit(body.get("unit").unwrap_or(&Value::Null))
+      .map_err(|_| Refused::failed(&CONTROL_WORDS.registry.unit).with_field("unit"))?
+      && !crate::organisation::resources::heads(call.ground(), Acting::of(&call)?, unit).await?
+    {
+      return Err(
+        Refused::new(
+          StatusCode::FORBIDDEN,
+          format!(
+            "The signed-in person may not file the model {name} under the unit {unit}: they do not head it"
+          ),
+        )
+        .with_code("forbidden"),
+      );
     }
 
     if let Some(model) = &model {
@@ -1078,8 +1140,15 @@ impl Route for DeleteModel {
     let db = call.store();
     let data_root = call.data_root();
 
-    if super::registry::registered_model(db, &data_root, &name).await?.is_none() {
-      return Err(Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {name}")));
+    let held = super::registry::registration(db, &name)
+      .await?
+      .ok_or_else(|| Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {name}")))?;
+
+    // A registration a unit owns is its heads' to take away (docs/api.md, 「Who a caller acts for」).
+    if let Some(unit) = held.owner_unit
+      && !crate::organisation::resources::heads(call.ground(), Acting::of(&call)?, unit).await?
+    {
+      return Err(crate::organisation::resources::refused(&format!("the model {name}")));
     }
 
     match super::registry::change(db, &data_root, &json!({ "action": "remove", "name": name })).await? {

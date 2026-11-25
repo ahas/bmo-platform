@@ -59,6 +59,8 @@ pub struct Supervisor {
   pub name: String,
   pub label: Option<String>,
   pub owner_account: Option<i64>,
+  /// The organisation unit it is filed under, none where it is no unit's.
+  pub owner_unit: Option<i64>,
   /// Its call names as the row keeps them, one line joined by commas (docs/supervisors.md, 「Its call names」).
   pub aliases: Option<String>,
   pub icon: Option<String>,
@@ -117,6 +119,7 @@ impl Supervisor {
       name: row.try_get("", "name")?,
       label: row.try_get("", "label")?,
       owner_account: row.try_get("", "owner_account")?,
+      owner_unit: row.try_get("", "owner_unit")?,
       aliases: row.try_get("", "aliases")?,
       icon: row.try_get("", "icon")?,
       prompts: row.try_get("", "prompts")?,

@@ -304,6 +304,7 @@ pub struct RegistryWords {
   pub card_service_address: String,
   pub languages: String,
   pub account: String,
+  pub unit: String,
   pub owner_only: String,
   /// With `{name}`.
   pub unknown_member: String,

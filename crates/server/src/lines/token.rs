@@ -538,16 +538,18 @@ pub async fn issue(
   variables.extend(line_variables(ground, line));
 
   // A thrown-away session's place stands no agent row, so its calls name the supervisor its line's brain
-  // tools write for, the one agency's research setting names, as every run of the line does
-  // (docs/agent-roles.md, 「The voyager and the seeker roles」).
+  // tools write for, the one agency's research setting names for the agent's account, as every run of the
+  // line does (docs/agent-roles.md, 「The voyager and the seeker roles」).
+  let account = agent_account(ground, agent).await;
+
   if crate::apart_places::session_agent(&ground.roots.data, agent).is_some()
     && RUN_LINES.writes_agent_brain(line)
-    && let Some(supervisor) = research_supervisor(ground).await?
+    && let Some(supervisor) = research_supervisor(ground, account).await?
   {
     variables.insert("BMO_TURN_AGENT".to_owned(), supervisor);
   }
 
-  if let Some(supervisor) = brain_supervisor(ground, line).await? {
+  if let Some(supervisor) = brain_supervisor(ground, line, account).await? {
     variables.insert(BRAIN_AGENT.to_owned(), supervisor);
   }
 
@@ -687,6 +689,9 @@ pub async fn issue_for_run(
   deadline: u64,
 ) -> Result<Option<String>, Refusal> {
   let given = |name: &str| env.get(name).filter(|value| !value.is_empty()).cloned();
+  // The account the carrier's row stands on, read before the turn's agent takes its name (docs/api.md,
+  // 「settings」).
+  let account = agent_account(ground, agent).await;
   let agent = given("BMO_TURN_AGENT").map_or_else(|| agent.to_owned(), |named| named.trim().to_owned());
   let run_role = given(RUN_ROLE);
   let mut reach = capabilities(ground, line, &agent, cwd, run_role.as_deref()).await?;
@@ -712,16 +717,16 @@ pub async fn issue_for_run(
   variables.insert("BMO_DATA_DIR".to_owned(), data_root);
   variables.extend(line_variables(ground, line));
 
-  // A runner line's brain tools write the brain of the supervisor agency's research setting names. The record
-  // names that supervisor as the turn its tools run for, while the run itself stays the runner's
-  // (docs/agent-roles.md, 「The voyager and the seeker roles」).
+  // A runner line's brain tools write the brain of the supervisor agency's research setting names for the
+  // account the run stands on. The record names that supervisor as the turn its tools run for, while the run
+  // itself stays the runner's (docs/agent-roles.md, 「The voyager and the seeker roles」).
   if RUN_LINES.writes_agent_brain(line)
-    && let Some(supervisor) = research_supervisor(ground).await?
+    && let Some(supervisor) = research_supervisor(ground, account).await?
   {
     variables.insert("BMO_TURN_AGENT".to_owned(), supervisor);
   }
 
-  if let Some(supervisor) = brain_supervisor(ground, line).await? {
+  if let Some(supervisor) = brain_supervisor(ground, line, account).await? {
     variables.insert(BRAIN_AGENT.to_owned(), supervisor);
   }
 
@@ -906,20 +911,48 @@ pub const BRAIN_AGENT: &str = "BMO_BRAIN_AGENT";
 
 /// The supervisor whose brain a run of `line` works for (docs/agent-roles.md, 「The bundles」): the one
 /// agency's research setting names; none for a line that works for no supervisor's brain.
-pub async fn brain_supervisor(ground: &Ground, line: &str) -> Result<Option<String>, Refusal> {
+pub async fn brain_supervisor(
+  ground: &Ground,
+  line: &str,
+  account: Option<i64>,
+) -> Result<Option<String>, Refusal> {
   if !RUN_LINES.works_for_brain(line) {
     return Ok(None);
   }
 
-  research_supervisor(ground).await
+  research_supervisor(ground, account).await
 }
 
-pub async fn research_supervisor(ground: &Ground) -> Result<Option<String>, Refusal> {
-  Ok(
-    crate::queue::settings::get(&ground.db, RESEARCH_SUPERVISOR)
-      .await?
-      .filter(|name| !name.trim().is_empty()),
-  )
+/// The research supervisor in force for a run standing for `account`: the nearest link of that person's path
+/// on the chain names it where one says so; else the platform's word, else the settings row that stood until
+/// the value moved (docs/api.md, 「settings」).
+pub async fn research_supervisor(ground: &Ground, account: Option<i64>) -> Result<Option<String>, Refusal> {
+  let standing =
+    crate::chain_settings::of(&policy::organisation::ORGANISATION.settings.research_supervisor.key)
+      .ok_or_else(|| Refusal::failed("the research supervisor does not stand on the chain"))?;
+
+  if let Some(account) = account
+    && let Some(name) = crate::chain_settings::for_person(ground, standing.key, account)
+      .await
+      .map_err(Refusal::failed)?
+  {
+    return Ok(Some(name));
+  }
+
+  crate::chain_settings::text(ground, &standing).await.map_err(Refusal::failed)
+}
+
+// The account a named agent sits on: the supervisor's or the seat's row, none where it is the platform's own.
+pub async fn agent_account(ground: &Ground, agent: &str) -> Option<i64> {
+  if let Ok(Some(held)) = crate::supervisors::named(&ground.db, agent).await {
+    return held.owner_account;
+  }
+
+  crate::role_agents::named(&ground.db, agent)
+    .await
+    .ok()
+    .flatten()
+    .and_then(|held| held.owner_account)
 }
 
 /// The settings key the research supervisor stands under.

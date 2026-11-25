@@ -74,6 +74,7 @@ pub async fn view(ground: &Ground, supervisor: &Supervisor) -> Result<Value, Ref
     "name": supervisor.name,
     "label": supervisor.label,
     "ownerAccount": supervisor.owner_account,
+    "ownerUnit": supervisor.owner_unit,
     "aliases": supervisor.aliases,
     "icon": ROLES.icon("supervisor"),
     "sessionScope": supervisor.session_scope,
@@ -97,7 +98,9 @@ pub async fn view(ground: &Ground, supervisor: &Supervisor) -> Result<Value, Ref
   }))
 }
 
-/// `GET /supervisors`: every supervisor.
+/// `GET /supervisors`: every supervisor the caller reaches. The platform's call, every one; a member's, the
+/// rows filed under their own account and those filed under the units they head, a head above heading the units
+/// below as the chain answers the unit's link (docs/api.md, 「Who a caller acts for」).
 pub struct SupervisorList;
 
 impl Route for SupervisorList {
@@ -105,9 +108,22 @@ impl Route for SupervisorList {
   const PATH: &'static str = "/supervisors";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
+    let acting = Acting::of(&call)?;
+    let mut reach = crate::organisation::resources::Reach::listed(
+      call.ground(),
+      acting,
+      call.query("ownerAccount").as_deref(),
+      call.query("unit").as_deref(),
+      call.query("unitSubtree").as_deref(),
+    )
+    .await?;
     let mut items = vec![];
 
     for supervisor in supervisors::every(call.store()).await? {
+      if !reach.reaches_row(supervisor.owner_account, supervisor.owner_unit).await? {
+        continue;
+      }
+
       items.push(view(call.ground(), &supervisor).await?);
     }
 
@@ -127,6 +143,14 @@ impl Route for SupervisorRead {
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let name = call.param("supervisorName").unwrap_or_default().to_owned();
     let supervisor = supervisors::named(call.store(), &name).await?.ok_or_else(|| not_found(&name))?;
+
+    // A row the reader does not reach is answered as none stood there, as an unseen account's supply is.
+    if !crate::organisation::resources::Reach::new(call.ground(), Acting::of(&call)?)
+      .reaches_row(supervisor.owner_account, supervisor.owner_unit)
+      .await?
+    {
+      return Err(not_found(&name));
+    }
 
     Ok(answer(StatusCode::OK, view(call.ground(), &supervisor).await?))
   }
@@ -397,8 +421,34 @@ impl Route for SupervisorCreate {
         Some(owner.as_i64().ok_or_else(|| bad("ownerAccount", CONTROL_WORDS.agents.owner.as_str()))?)
       }
     };
-    // A member's supervisor is filed under their own account (docs/api.md, 「Who a caller acts for」).
-    let owner = Acting::of(&call)?.files_under(named, &format!("the supervisor {name}"))?;
+    let unit = match body.get("ownerUnit") {
+      None | Some(Value::Null) => None,
+      Some(unit) => Some(
+        unit
+          .as_i64()
+          .ok_or_else(|| bad("ownerUnit", "ownerUnit: an organisation unit's id, or null for none."))?,
+      ),
+    };
+    // A member's supervisor is filed under their own account, or under a unit they head; a row carries one
+    // owner at most (docs/api.md, 「Who a caller acts for」).
+    let (owner, owner_unit) = match unit {
+      Some(unit) => {
+        if named.is_some() {
+          return Err(bad("ownerUnit", "A row stands under an account or under a unit, never under both."));
+        }
+
+        if !crate::organisation::resources::heads(call.ground(), Acting::of(&call)?, unit).await? {
+          return Err(Refused::new(
+            StatusCode::FORBIDDEN,
+            format!("The signed-in person may not file the supervisor {name} under the unit {unit}: they do not head it"),
+          )
+          .with_code("forbidden"));
+        }
+
+        (None, Some(unit))
+      }
+      None => (Acting::of(&call)?.files_under(named, &format!("the supervisor {name}"))?, None),
+    };
 
     retired(&body)?;
 
@@ -413,14 +463,15 @@ impl Route for SupervisorCreate {
 
     run(
       call.store(),
-      r#"INSERT INTO "supervisors" ("name", "label", "owner_account", "icon", "brain_folder", "session_scope",
+      r#"INSERT INTO "supervisors" ("name", "label", "owner_account", "owner_unit", "icon", "brain_folder", "session_scope",
            "turn_shape", "repository", "provider", "model", "effort", "thinking", "answer_tokens", "warming",
            "fold_ratio", "created_at", "updated_at", "advisor")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16, $17)"#,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17, $18)"#,
       vec![
         name.clone().into(),
         label.clone().into(),
         owner.into(),
+        owner_unit.into(),
         SUPERVISORS.added_icon.clone().into(),
         format!("agents/{name}").into(),
         conversation.scope.word().into(),

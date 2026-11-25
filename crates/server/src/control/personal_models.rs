@@ -342,7 +342,7 @@ pub async fn off_board(db: &impl sea_orm::ConnectionTrait, account: i64) -> Resu
     run(
       db,
       r#"UPDATE "registered_models" SET "enabled" = 0
-         WHERE "account" = $1 AND "enabled" <> 0
+         WHERE "owner_account" = $1 AND "enabled" <> 0
            AND "name" IN (SELECT "registration" FROM "registered_model_addresses" WHERE "reach_port" IS NOT NULL)"#,
       vec![account.into()],
     )

@@ -265,7 +265,9 @@ async fn write_node_checkouts(
   Ok(())
 }
 
-/// `GET /repositories`: every repository.
+/// `GET /repositories`: every repository the caller reaches. The platform's call, every one; a member's, the
+/// repositories filed under their own account and those filed under the units they head, a head above heading the
+/// units below as the chain answers the unit's link (docs/api.md, 「Who a caller acts for」).
 pub struct RepositoryList;
 
 impl Route for RepositoryList {
@@ -273,9 +275,21 @@ impl Route for RepositoryList {
   const PATH: &'static str = "/repositories";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
+    let mut reach = crate::organisation::resources::Reach::listed(
+      call.ground(),
+      Acting::of(&call)?,
+      call.query("ownerAccount").as_deref(),
+      call.query("unit").as_deref(),
+      call.query("unitSubtree").as_deref(),
+    )
+    .await?;
     let mut items = vec![];
 
     for repository in repositories::every(call.store()).await? {
+      if !reach.reaches_row(repository.owner_account, repository.owner_unit).await? {
+        continue;
+      }
+
       items.push(view(call.ground(), &repository).await?);
     }
 
@@ -295,6 +309,14 @@ impl Route for RepositoryRead {
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let name = call.param("repositoryName").unwrap_or_default().to_owned();
     let repository = repositories::named(call.store(), &name).await?.ok_or_else(|| not_found(&name))?;
+
+    // A repository the reader does not reach is answered as none stood there, as an unseen account's supply is.
+    if !crate::organisation::resources::Reach::new(call.ground(), Acting::of(&call)?)
+      .reaches_row(repository.owner_account, repository.owner_unit)
+      .await?
+    {
+      return Err(not_found(&name));
+    }
 
     Ok(answer(StatusCode::OK, view(call.ground(), &repository).await?))
   }

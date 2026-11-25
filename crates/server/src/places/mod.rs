@@ -175,10 +175,18 @@ impl Places {
       let declaring = self.clone();
 
       // The settings the prompt layers read off the delegation chain, declared as the server stands
-      // (docs/prompt-layers.md, 「The settings agency declares」).
+      // (docs/prompt-layers.md, 「The settings agency declares」); the values that stood in agency's own
+      // settings rows move onto the platform's links once behind the declarations (docs/api.md, 「settings」).
       tokio::spawn(async move {
-        if let Err(why) = crate::prompt_layers::declare(&crate::apps::service(&declaring.ground)).await {
+        let service = crate::apps::service(&declaring.ground);
+
+        if let Err(why) = crate::prompt_layers::declare(&service).await {
           eprintln!("agency: the prompt layers' kinds were not declared: {why}");
+          return;
+        }
+
+        if let Err(why) = crate::chain_settings::seed_once(&declaring.ground).await {
+          eprintln!("agency: the settings were not moved onto the delegation chain: {why}");
         }
       });
 

@@ -107,6 +107,7 @@ mod control {
   mod supply_test;
   mod support_growth;
   mod turn_restart;
+  mod unit_resources;
   mod worker_runtime;
 }
 mod conversational;

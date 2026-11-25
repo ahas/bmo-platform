@@ -149,7 +149,7 @@ async function stand(agent: string, rooms: number): Promise<Stood> {
   // Runs of the ledger: the supervisor's in either room and another agent's in the lone room go with it, and
   // another agent's in the shared room stays.
   for (const [who, chatId] of [[agent, alone], [agent, shared], ["other", alone], ["other", shared]] as const) {
-    await run("INSERT INTO runs (agent, chat_id, unit, depth, started_at) VALUES (?, ?, ?, 0, 1)", who, chatId, `unit-${who}-${chatId}`);
+    await run("INSERT INTO runs (agent, chat_id, work_unit, depth, started_at) VALUES (?, ?, ?, 0, 1)", who, chatId, `unit-${who}-${chatId}`);
   }
 
   return {

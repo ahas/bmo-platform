@@ -63,6 +63,26 @@ fn seat_account(named: &Value) -> Result<Option<i64>, Refused> {
   held.parse::<i64>().map(Some).map_err(|_| unprocessable(SEAT_ACCOUNT))
 }
 
+// The unit a body names for a seat: a whole number, a text of digits, or null for no unit's.
+const SEAT_UNIT: &str = "ownerUnit: an organisation unit's id, or null for none.";
+
+fn seat_unit(named: &Value) -> Result<Option<i64>, Refused> {
+  let held = match named {
+    Value::Null => return Ok(None),
+    Value::Number(number) => {
+      return number.as_i64().map(Some).ok_or_else(|| unprocessable(SEAT_UNIT));
+    }
+    Value::String(held) => held.trim().to_owned(),
+    _ => return Err(unprocessable(SEAT_UNIT)),
+  };
+
+  if held.is_empty() {
+    return Ok(None);
+  }
+
+  held.parse::<i64>().map(Some).map_err(|_| unprocessable(SEAT_UNIT))
+}
+
 // A field that is text or null: none where the body clears it or names nothing.
 fn text(value: &Value, field: &str) -> Result<Option<String>, Refused> {
   match value {
@@ -100,6 +120,15 @@ pub(crate) async fn judged(
   // The account whose seat it is, its login account's id, or none for the deployment's own.
   if let Some(account) = body.get("ownerAccount") {
     agent.owner_account = seat_account(account)?;
+  }
+
+  // Or the organisation unit whose seat it is, which stands in place of an account (docs/api.md, 「Who a caller acts for」).
+  if let Some(unit) = body.get("ownerUnit") {
+    agent.owner_unit = seat_unit(unit)?;
+  }
+
+  if agent.owner_account.is_some() && agent.owner_unit.is_some() {
+    return Err(unprocessable("A row stands under an account or under a unit, never under both."));
   }
 
   if let Some(provider) = body.get("provider") {
@@ -245,10 +274,26 @@ pub(crate) async fn judged(
   Ok(agent)
 }
 
-// The account an agent a member adds or changes is filed under (docs/api.md, 「Who a caller acts for」): their own,
-// a body naming another refused. The platform's call keeps the owner the body gives.
-fn filed(acting: Acting, agent: &mut RoleAgent) -> Result<(), Refused> {
+// The owner an agent a member adds or changes is filed under (docs/api.md, 「Who a caller acts for」): their own
+// account, a body naming another refused, or a unit they head (docs/api.md, 「Who a caller acts for」) — heading the unit is
+// the whole of who may file there and keep the filing. The platform's call keeps the owner the body gives.
+async fn filed(ground: &Ground, acting: Acting, agent: &mut RoleAgent) -> Result<(), Refused> {
   if acting == Acting::Platform {
+    return Ok(());
+  }
+
+  if let Some(unit) = agent.owner_unit {
+    if !crate::organisation::resources::heads(ground, acting, unit).await? {
+      return Err(Refused::new(
+        StatusCode::FORBIDDEN,
+        format!(
+          "The signed-in person may not file the role agent {} under the unit {unit}: they do not head it",
+          agent.name
+        ),
+      )
+      .with_code("forbidden"));
+    }
+
     return Ok(());
   }
 
@@ -274,7 +319,10 @@ pub(crate) async fn seats_changed(
   Ok(())
 }
 
-/// `GET /role-agents`: every agent, by role and name, narrowed to one role's by `role`.
+/// `GET /role-agents`: every agent the caller reaches, by role and name, narrowed to one role's by `role`. The
+/// platform's call, every one; a member's, the seats filed under their own account and those filed under the
+/// units they head, a head above heading the units below as the chain answers the unit's link
+/// (docs/api.md, 「Who a caller acts for」).
 pub struct RoleAgentList;
 
 impl Route for RoleAgentList {
@@ -282,6 +330,7 @@ impl Route for RoleAgentList {
   const PATH: &'static str = "/role-agents";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
+    let acting = Acting::of(&call)?;
     let role = call.query("role");
     let carrying = role_agents::carrying_any(call.store()).await?;
     let following: Vec<String> = agent_roles::every(call.store())
@@ -290,12 +339,27 @@ impl Route for RoleAgentList {
       .filter(|held| held.follows_asker)
       .map(|held| held.name)
       .collect();
-    let items: Vec<Value> = role_agents::every(call.store())
-      .await?
-      .iter()
-      .filter(|agent| role.as_deref().is_none_or(|role| agent.role == role))
-      .map(|agent| view(agent, following.contains(&agent.role), &carrying))
-      .collect();
+    let mut reach = crate::organisation::resources::Reach::listed(
+      call.ground(),
+      acting,
+      call.query("ownerAccount").as_deref(),
+      call.query("unit").as_deref(),
+      call.query("unitSubtree").as_deref(),
+    )
+    .await?;
+    let mut items: Vec<Value> = Vec::new();
+
+    for agent in role_agents::every(call.store()).await? {
+      if role.as_deref().is_some_and(|named| agent.role != named) {
+        continue;
+      }
+
+      if !reach.reaches_row(agent.owner_account, agent.owner_unit).await? {
+        continue;
+      }
+
+      items.push(view(&agent, following.contains(&agent.role), &carrying));
+    }
 
     Ok(answer(StatusCode::OK, json!({ "items": items })))
   }
@@ -348,6 +412,7 @@ impl Route for RoleAgentCreate {
       skills: None,
       added_at: now_ms(),
       owner_account: None,
+      owner_unit: None,
       follows_asker: None,
     };
     let mut agent = judged(call.ground(), &held, fresh, &body).await?;
@@ -367,7 +432,7 @@ impl Route for RoleAgentCreate {
       );
     }
 
-    filed(acting, &mut agent)?;
+    filed(call.ground(), acting, &mut agent).await?;
     role_agents::write(db, &agent).await?;
     seats_changed(db, call.events(), &agent.role).await?;
     queue_told(&call);
@@ -395,7 +460,7 @@ impl Route for RoleAgentChange {
       .ok_or_else(|| unprocessable(agent_roles::unknown(&held.role)))?;
     let mut agent = judged(call.ground(), &role, held, &body).await?;
 
-    filed(Acting::of(&call)?, &mut agent)?;
+    filed(call.ground(), Acting::of(&call)?, &mut agent).await?;
     role_agents::write(db, &agent).await?;
     seats_changed(db, call.events(), &agent.role).await?;
     queue_told(&call);

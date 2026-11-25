@@ -158,3 +158,65 @@ levels = ["platform", "unit", "person"]
 unit_permission = "manage"
 person_writer = "heads"
 default = true
+
+# The platform's own resources (docs/agents.md, docs/repositories.md, docs/model-catalogue.md, docs/run-records.md):
+# who reaches the agents, role agents, repositories, registered models and run records filed under a unit. A row a
+# unit owns is its heads' alone, and heading it is the whole of who may; this kind's unit link is the head check the
+# chain answers, its value standing open everywhere unless the platform says otherwise.
+[resources]
+key = "agency.unit-resources.manage"
+description = "Whether a unit's head reaches the agents, role agents, repositories, registered models and run records filed under their unit and the units below it. The chain's answer of who writes a unit's link is the head check."
+shape = "flag"
+mode = "nearest"
+rules = false
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+# The settings that stood in agency's own settings table, now held on the chain (docs/api.md, 「settings」). A
+# `platform`-only kind is a value the whole platform shares: the deploy queue is one queue, and a DeepSeek secret
+# name names the platform's space. The research supervisor stands at units too: the nearest link of the person a
+# run serves names the supervisor its brain tools work for.
+[settings]
+
+[settings.research_supervisor]
+key = "agency.research-supervisor"
+description = "The supervisor whose brain a run of the search or browse line writes into, and whose brain a run of the worker line reads and writes its lessons into: the nearest link names it, none says no such supervisor."
+shape = "text"
+mode = "nearest"
+rules = false
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+
+[settings.deploy_flush_minutes]
+key = "agency.deploy-flush-minutes"
+description = "The minutes between two flushes of the deploy queue. The queue is the platform's one, so the platform's link alone holds it."
+shape = "amount"
+mode = "nearest"
+rules = false
+levels = ["platform"]
+unit_permission = "manage"
+person_writer = "heads"
+default = 60
+
+[settings.deepseek_card_secret]
+key = "agency.deepseek.card-secret"
+description = "The platform secret, of the kind card, the DeepSeek top-up reads its card from: a name in the platform's space, none refuses every call."
+shape = "text"
+mode = "nearest"
+rules = false
+levels = ["platform"]
+unit_permission = "manage"
+person_writer = "heads"
+
+[settings.deepseek_login_secret]
+key = "agency.deepseek.login-secret"
+description = "The platform secret, of the kind account-login, the DeepSeek top-up signs in with where DeepSeek asks for it: a name in the platform's space, none refuses every call."
+shape = "text"
+mode = "nearest"
+rules = false
+levels = ["platform"]
+unit_permission = "manage"
+person_writer = "heads"

@@ -289,6 +289,7 @@ card_role_files = "Whether a card service's instances keep role files is on or o
 card_service_address = "{name} names the card service {service}: where it stands is the arbiter's to say, so it holds no address."
 languages = "Languages are a list of at most {most} names, each a language's English name of letters, spaces and hyphens, at most 40 characters, or none."
 account = "An owner is a user's id, a whole number, or none for the platform's."
+unit = "A unit owner is an organisation unit's id, a whole number, or none for no unit's."
 owner_only = "Who owns a model or a member of the gateway is the owner's alone to set."
 unknown_member = "Not a member of the gateway: {name}"
 members_unread = "The gateway's members file could not be read: {why}"

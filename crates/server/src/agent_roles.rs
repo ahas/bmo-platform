@@ -51,7 +51,10 @@ impl AgentRole {
       .agents
       .iter()
       .filter(|agent| {
-        agent.enabled && agent.owner_account.map(|owner| owner.to_string()).as_deref() == account
+        // A seat filed under a unit caps no account's runs yet, as it takes none (`seats_for`).
+        agent.enabled
+          && agent.owner_unit.is_none()
+          && agent.owner_account.map(|owner| owner.to_string()).as_deref() == account
       })
       .count() as i64
   }

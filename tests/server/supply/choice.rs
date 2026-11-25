@@ -195,7 +195,7 @@ async fn owned_by(scratch: &Scratch, home: &std::path::Path, account: i64) {
   members[0]["account"] = account.into();
   std::fs::write(&file, members.to_string()).unwrap();
   scratch
-    .run(r#"UPDATE "registered_models" SET "account" = $1"#, vec![account.into()])
+    .run(r#"UPDATE "registered_models" SET "owner_account" = $1"#, vec![account.into()])
     .await;
 }
 

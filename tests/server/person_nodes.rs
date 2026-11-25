@@ -204,7 +204,7 @@ async fn a_role_run_stands_on_its_seat_s_account_s_node_and_one_on_the_deploymen
   let scratch = Scratch::new().await;
   let db = scratch.db();
 
-  for (name, account) in [("coder-07", Some("7")), ("coder-08", Some("8")), ("coder-01", None)] {
+  for (name, account) in [("coder-07", Some(7i64)), ("coder-08", Some(8)), ("coder-01", None)] {
     scratch
       .run(
         r#"INSERT INTO "role_agents" ("name", "role", "owner_account") VALUES ($1, 'coder', $2)"#,
@@ -454,7 +454,7 @@ async fn an_account_s_caller_reaches_its_own_account_s_node_alone_and_a_supervis
   scratch
     .run(r#"INSERT INTO "settings" ("key", "value") VALUES ('users_administrator', '9')"#, vec![])
     .await;
-  for (name, account) in [("coder-07", Some("7")), ("coder-01", None)] {
+  for (name, account) in [("coder-07", Some(7i64)), ("coder-01", None)] {
     scratch
       .run(
         r#"INSERT INTO "role_agents" ("name", "role", "owner_account") VALUES ($1, 'coder', $2)"#,

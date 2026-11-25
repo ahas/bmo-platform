@@ -300,7 +300,7 @@ async fn a_person_adds_a_local_ai_tried_from_their_pc_under_their_chain() {
   scratch
     .run(
       r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens", "thinking",
-           "walked", "keeps_research", "added_at", "account", "enabled")
+           "walked", "keeps_research", "added_at", "owner_account", "enabled")
          VALUES ('u8-ollama', 'ollama', 'qwen3', 32768, 4096, 0, 0, 0, 1, 8, 1)"#,
       vec![],
     )

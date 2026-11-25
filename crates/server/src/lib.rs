@@ -15,6 +15,7 @@ pub mod call_keys;
 pub mod cards;
 pub mod catalogue;
 pub mod chain;
+pub mod chain_settings;
 pub mod chat_stand_in;
 pub mod clock;
 pub mod command_reading;

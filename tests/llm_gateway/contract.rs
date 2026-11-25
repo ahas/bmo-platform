@@ -1802,7 +1802,7 @@ async fn chat_on(world: &World, key: &str, model: &str) -> (u16, hyper::HeaderMa
 
 #[tokio::test]
 async fn an_owned_member_or_registration_answers_its_owner_alone_and_the_gateways_key_the_administrators() {
-  let owned = "UPDATE registered_models SET account = 7 WHERE name = 'pair-0-1';";
+  let owned = "UPDATE registered_models SET owner_account = 7 WHERE name = 'pair-0-1';";
   let world = World::new(&format!(
     "{PAIR}{owned}{ADMINISTRATOR}{}{}{}",
     call_key(1, "call-key-one", false),

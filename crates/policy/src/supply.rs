@@ -116,6 +116,8 @@ pub struct Words {
   /// With `{source}`.
   pub ran_out: String,
   pub withheld: String,
+  /// With `{provider}`.
+  pub provider_off: String,
   /// One sentence to each reason no source is left, each with `{source}`, `{reopens}` and `{settings}`.
   pub closed: ClosedWords,
   /// With `{at}`.

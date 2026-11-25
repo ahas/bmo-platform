@@ -546,7 +546,7 @@ async fn rows(ground: &Ground, account: &str) -> Result<Vec<Row>, Refused> {
     &ground.db,
     r#"SELECT a."name", a."role", r."line" FROM "role_agents" a LEFT JOIN "roles" r ON r."name" = a."role"
        WHERE a."owner_account" = $1 OR ($2 AND a."owner_account" IS NULL) ORDER BY a."name""#,
-    vec![account.into(), administrator.into()],
+    vec![number.into(), administrator.into()],
   )
   .await?;
   let mut found = Vec::new();

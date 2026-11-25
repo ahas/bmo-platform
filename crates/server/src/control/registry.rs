@@ -72,6 +72,8 @@ pub struct Registration {
   pub languages: Vec<String>,
   /// The account it belongs to, none for the platform's (docs/supply.md, 「Owned supply」).
   pub owner_account: Option<i64>,
+  /// The organisation unit it belongs to, none where it is no unit's (docs/api.md, 「Who a caller acts for」).
+  pub owner_unit: Option<i64>,
   /// Whether it is on: a person's local AI they switched off offers no supply (docs/supply.md, 「A person's local
   /// AI」).
   pub enabled: bool,
@@ -146,6 +148,7 @@ pub async fn registrations<C: ConnectionTrait>(db: &C) -> Result<Vec<Registratio
       role_files: flag(&row, "role_files")?,
       languages: languages(&row)?,
       owner_account: row.try_get("", "owner_account")?,
+      owner_unit: row.try_get("", "owner_unit")?,
       enabled: flag(&row, "enabled")?,
       addresses: held,
       name,
@@ -247,7 +250,7 @@ pub async fn registered_model<C: ConnectionTrait>(
   let Some(row) = one(
     db,
     r#"SELECT "model", "card_service", "role_files", "context_tokens", "answer_tokens", "thinking",
-         "languages", "owner_account" FROM "registered_models" WHERE "name" = $1"#,
+         "languages", "owner_account", "owner_unit" FROM "registered_models" WHERE "name" = $1"#,
     vec![name.into()],
   )
   .await?
@@ -284,6 +287,7 @@ pub async fn registered_model<C: ConnectionTrait>(
     "thinking": flag(&row, "thinking")?,
     "languages": languages(&row)?,
     "account": row.try_get::<Option<i64>>("", "owner_account")?,
+    "unit": row.try_get::<Option<i64>>("", "owner_unit")?,
   })))
 }
 
@@ -336,6 +340,15 @@ pub fn checked_account(named: &Value) -> Result<Option<i64>, Fault> {
     Value::Null => Ok(None),
     Value::Number(number) if number.as_i64().is_some() => Ok(number.as_i64()),
     _ => refused("account", CONTROL_WORDS.registry.account.as_str()),
+  }
+}
+
+/// A registration's unit owner as a change names it: a unit's id, or null for no unit's.
+pub fn checked_unit(named: &Value) -> Result<Option<i64>, Fault> {
+  match named {
+    Value::Null => Ok(None),
+    Value::Number(number) if number.as_i64().is_some() => Ok(number.as_i64()),
+    _ => refused("unit", CONTROL_WORDS.registry.unit.as_str()),
   }
 }
 
@@ -822,21 +835,34 @@ impl<C: ConnectionTrait> Change<'_, C> {
 
     self.card_service(body, name, held.as_ref()).await?;
     self.languages(body, name).await?;
-    self.account(body, name).await
+    self.account(body, name, held.as_ref()).await
   }
 
-  // The account the registration belongs to, where the change names it: a user's id, or null for the
-  // platform's. A change that names none leaves it as it stands, none on a new registration.
-  async fn account(&self, body: &Value, name: &str) -> Result<(), Fault> {
+  // The owner the registration belongs to, where the change names either axis: the account it is filed under,
+  // or the unit it stands under, or null for none — never both at once. A change that names neither leaves it
+  // as it stands, none on a new registration.
+  async fn account(&self, body: &Value, name: &str, held: Option<&Registration>) -> Result<(), Fault> {
+    if body.get("account").is_none() && body.get("unit").is_none() {
+      return Ok(());
+    }
+
     let account = match body.get("account") {
-      None => return Ok(()),
+      None => held.and_then(|held| held.owner_account),
       Some(named) => checked_account(named)?,
     };
+    let unit = match body.get("unit") {
+      None => held.and_then(|held| held.owner_unit),
+      Some(named) => checked_unit(named)?,
+    };
+
+    if account.is_some() && unit.is_some() {
+      return refused("unit", "A row stands under an account or under a unit, never under both.");
+    }
 
     run(
       self.db,
-      "UPDATE registered_models SET owner_account = $1 WHERE name = $2",
-      vec![account.into(), name.into()],
+      "UPDATE registered_models SET owner_account = $1, owner_unit = $2 WHERE name = $3",
+      vec![account.into(), unit.into(), name.into()],
     )
     .await?;
 

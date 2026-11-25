@@ -105,7 +105,12 @@ pub async fn supply(ground: &Ground, person: i64) -> Result<Vec<RoleSupply>, Ref
     let off = said.is_some_and(|said| said.off);
     let template = held
       .iter()
-      .find(|agent| agent.role == role.name && agent.owner_account.is_none() && agent.enabled)
+      .find(|agent| {
+        agent.role == role.name
+          && agent.owner_account.is_none()
+          && agent.owner_unit.is_none()
+          && agent.enabled
+      })
       .cloned();
     let template_road = template.as_ref().and_then(road_of);
     let roads: Vec<(Option<Road>, Option<String>)> = match said.and_then(|said| said.agents.clone()) {

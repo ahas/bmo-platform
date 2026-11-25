@@ -14,6 +14,10 @@ pub const MIGRATIONS_TABLE: &str = "agency_migrations";
 /// The migration that makes every table; a seed given once is given as it runs (`crate::seed`).
 pub const BASELINE: &str = m20270124_000001_baseline::NAME;
 
+/// The migration that lays the two owner columns over the baseline, renames what named its owner otherwise,
+/// and gives the run ledger its `work_unit` (`docs/store.md`, 「Its tables」).
+pub const OWNERSHIP: &str = m20270125_000001_platform_ownership::NAME;
+
 /// Every table the store's migrations make, beside the record of what ran: what reads every table of the
 /// store reads these and no other service's beside them (docs/store.md, 「Its tables」).
 pub const OWN_TABLES: [&str; 65] = [

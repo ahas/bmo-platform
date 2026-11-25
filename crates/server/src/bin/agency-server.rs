@@ -421,7 +421,7 @@ fn clocks(ground: &Arc<Ground>) {
       let ground = flush.clone();
 
       async move {
-        agency_server::watches::deploy_flush::pass(&ground.db, ground.vars(), &ground.roots.home).await;
+        agency_server::watches::deploy_flush::pass(&ground).await;
 
         Ok(())
       }

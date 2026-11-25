@@ -33,6 +33,8 @@ taken_first = "the order took {source} first as the run started"
 ran_out = "{source} ran out"
 # Why a run has no source: the hook's order named none for the person.
 withheld = "the supply hook's order names no source for the person"
+# Why a run has no source on the road's provider: a chain link turns that provider's sources off below it. With {provider}.
+provider_off = "the chain turns the provider {provider} off below the run's link"
 # Where the hook named a moment the source reopens. With {at}.
 reopens = ", and it reopens at {at}"
 # A person's key or login the provider refused, told to their own supervisor room once. With {source} and {why}.

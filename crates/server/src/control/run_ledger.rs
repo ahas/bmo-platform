@@ -33,6 +33,8 @@ fn member(run: &run_ledger::Run) -> Value {
     "name": format!("{}:{}", run.agent, run.work_unit),
     "agentName": run.agent.clone(),
     "unitName": run.work_unit.clone(),
+    "ownerAccount": run.owner_account,
+    "ownerUnit": run.owner_unit,
     "title": run.title.clone(),
     "workerName": Value::Null,
     "jobId": Value::Null,
@@ -93,7 +95,10 @@ impl Route for OpenRun {
 
 crate::moved!(OpenRun);
 
-/// The runs that carried a search, or the runs a list narrows to by agent, room, round and names.
+/// The runs that carried a search, or the runs a list narrows to by agent, room, round and names. Only the runs
+/// the caller reaches are answered: the platform's call, every one; a member's, the runs whose agent sits on
+/// their own account or on a unit they head, narrowed further by the list's `ownerAccount`, `unit` and
+/// `unitSubtree` parameters (docs/api.md, 「Who a caller acts for」).
 pub struct SearchRuns;
 
 impl Route for SearchRuns {
@@ -104,6 +109,15 @@ impl Route for SearchRuns {
     if let Some(name) = call.query_names().into_iter().find(|name| !FILTERS.contains(&name.as_str())) {
       return Err(bad(format!("the runs are not narrowed by {name}")));
     }
+
+    let mut reach = crate::organisation::resources::Reach::listed(
+      call.ground(),
+      crate::access::Acting::of(&call)?,
+      call.query("ownerAccount").as_deref(),
+      call.query("unit").as_deref(),
+      call.query("unitSubtree").as_deref(),
+    )
+    .await?;
 
     let page = match call.query("search").filter(|search| !search.trim().is_empty()) {
       Some(search) => {
@@ -121,15 +135,35 @@ impl Route for SearchRuns {
         run_ledger::search(call.store(), &search).await?
       }
     };
-    let items: Vec<Value> = page.runs.iter().map(member).collect();
+    let mut items: Vec<Value> = Vec::new();
+
+    for run in page.runs.iter() {
+      if !reach.reaches_row(run.owner_account, run.owner_unit).await? {
+        continue;
+      }
+
+      items.push(member(run));
+    }
 
     Ok(answer(StatusCode::OK, json!({ "items": items, "more": page.more })))
   }
 }
 
 /// Every name a list of runs is asked by (docs/api.md, 「runs」).
-const FILTERS: [&str; 9] =
-  ["search", "live", "agentName", "roomId", "round", "names", "after", "before", "limit"];
+const FILTERS: [&str; 12] = [
+  "search",
+  "live",
+  "agentName",
+  "roomId",
+  "round",
+  "names",
+  "after",
+  "before",
+  "limit",
+  "ownerAccount",
+  "unit",
+  "unitSubtree",
+];
 
 // What a list of runs is narrowed by, as the query names it.
 fn list_search(call: &Call) -> Result<run_ledger::Search, Refused> {
@@ -181,10 +215,19 @@ impl Route for ReadRun {
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let id = id_of(&call)?;
 
-    Ok(match run_ledger::read(call.store(), id).await? {
-      Some(run) => answer(StatusCode::OK, member(&run)),
-      None => nothing_held(id),
-    })
+    let Some(run) = run_ledger::read(call.store(), id).await? else {
+      return Ok(nothing_held(id));
+    };
+
+    // A run the reader does not reach is answered as the ledger held none, as an unseen account's supply is.
+    if !crate::organisation::resources::Reach::new(call.ground(), crate::access::Acting::of(&call)?)
+      .reaches_row(run.owner_account, run.owner_unit)
+      .await?
+    {
+      return Ok(nothing_held(id));
+    }
+
+    Ok(answer(StatusCode::OK, member(&run)))
   }
 }
 

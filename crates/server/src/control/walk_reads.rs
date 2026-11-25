@@ -243,9 +243,20 @@ impl Route for ModelHealth {
     })?;
 
     if asked.unregistered().is_some() {
-      return match registry::registered_model(call.store(), &call.data_root(), &model).await? {
-        Some(view) => Ok(answer(StatusCode::OK, view)),
-        None => Err(Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {model}"))),
+      let view = registry::registered_model(call.store(), &call.data_root(), &model).await?;
+
+      // A registration the reader does not reach is answered as none stood there (docs/api.md,
+      // 「Who a caller acts for」).
+      let mut reach =
+        crate::organisation::resources::Reach::new(call.ground(), crate::access::Acting::of(&call)?);
+      let reached = match &view {
+        Some(view) => reach.reaches_row(view["account"].as_i64(), view["unit"].as_i64()).await?,
+        None => true,
+      };
+
+      return match (view, reached) {
+        (Some(view), true) => Ok(answer(StatusCode::OK, view)),
+        _ => Err(Refused::new(StatusCode::NOT_FOUND, format!("no model is registered as {model}"))),
       };
     }
 

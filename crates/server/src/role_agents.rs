@@ -17,6 +17,8 @@ pub struct RoleAgent {
   pub role: String,
   /// The login account whose seat it is, none for the deployment's own (docs/role-agents.md).
   pub owner_account: Option<i64>,
+  /// The organisation unit whose seat it is, none where it is no unit's.
+  pub owner_unit: Option<i64>,
   /// Its road: the provider and model its runs go out on, both or neither. An agent naming neither follows
   /// the supervisor that asks it.
   pub provider: Option<String>,
@@ -83,6 +85,7 @@ impl RoleAgent {
       skills: list(row, "skills")?,
       added_at: row.try_get("", "added_at")?,
       owner_account: row.try_get("", "owner_account")?,
+      owner_unit: row.try_get("", "owner_unit")?,
       follows_asker: row.try_get::<Option<i64>>("", "follows_asker")?.map(|on| on != 0),
     })
   }
@@ -124,9 +127,14 @@ impl RoleAgent {
 
   /// Whether it is a candidate for an item naming this model in this role, for a launch of this account: switched
   /// on, of the role and the account, and on a road that runs the model (docs/role-agents.md, 「Which agent a run
-  /// takes」).
+  /// takes」). A seat filed under a unit is no one's candidate yet: letting a unit's people run on its seats
+  /// stands with the unit's supply, not here.
   pub fn candidate_for(&self, role: &str, model: &str, account: Option<i64>) -> bool {
-    self.enabled && self.role == role && self.owner_account == account && self.runs(model)
+    self.enabled
+      && self.role == role
+      && self.owner_account == account
+      && self.owner_unit.is_none()
+      && self.runs(model)
   }
 }
 
@@ -229,8 +237,8 @@ pub async fn write<C: ConnectionTrait>(db: &C, agent: &RoleAgent) -> Result<(), 
     r#"INSERT INTO "role_agents"
          ("name", "role", "provider", "model", "effort", "thinking", "answer_tokens", "enabled",
           "keeps_cache", "fold_ratio", "prompt", "bundles", "skills", "added_at", "sessions",
-          "owner_account", "advisor", "follows_asker")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          "owner_account", "owner_unit", "advisor", "follows_asker")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
        ON CONFLICT ("name") DO UPDATE SET
          "role" = excluded."role", "provider" = excluded."provider", "model" = excluded."model",
          "effort" = excluded."effort", "thinking" = excluded."thinking",
@@ -238,8 +246,8 @@ pub async fn write<C: ConnectionTrait>(db: &C, agent: &RoleAgent) -> Result<(), 
          "keeps_cache" = excluded."keeps_cache",
          "fold_ratio" = excluded."fold_ratio", "prompt" = excluded."prompt", "bundles" = excluded."bundles",
          "skills" = excluded."skills", "sessions" = excluded."sessions",
-         "owner_account" = excluded."owner_account", "advisor" = excluded."advisor",
-         "follows_asker" = excluded."follows_asker""#,
+         "owner_account" = excluded."owner_account", "owner_unit" = excluded."owner_unit",
+         "advisor" = excluded."advisor", "follows_asker" = excluded."follows_asker""#,
     vec![
       agent.name.clone().into(),
       agent.role.clone().into(),
@@ -257,6 +265,7 @@ pub async fn write<C: ConnectionTrait>(db: &C, agent: &RoleAgent) -> Result<(), 
       agent.added_at.into(),
       agent.sessions.word().into(),
       agent.owner_account.into(),
+      agent.owner_unit.into(),
       agent.advisor.clone().into(),
       agent.follows_asker.map(i64::from).into(),
     ],

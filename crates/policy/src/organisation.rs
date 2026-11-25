@@ -75,6 +75,16 @@ pub struct OwnAgents {
   pub road: Kind,
 }
 
+/// The settings that stood in agency's own settings table, held on the chain (docs/api.md, 「settings」).
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Settings {
+  pub research_supervisor: Kind,
+  pub deploy_flush_minutes: Kind,
+  pub deepseek_card_secret: Kind,
+  pub deepseek_login_secret: Kind,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Organisation {
@@ -85,6 +95,9 @@ pub struct Organisation {
   /// Whether a person may add a local AI of their own (docs/supply.md, 「A person's local AI」).
   pub personal_local_ai: Kind,
   pub own_agents: OwnAgents,
+  /// The head check for the resources filed under a unit (docs/api.md, 「Who a caller acts for」).
+  pub resources: Kind,
+  pub settings: Settings,
 }
 
 crate::part!(pub ORGANISATION: Organisation = "organisation.toml");

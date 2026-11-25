@@ -1,12 +1,16 @@
-//! The migrations make every table of the store in an empty database from the 1.0.0 baseline, and record what
-//! ran in the store's own record; an install holding the record of the last release before 1.0.0 is taken as
-//! it stands, and one holding part of it is refused (docs/store.md, 「Its tables」).
+//! The migrations make every table of the store in an empty database from the 1.0.0 baseline, with every
+//! migration made since laid on top, and record what ran in the store's own record; an install holding the
+//! record of the last release before 1.0.0 is taken as it stands and gains only what came after the baseline,
+//! and one holding part of it is refused (docs/store.md, 「Its tables」).
 
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
 use sea_orm_migration::MigratorTrait;
-use store::migration::{BASELINE, BEFORE, MIGRATIONS_TABLE, Migrator, OWN_TABLES};
+use store::migration::{BASELINE, BEFORE, MIGRATIONS_TABLE, Migrator, OWN_TABLES, OWNERSHIP};
 
 use crate::support::scratch::Scratch;
+
+// The shape the ownership migration makes, applied by hand beside the baseline it stands on.
+const OWNERSHIP_SQL: &str = include_str!("../../crates/store/src/migration/platform_ownership.sql");
 
 async fn tables(scratch: &Scratch) -> Vec<String> {
   let rows = store::all(
@@ -226,32 +230,37 @@ async fn installed(through: usize) -> Scratch {
 }
 
 #[tokio::test]
-async fn a_blank_database_gets_the_baseline_whole() {
+async fn a_blank_database_gets_the_baseline_and_every_migration_made_since() {
   let migrated = Scratch::blank().await;
   assert!(store::migration::up(migrated.db()).await.unwrap());
   let laid = Scratch::blank().await;
   laid.db().execute_unprepared(SCHEMA).await.unwrap();
+  laid.db().execute_unprepared(OWNERSHIP_SQL).await.unwrap();
 
   assert_eq!(shape(migrated.db()).await, shape(laid.db()).await);
-  assert_eq!(recorded(migrated.db()).await, [BASELINE]);
+  assert_eq!(recorded(migrated.db()).await, [BASELINE, OWNERSHIP]);
   assert!(!store::migration::up(migrated.db()).await.unwrap());
 }
 
 #[tokio::test]
-async fn an_install_at_the_last_release_before_the_baseline_only_has_its_record_rewritten() {
+async fn an_install_at_the_last_release_before_the_baseline_only_has_its_record_rewritten_and_gains_the_migrations_since()
+ {
   let scratch = installed(BEFORE.len()).await;
   let db = scratch.db();
-  let before = shape(db).await;
 
+  // The record is rewritten to name the baseline alone, touching no table; the one migration made since the
+  // baseline then runs onto the standing shape, which needs the renames and the new columns.
   assert!(!store::migration::up(db).await.unwrap());
-  assert_eq!(recorded(db).await, [BASELINE]);
-  assert_eq!(shape(db).await, before);
+  assert_eq!(recorded(db).await, [BASELINE, OWNERSHIP]);
+
+  let laid = installed(BEFORE.len()).await;
+  laid.db().execute_unprepared(OWNERSHIP_SQL).await.unwrap();
+  assert_eq!(shape(db).await, shape(laid.db()).await);
   assert_eq!(texts(db, r#"SELECT "key" || '=' || "value" FROM "settings""#).await, ["rest_kind=day"]);
 
-  // A second start finds the baseline recorded and changes nothing.
+  // A second start finds both recorded and changes nothing.
   assert!(!store::migration::up(db).await.unwrap());
-  assert_eq!(recorded(db).await, [BASELINE]);
-  assert_eq!(shape(db).await, before);
+  assert_eq!(recorded(db).await, [BASELINE, OWNERSHIP]);
 }
 
 #[tokio::test]

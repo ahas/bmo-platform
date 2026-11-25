@@ -600,6 +600,8 @@ pub async fn seats_for(ground: &Ground, held: &Request, role: &AgentRole) -> Res
   let on = role.agents.iter().filter(|agent| {
     agent.enabled
       && agent.owner_account.map(|owner| owner.to_string()) == held.account
+      // A seat filed under a unit is let in on no request yet, as a candidate is not (`candidate_for`).
+      && agent.owner_unit.is_none()
       && held.agent_wanted.as_deref().is_none_or(|wanted| wanted == agent.name)
   });
   let mut seats: Vec<Seat> = vec![];

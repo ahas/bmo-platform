@@ -628,6 +628,7 @@ async fn the_model_resource_is_one_record() {
       "thinking": false,
       "languages": [],
       "account": Value::Null,
+      "unit": Value::Null,
     }])
   );
 

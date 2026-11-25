@@ -7,6 +7,7 @@
 pub mod composition;
 pub mod own_agents;
 pub mod repositories;
+pub mod resources;
 
 use axum::http::StatusCode;
 
