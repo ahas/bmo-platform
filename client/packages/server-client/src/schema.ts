@@ -2197,52 +2197,310 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description The login and the password an invitation is accepted with, and the person's name, the invitation's where
-         *     it is absent or empty.
+         * @description The body every non-2xx answer of the service's own routes carries: a stable kebab-case code a caller decides
+         *     on, and one English sentence for a person.
          */
-        AcceptAsk: {
-            fullName?: string | null;
-            name: string;
-            password: string;
-        };
-        /** @description An accepted invitation: the account made, its machine and how to install it. */
-        Accepted: {
-            agent: string;
-            credential: string;
-            hubUrl: string;
-            install: components["schemas"]["Installs"];
-            user: string;
+        WireError: {
+            code: string;
+            error: string;
         };
         /**
-         * @description What removing an account would take now: who it is, whether it has left, the refusal that would stop it, or
-         *     none, and the count of each kind of row the service would delete.
+         * @description The body sumida's own session routes refuse with: its code, the status as a number, and a reason written in
+         *     debug builds only.
          */
-        AccountRemoval: {
-            administrator: boolean;
-            counts: {
-                [key: string]: number;
-            };
-            /** @default  */
-            fullName: string;
-            left: boolean;
-            name: string;
-            refusal: string | null;
+        SessionError: {
+            code: string;
+            /** Format: uint16 */
+            statusCode: number;
+            reason?: string | null;
+        };
+        /** @description Whether the service is up, its version, and whether the account model is in force. */
+        Health: {
+            ok: boolean;
+            version: string;
+            inForce: boolean;
+        };
+        /** @description Where the account model stands, and why it is not in force where it is not. */
+        ModelState: {
+            inForce: boolean;
+            why?: string | null;
+        };
+        /** @description What the data move is handed: the senders the deployment's configuration names as the owner's. */
+        MoveAsk: {
+            ownerSenders: number[];
+        };
+        /** @description What the data move answered. */
+        Moved: {
+            done: boolean;
+            written: boolean;
+            administrator?: string | null;
+        };
+        /** @description The rooms the console has open, as the receiver reads them, and when the console last said so. */
+        Watching: {
+            rooms: number[];
+            /** Format: int64 */
+            at?: number | null;
+        };
+        /** @description The rooms a console reports open. */
+        WatchingAsk: {
+            rooms: number[];
+        };
+        /** @description The user a sender is linked to. */
+        SenderUser: {
             user: string;
         };
-        /** @description What stands of an account's security. */
-        AccountSecurity: {
-            email: string;
-            emailVerified: boolean;
-            enabled: boolean;
+        /** @description The senders a caller asks after, each by its number. */
+        SendersAsk: {
+            senders: number[];
+        };
+        /**
+         * @description The senders asked after that are linked to a user, in the order they were asked; a sender linked to none is
+         *     absent.
+         */
+        SenderLinks: {
+            links: components["schemas"]["SenderLink"][];
+        };
+        /** @description One sender linked to a user, and whether that user may sign in to the console. */
+        SenderLink: {
             /** Format: int64 */
-            lastSignIn?: number | null;
-            left: boolean;
-            /** @description Mail is set up. */
-            mail: boolean;
+            sender: number;
+            user: string;
+            signsIn: boolean;
+        };
+        /** @description Every user, for the administrator's screen that sets one person's sections. */
+        UserList: {
+            users: components["schemas"]["UserSummary"][];
+        };
+        /**
+         * @description One user as the users list names them: their id, their login, the person's name (empty where none stands)
+         *     and whether they are the platform administrator.
+         */
+        UserSummary: {
+            user: string;
+            name: string;
+            /** @default  */
+            fullName: string;
+            administrator: boolean;
+        };
+        /** @description The people a search found, in the organisation's own order. */
+        People: {
+            people: components["schemas"]["Person"][];
+        };
+        /**
+         * @description One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people
+         *     directory」). The contact fields stand only for the platform administrator and for the person themselves.
+         */
+        Person: {
+            user: string;
+            name: string;
+            organization: string;
+            /**
+             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
+             *     otherwise.
+             */
+            jobTitle: string;
+            /**
+             * @description The rank kept, empty where none is.
+             * @default
+             */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
+            /**
+             * @description The duty kept, empty where none is.
+             * @default
+             */
+            duty: string;
+            landline?: string | null;
+            mobile?: string | null;
+            email?: string | null;
+        };
+        /** @description One role of a company's catalogue: its key, its name and its place, counted from 1 for the lowest. */
+        RoleRef: {
+            key: string;
+            name: string;
+            /** Format: int32 */
+            place: number;
+        };
+        /** @description Every member of the reader's company who has not left, in the directory's order. */
+        Members: {
+            members: components["schemas"]["Member"][];
+        };
+        /**
+         * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
+         *     directory」): the account key and the name, nothing more.
+         */
+        Member: {
+            user: string;
+            name: string;
+        };
+        /** @description One person of the directory looked up: what a search row answers, and their posts. */
+        PersonDetail: {
+            user: string;
+            name: string;
+            organization: string;
+            /**
+             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
+             *     otherwise.
+             */
+            jobTitle: string;
+            /**
+             * @description The rank kept, empty where none is.
+             * @default
+             */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
+            /**
+             * @description The duty kept, empty where none is.
+             * @default
+             */
+            duty: string;
+            landline?: string | null;
+            mobile?: string | null;
+            email?: string | null;
+            posts: components["schemas"]["PersonPost"][];
+        };
+        /** @description One post of a person as the directory answers it: the unit by its reference and the post's role. */
+        PersonPost: {
+            unit: components["schemas"]["UnitRef"];
+            role?: components["schemas"]["RoleRef"] | null;
+        };
+        /** @description One organisation unit as another names it: its number and its name. */
+        UnitRef: {
             /** Format: int64 */
-            recoveryCodesLeft: number;
-            secondFactor: boolean;
-            secondFactorRequired: boolean;
+            id: number;
+            name: string;
+        };
+        /**
+         * @description The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in
+         *     name order; empty for a reader who looks through none.
+         */
+        RosterCompanies: {
+            companies: components["schemas"]["UnitRef"][];
+        };
+        /**
+         * @description One page of the people roster: its people, how many people match the whole ask, and the place to ask the
+         *     next page from in `after`, none where nothing stands past it.
+         */
+        RosterPage: {
+            people: components["schemas"]["RosterPerson"][];
+            /** Format: int64 */
+            total: number;
+            next: string | null;
+        };
+        /** @description One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」). */
+        RosterPerson: {
+            user: string;
+            login: string;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            company: components["schemas"]["UnitRef"];
+            unit: components["schemas"]["UnitRef"];
+            /** @description Whether they are granted head of the unit they stand in. */
+            head: boolean;
+            /**
+             * @description Whether that grant is an acting appointment's.
+             * @default false
+             */
+            acting: boolean;
+            /** @description Whether they are the platform administrator. */
+            administrator: boolean;
+            state: components["schemas"]["RosterState"];
+            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
+            machine: string | null;
+            /**
+             * Format: int64
+             * @description When the account was made.
+             */
+            madeAt: number;
+            /**
+             * Format: int64
+             * @description When the user last signed in; none where they never have since the service kept it.
+             */
+            lastSignInAt: number | null;
+            /** @description The title as one line, empty where nothing is kept. */
+            jobTitle: string;
+            /** @default  */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
+            /** @default  */
+            duty: string;
+            /**
+             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
+             *     does not match it.
+             */
+            post?: components["schemas"]["UnitRef"] | null;
+            /** @description The email, for the administrator alone. */
+            email?: string | null;
+        };
+        /**
+         * @description Where an account stands in the people roster: in use, made by an invitation and not yet enabled, or
+         *     marked left.
+         * @enum {string}
+         */
+        RosterState: "active" | "pending" | "left";
+        /**
+         * @description One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers
+         *     of them, with their landline and mobile for the administrator alone, their unit's path from the company
+         *     down, the units they are granted head of directly, their departure and their machine.
+         */
+        RosterDetail: {
+            user: string;
+            login: string;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            company: components["schemas"]["UnitRef"];
+            unit: components["schemas"]["UnitRef"];
+            /** @description Whether they are granted head of the unit they stand in. */
+            head: boolean;
+            /**
+             * @description Whether that grant is an acting appointment's.
+             * @default false
+             */
+            acting: boolean;
+            /** @description Whether they are the platform administrator. */
+            administrator: boolean;
+            state: components["schemas"]["RosterState"];
+            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
+            machine: string | null;
+            /**
+             * Format: int64
+             * @description When the account was made.
+             */
+            madeAt: number;
+            /**
+             * Format: int64
+             * @description When the user last signed in; none where they never have since the service kept it.
+             */
+            lastSignInAt: number | null;
+            /** @description The title as one line, empty where nothing is kept. */
+            jobTitle: string;
+            /** @default  */
+            rank: string;
+            /** @description The role carried in the home unit. */
+            role?: components["schemas"]["RoleRef"] | null;
+            /** @default  */
+            duty: string;
+            /**
+             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
+             *     does not match it.
+             */
+            post?: components["schemas"]["UnitRef"] | null;
+            /** @description The email, for the administrator alone. */
+            email?: string | null;
+            landline?: string | null;
+            mobile?: string | null;
+            path: components["schemas"]["UnitRef"][];
+            headOf: components["schemas"]["UnitRef"][];
+            /** @description The appointments of theirs running. */
+            actingFor: components["schemas"]["ActingFor"][];
+            posts: components["schemas"]["Post"][];
+            /** @description Every change of their place kept, the newest first. */
+            history: components["schemas"]["HistoryEntry"][];
+            left: components["schemas"]["RosterLeft"] | null;
+            machineStanding: components["schemas"]["RosterMachine"] | null;
         };
         /** @description An appointment of a person's running: the unit they act for and until when. */
         ActingFor: {
@@ -2250,10 +2508,138 @@ export interface components {
             /** Format: int64 */
             until: number;
         };
-        /** @description The names that call a person's BMO and where they came from; none where the deployment's stand. */
-        AgentCallNames: {
+        /**
+         * @description One post of a person: its unit and path, its role, whether it carries the unit's head, and when and by whom
+         *     it was given.
+         */
+        Post: {
+            unit: components["schemas"]["UnitRef"];
+            path: components["schemas"]["UnitRef"][];
+            role?: components["schemas"]["RoleRef"] | null;
+            head: boolean;
+            /** Format: int64 */
+            since: number;
+            by: string | null;
+        };
+        /** @description One change of a person's place. */
+        HistoryEntry: {
+            /** Format: int64 */
+            at: number;
+            by?: string | null;
+            byName?: string | null;
+            change: components["schemas"]["HistoryChange"];
+            unit?: components["schemas"]["UnitRef"] | null;
+            from?: components["schemas"]["UnitRef"] | null;
+            before?: components["schemas"]["RoleMark"] | null;
+            after?: components["schemas"]["RoleMark"] | null;
+            /** Format: int64 */
+            until?: number | null;
+        };
+        /** @description What one change of a person's place was. */
+        HistoryChange: ("placed" | "role" | "head-granted" | "head-taken" | "acting" | "acting-ended" | "post-given" | "post-changed" | "post-taken" | "left" | "enabled") | "password-reset" | "second-factor-reset" | "disabled";
+        /** @description A role as a change of a person's place kept it: its key and the name it had then. */
+        RoleMark: {
+            key: string;
+            name: string;
+        };
+        /** @description When a person in the roster left, and who marked it. */
+        RosterLeft: {
+            /** Format: int64 */
+            at: number;
+            /** @description The user who marked it. */
+            by: string;
+            /** @description That user's name, the login where none stands. */
+            byName: string;
+        };
+        /** @description The machine a person in the roster is bound to: its name, whether it is shared, when it was last proven. */
+        RosterMachine: {
+            name: string;
+            shared: boolean;
+            /** Format: int64 */
+            provenAt: number | null;
+        };
+        /**
+         * @description A user as the console reads them: their login as `name`, and the person's name people read them by as
+         *     `fullName`, empty where none stands (docs/accounts.md, 「Users and senders」).
+         */
+        UserView: {
+            user: string;
+            name: string;
+            /** @default  */
+            fullName: string;
+            administrator: boolean;
+            senders: number[];
+        };
+        /** @description The senders linked to a user. */
+        Senders: {
+            senders: number[];
+        };
+        /** @description A password change. */
+        PasswordAsk: {
+            current: string;
+            next: string;
+        };
+        /** @description A new name for a user. */
+        NameAsk: {
+            name: string;
+        };
+        /**
+         * @description A user's person's name, job title, rank, duty and contact details, which the account's holder or an
+         *     administrator keeps (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account
+         *     keeps none.
+         */
+        UserProfile: {
+            fullName: string;
+            /** @description The job title kept, as free text. */
+            jobTitle: string;
+            /** @default  */
+            rank: string;
+            /** @default  */
+            duty: string;
+            landline: string;
+            mobile: string;
+            email: string;
+        };
+        /**
+         * @description A user's profile written: the name, the job title and the contact details whole, and the rank and the duty
+         *     where named, each left as it stands where absent.
+         */
+        ProfileAsk: {
+            fullName: string;
+            jobTitle: string;
+            landline: string;
+            mobile: string;
+            email: string;
+            rank?: string | null;
+            duty?: string | null;
+        };
+        /**
+         * @description A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
+         *     that call it and whether it keeps a picture. A name absent and no call names are none set.
+         */
+        CompanyAgent: {
+            name?: string | null;
             callNames: string[];
-            from: components["schemas"]["AgentSource"];
+            picture: boolean;
+        };
+        /** @description A company's default name and call names, replaced whole; an empty name is none. */
+        CompanyAgentAsk: {
+            name?: string | null;
+            /** @default [] */
+            callNames: string[];
+        };
+        /**
+         * @description The BMO profile standing for a person (docs/accounts.md, 「A person's BMO profile」): whether they may
+         *     personalise it, their company, each part with where it came from, and their own parts as kept.
+         */
+        AgentProfile: {
+            personalize: boolean;
+            company?: components["schemas"]["UnitRef"] | null;
+            name: components["schemas"]["AgentName"];
+            callNames: components["schemas"]["AgentCallNames"];
+            persona: components["schemas"]["AgentPersona"];
+            picture: components["schemas"]["AgentPicture"];
+            own: components["schemas"]["OwnAgent"];
         };
         /**
          * @description The name standing for a person's BMO and where it came from; absent where the deployment's stands, for the
@@ -2263,43 +2649,15 @@ export interface components {
             from: components["schemas"]["AgentSource"];
             name?: string | null;
         };
-        /** @description A setting of the permission to personalise one's BMO. */
-        AgentPermissionAsk: {
-            setting: components["schemas"]["AgentSetting"];
-        };
-        /** @description One person under a unit's permissions: the unit they stand in, their own setting and what it resolves to. */
-        AgentPermissionPerson: {
-            allowed: boolean;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            setting: components["schemas"]["AgentSetting"];
-            /** Format: int64 */
-            unit: number;
-            user: string;
-        };
         /**
-         * @description One unit under a unit's permissions: where it stands, its own setting and what it resolves to for a person
-         *     standing in it with none of their own.
+         * @description Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.
+         * @enum {string}
          */
-        AgentPermissionUnit: {
-            allowed: boolean;
-            /** Format: int64 */
-            id: number;
-            name: string;
-            /**
-             * Format: int64
-             * @description The unit it stands under, absent for a company.
-             */
-            parent?: number | null;
-            setting: components["schemas"]["AgentSetting"];
-        };
-        /**
-         * @description The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its
-         *     parent, and every person standing in one of them.
-         */
-        AgentPermissions: {
-            people: components["schemas"]["AgentPermissionPerson"][];
-            units: components["schemas"]["AgentPermissionUnit"][];
+        AgentSource: "own" | "company" | "deployment";
+        /** @description The names that call a person's BMO and where they came from; none where the deployment's stand. */
+        AgentCallNames: {
+            from: components["schemas"]["AgentSource"];
+            callNames: string[];
         };
         /** @description The persona standing for a person's BMO and where it came from; absent where the deployment's stands. */
         AgentPersona: {
@@ -2310,18 +2668,43 @@ export interface components {
         AgentPicture: {
             from: components["schemas"]["AgentSource"];
         };
+        /** @description A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept. */
+        OwnAgent: {
+            name?: string | null;
+            callNames: string[];
+            persona?: string | null;
+            picture: boolean;
+        };
+        /** @description A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none. */
+        OwnAgentAsk: {
+            name?: string | null;
+            /** @default [] */
+            callNames: string[];
+            persona?: string | null;
+        };
         /**
-         * @description The BMO profile standing for a person (docs/accounts.md, 「A person's BMO profile」): whether they may
-         *     personalise it, their company, each part with where it came from, and their own parts as kept.
+         * @description The permission to personalise one's BMO across a unit: the unit and every unit below it, each after its
+         *     parent, and every person standing in one of them.
          */
-        AgentProfile: {
-            callNames: components["schemas"]["AgentCallNames"];
-            company?: components["schemas"]["UnitRef"] | null;
-            name: components["schemas"]["AgentName"];
-            own: components["schemas"]["OwnAgent"];
-            persona: components["schemas"]["AgentPersona"];
-            personalize: boolean;
-            picture: components["schemas"]["AgentPicture"];
+        AgentPermissions: {
+            units: components["schemas"]["AgentPermissionUnit"][];
+            people: components["schemas"]["AgentPermissionPerson"][];
+        };
+        /**
+         * @description One unit under a unit's permissions: where it stands, its own setting and what it resolves to for a person
+         *     standing in it with none of their own.
+         */
+        AgentPermissionUnit: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /**
+             * Format: int64
+             * @description The unit it stands under, absent for a company.
+             */
+            parent?: number | null;
+            setting: components["schemas"]["AgentSetting"];
+            allowed: boolean;
         };
         /**
          * @description The permission to personalise one's BMO as set on a unit or a person: allowed, denied, or following the unit
@@ -2329,176 +2712,257 @@ export interface components {
          * @enum {string}
          */
         AgentSetting: "allow" | "deny" | "inherit";
-        /**
-         * @description Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.
-         * @enum {string}
-         */
-        AgentSource: "own" | "company" | "deployment";
-        /** @description An acting appointment running: who acts, until when, who named them and when. */
-        Appointment: {
-            /** Format: int64 */
-            at: number;
-            by: string | null;
-            /** Format: int64 */
-            until: number;
+        /** @description One person under a unit's permissions: the unit they stand in, their own setting and what it resolves to. */
+        AgentPermissionPerson: {
             user: string;
-        };
-        /** @description An acting appointment asked: the person and the moment it ends. */
-        AppointmentAsk: {
-            /** Format: int64 */
-            until: number;
-            user: string;
-        };
-        /** @description One entry of a catalogue as it is written: its key and its name, its place being where the list stands it. */
-        CatalogueEntry: {
-            key: string;
-            name: string;
-        };
-        /** @description Whether the links below a link may change a setting. */
-        ChainDelegation: "allow" | "lock" | "inherit";
-        /** @description A link's delegation written. */
-        ChainDelegationAsk: {
-            delegation: components["schemas"]["ChainDelegation"];
-        };
-        /** @description A link's entry of one kind. */
-        ChainEntry: {
-            delegation: components["schemas"]["ChainDelegation"];
-            kind: string;
-            /** @description `platform`, `unit:<id>` or `person:<user>`. */
-            link: string;
-            /** @description The farthest link above holding a lock, where one does: nothing here changes then. */
-            lockedBy?: string | null;
-            /** @default [] */
-            rules: components["schemas"]["ChainRule"][];
-            /** Format: int64 */
-            setAt?: number | null;
-            setBy?: string | null;
-            /** @description The link's own value, none where it follows above. */
-            value?: unknown;
-            /** @description Whether the caller may change the entry now. */
-            writable: boolean;
-        };
-        /** @description A named group of people a unit keeps. */
-        ChainGroup: {
-            /** Format: int64 */
-            id: number;
-            /** @description The members' user ids. */
-            members: string[];
+            /** @description The person's name, the login where none stands. */
             name: string;
             /** Format: int64 */
             unit: number;
+            setting: components["schemas"]["AgentSetting"];
+            allowed: boolean;
         };
-        /** @description A group made or changed: its unit on a make, its name and its members whole. */
-        ChainGroupAsk: {
-            members: string[];
+        /** @description A setting of the permission to personalise one's BMO. */
+        AgentPermissionAsk: {
+            setting: components["schemas"]["AgentSetting"];
+        };
+        /** @description A user's sections, in the console's navigation order; every write is also a read. */
+        Sections: {
+            sections: components["schemas"]["SectionRow"][];
+        };
+        /** @description One console section's permission for a user: whether they may read it and whether they may write it. */
+        SectionRow: {
+            section: string;
+            read: boolean;
+            write: boolean;
+        };
+        /** @description An invitation to make. */
+        InviteAsk: {
+            /** Format: int64 */
+            unit: number;
+            /** @default false */
+            head: boolean;
+            /** Format: int64 */
+            hours?: number | null;
+            /** @description The person's name the account is made with, where the maker gives one. */
+            fullName?: string | null;
+        };
+        /** @description One invitation, as the one who made it reads it. */
+        Invite: {
+            token: string;
+            unit: components["schemas"]["UnitRef"];
+            company: components["schemas"]["UnitRef"];
+            head: boolean;
+            /**
+             * @description The person's name the invitation was made for, empty where none was given.
+             * @default
+             */
+            fullName: string;
+            /** Format: int64 */
+            expiresAt: number;
+        };
+        /** @description The open invitations a login reads. */
+        Invites: {
+            invites: components["schemas"]["Invite"][];
+        };
+        /** @description The units a login may invite into, companies first and each unit after its parent. */
+        InviteUnits: {
+            units: components["schemas"]["InviteUnit"][];
+        };
+        /** @description One unit a login may invite into: its parent, absent for a company, and its company, itself for a company. */
+        InviteUnit: {
+            /** Format: int64 */
+            id: number;
             name: string;
             /** Format: int64 */
-            unit?: number | null;
+            parent?: number | null;
+            company: components["schemas"]["UnitRef"];
         };
-        /** @description The groups a unit keeps. */
-        ChainGroups: {
-            groups: components["schemas"]["ChainGroup"][];
-        };
-        /** @description A setting kind, as the unit using it declares it. */
-        ChainKind: {
+        /** @description An invitation as its link shows it, to a person with no account. */
+        InviteView: {
+            unit: components["schemas"]["UnitRef"];
+            company: components["schemas"]["UnitRef"];
+            head: boolean;
             /**
-             * @description The keys a `keys` value is chosen from.
-             * @default []
+             * @description The person's name the invitation was made for, empty where none was given.
+             * @default
              */
-            choices: string[];
-            /** @description The unit that declared it. */
-            declaredBy: string;
-            /** @description The value standing where no link says one. */
-            default?: unknown;
-            /** @default  */
-            description: string;
-            key: string;
-            levels: components["schemas"]["ChainLevel"][];
-            mode: components["schemas"]["ChainMode"];
-            /**
-             * @description Whether a person's own link may only raise the value, never lower what stands from above it
-             *     (`docs/accounts.md`, 「Resolution」).
-             * @default false
-             */
-            personRaises: boolean;
-            /** @default heads */
-            personWriter: components["schemas"]["ChainPersonWriter"];
-            /**
-             * @description Whether a link may set the value apart for a person, a group or a unit.
-             * @default false
-             */
-            rules: boolean;
-            shape: components["schemas"]["ChainShape"];
-            /**
-             * @description The sumida organisation permission that lets a person write a unit's link.
-             * @default manage
-             */
-            unitPermission: string;
-        };
-        /** @description Every kind declared. */
-        ChainKinds: {
-            kinds: components["schemas"]["ChainKind"][];
-        };
-        /** @description One link's word for a subject: its value, and whom the rule it came from names where one did. */
-        ChainLayer: {
-            link: string;
-            rule?: string | null;
-            value: unknown;
+            fullName: string;
+            /** Format: int64 */
+            expiresAt: number;
+            state: string;
         };
         /**
-         * @description A level of the chain a kind may hold an entry at.
+         * @description The login and the password an invitation is accepted with, and the person's name, the invitation's where
+         *     it is absent or empty.
+         */
+        AcceptAsk: {
+            name: string;
+            password: string;
+            fullName?: string | null;
+        };
+        /** @description An accepted invitation: the account made, its machine and how to install it. */
+        Accepted: {
+            user: string;
+            agent: string;
+            credential: string;
+            hubUrl: string;
+            install: components["schemas"]["Installs"];
+        };
+        /** @description The one-line installs of a machine. */
+        Installs: {
+            linux: string;
+            windows: string;
+        };
+        /** @description Whether an invited account's machine is attached and the account enabled. */
+        Proof: {
+            active: boolean;
+            /** @description The account, where it is active. */
+            user?: string | null;
+        };
+        /**
+         * @description An invited account's ask to share a machine another agent holds: the machine's name, and the account the asking
+         *     browser is signed in to, where it is.
+         */
+        ShareAsk: {
+            machine: string;
+            owner?: string | null;
+        };
+        /**
+         * @description A share asked or bound: the machine, `bound` or `asked`, and the accounts whose binding was declared shared as it
+         *     was bound, empty while it waits.
+         */
+        ShareAnswer: {
+            machine: string;
+            state: string;
+            holders: string[];
+        };
+        /**
+         * @description An invited account's ask as the invitation reads it back: the machine, when it was asked, and whether it is
+         *     `asked`, `approved` or `refused`.
+         */
+        ShareAskState: {
+            machine: string;
+            /** Format: int64 */
+            askedAt: number;
+            state: string;
+        };
+        /** @description The asks the reader may decide, oldest first. */
+        ShareAsks: {
+            asks: components["schemas"]["ShareAskRow"][];
+        };
+        /** @description An ask waiting for a decision: the asking account, where it was invited, the machine and who is on it already. */
+        ShareAskRow: {
+            user: string;
+            login: string;
+            /** @description The person's name, empty where none is kept. */
+            fullName: string;
+            unit: components["schemas"]["UnitRef"];
+            company: components["schemas"]["UnitRef"];
+            machine: string;
+            holders: components["schemas"]["ShareHolder"][];
+            /** Format: int64 */
+            askedAt: number;
+        };
+        /** @description An account bound to a machine, as a share's decider reads it. */
+        ShareHolder: {
+            user: string;
+            login: string;
+            /** @description The person's name, empty where none is kept. */
+            fullName: string;
+        };
+        /** @description The machine an account is bound to and whether it is attached. */
+        UserNode: {
+            agent?: string | null;
+            /**
+             * @description Whether the administrator bound it as a machine several accounts share.
+             * @default false
+             */
+            shared: boolean;
+            attached: boolean;
+            /** @description How the agent the hub holds is connected, while it holds one. */
+            kind?: components["schemas"]["MachineKind"] | null;
+            /** Format: int64 */
+            provenAt?: number | null;
+            /**
+             * Format: int64
+             * @description When the account was connected to the machine, none where it was not recorded.
+             */
+            boundAt?: number | null;
+            /**
+             * @description Whether the account has left.
+             * @default false
+             */
+            left: boolean;
+        };
+        /**
+         * @description How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.
          * @enum {string}
          */
-        ChainLevel: "platform" | "unit" | "person";
-        /** @description Whether a link asked after may change a setting, and the link whose lock withholds it. */
-        ChainLinkStanding: {
-            link: string;
-            lockedBy?: string | null;
-            mayChange: boolean;
+        MachineKind: "desktop" | "installed";
+        /** @description The machine the administrator binds an account to. */
+        NodeBinding: {
+            /** @description A machine of this name; where none is named, a fresh name made for the account. */
+            agent?: string | null;
+            /** @description Whether the machine is one several accounts share; a binding that does not say so is the account's alone. */
+            shared?: boolean;
         };
-        /** @description How the links' words make one answer. */
-        ChainMode: "nearest" | "narrowing" | "layered";
-        /** @description Who writes a person's link. */
-        ChainPersonWriter: "heads" | "self" | "both";
-        /** @description A setting resolved for a person or a unit (docs/accounts.md, 「Resolution」). */
-        ChainResolution: {
-            /** @description The link the value came from; none where the default stands or the kind narrows. */
-            from?: string | null;
-            kind: string;
-            /** @description Every link's word for the subject, top first, below the lock that cut the chain left out. */
-            layers: components["schemas"]["ChainLayer"][];
-            /** @description The link asked after. */
-            link?: components["schemas"]["ChainLinkStanding"] | null;
-            /** @description The link whose lock cut the chain. */
-            lockedBy?: string | null;
-            /**
-             * @description Every link of the subject's chain, top first, whether or not it says anything: the platform, each unit down
-             *     to the subject's and, for a person, the person.
-             * @default []
-             */
-            path: string[];
-            /** @description Whom the rule the value came from names, where a rule gave it. */
-            rule?: string | null;
-            /** @description `person:<user>` or `unit:<id>`. */
-            subject: string;
-            /** @description The value standing; none for a layered kind, and where nothing is said and no default stands. */
-            value?: unknown;
+        /** @description An account bound to another machine: the machine, how to install it, and whether the hub holds it already. */
+        Rebound: {
+            agent: string;
+            /** @description Whether the binding is to a machine several accounts share. */
+            shared: boolean;
+            credential: string;
+            hubUrl: string;
+            install: components["schemas"]["Installs"];
+            attached: boolean;
         };
-        /** @description One rule of a link: whom it names (`person:<user>`, `group:<id>` or `unit:<id>`) and its value. */
-        ChainRule: {
-            value: unknown;
-            who: string;
+        /** @description The administrator's declaration that an account's machine is shared with other accounts, or no longer shared. */
+        NodeSharing: {
+            shared: boolean;
         };
-        /** @description A link's rules written whole. */
-        ChainRulesAsk: {
-            rules: components["schemas"]["ChainRule"][];
+        /** @description A machine name revoked at the hub: the name, and whether the hub sent a leave to a machine attached under it. */
+        MachineRevoked: {
+            agent: string;
+            left: boolean;
         };
-        /** @description The shape a kind's value takes. */
-        ChainShape: "flag" | "text" | "amount" | "keys" | "json";
-        /** @description A link's value written, null to follow above. */
-        ChainValueAsk: {
-            /** @default null */
-            value: unknown;
+        /**
+         * @description A desktop pairing asked: the id the app keeps, the code a person checks, when it closes, and how long the app
+         *     waits between reads.
+         */
+        PairingMade: {
+            pairing: string;
+            code: string;
+            /** Format: int64 */
+            expiresAt: number;
+            /** Format: uint32 */
+            pollAfterSeconds: number;
+        };
+        /** @description An approved desktop pairing as the app reads it, once: the machine, its credential and the hub it attaches to. */
+        PairingCredential: {
+            node: string;
+            credential: string;
+            hubUrl: string;
+        };
+        /** @description A desktop pairing as a signed-in person reads it by its code. */
+        PairingView: {
+            code: string;
+            /** Format: int64 */
+            expiresAt: number;
+            /** @description `waiting`, `approved`, `refused` or `expired`. */
+            state: string;
+            /** @description While it waits, the machine the reader's account is bound to; approved by the reader, the machine approved. */
+            machine?: string | null;
+        };
+        /** @description A desktop pairing approved: the machine it was bound to. */
+        PairingApproved: {
+            machine: string;
+        };
+        /** @description Whether a user heads a unit, asked. */
+        UnitCheckAsk: {
+            /** Format: int64 */
+            unit: number;
+            user: string;
         };
         /** @description What a check answered. */
         CheckAnswer: {
@@ -2506,24 +2970,311 @@ export interface components {
             grant: string;
             user?: string | null;
         };
-        /** @description A code typed. */
-        CodeAsk: {
-            code: string;
+        /** @description Whether one user may let another into a room, or take them out of it, asked. */
+        EntryCheckAsk: {
+            /** Format: int64 */
+            room: number;
+            /** @description The user acting. */
+            actor: string;
+            /** @description The user let in or taken out. */
+            user: string;
+            /**
+             * @description The act asked about; taking out where absent.
+             * @default take-out
+             */
+            act: components["schemas"]["EntryAct"];
+        };
+        /** @description What an entry check asks about: letting a person into a room or taking one out of it. */
+        EntryAct: "let-in" | "take-out";
+        /** @description The unit a user stands in, its company, and the units from the company down to it. */
+        UserUnit: {
+            user: string;
+            unit: components["schemas"]["UnitRef"];
+            company: components["schemas"]["UnitRef"];
+            path: components["schemas"]["UnitRef"][];
+        };
+        /** @description Every unit, companies first and each unit after its parent. */
+        Units: {
+            units: components["schemas"]["UnitRow"][];
+        };
+        /** @description One unit of the whole tree, as the administrator reads it. */
+        UnitRow: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            heads: string[];
+            members: string[];
+            /**
+             * @description The members whose accounts have left.
+             * @default []
+             */
+            left: string[];
+            kind?: components["schemas"]["KindRef"] | null;
+            shortName?: string | null;
+            /**
+             * Format: int64
+             * @description The unit it reports to, by its number.
+             */
+            reportsTo?: number | null;
+            /**
+             * @description The users holding a post in it.
+             * @default []
+             */
+            concurrent: string[];
+            /**
+             * @description The users among `heads` whose grant is an acting appointment's.
+             * @default []
+             */
+            acting: string[];
+        };
+        /** @description One unit kind of a company's list: its key and its name. */
+        KindRef: {
+            key: string;
+            name: string;
         };
         /**
-         * @description A company's default for its people's BMOs (docs/accounts.md, 「A person's BMO profile」): its name, the names
-         *     that call it and whether it keeps a picture. A name absent and no call names are none set.
+         * @description A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports
+         *     to where named.
          */
-        CompanyAgent: {
-            callNames: string[];
-            name?: string | null;
-            picture: boolean;
+        NewUnit: {
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            kind?: string | null;
+            shortName?: string | null;
+            /** Format: int64 */
+            reportsTo?: number | null;
         };
-        /** @description A company's default name and call names, replaced whole; an empty name is none. */
-        CompanyAgentAsk: {
-            /** @default [] */
-            callNames: string[];
+        /**
+         * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
+         *     it reports to, the members whose accounts have left, the roles its people carry, the people holding a post in it
+         *     and the appointment running.
+         */
+        UnitView: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            company: components["schemas"]["UnitRef"];
+            path: components["schemas"]["UnitRef"][];
+            children: components["schemas"]["UnitRef"][];
+            heads: string[];
+            members: string[];
+            kind?: components["schemas"]["KindRef"] | null;
+            shortName?: string | null;
+            reportsTo?: components["schemas"]["UnitRef"] | null;
+            /**
+             * @description The members whose accounts have left.
+             * @default []
+             */
+            left: string[];
+            roles: components["schemas"]["MemberRole"][];
+            concurrent: components["schemas"]["ConcurrentPost"][];
+            acting: components["schemas"]["Appointment"] | null;
+        };
+        /** @description A person of a unit's members carrying a role there. */
+        MemberRole: {
+            user: string;
+            role: components["schemas"]["RoleRef"];
+        };
+        /** @description A person holding a post in a unit: the post's role and whether it carries the unit's head. */
+        ConcurrentPost: {
+            user: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            head: boolean;
+        };
+        /** @description An acting appointment running: who acts, until when, who named them and when. */
+        Appointment: {
+            user: string;
+            /** Format: int64 */
+            until: number;
+            by: string | null;
+            /** Format: int64 */
+            at: number;
+        };
+        /**
+         * @description A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
+         *     set: each of the last three left as it stands where absent and taken away where null.
+         */
+        UnitChange: {
             name?: string | null;
+            /** Format: int64 */
+            parent?: number | null;
+            kind?: string | null;
+            shortName?: string | null;
+            /** Format: int64 */
+            reportsTo?: number | null;
+        };
+        /** @description The unit a user is placed in. */
+        UnitPlacement: {
+            /** Format: int64 */
+            unit: number;
+        };
+        /** @description Several people moved into one unit in one act. */
+        PeopleMove: {
+            people: components["schemas"]["PersonMove"][];
+        };
+        /**
+         * @description One person of a move into a unit: the unit they stood in when the move was shown, and whether they head the
+         *     unit they go to.
+         */
+        PersonMove: {
+            user: string;
+            /** Format: int64 */
+            from: number;
+            head: boolean;
+            /**
+             * @description The role carried in the unit, by key: null for none, and where absent kept by a person who stays and none
+             *     for one who comes.
+             */
+            role?: string | null;
+        };
+        /** @description A unit's line, the unit first and its company last. */
+        UnitLine: {
+            steps: components["schemas"]["LineStep"][];
+        };
+        /** @description One step of a unit's line. */
+        LineStep: {
+            unit: components["schemas"]["UnitRef"];
+            kind?: components["schemas"]["KindRef"] | null;
+            shortName?: string | null;
+            via: components["schemas"]["LineVia"];
+            heads: components["schemas"]["LineHead"][];
+            roles: components["schemas"]["LineRole"][];
+        };
+        /** @description How a step of a line was reached from the one before it. */
+        LineVia: "start" | "reports-to" | "parent";
+        /** @description A head of a step of a line. */
+        LineHead: {
+            user: string;
+            name: string;
+            /** @description Whether the grant is an acting appointment's. */
+            acting: boolean;
+            /** @description Whether they head it through a post. */
+            concurrent: boolean;
+        };
+        /** @description One role at a step of a line and the people holding it there. */
+        LineRole: {
+            role: components["schemas"]["RoleRef"];
+            holders: components["schemas"]["LineHolder"][];
+        };
+        /** @description A person holding a role at a step of a line. */
+        LineHolder: {
+            user: string;
+            name: string;
+            /** @description Whether they hold it through a post. */
+            concurrent: boolean;
+        };
+        /**
+         * @description A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
+         *     its next sibling, siblings by name and then by id.
+         */
+        UnitSubtree: {
+            units: components["schemas"]["SubtreeUnit"][];
+        };
+        /** @description One unit of a subtree and the people standing in it, each list in the order of their names. */
+        SubtreeUnit: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /**
+             * Format: int64
+             * @description The unit it stands under, absent for a company.
+             */
+            parent?: number | null;
+            kind?: components["schemas"]["KindRef"] | null;
+            shortName?: string | null;
+            /** @description The heads granted it directly, an acting one marked. */
+            heads: components["schemas"]["LineHead"][];
+            /** @description The people whose home unit it is. */
+            members: components["schemas"]["SubtreeMember"][];
+            /** @description The people holding a post in it. */
+            concurrent: components["schemas"]["SubtreePost"][];
+        };
+        /** @description A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left. */
+        SubtreeMember: {
+            user: string;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            left: boolean;
+        };
+        /** @description A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head. */
+        SubtreePost: {
+            user: string;
+            /** @description The person's name, the login where none stands. */
+            name: string;
+            role?: components["schemas"]["RoleRef"] | null;
+            head: boolean;
+        };
+        /** @description The people granted a unit's org memory write, by name then id. */
+        MemoryWriters: {
+            writers: components["schemas"]["MemoryWriter"][];
+        };
+        /**
+         * @description A person granted a unit's org memory write (`docs/accounts.md`, 「A unit's org memory」): their name, the login
+         *     where none stands, and the user who gave it where a person did.
+         */
+        MemoryWriter: {
+            user: string;
+            name: string;
+            by?: string | null;
+        };
+        /** @description The units whose org memory a login writes, companies first and each unit after its parent. */
+        OrgMemoryUnits: {
+            units: components["schemas"]["OrgMemoryUnit"][];
+        };
+        /**
+         * @description One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
+         *     and whether the login heads it.
+         */
+        OrgMemoryUnit: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            parent?: number | null;
+            company: components["schemas"]["UnitRef"];
+            head: boolean;
+        };
+        /** @description Who stands for one role for a unit. */
+        RoleStand: {
+            /** @description The role asked. */
+            role: components["schemas"]["RoleRef"];
+            holders: components["schemas"]["RoleHolder"][];
+            /** @description The role the holders hold; none where nobody stands. */
+            standing: components["schemas"]["RoleRef"] | null;
+            /** @description Whether the holders hold a lower role than the one asked. */
+            acting: boolean;
+            reason: components["schemas"]["StandReason"] | null;
+        };
+        /** @description A person standing for a role for a unit: where they hold it and whether through a post. */
+        RoleHolder: {
+            user: string;
+            name: string;
+            unit: components["schemas"]["UnitRef"];
+            concurrent: boolean;
+        };
+        /** @description Why the people standing for a role hold another one. */
+        StandReason: "no-holder";
+        /** @description An acting appointment asked: the person and the moment it ends. */
+        AppointmentAsk: {
+            user: string;
+            /** Format: int64 */
+            until: number;
+        };
+        /** @description A post given: its role by key, null for none, and whether it carries the unit's head. */
+        PostAsk: {
+            role?: string | null;
+            /** @default false */
+            head: boolean;
+        };
+        /** @description A person's posts, in the order of their units' paths. */
+        Posts: {
+            posts: components["schemas"]["Post"][];
         };
         /** @description A company's roles, lowest first. */
         CompanyRoles: {
@@ -2533,132 +3284,105 @@ export interface components {
         CompanyRolesAsk: {
             roles: components["schemas"]["CatalogueEntry"][];
         };
-        /** @description A person holding a post in a unit: the post's role and whether it carries the unit's head. */
-        ConcurrentPost: {
-            head: boolean;
-            role?: components["schemas"]["RoleRef"] | null;
+        /** @description One entry of a catalogue as it is written: its key and its name, its place being where the list stands it. */
+        CatalogueEntry: {
+            key: string;
+            name: string;
+        };
+        /** @description A company's unit kinds, in its order. */
+        UnitKinds: {
+            kinds: components["schemas"]["KindRef"][];
+        };
+        /** @description A company's unit kinds written whole, in its order. */
+        UnitKindsAsk: {
+            kinds: components["schemas"]["CatalogueEntry"][];
+        };
+        /** @description The user a phone's key is made for. */
+        PhoneAsk: {
             user: string;
         };
-        /** @description One session the sign-in made. */
-        Device: {
-            address: string;
-            /** @description The session the call's `Session-Id` names. */
-            current: boolean;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            madeAt: number;
-            /** Format: int64 */
-            seenAt: number;
-            userAgent: string;
+        /** @description A phone's new key, handed out once, and the hash it is kept by. */
+        PhoneMade: {
+            key: string;
+            hash: string;
         };
-        /** @description An account's devices standing. */
-        Devices: {
-            devices: components["schemas"]["Device"][];
+        /** @description A token issued before the model, carried onto a key of the same text. */
+        PhoneAdoptAsk: {
+            token: string;
+            user: string;
         };
-        /** @description What a draw asked, by its shape. */
-        DrawAsked: {
-            /** Format: int64 */
-            count: number;
-            /** Format: int64 */
-            modifier: number;
-            /** @constant */
-            shape: "dice";
-            /** Format: int64 */
-            sides: number;
-        } | {
-            /** Format: int64 */
-            max: number;
-            /** Format: int64 */
-            min: number;
-            /** @constant */
-            shape: "range";
-        } | {
-            /** Format: int64 */
-            items: number;
-            /** @constant */
-            shape: "pick";
-            /** Format: int64 */
-            take: number;
-        } | {
-            /** Format: int64 */
-            items: number;
-            /** @constant */
-            shape: "shuffle";
+        /** @description The hash a token was kept by. */
+        PhoneAdopted: {
+            hash: string;
         };
-        /** @description Everything a draw's room line carries. */
-        DrawLine: {
-            answered?: string | null;
-            asked: components["schemas"]["DrawAsked"];
-            label?: string | null;
-            method: string;
-            next: string;
-            /** Format: int64 */
-            number: number;
-            result: components["schemas"]["DrawResult"];
-            seed: string;
+        /** @description A key asked after. */
+        PhoneWhoAsk: {
+            key: string;
         };
-        /** @description What a draw came to, by its shape. */
-        DrawResult: {
-            faces: number[];
-            /** @constant */
-            shape: "dice";
-            /** Format: int64 */
-            total: number;
-        } | {
-            /** @constant */
-            shape: "range";
-            /** Format: int64 */
-            value: number;
-        } | {
-            picked: string[];
-            /** @constant */
-            shape: "pick";
-        } | {
-            order: string[];
-            /** @constant */
-            shape: "shuffle";
+        /** @description Whose a phone's key is. */
+        PhoneHolder: {
+            user: string;
+            name: string;
+            hash: string;
         };
-        /** @description An email verified. */
-        EmailVerified: {
-            address: string;
+        /** @description Every secret the store holds, in the order of their names. */
+        Secrets: {
+            secrets: components["schemas"]["Secret"][];
         };
-        /** @description What a route that answers with nothing in particular sends: an empty object. */
-        Empty: Record<string, never>;
-        /** @description An account enabled or disabled. */
-        EnabledAsk: {
-            enabled: boolean;
+        /** @description A secret the store holds, by its name: its size and when it last changed, never its value. */
+        Secret: {
+            name: string;
+            /** Format: int64 */
+            bytes: number;
+            /** Format: int64 */
+            changedAt: number;
+            /** @description The kind its file reads as, by the kind's key, where the store's list reads one; absent elsewhere. */
+            kind?: string | null;
         };
         /**
-         * @description How a supervisor's engine ended its turn.
+         * @description A value written under a name, replacing the one the name holds only where `replace` says so; `encoding` says
+         *     how the value carries its bytes, text where it is absent.
+         */
+        SecretAsk: {
+            value: string;
+            /** @default false */
+            replace: boolean;
+            /** @default text */
+            encoding: components["schemas"]["SecretEncoding"];
+        };
+        /**
+         * @description How a secret's `value` carries its bytes: as its own UTF-8 text, or as base64 under the standard alphabet,
+         *     so a file that is not text reaches the store unchanged.
          * @enum {string}
          */
-        EngineError: "busy" | "refused" | "too-long" | "failed";
-        /** @description A second factor waiting to be confirmed. */
-        Enrolment: {
-            /** @description The address drawn as a QR code, an SVG document. */
-            qr: string;
-            /** @description The secret in base32, for an authenticator that cannot scan. */
-            secret: string;
-            /** @description The `otpauth://` address. */
-            uri: string;
+        SecretEncoding: "text" | "base64";
+        /** @description Every secret kind, in the order they were added. */
+        SecretKinds: {
+            kinds: components["schemas"]["SecretKind"][];
         };
-        /** @description What an entry check asks about: letting a person into a room or taking one out of it. */
-        EntryAct: "let-in" | "take-out";
-        /** @description Whether one user may let another into a room, or take them out of it, asked. */
-        EntryCheckAsk: {
-            /**
-             * @description The act asked about; taking out where absent.
-             * @default take-out
-             */
-            act: components["schemas"]["EntryAct"];
-            /** @description The user acting. */
-            actor: string;
-            /** Format: int64 */
-            room: number;
-            /** @description The user let in or taken out. */
-            user: string;
+        /** @description A shape the console's secret form asks a value in, never a value (docs/accounts.md, 「Secret kinds」). */
+        SecretKind: {
+            key: string;
+            name: string;
+            description: string;
+            fields: components["schemas"]["SecretField"][];
         };
+        /**
+         * @description One field of a secret kind: the key its line is written under in the file, the label a person reads,
+         *     whether its value is masked as it is typed, how it is typed, and whether it is required.
+         */
+        SecretField: {
+            key: string;
+            label: string;
+            masked: boolean;
+            input: components["schemas"]["SecretInput"];
+            required: boolean;
+        };
+        /**
+         * @description How a secret kind's field is typed: one line, several lines, or a file.
+         * @enum {string}
+         */
+        SecretInput: "line" | "lines" | "file";
         /** @description A fixed line asked for, with the fields its code carries. */
         FixedLineAsk: {
             /** @constant */
@@ -2675,10 +3399,10 @@ export interface components {
             /** @constant */
             code: "compact-failed";
         } | {
-            agent: string;
-            cause?: string | null;
             /** @constant */
             code: "run-broken";
+            agent: string;
+            cause?: string | null;
             record?: string | null;
         } | {
             /** @constant */
@@ -2695,1097 +3419,438 @@ export interface components {
             code: "supervisor-engine-error";
             kind: components["schemas"]["EngineError"];
         } | {
-            agent: string;
             /** @constant */
             code: "supervisor-cut";
+            agent: string;
             reason: string;
         } | components["schemas"]["DrawLine"] | {
             /** @constant */
             code: "still-working";
         } | {
-            by?: components["schemas"]["LinePerson"] | null;
             /** @constant */
             code: "people-joined";
             people: components["schemas"]["LinePerson"][];
-        } | {
             by?: components["schemas"]["LinePerson"] | null;
+        } | {
             /** @constant */
             code: "person-left";
             person: components["schemas"]["LinePerson"];
+            by?: components["schemas"]["LinePerson"] | null;
         } | {
             /** @constant */
             code: "supply-closed";
-            /** Format: int64 */
-            until?: number | null;
             why: string;
-        };
-        /** @description Whether the service is up, its version, and whether the account model is in force. */
-        Health: {
-            inForce: boolean;
-            ok: boolean;
-            version: string;
-        };
-        /** @description What one change of a person's place was. */
-        HistoryChange: ("placed" | "role" | "head-granted" | "head-taken" | "acting" | "acting-ended" | "post-given" | "post-changed" | "post-taken" | "left" | "enabled") | "password-reset" | "second-factor-reset" | "disabled";
-        /** @description One change of a person's place. */
-        HistoryEntry: {
-            after?: components["schemas"]["RoleMark"] | null;
-            /** Format: int64 */
-            at: number;
-            before?: components["schemas"]["RoleMark"] | null;
-            by?: string | null;
-            byName?: string | null;
-            change: components["schemas"]["HistoryChange"];
-            from?: components["schemas"]["UnitRef"] | null;
-            unit?: components["schemas"]["UnitRef"] | null;
             /** Format: int64 */
             until?: number | null;
         };
-        /** @description The one-line installs of a machine. */
-        Installs: {
-            linux: string;
-            windows: string;
-        };
-        /** @description One invitation, as the one who made it reads it. */
-        Invite: {
-            company: components["schemas"]["UnitRef"];
+        /**
+         * @description How a supervisor's engine ended its turn.
+         * @enum {string}
+         */
+        EngineError: "busy" | "refused" | "too-long" | "failed";
+        /** @description What a draw asked, by its shape. */
+        DrawAsked: {
+            /** @constant */
+            shape: "dice";
             /** Format: int64 */
-            expiresAt: number;
-            /**
-             * @description The person's name the invitation was made for, empty where none was given.
-             * @default
-             */
-            fullName: string;
-            head: boolean;
-            token: string;
-            unit: components["schemas"]["UnitRef"];
-        };
-        /** @description An invitation to make. */
-        InviteAsk: {
-            /** @description The person's name the account is made with, where the maker gives one. */
-            fullName?: string | null;
-            /** @default false */
-            head: boolean;
+            count: number;
             /** Format: int64 */
-            hours?: number | null;
+            sides: number;
             /** Format: int64 */
-            unit: number;
-        };
-        /** @description One unit a login may invite into: its parent, absent for a company, and its company, itself for a company. */
-        InviteUnit: {
-            company: components["schemas"]["UnitRef"];
+            modifier: number;
+        } | {
+            /** @constant */
+            shape: "range";
             /** Format: int64 */
-            id: number;
-            name: string;
+            min: number;
             /** Format: int64 */
-            parent?: number | null;
-        };
-        /** @description The units a login may invite into, companies first and each unit after its parent. */
-        InviteUnits: {
-            units: components["schemas"]["InviteUnit"][];
-        };
-        /** @description An invitation as its link shows it, to a person with no account. */
-        InviteView: {
-            company: components["schemas"]["UnitRef"];
+            max: number;
+        } | {
+            /** @constant */
+            shape: "pick";
             /** Format: int64 */
-            expiresAt: number;
-            /**
-             * @description The person's name the invitation was made for, empty where none was given.
-             * @default
-             */
-            fullName: string;
-            head: boolean;
-            state: string;
-            unit: components["schemas"]["UnitRef"];
+            items: number;
+            /** Format: int64 */
+            take: number;
+        } | {
+            /** @constant */
+            shape: "shuffle";
+            /** Format: int64 */
+            items: number;
         };
-        /** @description The open invitations a login reads. */
-        Invites: {
-            invites: components["schemas"]["Invite"][];
+        /** @description What a draw came to, by its shape. */
+        DrawResult: {
+            /** @constant */
+            shape: "dice";
+            faces: number[];
+            /** Format: int64 */
+            total: number;
+        } | {
+            /** @constant */
+            shape: "range";
+            /** Format: int64 */
+            value: number;
+        } | {
+            /** @constant */
+            shape: "pick";
+            picked: string[];
+        } | {
+            /** @constant */
+            shape: "shuffle";
+            order: string[];
         };
-        /** @description One unit kind of a company's list: its key and its name. */
-        KindRef: {
-            key: string;
-            name: string;
-        };
-        /** @description A head of a step of a line. */
-        LineHead: {
-            /** @description Whether the grant is an acting appointment's. */
-            acting: boolean;
-            /** @description Whether they head it through a post. */
-            concurrent: boolean;
-            name: string;
-            user: string;
-        };
-        /** @description A person holding a role at a step of a line. */
-        LineHolder: {
-            /** @description Whether they hold it through a post. */
-            concurrent: boolean;
-            name: string;
-            user: string;
+        /** @description Everything a draw's room line carries. */
+        DrawLine: {
+            label?: string | null;
+            asked: components["schemas"]["DrawAsked"];
+            result: components["schemas"]["DrawResult"];
+            /** Format: int64 */
+            number: number;
+            seed: string;
+            method: string;
+            answered?: string | null;
+            next: string;
         };
         /**
          * @description A person as a chat service's line names them: their number in the room's sender numbering, which the line
          *     carries and the sentence does not read, and the name the service shows for them.
          */
         LinePerson: {
-            name: string;
             /** Format: int64 */
             senderId: number;
-        };
-        /** @description One role at a step of a line and the people holding it there. */
-        LineRole: {
-            holders: components["schemas"]["LineHolder"][];
-            role: components["schemas"]["RoleRef"];
-        };
-        /** @description One step of a unit's line. */
-        LineStep: {
-            heads: components["schemas"]["LineHead"][];
-            kind?: components["schemas"]["KindRef"] | null;
-            roles: components["schemas"]["LineRole"][];
-            shortName?: string | null;
-            unit: components["schemas"]["UnitRef"];
-            via: components["schemas"]["LineVia"];
-        };
-        /** @description How a step of a line was reached from the one before it. */
-        LineVia: "start" | "reports-to" | "parent";
-        /** @description A link to be made, opening under the console's public address. */
-        LinkAsk: {
-            linkBase: string;
-        };
-        /**
-         * @description How the agent the hub holds for a machine is connected: the desktop app's built-in agent, or one installed apart.
-         * @enum {string}
-         */
-        MachineKind: "desktop" | "installed";
-        /** @description A machine name revoked at the hub: the name, and whether the hub sent a leave to a machine attached under it. */
-        MachineRevoked: {
-            agent: string;
-            left: boolean;
-        };
-        /** @description One of bmo-mail's outgoing server records, as the system mail is chosen from them. */
-        MailServer: {
-            host: string;
-            /** @description bmo-mail's opaque id of the record. */
-            id: string;
             name: string;
-        };
-        /** @description A test mail asked. */
-        MailTestAsk: {
-            to: string;
-        };
-        /**
-         * @description One member of the reader's company as a picker finds and shows them (docs/accounts.md, 「The people
-         *     directory」): the account key and the name, nothing more.
-         */
-        Member: {
-            name: string;
-            user: string;
-        };
-        /** @description A person of a unit's members carrying a role there. */
-        MemberRole: {
-            role: components["schemas"]["RoleRef"];
-            user: string;
-        };
-        /** @description Every member of the reader's company who has not left, in the directory's order. */
-        Members: {
-            members: components["schemas"]["Member"][];
-        };
-        /**
-         * @description A person granted a unit's org memory write (`docs/accounts.md`, 「A unit's org memory」): their name, the login
-         *     where none stands, and the user who gave it where a person did.
-         */
-        MemoryWriter: {
-            by?: string | null;
-            name: string;
-            user: string;
-        };
-        /** @description The people granted a unit's org memory write, by name then id. */
-        MemoryWriters: {
-            writers: components["schemas"]["MemoryWriter"][];
-        };
-        /** @description Where the account model stands, and why it is not in force where it is not. */
-        ModelState: {
-            inForce: boolean;
-            why?: string | null;
-        };
-        /** @description What the data move is handed: the senders the deployment's configuration names as the owner's. */
-        MoveAsk: {
-            ownerSenders: number[];
-        };
-        /** @description What the data move answered. */
-        Moved: {
-            administrator?: string | null;
-            done: boolean;
-            written: boolean;
-        };
-        /** @description A new name for a user. */
-        NameAsk: {
-            name: string;
-        };
-        /** @description A named account part: an organization or a role. */
-        Named: {
-            /** Format: int64 */
-            id: number;
-            name: string;
-        };
-        /** @description A new password set by a link. */
-        NewPasswordAsk: {
-            password: string;
-        };
-        /**
-         * @description A unit to make: a company where it names no parent; its kind by key, its short name and the unit it reports
-         *     to where named.
-         */
-        NewUnit: {
-            kind?: string | null;
-            name: string;
-            /** Format: int64 */
-            parent?: number | null;
-            /** Format: int64 */
-            reportsTo?: number | null;
-            shortName?: string | null;
-        };
-        /** @description The machine the administrator binds an account to. */
-        NodeBinding: {
-            /** @description A machine of this name; where none is named, a fresh name made for the account. */
-            agent?: string | null;
-            /** @description Whether the machine is one several accounts share; a binding that does not say so is the account's alone. */
-            shared?: boolean;
-        };
-        /** @description The administrator's declaration that an account's machine is shared with other accounts, or no longer shared. */
-        NodeSharing: {
-            shared: boolean;
-        };
-        /**
-         * @description One unit whose org memory a login writes: its parent, absent for a company, its company, itself for a company,
-         *     and whether the login heads it.
-         */
-        OrgMemoryUnit: {
-            company: components["schemas"]["UnitRef"];
-            head: boolean;
-            /** Format: int64 */
-            id: number;
-            name: string;
-            /** Format: int64 */
-            parent?: number | null;
-        };
-        /** @description The units whose org memory a login writes, companies first and each unit after its parent. */
-        OrgMemoryUnits: {
-            units: components["schemas"]["OrgMemoryUnit"][];
-        };
-        /** @description A person's own parts as kept, whether or not they may use them; `picture` says whether one is kept. */
-        OwnAgent: {
-            callNames: string[];
-            name?: string | null;
-            persona?: string | null;
-            picture: boolean;
-        };
-        /** @description A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none. */
-        OwnAgentAsk: {
-            /** @default [] */
-            callNames: string[];
-            name?: string | null;
-            persona?: string | null;
-        };
-        /** @description A desktop pairing approved: the machine it was bound to. */
-        PairingApproved: {
-            machine: string;
-        };
-        /** @description An approved desktop pairing as the app reads it, once: the machine, its credential and the hub it attaches to. */
-        PairingCredential: {
-            credential: string;
-            hubUrl: string;
-            node: string;
-        };
-        /**
-         * @description A desktop pairing asked: the id the app keeps, the code a person checks, when it closes, and how long the app
-         *     waits between reads.
-         */
-        PairingMade: {
-            code: string;
-            /** Format: int64 */
-            expiresAt: number;
-            pairing: string;
-            /** Format: uint32 */
-            pollAfterSeconds: number;
-        };
-        /** @description A desktop pairing as a signed-in person reads it by its code. */
-        PairingView: {
-            code: string;
-            /** Format: int64 */
-            expiresAt: number;
-            /** @description While it waits, the machine the reader's account is bound to; approved by the reader, the machine approved. */
-            machine?: string | null;
-            /** @description `waiting`, `approved`, `refused` or `expired`. */
-            state: string;
-        };
-        /** @description A password change. */
-        PasswordAsk: {
-            current: string;
-            next: string;
-        };
-        /** @description A password asked to confirm an act. */
-        PasswordConfirm: {
-            password: string;
-        };
-        /** @description The people a search found, in the organisation's own order. */
-        People: {
-            people: components["schemas"]["Person"][];
-        };
-        /** @description Several people moved into one unit in one act. */
-        PeopleMove: {
-            people: components["schemas"]["PersonMove"][];
-        };
-        /**
-         * @description One person of the reader's organisation in the console's directory (docs/accounts.md, 「The people
-         *     directory」). The contact fields stand only for the platform administrator and for the person themselves.
-         */
-        Person: {
-            /**
-             * @description The duty kept, empty where none is.
-             * @default
-             */
-            duty: string;
-            email?: string | null;
-            /**
-             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
-             *     otherwise.
-             */
-            jobTitle: string;
-            landline?: string | null;
-            mobile?: string | null;
-            name: string;
-            organization: string;
-            /**
-             * @description The rank kept, empty where none is.
-             * @default
-             */
-            rank: string;
-            /** @description The role carried in the home unit. */
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /** @description One person of the directory looked up: what a search row answers, and their posts. */
-        PersonDetail: {
-            /**
-             * @description The duty kept, empty where none is.
-             * @default
-             */
-            duty: string;
-            email?: string | null;
-            /**
-             * @description The title as one line: composed from the rank and the role where either is set, the job title kept
-             *     otherwise.
-             */
-            jobTitle: string;
-            landline?: string | null;
-            mobile?: string | null;
-            name: string;
-            organization: string;
-            posts: components["schemas"]["PersonPost"][];
-            /**
-             * @description The rank kept, empty where none is.
-             * @default
-             */
-            rank: string;
-            /** @description The role carried in the home unit. */
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /**
-         * @description One person of a move into a unit: the unit they stood in when the move was shown, and whether they head the
-         *     unit they go to.
-         */
-        PersonMove: {
-            /** Format: int64 */
-            from: number;
-            head: boolean;
-            /**
-             * @description The role carried in the unit, by key: null for none, and where absent kept by a person who stays and none
-             *     for one who comes.
-             */
-            role?: string | null;
-            user: string;
-        };
-        /** @description One post of a person as the directory answers it: the unit by its reference and the post's role. */
-        PersonPost: {
-            role?: components["schemas"]["RoleRef"] | null;
-            unit: components["schemas"]["UnitRef"];
-        };
-        /** @description A token issued before the model, carried onto a key of the same text. */
-        PhoneAdoptAsk: {
-            token: string;
-            user: string;
-        };
-        /** @description The hash a token was kept by. */
-        PhoneAdopted: {
-            hash: string;
-        };
-        /** @description The user a phone's key is made for. */
-        PhoneAsk: {
-            user: string;
-        };
-        /** @description Whose a phone's key is. */
-        PhoneHolder: {
-            hash: string;
-            name: string;
-            user: string;
-        };
-        /** @description A phone's new key, handed out once, and the hash it is kept by. */
-        PhoneMade: {
-            hash: string;
-            key: string;
-        };
-        /** @description A key asked after. */
-        PhoneWhoAsk: {
-            key: string;
-        };
-        /**
-         * @description One post of a person: its unit and path, its role, whether it carries the unit's head, and when and by whom
-         *     it was given.
-         */
-        Post: {
-            by: string | null;
-            head: boolean;
-            path: components["schemas"]["UnitRef"][];
-            role?: components["schemas"]["RoleRef"] | null;
-            /** Format: int64 */
-            since: number;
-            unit: components["schemas"]["UnitRef"];
-        };
-        /** @description A post given: its role by key, null for none, and whether it carries the unit's head. */
-        PostAsk: {
-            /** @default false */
-            head: boolean;
-            role?: string | null;
-        };
-        /** @description A person's posts, in the order of their units' paths. */
-        Posts: {
-            posts: components["schemas"]["Post"][];
-        };
-        /**
-         * @description A user's profile written: the name, the job title and the contact details whole, and the rank and the duty
-         *     where named, each left as it stands where absent.
-         */
-        ProfileAsk: {
-            duty?: string | null;
-            email: string;
-            fullName: string;
-            jobTitle: string;
-            landline: string;
-            mobile: string;
-            rank?: string | null;
-        };
-        /** @description Whether an invited account's machine is attached and the account enabled. */
-        Proof: {
-            active: boolean;
-            /** @description The account, where it is active. */
-            user?: string | null;
-        };
-        /** @description An account bound to another machine: the machine, how to install it, and whether the hub holds it already. */
-        Rebound: {
-            agent: string;
-            attached: boolean;
-            credential: string;
-            hubUrl: string;
-            install: components["schemas"]["Installs"];
-            /** @description Whether the binding is to a machine several accounts share. */
-            shared: boolean;
-        };
-        /** @description The recovery codes, shown once. */
-        RecoveryCodes: {
-            recoveryCodes: string[];
-        };
-        /** @description A removal asked: what every content unit removed before it, by the unit's name, which the record keeps. */
-        RemovalAsk: {
-            /** @default {} */
-            units: {
-                [key: string]: {
-                    [key: string]: number;
-                };
-            };
-        };
-        /** @description A person whose home unit stands in a unit's subtree, as a unit's removal names them. */
-        RemovalPerson: {
-            administrator: boolean;
-            left: boolean;
-            name: string;
-            user: string;
-        };
-        /**
-         * @description One removal as its record keeps it: what went, an account or a unit, its id, its login and name as they stood,
-         *     who removed it and when, and every unit's result, the service's own under `web`.
-         */
-        RemovalRecord: {
-            /** Format: int64 */
-            at: number;
-            by: string | null;
-            /** Format: int64 */
-            id: number;
-            login: string;
-            name: string;
-            result: {
-                [key: string]: {
-                    [key: string]: number;
-                };
-            };
-            /** Format: int64 */
-            subject: number;
-            what: string;
-        };
-        /** @description The removal records, the newest first. */
-        Removals: {
-            removals: components["schemas"]["RemovalRecord"][];
-        };
-        /** @description What a removal took here, and the record it left. */
-        Removed: {
-            /** Format: int64 */
-            record: number;
-            removed: {
-                [key: string]: number;
-            };
         };
         /** @description The sentence a fixed line renders as. */
         Rendered: {
             text: string;
         };
-        /** @description A reset link asked from the login screen. */
-        ResetAsk: {
-            /** @description The console's public address the link opens under. */
-            linkBase: string;
-            /** @description A login or an email. */
-            who: string;
+        /** @description Every kind declared. */
+        ChainKinds: {
+            kinds: components["schemas"]["ChainKind"][];
         };
-        /** @description What a reset link stands for. */
-        ResetLink: {
-            login: string;
-        };
-        /** @description A password reset made for a person: mailed, with the address it went to partly hidden, or the link to hand over. */
-        ResetMade: {
-            address?: string | null;
-            link?: string | null;
-            mailed: boolean;
-        };
-        /** @description A person standing for a role for a unit: where they hold it and whether through a post. */
-        RoleHolder: {
-            concurrent: boolean;
-            name: string;
-            unit: components["schemas"]["UnitRef"];
-            user: string;
-        };
-        /** @description A role as a change of a person's place kept it: its key and the name it had then. */
-        RoleMark: {
+        /** @description A setting kind, as the unit using it declares it. */
+        ChainKind: {
             key: string;
-            name: string;
-        };
-        /** @description One role of a company's catalogue: its key, its name and its place, counted from 1 for the lowest. */
-        RoleRef: {
-            key: string;
-            name: string;
-            /** Format: int32 */
-            place: number;
-        };
-        /** @description Who stands for one role for a unit. */
-        RoleStand: {
-            /** @description Whether the holders hold a lower role than the one asked. */
-            acting: boolean;
-            holders: components["schemas"]["RoleHolder"][];
-            reason: components["schemas"]["StandReason"] | null;
-            /** @description The role asked. */
-            role: components["schemas"]["RoleRef"];
-            /** @description The role the holders hold; none where nobody stands. */
-            standing: components["schemas"]["RoleRef"] | null;
-        };
-        /**
-         * @description The companies the reader looks through in the people roster (docs/accounts.md, 「The people roster」), in
-         *     name order; empty for a reader who looks through none.
-         */
-        RosterCompanies: {
-            companies: components["schemas"]["UnitRef"][];
-        };
-        /**
-         * @description One person of the people roster opened (docs/accounts.md, 「The people roster」): what a page answers
-         *     of them, with their landline and mobile for the administrator alone, their unit's path from the company
-         *     down, the units they are granted head of directly, their departure and their machine.
-         */
-        RosterDetail: {
-            /**
-             * @description Whether that grant is an acting appointment's.
-             * @default false
-             */
-            acting: boolean;
-            /** @description The appointments of theirs running. */
-            actingFor: components["schemas"]["ActingFor"][];
-            /** @description Whether they are the platform administrator. */
-            administrator: boolean;
-            company: components["schemas"]["UnitRef"];
+            /** @description The unit that declared it. */
+            declaredBy: string;
             /** @default  */
-            duty: string;
-            /** @description The email, for the administrator alone. */
-            email?: string | null;
-            /** @description Whether they are granted head of the unit they stand in. */
-            head: boolean;
-            headOf: components["schemas"]["UnitRef"][];
-            /** @description Every change of their place kept, the newest first. */
-            history: components["schemas"]["HistoryEntry"][];
-            /** @description The title as one line, empty where nothing is kept. */
-            jobTitle: string;
-            landline?: string | null;
-            /**
-             * Format: int64
-             * @description When the user last signed in; none where they never have since the service kept it.
-             */
-            lastSignInAt: number | null;
-            left: components["schemas"]["RosterLeft"] | null;
-            login: string;
-            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
-            machine: string | null;
-            machineStanding: components["schemas"]["RosterMachine"] | null;
-            /**
-             * Format: int64
-             * @description When the account was made.
-             */
-            madeAt: number;
-            mobile?: string | null;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            path: components["schemas"]["UnitRef"][];
-            /**
-             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
-             *     does not match it.
-             */
-            post?: components["schemas"]["UnitRef"] | null;
-            posts: components["schemas"]["Post"][];
-            /** @default  */
-            rank: string;
-            /** @description The role carried in the home unit. */
-            role?: components["schemas"]["RoleRef"] | null;
-            state: components["schemas"]["RosterState"];
-            unit: components["schemas"]["UnitRef"];
-            user: string;
-        };
-        /** @description When a person in the roster left, and who marked it. */
-        RosterLeft: {
-            /** Format: int64 */
-            at: number;
-            /** @description The user who marked it. */
-            by: string;
-            /** @description That user's name, the login where none stands. */
-            byName: string;
-        };
-        /** @description The machine a person in the roster is bound to: its name, whether it is shared, when it was last proven. */
-        RosterMachine: {
-            name: string;
-            /** Format: int64 */
-            provenAt: number | null;
-            shared: boolean;
-        };
-        /**
-         * @description One page of the people roster: its people, how many people match the whole ask, and the place to ask the
-         *     next page from in `after`, none where nothing stands past it.
-         */
-        RosterPage: {
-            next: string | null;
-            people: components["schemas"]["RosterPerson"][];
-            /** Format: int64 */
-            total: number;
-        };
-        /** @description One person as a page of the people roster answers them (docs/accounts.md, 「The people roster」). */
-        RosterPerson: {
-            /**
-             * @description Whether that grant is an acting appointment's.
-             * @default false
-             */
-            acting: boolean;
-            /** @description Whether they are the platform administrator. */
-            administrator: boolean;
-            company: components["schemas"]["UnitRef"];
-            /** @default  */
-            duty: string;
-            /** @description The email, for the administrator alone. */
-            email?: string | null;
-            /** @description Whether they are granted head of the unit they stand in. */
-            head: boolean;
-            /** @description The title as one line, empty where nothing is kept. */
-            jobTitle: string;
-            /**
-             * Format: int64
-             * @description When the user last signed in; none where they never have since the service kept it.
-             */
-            lastSignInAt: number | null;
-            login: string;
-            /** @description The machine the account is bound to, by its name; none where it is bound to none. */
-            machine: string | null;
-            /**
-             * Format: int64
-             * @description When the account was made.
-             */
-            madeAt: number;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            /**
-             * @description The unit of the post through which they count in a page narrowed by unit or kind, where their home unit
-             *     does not match it.
-             */
-            post?: components["schemas"]["UnitRef"] | null;
-            /** @default  */
-            rank: string;
-            /** @description The role carried in the home unit. */
-            role?: components["schemas"]["RoleRef"] | null;
-            state: components["schemas"]["RosterState"];
-            unit: components["schemas"]["UnitRef"];
-            user: string;
-        };
-        /**
-         * @description Where an account stands in the people roster: in use, made by an invitation and not yet enabled, or
-         *     marked left.
-         * @enum {string}
-         */
-        RosterState: "active" | "pending" | "left";
-        /** @description A sign-in finished with a code. */
-        SecondFactorAsk: {
-            /** @description A code from the authenticator, or a recovery code. */
-            code: string;
-            /**
-             * @description Whether this browser is asked no code for 30 days.
-             * @default false
-             */
-            remember: boolean;
-            ticket: string;
-        };
-        /** @description A secret the store holds, by its name: its size and when it last changed, never its value. */
-        Secret: {
-            /** Format: int64 */
-            bytes: number;
-            /** Format: int64 */
-            changedAt: number;
-            /** @description The kind its file reads as, by the kind's key, where the store's list reads one; absent elsewhere. */
-            kind?: string | null;
-            name: string;
-        };
-        /**
-         * @description A value written under a name, replacing the one the name holds only where `replace` says so; `encoding` says
-         *     how the value carries its bytes, text where it is absent.
-         */
-        SecretAsk: {
-            /** @default text */
-            encoding: components["schemas"]["SecretEncoding"];
-            /** @default false */
-            replace: boolean;
-            value: string;
-        };
-        /**
-         * @description How a secret's `value` carries its bytes: as its own UTF-8 text, or as base64 under the standard alphabet,
-         *     so a file that is not text reaches the store unchanged.
-         * @enum {string}
-         */
-        SecretEncoding: "text" | "base64";
-        /**
-         * @description One field of a secret kind: the key its line is written under in the file, the label a person reads,
-         *     whether its value is masked as it is typed, how it is typed, and whether it is required.
-         */
-        SecretField: {
-            input: components["schemas"]["SecretInput"];
-            key: string;
-            label: string;
-            masked: boolean;
-            required: boolean;
-        };
-        /**
-         * @description How a secret kind's field is typed: one line, several lines, or a file.
-         * @enum {string}
-         */
-        SecretInput: "line" | "lines" | "file";
-        /** @description A shape the console's secret form asks a value in, never a value (docs/accounts.md, 「Secret kinds」). */
-        SecretKind: {
             description: string;
-            fields: components["schemas"]["SecretField"][];
-            key: string;
-            name: string;
-        };
-        /** @description Every secret kind, in the order they were added. */
-        SecretKinds: {
-            kinds: components["schemas"]["SecretKind"][];
-        };
-        /** @description Every secret the store holds, in the order of their names. */
-        Secrets: {
-            secrets: components["schemas"]["Secret"][];
-        };
-        /** @description One console section's permission for a user: whether they may read it and whether they may write it. */
-        SectionRow: {
-            read: boolean;
-            section: string;
-            write: boolean;
-        };
-        /** @description A user's sections, in the console's navigation order; every write is also a read. */
-        Sections: {
-            sections: components["schemas"]["SectionRow"][];
-        };
-        /** @description One sender linked to a user, and whether that user may sign in to the console. */
-        SenderLink: {
-            /** Format: int64 */
-            sender: number;
-            signsIn: boolean;
-            user: string;
-        };
-        /**
-         * @description The senders asked after that are linked to a user, in the order they were asked; a sender linked to none is
-         *     absent.
-         */
-        SenderLinks: {
-            links: components["schemas"]["SenderLink"][];
-        };
-        /** @description The user a sender is linked to. */
-        SenderUser: {
-            user: string;
-        };
-        /** @description The senders linked to a user. */
-        Senders: {
-            senders: number[];
-        };
-        /** @description The senders a caller asks after, each by its number. */
-        SendersAsk: {
-            senders: number[];
-        };
-        /** @description The account behind a session, as sumida answers it. */
-        Session: {
-            createdAt: string;
-            email?: string | null;
-            firstSeenAt: string;
-            fullName?: string | null;
-            /** Format: int64 */
-            id: number;
-            isAdmin: boolean;
-            isBanned: boolean;
-            isEnabled: boolean;
-            lastSeenAt: string;
-            organization: components["schemas"]["Named"];
-            phone?: string | null;
-            role: components["schemas"]["Named"];
-            updatedAt: string;
-            username: string;
-        };
-        /**
-         * @description The body sumida's own session routes refuse with: its code, the status as a number, and a reason written in
-         *     debug builds only.
-         */
-        SessionError: {
-            code: string;
-            reason?: string | null;
-            /** Format: uint16 */
-            statusCode: number;
-        };
-        /**
-         * @description A share asked or bound: the machine, `bound` or `asked`, and the accounts whose binding was declared shared as it
-         *     was bound, empty while it waits.
-         */
-        ShareAnswer: {
-            holders: string[];
-            machine: string;
-            state: string;
-        };
-        /**
-         * @description An invited account's ask to share a machine another agent holds: the machine's name, and the account the asking
-         *     browser is signed in to, where it is.
-         */
-        ShareAsk: {
-            machine: string;
-            owner?: string | null;
-        };
-        /** @description An ask waiting for a decision: the asking account, where it was invited, the machine and who is on it already. */
-        ShareAskRow: {
-            /** Format: int64 */
-            askedAt: number;
-            company: components["schemas"]["UnitRef"];
-            /** @description The person's name, empty where none is kept. */
-            fullName: string;
-            holders: components["schemas"]["ShareHolder"][];
-            login: string;
-            machine: string;
-            unit: components["schemas"]["UnitRef"];
-            user: string;
-        };
-        /**
-         * @description An invited account's ask as the invitation reads it back: the machine, when it was asked, and whether it is
-         *     `asked`, `approved` or `refused`.
-         */
-        ShareAskState: {
-            /** Format: int64 */
-            askedAt: number;
-            machine: string;
-            state: string;
-        };
-        /** @description The asks the reader may decide, oldest first. */
-        ShareAsks: {
-            asks: components["schemas"]["ShareAskRow"][];
-        };
-        /** @description An account bound to a machine, as a share's decider reads it. */
-        ShareHolder: {
-            /** @description The person's name, empty where none is kept. */
-            fullName: string;
-            login: string;
-            user: string;
-        };
-        /** @description A sign-in tried with a login and a password. */
-        SignInAsk: {
+            shape: components["schemas"]["ChainShape"];
             /**
-             * @description The token of a browser remembered for the second factor, where the browser holds one.
-             * @default null
+             * @description The keys a `keys` value is chosen from.
+             * @default []
              */
-            deviceToken: string | null;
-            login: string;
-            password: string;
-        };
-        /** @description How a sign-in stands. */
-        SignInOutcome: "signed-in" | "second-factor";
-        /** @description An account's sign-ins tried, the newest first. */
-        SignInTries: {
-            tries: components["schemas"]["SignInTry"][];
-        };
-        /** @description One sign-in tried. */
-        SignInTry: {
-            address: string;
-            /** Format: int64 */
-            at: number;
-            outcome: components["schemas"]["TryOutcome"];
-            userAgent: string;
-        };
-        /** @description What a sign-in answers. */
-        SignedIn: {
-            /** @description The token of this browser remembered, where `remember` was asked. */
-            deviceToken?: string | null;
+            choices: string[];
+            mode: components["schemas"]["ChainMode"];
+            /** @description The value standing where no link says one. */
+            default?: unknown;
             /**
-             * @description The organisation asks a second factor the account does not hold yet.
+             * @description Whether a link may set the value apart for a person, a group or a unit.
              * @default false
              */
-            enrol: boolean;
-            outcome: components["schemas"]["SignInOutcome"];
-            /** @description The ticket a code is handed back with. */
-            ticket?: string | null;
-            /** @description The user signed in, its id's digits. */
-            user?: string | null;
-        };
-        /** @description Why the people standing for a role hold another one. */
-        StandReason: "no-holder";
-        /** @description A person whose home unit is a unit of a subtree: the role they carry there and whether their account has left. */
-        SubtreeMember: {
-            left: boolean;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /** @description A person holding a post in a unit of a subtree: the post's role and whether it carries the unit's head. */
-        SubtreePost: {
-            head: boolean;
-            /** @description The person's name, the login where none stands. */
-            name: string;
-            role?: components["schemas"]["RoleRef"] | null;
-            user: string;
-        };
-        /** @description One unit of a subtree and the people standing in it, each list in the order of their names. */
-        SubtreeUnit: {
-            /** @description The people holding a post in it. */
-            concurrent: components["schemas"]["SubtreePost"][];
-            /** @description The heads granted it directly, an acting one marked. */
-            heads: components["schemas"]["LineHead"][];
-            /** Format: int64 */
-            id: number;
-            kind?: components["schemas"]["KindRef"] | null;
-            /** @description The people whose home unit it is. */
-            members: components["schemas"]["SubtreeMember"][];
-            name: string;
+            rules: boolean;
+            levels: components["schemas"]["ChainLevel"][];
             /**
-             * Format: int64
-             * @description The unit it stands under, absent for a company.
+             * @description The sumida organisation permission that lets a person write a unit's link.
+             * @default manage
              */
-            parent?: number | null;
-            shortName?: string | null;
+            unitPermission: string;
+            /** @default heads */
+            personWriter: components["schemas"]["ChainPersonWriter"];
+            /**
+             * @description Whether a person's own link may only raise the value, never lower what stands from above it
+             *     (`docs/accounts.md`, 「Resolution」).
+             * @default false
+             */
+            personRaises: boolean;
         };
+        /** @description The shape a kind's value takes. */
+        ChainShape: "flag" | "text" | "amount" | "keys" | "json";
+        /** @description How the links' words make one answer. */
+        ChainMode: "nearest" | "narrowing" | "layered";
         /**
-         * @description The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming
-         *     no `plan` at all does not read.
+         * @description A level of the chain a kind may hold an entry at.
+         * @enum {string}
          */
-        SupplyAppliedAsk: {
-            /** Format: int64 */
-            plan: number;
-        };
-        /**
-         * @description The plan a unit runs on: the plan's id, its subscription's period, in epoch milliseconds, and the plan whole as
-         *     the subscription stands on it, whether or not it is still exposed to the unit or still stands.
-         */
-        SupplyAppliedPlan: {
-            creditsUsable: boolean;
-            /** Format: int64 */
-            includedCredits: number | null;
-            name: string;
-            period: string;
-            /** Format: int64 */
-            periodEnd: number;
-            /** Format: int64 */
-            plan: number;
-            /** Format: int64 */
-            price: number;
-            scope: string;
-            /** Format: int64 */
-            since: number;
-        };
-        /** @description One audited supply act. */
-        SupplyAuditEntry: {
-            /** Format: int64 */
-            at: number;
-            by: string;
-            byName: string;
-            detail: string;
-            /** Format: int64 */
-            id: number;
-            /** @description `grant`, `policy`, `settings` or `plan`. */
+        ChainLevel: "platform" | "unit" | "person";
+        /** @description Who writes a person's link. */
+        ChainPersonWriter: "heads" | "self" | "both";
+        /** @description A setting resolved for a person or a unit (docs/accounts.md, 「Resolution」). */
+        ChainResolution: {
             kind: string;
+            /** @description `person:<user>` or `unit:<id>`. */
             subject: string;
+            /** @description The value standing; none for a layered kind, and where nothing is said and no default stands. */
+            value?: unknown;
+            /** @description The link the value came from; none where the default stands or the kind narrows. */
+            from?: string | null;
+            /** @description Whom the rule the value came from names, where a rule gave it. */
+            rule?: string | null;
+            /** @description Every link's word for the subject, top first, below the lock that cut the chain left out. */
+            layers: components["schemas"]["ChainLayer"][];
+            /**
+             * @description Every link of the subject's chain, top first, whether or not it says anything: the platform, each unit down
+             *     to the subject's and, for a person, the person.
+             * @default []
+             */
+            path: string[];
+            /** @description The link whose lock cut the chain. */
+            lockedBy?: string | null;
+            /** @description The link asked after. */
+            link?: components["schemas"]["ChainLinkStanding"] | null;
         };
-        /** @description A page of the audit, newest first. */
-        SupplyAuditPage: {
-            entries: components["schemas"]["SupplyAuditEntry"][];
-            next: string | null;
+        /** @description One link's word for a subject: its value, and whom the rule it came from names where one did. */
+        ChainLayer: {
+            link: string;
+            value: unknown;
+            rule?: string | null;
         };
-        /**
-         * @description One plan of the platform's catalogue as an administrator reads it for a unit: the plan, and whether the
-         *     unit is shown it.
-         */
-        SupplyCataloguePlan: {
-            creditsUsable: boolean;
-            exposed: boolean;
+        /** @description Whether a link asked after may change a setting, and the link whose lock withholds it. */
+        ChainLinkStanding: {
+            link: string;
+            mayChange: boolean;
+            lockedBy?: string | null;
+        };
+        /** @description A link's entry of one kind. */
+        ChainEntry: {
+            kind: string;
+            /** @description `platform`, `unit:<id>` or `person:<user>`. */
+            link: string;
+            /** @description The link's own value, none where it follows above. */
+            value?: unknown;
+            delegation: components["schemas"]["ChainDelegation"];
+            /** @default [] */
+            rules: components["schemas"]["ChainRule"][];
+            setBy?: string | null;
+            /** Format: int64 */
+            setAt?: number | null;
+            /** @description The farthest link above holding a lock, where one does: nothing here changes then. */
+            lockedBy?: string | null;
+            /** @description Whether the caller may change the entry now. */
+            writable: boolean;
+        };
+        /** @description Whether the links below a link may change a setting. */
+        ChainDelegation: "allow" | "lock" | "inherit";
+        /** @description One rule of a link: whom it names (`person:<user>`, `group:<id>` or `unit:<id>`) and its value. */
+        ChainRule: {
+            who: string;
+            value: unknown;
+        };
+        /** @description A link's value written, null to follow above. */
+        ChainValueAsk: {
+            /** @default null */
+            value: unknown;
+        };
+        /** @description A link's delegation written. */
+        ChainDelegationAsk: {
+            delegation: components["schemas"]["ChainDelegation"];
+        };
+        /** @description A link's rules written whole. */
+        ChainRulesAsk: {
+            rules: components["schemas"]["ChainRule"][];
+        };
+        /** @description The groups a unit keeps. */
+        ChainGroups: {
+            groups: components["schemas"]["ChainGroup"][];
+        };
+        /** @description A named group of people a unit keeps. */
+        ChainGroup: {
             /** Format: int64 */
             id: number;
-            /**
-             * Format: int64
-             * @description The amount quota the plan carries for its supply action; null where it includes none.
-             */
-            includedCredits: number | null;
+            /** Format: int64 */
+            unit: number;
             name: string;
-            /** @description `day`, `week`, `month` or `year`. */
-            period: string;
+            /** @description The members' user ids. */
+            members: string[];
+        };
+        /** @description A group made or changed: its unit on a make, its name and its members whole. */
+        ChainGroupAsk: {
+            /** Format: int64 */
+            unit?: number | null;
+            name: string;
+            members: string[];
+        };
+        /** @description The ask posted to the supply hook: the point and the operation with its fields. */
+        SupplyHookAsk: {
+            point: string;
+            ask: components["schemas"]["SupplyHookOp"];
+        };
+        /** @description The ask of one hook operation. Each operation reads the fields it names; the rest stand absent. */
+        SupplyHookOp: {
+            op: string;
+            /** @description The agency's supply key for the run: its kind, its number and the moment it chose its source. */
+            run?: string | null;
+            /** Format: int64 */
+            step?: number | null;
+            /** @description The account the run stands under, as the digits of a user's id: handed as text or as a number. */
+            account?: unknown;
+            provider?: string | null;
+            model?: string | null;
+            /** @description `job` or `turn`, for an order ask. */
+            kind?: string | null;
+            job?: unknown;
+            supervisor?: string | null;
+            /** Format: int64 */
+            room?: number | null;
+            source?: string | null;
+            reservation?: string | null;
+            /** Format: double */
+            spentUsd?: number | null;
+            /** Format: double */
+            costUsd?: number | null;
+            /** @description The idempotency key `<run>:<step>:<op>`, taken once end to end. */
+            key?: string | null;
+        };
+        /** @description The answer to a hook operation, under `answer`. */
+        SupplyHookAnswer: {
+            answer: components["schemas"]["SupplyHookReply"];
+        };
+        /** @description What one hook operation answered. */
+        SupplyHookReply: {
+            /** @description The resolved order for an `order` ask, `stop` left out. */
+            sources?: string[] | null;
+            accepted?: boolean | null;
+            reservation?: string | null;
+            /** Format: double */
+            amountUsd?: number | null;
+            /** Format: int64 */
+            expiresAt?: number | null;
             /**
              * Format: int64
-             * @description Whole won.
+             * @description When a refused reservation may be asked again, where a moment is known.
              */
+            reopensAt?: number | null;
+            taken?: boolean | null;
+        };
+        /** @description The reader's own supply view. */
+        SupplyView: {
+            order: string[];
+            /** @description Whether the platform locks the order, so the reader's own order is not read. */
+            orderLocked: boolean;
+            sources: components["schemas"]["SupplySourceState"][];
+            /** Format: int64 */
+            personalCreditCredits?: number | null;
+            usage: components["schemas"]["SupplyUsageRow"][];
+            /** Format: int64 */
+            globalRemaining?: number | null;
+            /** Format: int64 */
+            personalCredits?: number | null;
+        };
+        /**
+         * @description One source as the reader's view stands it: whether the layers above allow it, whether the reader has it
+         *     switched off, whether the platform locks it, and where it is not allowed, which layer closed it.
+         */
+        SupplySourceState: {
+            source: string;
+            allowed: boolean;
+            off: boolean;
+            /**
+             * @description Whether the platform holds the source as it says for everyone, so the reader's own setting cannot change
+             *     it; `stop` is always locked.
+             */
+            locked: boolean;
+            /**
+             * @description The reader's own choice of the source, `on` or `off`; absent where they made none and the platform's
+             *     default stands.
+             */
+            own?: string | null;
+            /** @description `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`. */
+            reason?: string | null;
+        };
+        /** @description What one source cost this month, per source. */
+        SupplyUsageRow: {
+            source: string;
+            /** Format: int64 */
+            credits: number;
+            /** Format: int64 */
+            costMicros: number;
+        };
+        /**
+         * @description The reader's own setting written whole: their order, not read while the platform locks it, and the
+         *     overridable sources they switch off and on against the platform's default.
+         */
+        SupplySettingAsk: {
+            order: string[];
+            off: string[];
+            on: string[];
+            /** Format: int64 */
+            personalCreditCredits?: number | null;
+        };
+        /** @description A unit's supply view. */
+        SupplyOrgView: {
+            /** Format: int64 */
+            unit: number;
+            inherits: boolean;
+            policy?: components["schemas"]["SupplyPolicyView"] | null;
+            plan?: components["schemas"]["SupplyPlanCard"] | null;
+            wallet?: components["schemas"]["SupplyWallet"] | null;
+            /**
+             * @description For a policy holder, the sources the platform makes available to an organisation's policy: those it turns
+             *     on or leaves to a person's own setting. Empty for anyone else.
+             * @default []
+             */
+            available: string[];
+            usage: components["schemas"]["SupplyMemberUsageRow"][];
+        };
+        /** @description One policy as it stands for a unit or a person: whose row it is where it stands above. */
+        SupplyPolicyView: {
+            allowed: string[];
+            order: string[];
+            /** Format: int64 */
+            memberCreditCredits?: number | null;
+            /**
+             * Format: int64
+             * @description The unit whose row stands, where the unit inherits one from above.
+             */
+            from?: number | null;
+        };
+        /** @description The plan standing for a unit, as its `subscription_manager` reads it. */
+        SupplyPlanCard: {
+            name: string;
+            /** Format: int64 */
             price: number;
-            /** @description `personal` or `organisation`. */
             scope: string;
-        };
-        /** @description Credits granted to anyone. */
-        SupplyCreditAsk: {
+            period: string;
             /** Format: int64 */
-            amount: number;
-            /** Format: int64 */
-            ownerId: number;
-            /** @description `user` or `organisation`. */
-            ownerKind: string;
-            words?: string | null;
+            includedCredits: number | null;
+            creditsUsable: boolean;
         };
-        /** @description Every plan a unit is shown, written whole. */
-        SupplyExposedAsk: {
-            plans: number[];
+        /** @description What a credit wallet holds. */
+        SupplyWallet: {
+            /** Format: int64 */
+            balance: number;
+            /** Format: int64 */
+            reserved: number;
+            /** Format: int64 */
+            debt: number;
+        };
+        /** @description What one member of a unit cost this month, by source. */
+        SupplyMemberUsageRow: {
+            user: string;
+            source: string;
+            /** Format: int64 */
+            credits: number;
+        };
+        /** @description The companies whose supply the reader holds a part of, every one for a platform administrator. */
+        SupplyUnits: {
+            units: components["schemas"]["SupplyUnitReach"][];
+        };
+        /** @description One company whose supply the reader holds a part of: its policy and credits, its plan, or both. */
+        SupplyUnitReach: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @description Whether the reader holds the company's supply policy and credits: its credit manager or its head. */
+            policy: boolean;
+            /** @description Whether the reader holds the company's plan: its subscription manager or its head. */
+            plan: boolean;
+        };
+        /** @description An organisation's or a person's policy written whole. */
+        SupplyPolicyAsk: {
+            allowed: string[];
+            order: string[];
+            /** Format: int64 */
+            memberCreditCredits?: number | null;
         };
         /** @description Credits granted to a unit's wallet. */
         SupplyGrantAsk: {
@@ -3800,127 +3865,20 @@ export interface components {
             /** Format: int64 */
             debt: number;
         };
-        /** @description The answer to a hook operation, under `answer`. */
-        SupplyHookAnswer: {
-            answer: components["schemas"]["SupplyHookReply"];
-        };
-        /** @description The ask posted to the supply hook: the point and the operation with its fields. */
-        SupplyHookAsk: {
-            ask: components["schemas"]["SupplyHookOp"];
-            point: string;
-        };
-        /** @description The ask of one hook operation. Each operation reads the fields it names; the rest stand absent. */
-        SupplyHookOp: {
-            /** @description The account the run stands under, as the digits of a user's id: handed as text or as a number. */
-            account?: unknown;
-            /** Format: double */
-            costUsd?: number | null;
-            job?: unknown;
-            /** @description The idempotency key `<run>:<step>:<op>`, taken once end to end. */
-            key?: string | null;
-            /** @description `job` or `turn`, for an order ask. */
-            kind?: string | null;
-            model?: string | null;
-            op: string;
-            provider?: string | null;
-            reservation?: string | null;
-            /** Format: int64 */
-            room?: number | null;
-            /** @description The agency's supply key for the run: its kind, its number and the moment it chose its source. */
-            run?: string | null;
-            source?: string | null;
-            /** Format: double */
-            spentUsd?: number | null;
-            /** Format: int64 */
-            step?: number | null;
-            supervisor?: string | null;
-        };
-        /** @description What one hook operation answered. */
-        SupplyHookReply: {
-            accepted?: boolean | null;
-            /** Format: double */
-            amountUsd?: number | null;
-            /** Format: int64 */
-            expiresAt?: number | null;
-            /**
-             * Format: int64
-             * @description When a refused reservation may be asked again, where a moment is known.
-             */
-            reopensAt?: number | null;
-            reservation?: string | null;
-            /** @description The resolved order for an `order` ask, `stop` left out. */
-            sources?: string[] | null;
-            taken?: boolean | null;
-        };
-        /** @description One entry of the credits ledger. */
-        SupplyLedgerEntry: {
-            /** Format: int64 */
-            amount: number;
-            /** Format: int64 */
-            at: number;
-            /** Format: int64 */
-            balanceAfter: number;
-            /** Format: int64 */
-            debtChange: number;
-            /** Format: int64 */
-            id: number;
-            /** @description The membership ledger kind: `grant`, `consume`, `reserve`, `capture` and the rest. */
-            kind: string;
-            /** Format: int64 */
-            ownerId: number;
-            ownerKind: string;
-            words?: string | null;
-        };
-        /** @description A page of the credits ledger, newest first. */
-        SupplyLedgerPage: {
-            entries: components["schemas"]["SupplyLedgerEntry"][];
-            next: string | null;
-        };
-        /** @description What one member of a unit cost this month, by source. */
-        SupplyMemberUsageRow: {
-            /** Format: int64 */
-            credits: number;
-            source: string;
-            user: string;
-        };
         /**
          * @description An organisation unit's plans: the ones it is shown, the one it runs on, and for an administrator every
          *     organisation-scope plan with whether the unit is shown it.
          */
         SupplyOrgPlans: {
+            exposed: components["schemas"]["SupplyPlan"][];
             applied?: components["schemas"]["SupplyAppliedPlan"] | null;
             catalogue?: components["schemas"]["SupplyCataloguePlan"][] | null;
-            exposed: components["schemas"]["SupplyPlan"][];
-        };
-        /** @description A unit's supply view. */
-        SupplyOrgView: {
-            /**
-             * @description For a policy holder, the sources the platform makes available to an organisation's policy: those it turns
-             *     on or leaves to a person's own setting. Empty for anyone else.
-             * @default []
-             */
-            available: string[];
-            inherits: boolean;
-            plan?: components["schemas"]["SupplyPlanCard"] | null;
-            policy?: components["schemas"]["SupplyPolicyView"] | null;
-            /** Format: int64 */
-            unit: number;
-            usage: components["schemas"]["SupplyMemberUsageRow"][];
-            wallet?: components["schemas"]["SupplyWallet"] | null;
         };
         /** @description One membership plan whole, as the platform's plan screen reads and writes it. */
         SupplyPlan: {
-            creditsUsable: boolean;
             /** Format: int64 */
             id: number;
-            /**
-             * Format: int64
-             * @description The amount quota the plan carries for its supply action; null where it includes none.
-             */
-            includedCredits: number | null;
             name: string;
-            /** @description `day`, `week`, `month` or `year`. */
-            period: string;
             /**
              * Format: int64
              * @description Whole won.
@@ -3928,42 +3886,80 @@ export interface components {
             price: number;
             /** @description `personal` or `organisation`. */
             scope: string;
-        };
-        /** @description A plan made whole. */
-        SupplyPlanAsk: {
-            creditsUsable: boolean;
-            /** Format: int64 */
-            includedCredits: number | null;
-            name: string;
+            /** @description `day`, `week`, `month` or `year`. */
             period: string;
+            /**
+             * Format: int64
+             * @description The amount quota the plan carries for its supply action; null where it includes none.
+             */
+            includedCredits: number | null;
+            creditsUsable: boolean;
+        };
+        /**
+         * @description The plan a unit runs on: the plan's id, its subscription's period, in epoch milliseconds, and the plan whole as
+         *     the subscription stands on it, whether or not it is still exposed to the unit or still stands.
+         */
+        SupplyAppliedPlan: {
+            /** Format: int64 */
+            plan: number;
+            /** Format: int64 */
+            since: number;
+            /** Format: int64 */
+            periodEnd: number;
+            name: string;
             /** Format: int64 */
             price: number;
             scope: string;
-        };
-        /** @description The plan standing for a unit, as its `subscription_manager` reads it. */
-        SupplyPlanCard: {
-            creditsUsable: boolean;
-            /** Format: int64 */
-            includedCredits: number | null;
-            name: string;
             period: string;
             /** Format: int64 */
+            includedCredits: number | null;
+            creditsUsable: boolean;
+        };
+        /**
+         * @description One plan of the platform's catalogue as an administrator reads it for a unit: the plan, and whether the
+         *     unit is shown it.
+         */
+        SupplyCataloguePlan: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /**
+             * Format: int64
+             * @description Whole won.
+             */
             price: number;
+            /** @description `personal` or `organisation`. */
             scope: string;
+            /** @description `day`, `week`, `month` or `year`. */
+            period: string;
+            /**
+             * Format: int64
+             * @description The amount quota the plan carries for its supply action; null where it includes none.
+             */
+            includedCredits: number | null;
+            creditsUsable: boolean;
+            exposed: boolean;
         };
-        /** @description A plan changed in part. */
-        SupplyPlanPatch: {
-            creditsUsable?: boolean | null;
-            /** Format: int64 */
-            includedCredits?: number | null;
-            name?: string | null;
-            period?: string | null;
-            /** Format: int64 */
-            price?: number | null;
+        /** @description Every plan a unit is shown, written whole. */
+        SupplyExposedAsk: {
+            plans: number[];
         };
-        /** @description The plans, newest first. */
-        SupplyPlans: {
-            plans: components["schemas"]["SupplyPlan"][];
+        /**
+         * @description The plan a unit runs on, one of its exposed plans, or none. The key is named even for none: a body naming
+         *     no `plan` at all does not read.
+         */
+        SupplyAppliedAsk: {
+            /** Format: int64 */
+            plan: number;
+        };
+        /** @description A person's supply as an administrator reads it. */
+        SupplyUserView: {
+            user: string;
+            inherits: boolean;
+            policy?: components["schemas"]["SupplyPolicyView"] | null;
+            order: string[];
+            /** @description The roads the person's personal supply serves; never a credential, never a secret's value. */
+            providers: string[];
         };
         /**
          * @description The platform's policy and money settings. `allowed` holds the sources the platform turns on, `overridable`
@@ -3971,156 +3967,140 @@ export interface components {
          */
         SupplyPlatform: {
             allowed: string[];
+            order: string[];
+            overridable: string[];
+            orderOverridable: boolean;
             /** Format: int64 */
             creditsPerDollar: number;
-            enforce: boolean;
-            order: string[];
-            orderOverridable: boolean;
-            overridable: string[];
             /** Format: int64 */
             reservationCredits: number;
+            enforce: boolean;
         };
         /** @description Any part of the platform row changed. */
         SupplyPlatformAsk: {
             allowed?: string[] | null;
+            order?: string[] | null;
+            overridable?: string[] | null;
+            orderOverridable?: boolean | null;
             /** Format: int64 */
             creditsPerDollar?: number | null;
-            enforce?: boolean | null;
-            order?: string[] | null;
-            orderOverridable?: boolean | null;
-            overridable?: string[] | null;
             /** Format: int64 */
             reservationCredits?: number | null;
+            enforce?: boolean | null;
         };
-        /** @description An organisation's or a person's policy written whole. */
-        SupplyPolicyAsk: {
-            allowed: string[];
+        /** @description The plans, newest first. */
+        SupplyPlans: {
+            plans: components["schemas"]["SupplyPlan"][];
+        };
+        /** @description A plan made whole. */
+        SupplyPlanAsk: {
+            name: string;
             /** Format: int64 */
-            memberCreditCredits?: number | null;
-            order: string[];
-        };
-        /** @description One policy as it stands for a unit or a person: whose row it is where it stands above. */
-        SupplyPolicyView: {
-            allowed: string[];
-            /**
-             * Format: int64
-             * @description The unit whose row stands, where the unit inherits one from above.
-             */
-            from?: number | null;
+            price: number;
+            scope: string;
+            period: string;
             /** Format: int64 */
-            memberCreditCredits?: number | null;
-            order: string[];
+            includedCredits: number | null;
+            creditsUsable: boolean;
         };
-        /**
-         * @description The reader's own setting written whole: their order, not read while the platform locks it, and the
-         *     overridable sources they switch off and on against the platform's default.
-         */
-        SupplySettingAsk: {
-            off: string[];
-            on: string[];
-            order: string[];
+        /** @description A plan changed in part. */
+        SupplyPlanPatch: {
+            name?: string | null;
             /** Format: int64 */
-            personalCreditCredits?: number | null;
+            price?: number | null;
+            period?: string | null;
+            /** Format: int64 */
+            includedCredits?: number | null;
+            creditsUsable?: boolean | null;
         };
-        /**
-         * @description One source as the reader's view stands it: whether the layers above allow it, whether the reader has it
-         *     switched off, whether the platform locks it, and where it is not allowed, which layer closed it.
-         */
-        SupplySourceState: {
-            allowed: boolean;
-            /**
-             * @description Whether the platform holds the source as it says for everyone, so the reader's own setting cannot change
-             *     it; `stop` is always locked.
-             */
-            locked: boolean;
-            off: boolean;
-            /**
-             * @description The reader's own choice of the source, `on` or `off`; absent where they made none and the platform's
-             *     default stands.
-             */
-            own?: string | null;
-            /** @description `not-in-plan`, `blocked-by-organisation` or `blocked-by-administrator`. */
-            reason?: string | null;
-            source: string;
+        /** @description Credits granted to anyone. */
+        SupplyCreditAsk: {
+            /** @description `user` or `organisation`. */
+            ownerKind: string;
+            /** Format: int64 */
+            ownerId: number;
+            /** Format: int64 */
+            amount: number;
+            words?: string | null;
         };
-        /** @description One company whose supply the reader holds a part of: its policy and credits, its plan, or both. */
-        SupplyUnitReach: {
+        /** @description A page of the credits ledger, newest first. */
+        SupplyLedgerPage: {
+            entries: components["schemas"]["SupplyLedgerEntry"][];
+            next: string | null;
+        };
+        /** @description One entry of the credits ledger. */
+        SupplyLedgerEntry: {
             /** Format: int64 */
             id: number;
-            name: string;
-            /** @description Whether the reader holds the company's plan: its subscription manager or its head. */
-            plan: boolean;
-            /** @description Whether the reader holds the company's supply policy and credits: its credit manager or its head. */
-            policy: boolean;
+            /** Format: int64 */
+            at: number;
+            ownerKind: string;
+            /** Format: int64 */
+            ownerId: number;
+            /** @description The membership ledger kind: `grant`, `consume`, `reserve`, `capture` and the rest. */
+            kind: string;
+            /** Format: int64 */
+            amount: number;
+            /** Format: int64 */
+            debtChange: number;
+            /** Format: int64 */
+            balanceAfter: number;
+            words?: string | null;
         };
-        /** @description The companies whose supply the reader holds a part of, every one for a platform administrator. */
-        SupplyUnits: {
-            units: components["schemas"]["SupplyUnitReach"][];
+        /** @description A page of the audit, newest first. */
+        SupplyAuditPage: {
+            entries: components["schemas"]["SupplyAuditEntry"][];
+            next: string | null;
         };
-        /** @description What one source cost this month, per source. */
-        SupplyUsageRow: {
+        /** @description One audited supply act. */
+        SupplyAuditEntry: {
             /** Format: int64 */
-            costMicros: number;
+            id: number;
             /** Format: int64 */
-            credits: number;
-            source: string;
-        };
-        /** @description A person's supply as an administrator reads it. */
-        SupplyUserView: {
-            inherits: boolean;
-            order: string[];
-            policy?: components["schemas"]["SupplyPolicyView"] | null;
-            /** @description The roads the person's personal supply serves; never a credential, never a secret's value. */
-            providers: string[];
-            user: string;
-        };
-        /** @description The reader's own supply view. */
-        SupplyView: {
-            /** Format: int64 */
-            globalRemaining?: number | null;
-            order: string[];
-            /** @description Whether the platform locks the order, so the reader's own order is not read. */
-            orderLocked: boolean;
-            /** Format: int64 */
-            personalCreditCredits?: number | null;
-            /** Format: int64 */
-            personalCredits?: number | null;
-            sources: components["schemas"]["SupplySourceState"][];
-            usage: components["schemas"]["SupplyUsageRow"][];
-        };
-        /** @description What a credit wallet holds. */
-        SupplyWallet: {
-            /** Format: int64 */
-            balance: number;
-            /** Format: int64 */
-            debt: number;
-            /** Format: int64 */
-            reserved: number;
+            at: number;
+            by: string;
+            byName: string;
+            /** @description `grant`, `policy`, `settings` or `plan`. */
+            kind: string;
+            subject: string;
+            detail: string;
         };
         /**
          * @description The system mail as set, with whether it is set up, whether the secret it names stands, and the outgoing servers
          *     bmo-mail offers.
          */
         SystemMail: {
-            /** @description bmo-mail is reached, a server is chosen and a sender's address stands. */
-            configured: boolean;
-            from: string;
-            fromName: string;
-            /** @description bmo-mail answered the list of its outgoing servers. */
-            mailService: boolean;
-            /** @default null */
-            secret: string | null;
-            /** @description The secret named stands in the platform's space; true where none is named. */
-            secretStands: boolean;
             /** @default null */
             server: string | null;
+            from: string;
+            fromName: string;
+            /** @default null */
+            secret: string | null;
+            /** @description bmo-mail is reached, a server is chosen and a sender's address stands. */
+            configured: boolean;
+            /** @description The secret named stands in the platform's space; true where none is named. */
+            secretStands: boolean;
+            /** @description bmo-mail answered the list of its outgoing servers. */
+            mailService: boolean;
             servers: components["schemas"]["MailServer"][];
+        };
+        /** @description One of bmo-mail's outgoing server records, as the system mail is chosen from them. */
+        MailServer: {
+            /** @description bmo-mail's opaque id of the record. */
+            id: string;
+            name: string;
+            host: string;
         };
         /**
          * @description The system mail as the administrator sets it: one of bmo-mail's outgoing servers, the sender's address and name,
          *     and the secret it signs in with.
          */
         SystemMailAsk: {
+            /**
+             * @description The outgoing server's id at bmo-mail; none leaves system mail not set up.
+             * @default null
+             */
+            server: string | null;
             /** @description The sender's address every mail goes from. */
             from: string;
             /**
@@ -4134,58 +4114,186 @@ export interface components {
              * @default null
              */
             secret: string | null;
+        };
+        /** @description A test mail asked. */
+        MailTestAsk: {
+            to: string;
+        };
+        /** @description A sign-in tried with a login and a password. */
+        SignInAsk: {
+            login: string;
+            password: string;
             /**
-             * @description The outgoing server's id at bmo-mail; none leaves system mail not set up.
+             * @description The token of a browser remembered for the second factor, where the browser holds one.
              * @default null
              */
-            server: string | null;
+            deviceToken: string | null;
+        };
+        /** @description What a sign-in answers. */
+        SignedIn: {
+            outcome: components["schemas"]["SignInOutcome"];
+            /** @description The user signed in, its id's digits. */
+            user?: string | null;
+            /**
+             * @description The organisation asks a second factor the account does not hold yet.
+             * @default false
+             */
+            enrol: boolean;
+            /** @description The ticket a code is handed back with. */
+            ticket?: string | null;
+            /** @description The token of this browser remembered, where `remember` was asked. */
+            deviceToken?: string | null;
+        };
+        /** @description How a sign-in stands. */
+        SignInOutcome: "signed-in" | "second-factor";
+        /** @description A sign-in finished with a code. */
+        SecondFactorAsk: {
+            ticket: string;
+            /** @description A code from the authenticator, or a recovery code. */
+            code: string;
+            /**
+             * @description Whether this browser is asked no code for 30 days.
+             * @default false
+             */
+            remember: boolean;
+        };
+        /** @description A reset link asked from the login screen. */
+        ResetAsk: {
+            /** @description A login or an email. */
+            who: string;
+            /** @description The console's public address the link opens under. */
+            linkBase: string;
+        };
+        /** @description What a reset link stands for. */
+        ResetLink: {
+            login: string;
+        };
+        /** @description A new password set by a link. */
+        NewPasswordAsk: {
+            password: string;
+        };
+        /** @description A link to be made, opening under the console's public address. */
+        LinkAsk: {
+            linkBase: string;
+        };
+        /** @description A password reset made for a person: mailed, with the address it went to partly hidden, or the link to hand over. */
+        ResetMade: {
+            mailed: boolean;
+            address?: string | null;
+            link?: string | null;
+        };
+        /** @description An email verified. */
+        EmailVerified: {
+            address: string;
+        };
+        /** @description What stands of an account's security. */
+        AccountSecurity: {
+            email: string;
+            emailVerified: boolean;
+            secondFactor: boolean;
+            /** Format: int64 */
+            recoveryCodesLeft: number;
+            secondFactorRequired: boolean;
+            enabled: boolean;
+            left: boolean;
+            /** Format: int64 */
+            lastSignIn?: number | null;
+            /** @description Mail is set up. */
+            mail: boolean;
+        };
+        /** @description A second factor waiting to be confirmed. */
+        Enrolment: {
+            /** @description The secret in base32, for an authenticator that cannot scan. */
+            secret: string;
+            /** @description The `otpauth://` address. */
+            uri: string;
+            /** @description The address drawn as a QR code, an SVG document. */
+            qr: string;
+        };
+        /** @description A code typed. */
+        CodeAsk: {
+            code: string;
+        };
+        /** @description The recovery codes, shown once. */
+        RecoveryCodes: {
+            recoveryCodes: string[];
+        };
+        /** @description A password asked to confirm an act. */
+        PasswordConfirm: {
+            password: string;
+        };
+        /** @description An account's devices standing. */
+        Devices: {
+            devices: components["schemas"]["Device"][];
+        };
+        /** @description One session the sign-in made. */
+        Device: {
+            /** Format: int64 */
+            id: number;
+            address: string;
+            userAgent: string;
+            /** Format: int64 */
+            madeAt: number;
+            /** Format: int64 */
+            seenAt: number;
+            /** @description The session the call's `Session-Id` names. */
+            current: boolean;
+        };
+        /** @description What a route that answers with nothing in particular sends: an empty object. */
+        Empty: Record<string, never>;
+        /** @description An account's sign-ins tried, the newest first. */
+        SignInTries: {
+            tries: components["schemas"]["SignInTry"][];
+        };
+        /** @description One sign-in tried. */
+        SignInTry: {
+            /** Format: int64 */
+            at: number;
+            outcome: components["schemas"]["TryOutcome"];
+            address: string;
+            userAgent: string;
         };
         /**
          * @description How a sign-in tried ended.
          * @enum {string}
          */
         TryOutcome: "signed-in" | "second-factor" | "wrong-password" | "wrong-code" | "throttled" | "locked" | "disabled";
+        /** @description An account enabled or disabled. */
+        EnabledAsk: {
+            enabled: boolean;
+        };
         /**
-         * @description A unit renamed or moved under another parent of its company, its kind, short name and the unit it reports to
-         *     set: each of the last three left as it stands where absent and taken away where null.
+         * @description What removing an account would take now: who it is, whether it has left, the refusal that would stop it, or
+         *     none, and the count of each kind of row the service would delete.
          */
-        UnitChange: {
-            kind?: string | null;
-            name?: string | null;
-            /** Format: int64 */
-            parent?: number | null;
-            /** Format: int64 */
-            reportsTo?: number | null;
-            shortName?: string | null;
-        };
-        /** @description Whether a user heads a unit, asked. */
-        UnitCheckAsk: {
-            /** Format: int64 */
-            unit: number;
+        AccountRemoval: {
             user: string;
-        };
-        /** @description A company's unit kinds, in its order. */
-        UnitKinds: {
-            kinds: components["schemas"]["KindRef"][];
-        };
-        /** @description A company's unit kinds written whole, in its order. */
-        UnitKindsAsk: {
-            kinds: components["schemas"]["CatalogueEntry"][];
-        };
-        /** @description A unit's line, the unit first and its company last. */
-        UnitLine: {
-            steps: components["schemas"]["LineStep"][];
-        };
-        /** @description The unit a user is placed in. */
-        UnitPlacement: {
-            /** Format: int64 */
-            unit: number;
-        };
-        /** @description One organisation unit as another names it: its number and its name. */
-        UnitRef: {
-            /** Format: int64 */
-            id: number;
             name: string;
+            /** @default  */
+            fullName: string;
+            left: boolean;
+            administrator: boolean;
+            refusal: string | null;
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /** @description A removal asked: what every content unit removed before it, by the unit's name, which the record keeps. */
+        RemovalAsk: {
+            /** @default {} */
+            units: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+        };
+        /** @description What a removal took here, and the record it left. */
+        Removed: {
+            removed: {
+                [key: string]: number;
+            };
+            /** Format: int64 */
+            record: number;
         };
         /**
          * @description What removing a unit and every unit under it would take now: the subtree the deepest first, the people standing
@@ -4193,180 +4301,72 @@ export interface components {
          */
         UnitRemoval: {
             /** Format: int64 */
+            unit: number;
+            name: string;
+            /** Format: int64 */
             company: number;
+            units: components["schemas"]["UnitRef"][];
+            people: components["schemas"]["RemovalPerson"][];
+            refusal: string | null;
             counts: {
                 [key: string]: number;
             };
+        };
+        /** @description A person whose home unit stands in a unit's subtree, as a unit's removal names them. */
+        RemovalPerson: {
+            user: string;
             name: string;
-            people: components["schemas"]["RemovalPerson"][];
-            refusal: string | null;
-            /** Format: int64 */
-            unit: number;
-            units: components["schemas"]["UnitRef"][];
-        };
-        /** @description One unit of the whole tree, as the administrator reads it. */
-        UnitRow: {
-            /**
-             * @description The users among `heads` whose grant is an acting appointment's.
-             * @default []
-             */
-            acting: string[];
-            /**
-             * @description The users holding a post in it.
-             * @default []
-             */
-            concurrent: string[];
-            heads: string[];
-            /** Format: int64 */
-            id: number;
-            kind?: components["schemas"]["KindRef"] | null;
-            /**
-             * @description The members whose accounts have left.
-             * @default []
-             */
-            left: string[];
-            members: string[];
-            name: string;
-            /** Format: int64 */
-            parent?: number | null;
-            /**
-             * Format: int64
-             * @description The unit it reports to, by its number.
-             */
-            reportsTo?: number | null;
-            shortName?: string | null;
-        };
-        /**
-         * @description A unit and every unit below it in tree order: the unit first, each unit followed by the units under it before
-         *     its next sibling, siblings by name and then by id.
-         */
-        UnitSubtree: {
-            units: components["schemas"]["SubtreeUnit"][];
-        };
-        /**
-         * @description One organisation unit read whole: what `Unit` answers, and beside it the unit's kind, short name and the unit
-         *     it reports to, the members whose accounts have left, the roles its people carry, the people holding a post in it
-         *     and the appointment running.
-         */
-        UnitView: {
-            acting: components["schemas"]["Appointment"] | null;
-            children: components["schemas"]["UnitRef"][];
-            company: components["schemas"]["UnitRef"];
-            concurrent: components["schemas"]["ConcurrentPost"][];
-            heads: string[];
-            /** Format: int64 */
-            id: number;
-            kind?: components["schemas"]["KindRef"] | null;
-            /**
-             * @description The members whose accounts have left.
-             * @default []
-             */
-            left: string[];
-            members: string[];
-            name: string;
-            /** Format: int64 */
-            parent?: number | null;
-            path: components["schemas"]["UnitRef"][];
-            reportsTo?: components["schemas"]["UnitRef"] | null;
-            roles: components["schemas"]["MemberRole"][];
-            shortName?: string | null;
-        };
-        /** @description Every unit, companies first and each unit after its parent. */
-        Units: {
-            units: components["schemas"]["UnitRow"][];
-        };
-        /** @description Every user, for the administrator's screen that sets one person's sections. */
-        UserList: {
-            users: components["schemas"]["UserSummary"][];
-        };
-        /** @description The machine an account is bound to and whether it is attached. */
-        UserNode: {
-            agent?: string | null;
-            attached: boolean;
-            /**
-             * Format: int64
-             * @description When the account was connected to the machine, none where it was not recorded.
-             */
-            boundAt?: number | null;
-            /** @description How the agent the hub holds is connected, while it holds one. */
-            kind?: components["schemas"]["MachineKind"] | null;
-            /**
-             * @description Whether the account has left.
-             * @default false
-             */
             left: boolean;
-            /** Format: int64 */
-            provenAt?: number | null;
-            /**
-             * @description Whether the administrator bound it as a machine several accounts share.
-             * @default false
-             */
-            shared: boolean;
-        };
-        /**
-         * @description A user's person's name, job title, rank, duty and contact details, which the account's holder or an
-         *     administrator keeps (docs/accounts.md, 「Users and senders」). Every field is a string, empty where the account
-         *     keeps none.
-         */
-        UserProfile: {
-            /** @default  */
-            duty: string;
-            email: string;
-            fullName: string;
-            /** @description The job title kept, as free text. */
-            jobTitle: string;
-            landline: string;
-            mobile: string;
-            /** @default  */
-            rank: string;
-        };
-        /**
-         * @description One user as the users list names them: their id, their login, the person's name (empty where none stands)
-         *     and whether they are the platform administrator.
-         */
-        UserSummary: {
             administrator: boolean;
-            /** @default  */
-            fullName: string;
-            name: string;
-            user: string;
         };
-        /** @description The unit a user stands in, its company, and the units from the company down to it. */
-        UserUnit: {
-            company: components["schemas"]["UnitRef"];
-            path: components["schemas"]["UnitRef"][];
-            unit: components["schemas"]["UnitRef"];
-            user: string;
+        /** @description The removal records, the newest first. */
+        Removals: {
+            removals: components["schemas"]["RemovalRecord"][];
         };
         /**
-         * @description A user as the console reads them: their login as `name`, and the person's name people read them by as
-         *     `fullName`, empty where none stands (docs/accounts.md, 「Users and senders」).
+         * @description One removal as its record keeps it: what went, an account or a unit, its id, its login and name as they stood,
+         *     who removed it and when, and every unit's result, the service's own under `web`.
          */
-        UserView: {
-            administrator: boolean;
-            /** @default  */
-            fullName: string;
-            name: string;
-            senders: number[];
-            user: string;
-        };
-        /** @description The rooms the console has open, as the receiver reads them, and when the console last said so. */
-        Watching: {
+        RemovalRecord: {
             /** Format: int64 */
-            at?: number | null;
-            rooms: number[];
+            id: number;
+            what: string;
+            /** Format: int64 */
+            subject: number;
+            login: string;
+            name: string;
+            by: string | null;
+            /** Format: int64 */
+            at: number;
+            result: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
         };
-        /** @description The rooms a console reports open. */
-        WatchingAsk: {
-            rooms: number[];
+        /** @description The account behind a session, as sumida answers it. */
+        Session: {
+            /** Format: int64 */
+            id: number;
+            username: string;
+            fullName?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            isAdmin: boolean;
+            isEnabled: boolean;
+            isBanned: boolean;
+            organization: components["schemas"]["Named"];
+            role: components["schemas"]["Named"];
+            firstSeenAt: string;
+            lastSeenAt: string;
+            createdAt: string;
+            updatedAt: string;
         };
-        /**
-         * @description The body every non-2xx answer of the service's own routes carries: a stable kebab-case code a caller decides
-         *     on, and one English sentence for a person.
-         */
-        WireError: {
-            code: string;
-            error: string;
+        /** @description A named account part: an organization or a role. */
+        Named: {
+            /** Format: int64 */
+            id: number;
+            name: string;
         };
     };
     responses: never;
