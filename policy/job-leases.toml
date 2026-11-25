@@ -1,0 +1,5 @@
+# A job's lease, kept on the harness's behalf (docs/api.md, 「assignments and jobs」): how often agency renews the
+# lease on the item of every job still starting or running, and of every ended job whose lease stands for the
+# item's close, and the span each renewal asks for, well past the next renewal so one missed beat loses nothing.
+renew_seconds = 120
+ttl_ms = 900000

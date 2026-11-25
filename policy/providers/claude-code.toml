@@ -1,0 +1,242 @@
+# Claude Code as a road the owner chooses: the account this program is signed in to (docs/cache-fallback.md,
+# 「The Claude Code road is a list of accounts」). Read by this provider's own declaration on each side.
+
+# The provider's name as a screen shows it.
+label = "Claude Code"
+
+# The lines its program carries.
+lines = ["chat", "gate", "worker", "search", "browse", "translate"]
+
+# A mapping of it carries no ceiling on the answer's tokens: the provider publishes none.
+caps_answer_tokens = false
+
+# Its engine is the owner's own: Claude Code on the owner's own logins.
+owners_engine = true
+
+[effort]
+# Every effort word a mapping of it may hold, in the order a screen shows them.
+words = ["low", "medium", "high", "xhigh", "max"]
+# A mapping may also name no effort: it is held, and the launch refuses it.
+none_held = true
+# What a launch makes of the mapping's word: one is required.
+launch = "required"
+fault = "This harness requires explicit effort"
+
+[catalogue]
+# Where under a login's configuration directory the CLI keeps the catalogue of the models it offers,
+# and the ending of every file of the surface agency runs on (docs/model-tiers.md, 「The Claude catalogue」).
+dir = "cache/model-catalog"
+suffix = "-cc.json"
+
+[launch]
+# The variables every line of it sets for its part: git's status kept out of the prompt; the
+# next-prompt suggestion and the away recap, which each fork the session and read its whole context out
+# of the cache for nobody, switched off ("1" turns one back on); the program's own memory, which no
+# agent agency runs writes, switched off; and the skills the program bundles, which no role declares,
+# switched off (docs/launch-lines.md, 「The CLI's own skills and plugins are switched off on every line」).
+variables = { CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS = "1", CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION = "0", CLAUDE_CODE_ENABLE_AWAY_SUMMARY = "0", CLAUDE_CODE_DISABLE_AUTO_MEMORY = "1", CLAUDE_CODE_DISABLE_BUNDLED_SKILLS = "1" }
+# The program's own subagent types, each denied by name as Agent(<type>) on a line whose carries do not keep it
+# (docs/launch-lines.md, 「What a line carries」).
+agent_types = ["claude", "claude-code-guide", "Explore", "general-purpose", "Plan", "statusline-setup"]
+# The plugins the program builds in that bring a run what no role declares — guides, tips, a chart server, a
+# diagram and a diff renderer, the reading of a checkout's AGENTS.md beside its CLAUDE.md, its own platform's
+# helpers — each named off under enabledPlugins in every settings file a line hands its program, so none of
+# their servers, skills or instructions reaches a run (docs/launch-lines.md, 「The CLI's own skills and plugins
+# are switched off on every line」). Each is named as the program names it, its marketplace `builtin` added. The
+# built-in plugins that hold the program's own security, privacy and telemetry defaults stay as they are.
+builtin_plugins = [
+  "cc-plugin-agents-md", "cc-plugin-claude-test", "cc-plugin-diff", "cc-plugin-easel", "cc-plugin-mermaid",
+  "cc-plugin-mods-guide", "cc-plugin-plugin-authoring", "cc-plugin-responsive-mode", "cc-plugin-tips",
+  "cc-plugin-you-should-know", "claude-platform",
+]
+# The variables the program reads a login off: a configuration directory of its own, or a token handed
+# straight over.
+login_variables = ["CLAUDE_CONFIG_DIR", "CLAUDE_CODE_OAUTH_TOKEN"]
+# The variable the program reads its MCP tool idle window from, in milliseconds: a call that sends no
+# response and no progress notification for it is aborted inside the program, and the model is handed a
+# failed result and the turn goes on (docs/agent-control.md, 「A run's tool calls are held to a clock」).
+mcp_idle_timeout = "CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT"
+# What the program writes itself into a session's conversation: the opening of the environment block it sends
+# after a session's first words, and the tag its reminders stand in.
+own_words = ["You have been invoked in the following environment", "<system-reminder>"]
+# The program's tools whose calls wait long — a shell command, a sub-agent, a fetch from the web — which
+# a run on the gateway names in every request, so an engine of the node pool hands its cards on while one
+# runs (docs/agent-control.md, 「What an agent provider is made of」). Every other tool is a short one.
+long_tools = ["Bash", "Agent", "Task", "WebFetch", "WebSearch"]
+
+[cache]
+# How long a prompt prefix it holds stays cached for any model it runs, and how long an agent's session
+# may stand idle before a ping warms it again: a held session older than the cache is closed and
+# started afresh rather than resumed cold (docs/cache-fallback.md).
+ttl_minutes = 60
+keepalive_idle_minutes = 40
+
+[usage]
+# Every account's own windows, asked of the account-usage endpoint with the account's own login on a
+# clock (docs/usage-windows.md, 「The Claude account reader」): where it is asked, how often every account
+# is read, and for how many passes a reading stands — enough to ride out a
+# passing failure of the endpoint, few enough that a quota that came back early stops closing its login —
+# and how long an account the endpoint refused for asking too often is left unasked where its refusal names
+# no moment of its own.
+url = "https://api.anthropic.com/oauth/usage"
+pass_seconds = 60
+fresh_passes = 30
+refused_pause_seconds = 300
+# The run of the CLI that renews a directory account's login as it goes out, asked by the reader on a login
+# found expired or refused and by a run going out on a login near its end (docs/cache-fallback.md, 「A login
+# that is about to end」): the model and effort it goes out on, the cheapest the login offers; the one word
+# that is its turn; and how long, while the account still cannot be read, before the reader asks another.
+renewal_model = "haiku"
+renewal_effort = "low"
+renewal_words = "ok"
+renewal_pause_seconds = 300
+# How close to the moment its credential file states a login is near its end: the CLI's own margin, inside
+# which it renews its token as a run goes out and before which it passes the token by, so a renewal run
+# asked inside it renews.
+renewal_margin_seconds = 300
+# The windows taken out of an answer: the ones every subscription login keeps.
+windows = ["five_hour", "seven_day"]
+
+[resident]
+# The keys typed into the pane of its standing program, Claude Code's own screen, that cut a working
+# turn short (docs/agent-control.md, 「Stopping」), and close the choice it stands at after a turn it ended on
+# its own error, a full window's 「What do you want to do?」, on its first answer, 「Stop and wait」.
+interrupt = ["escape"]
+# Its lines run their own turns, read out of the session's transcript; its surface carries none.
+turns = "transcript"
+# Words put in while a turn works are taken into that turn (measured).
+words_mid_turn = true
+
+[login]
+# How a login's end is told to the owner (docs/cache-fallback.md), by whichever process watches the logins on
+# the keepalive pass. A day before its end is enough to run one command in, and a long-lived token the CLI
+# issues stands for a year from the day its file was written, since it states no end of its own.
+notice_ahead_hours = 24
+token_life_days = 365
+# How long before a directory account's login here ends its runs here go out on the account's token for the
+# work nodes instead (docs/cache-fallback.md, 「A directory account carries on by its token」), so no turn goes
+# out on a login that would end under it.
+hand_over_ahead_hours = 12
+# How long an account rests once a run came back with its own refusal, a request for /login or a 403, where
+# its credential still states a moment ahead and so would let it straight back into the walk; a person settles
+# it by signing in again, and the walk carries the run to the next account meanwhile.
+refused_rest_minutes = 30
+# The entry a login home holds, the directory a directory account's login stands in, by which a folder under
+# the data root's env directory is told as one and passed over when the saved values are read for a record's
+# secrets (docs/agent-control.md, 「A record holds no secret」).
+home_mark = ".claude.json"
+# The message, one entry to a line, with `{name}`, `{when}`, `{left}`, `{n}` and `{path}` filled in.
+head = 'The login of the Claude account "{name}" {when}'
+gone = "has ended."
+ending = "ends soon."
+ending_in = "ends in {left}."
+minutes = "{n} minutes"
+hours = "{n} hours"
+run = "Running this one line is all it takes:"
+token_command = "CLAUDE_CONFIG_DIR={path} claude setup-token"
+directory_command = "CLAUDE_CONFIG_DIR={path} claude /login"
+token_after = "Write the new token over the file in use now."
+directory_after = "Where the login screen does not open at once, start claude with the same line and type /login."
+gone_after = "Until then, this account's work goes to the next account, and then to the next provider."
+ending_after = "Done before it ends, nothing stops."
+# The closing line where the account carries on by its token for the work nodes, with `{end}` the day that
+# token's own year ends.
+carried_on = "Until then, its runs on this machine go out on its token for the work nodes, which ends {end}; signing in again puts them back on the login."
+carries_on = "Its runs on this machine move to its token for the work nodes before then, which ends {end}, until it is signed in again."
+
+[node_login]
+# Each account's token for the work nodes (docs/work-nodes.md, 「The logins on a node」): the directory
+# under the data root's env directory its files stand in, each named by its account's id, and the verb
+# the owner runs on this machine to make one, with `{deploy}` the deploy tree and `{name}` the account's name.
+token_dir = "claude-tokens"
+command = "{deploy}/bin/bmo-agency node claude-token '{name}'"
+# How long before its year ends a token is told as ending, once as each lead is crossed: only a browser
+# approval makes another, and the account carries on by it here once its login here ends.
+notice_ahead_days = [30, 7, 1]
+# How a token that stopped answering on a node, or is about to, is told to the owner, one entry to a line, with
+# `{name}`, `{when}` and `{left}` filled in; how long is left, the line asking them to run the command and
+# the closing line of a warning are the login's own.
+head = 'The node token of the Claude account "{name}" {when}'
+gone = "has expired or was revoked."
+missing = "does not exist yet."
+ending_in = "ends in {left}."
+after = "Approve it in a browser signed in to this account and paste the token it shows: every node uses the new token from its next run."
+gone_after = "Until then, this account's work on the nodes goes to the next account."
+
+[console_login]
+# A directory account signed in from the console through the CLI's own sign-in (docs/cache-fallback.md,
+# 「Signing an account in from the console」): the CLI's command and its arguments, how long the CLI is given to
+# print the sign-in's address and to end once the code is handed over, in seconds, and how long a sign-in may
+# stand before it is ended, in minutes. A sign-in on a person's node is read off its pane, where the CLI's end
+# is not seen: the words it says once the login took, and once it refused the code, are what it is judged by,
+# each matched without regard to case.
+command = ["claude", "auth", "login", "--claudeai"]
+link_seconds = 30
+finish_seconds = 90
+keep_minutes = 20
+took = ["Login successful", "Logged in as", "Successfully logged in"]
+refused = ["Login failed", "Invalid code", "OAuth error", "Authentication failed"]
+# What a sign-in's pane on a node says where the workplace's own Claude Code does not stand at its path, the line
+# the start reads as the CLI missing there.
+missing = "bmo: the workplace holds no Claude Code of its own"
+
+[workplace_copy]
+# The workplace's own Claude Code on a node (docs/work-nodes.md, 「The workplace on a node」): the path under the
+# workplace's root it stands at, a name no `claude` of the account's takes; the release downloads it is fetched
+# from, each release under its version with a manifest naming every build's checksum; and the variables every
+# program of the workplace runs it with, its updater off, so it never moves by itself.
+path = "bin/bmo-claude"
+downloads = "https://downloads.claude.ai/claude-code-releases"
+env = [["DISABLE_AUTOUPDATER", "1"]]
+
+[advisor]
+# The advisor a road of Claude Code may name (docs/provider-order.md, 「The advisor」), which its program is
+# started with as `--advisor`. A road names a model of the catalogue or one of these family words, which the
+# catalogue's own aliases read as the model each stands for now.
+aliases = ["fable", "opus", "sonnet"]
+
+# The pairings the program attaches, as Claude Code's own advisor page states them: for the models whose name
+# starts with one of `main`, the advisors whose name starts with one of `advisors`. The longest start naming a
+# model takes it; a model no start names is paired with no advisor, so a model the program does not know yet is
+# refused one rather than started with one it would drop. An advisor ranks at or above the model it advises.
+[[advisor.pairs]]
+main = ["claude-haiku-4-5", "claude-sonnet-4-6"]
+advisors = ["claude-fable", "claude-opus", "claude-sonnet", "claude-haiku-5-5"]
+
+[[advisor.pairs]]
+main = ["claude-opus-4-6"]
+advisors = ["claude-fable", "claude-opus", "claude-sonnet-5", "claude-haiku-5-5"]
+
+[[advisor.pairs]]
+main = ["claude-sonnet-5", "claude-haiku-5-5"]
+advisors = ["claude-fable", "claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-sonnet-5", "claude-haiku-5-5"]
+
+[[advisor.pairs]]
+main = ["claude-opus-4-7", "claude-opus-4-8"]
+advisors = ["claude-fable", "claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-sonnet-5-5"]
+
+[[advisor.pairs]]
+main = ["claude-sonnet-5-5"]
+advisors = ["claude-fable", "claude-opus-5", "claude-sonnet-5-5"]
+
+[[advisor.pairs]]
+main = ["claude-opus-5"]
+advisors = ["claude-fable", "claude-opus-5"]
+
+[[advisor.pairs]]
+main = ["claude-fable-5"]
+advisors = ["claude-fable-5"]
+
+[[advisor.pairs]]
+main = ["claude-fable-5-1"]
+advisors = ["claude-fable-5-1", "claude-fable-5-2"]
+
+[[advisor.pairs]]
+main = ["claude-fable-5-2"]
+advisors = ["claude-fable-5-2"]
+
+[[reads]]
+# The media a model of this road reads natively (docs/provider-order.md, 「The media a model reads」):
+# the Claude models take pictures and PDF documents into the request their runs go out on.
+model = "claude"
+media = ["image", "pdf"]

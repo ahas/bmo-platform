@@ -1,0 +1,9 @@
+{
+  "name": "@agency/support",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./*": "./*.ts"
+  }
+}

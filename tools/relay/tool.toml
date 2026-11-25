@@ -1,0 +1,36 @@
+# One BMO hands a line to another person's BMO, and opens a chat into that person's room (docs/relays.md):
+# the receiver's own BMO answers it as another agent's word, never the person's, and may refuse it. Both
+# sides read who sent what from the record.
+[tool]
+name = "relay"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p relay-tool && cp "$BMO_CARGO_TARGET/release/relay-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["relay-tool"]
+
+[[entry]]
+namespace = "bmo"
+name = "relay"
+title = "Relay to another person's BMO"
+description = "Hand a line to another person's BMO, recorded for both sides: the receiving BMO answers it as another agent's word, never its person's, and may refuse it. The line is said in the room the call names, or the turn's own room where none is named. This is no way to another supervisor of your own person: a request or a question to one is said in a room it answers, by the name that wakes it."
+input = "relay.json"
+hints = { open_world = true }
+capabilities = ["room.tools"]
+
+[entry.listing]
+line = "- relay — hand a line to another person's BMO, in the room you name or your own, and read whether it took it"
+order = 7
+
+[[entry]]
+namespace = "bmo"
+name = "chat"
+title = "Open a chat with another person"
+description = "Open a chat into another person's room and hand it a line, answered with the receiving BMO's answer; a refusal is reported to you. The room must be named. This is for another person's BMO, never for another supervisor of your own person: that one is met in a room it answers."
+input = "chat.json"
+hints = { open_world = true }
+capabilities = ["room.tools"]
+
+[entry.listing]
+line = "- chat — open a chat into another person's room and hand it a line, answered by that person's BMO"
+order = 8

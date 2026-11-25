@@ -1,0 +1,43 @@
+# The model catalogue (docs/model-catalogue.md, 「An entry」), read by every side that saves an
+# entry.
+
+# What an entry's name may be: a lowercase letter, then lowercase letters, digits and hyphens, forty
+# characters at most.
+name_pattern = '^[a-z][a-z0-9-]{0,39}$'
+
+# A file is a plain name in an engine's models folder, never a path.
+file_pattern = '^[A-Za-z0-9][A-Za-z0-9._-]*\.gguf$'
+
+# The file's SHA-256, in lowercase hexadecimal.
+sha256_pattern = '^[0-9a-f]{64}$'
+
+# A source that is no https address: a path under the data root of plain parts, none of them "." or
+# "..".
+path_pattern = '^[a-zA-Z0-9][a-zA-Z0-9._-]*(/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$'
+
+# What an engine and a node may be called, as agency's names go.
+word_pattern = '^[a-z0-9][a-z0-9-]{0,39}$'
+
+# How long, in characters, an entry's label and its note may be.
+label_most = 60
+note_most = 2000
+
+# The bounds of each default a request to the file is asked with; each one may also be empty.
+[defaults.temperature]
+min = 0
+max = 2
+
+# top_p above 0, up to 1.
+[defaults.top_p]
+min = 0
+max = 1
+above_min = true
+
+[defaults.presence_penalty]
+min = -2
+max = 2
+
+[defaults.max_tokens]
+min = 1
+max = 1048576
+whole = true

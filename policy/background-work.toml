@@ -1,0 +1,62 @@
+# A supervisor's background work (docs/supervisors.md, 「A supervisor's long work」; docs/agent-control.md,
+# 「Background work on a line that carries it apart」): a shell command or a subagent its program put in its own
+# background, followed after the turn that launched it has ended. Read by agency's server, which watches every
+# supervisor's place, and by the door, which ends that work on a stop.
+
+# How often every supervisor's place is read for background work that ended, was lost or stands to be cut.
+look_seconds = 5
+
+# How much of a finished notice's result the room's wake carries, in characters; the whole of it stays in the
+# output file the wake names.
+result_chars = 4000
+
+# On a stop of a supervisor's turn: how long the background work it ends is given to go after the polite end
+# before what still stands is killed, and how long the whole ending may take before the stop goes on and says
+# what it could not end.
+stop_grace_ms = 2000
+stop_bound_seconds = 10
+
+# How long after the first stop of its session that leaves a running task out the task is taken as dropped by its
+# program, where no notice of it came: a notice can follow that stop by a moment, and work the program killed on
+# its own word ends with none.
+gone_seconds = 60
+
+[words]
+# What the room's wake tells the supervisor, as an order, once background work it launched in the room ended.
+# `{launched}` is when the turn launched it (the deployment's clock), `{kind}` what it was, `{description}` what
+# it was launched as, `{status}` the word its notice ended on, `{cuts}` the clock's lines on it or nothing,
+# `{result}` what it handed back and `{output}` the file its whole output stands in.
+ended = """Background work you launched in this room at {launched} has ended ({status}): {kind} "{description}".{cuts}
+
+What it handed back:
+
+{result}
+
+Its whole output stands in {output}. This is the result you said the room would have: tell the room what came of it, in the room's language, and answer from what it handed back."""
+
+# What the wake says where the work handed back nothing.
+nothing_handed = "nothing"
+
+# What the wake tells the supervisor once background work it launched in the room was lost before it ended.
+# `{launched}`, `{kind}` and `{description}` as above, `{why}` the reason below and `{cuts}` as above.
+lost = """Background work you launched in this room at {launched} was lost before it ended: {kind} "{description}". {why}{cuts}
+
+Nothing more of it is coming. Tell the room once that it did not finish; where it is still wanted, start it again as a call made apart (`bmo use … --async`, or a command launched apart with `bmo/wait --async` on its log), which outlives the session."""
+
+# Why it was lost: the program it ran in ended or was stood afresh, or a stop of the supervisor's turn ended it.
+program_gone = "Your program was ended or stood afresh, and its background work went with it."
+stopped = "A stop of your turn ended it."
+
+# What each kind of background work is called in the words above.
+shell = "the shell command"
+subagent = "the subagent"
+
+# One line of `{cuts}` for each call the clock cut: `{call}` is the call's command, `{minutes}` how long it ran
+# and `{why}` one of the two reasons below.
+cut = "\n\nThe call clock cut {call} after {minutes} minutes: {why}."
+stalled = "its processes burned no processor time, began no process and wrote no output"
+idle = "it wrote nothing and stood idle, a wait that only polls"
+
+# The one line the wake is summed up by, where the room's notices are listed. `{description}` as above.
+summary_ended = "Background work \"{description}\" ended"
+summary_lost = "Background work \"{description}\" was lost"

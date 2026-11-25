@@ -1,0 +1,32 @@
+# The registry of models (docs/own-llm.md, 「What a registration holds」), read by every side that
+# saves a registration or one of its addresses.
+
+# What a registration's name and a node's label may be: a lowercase letter, then lowercase letters,
+# digits and hyphens, forty characters at most.
+name_pattern = '^[a-z][a-z0-9-]{0,39}$'
+
+# A model as a command line and a tier mapping take it.
+model_pattern = '^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,200}$'
+
+# A key's file under the data root's env/: a relative path of plain parts, none of them "." or "..".
+key_file_pattern = '^[a-zA-Z0-9][a-zA-Z0-9._-]*(/[a-zA-Z0-9][a-zA-Z0-9._-]*)*$'
+
+# How long, in characters, the label a screen shows a registration under may be.
+label_most = 60
+
+# A language a registration names as one it writes results in, by its English name: a letter, then
+# letters, spaces and hyphens, forty characters at most.
+language_pattern = '^[A-Za-z][A-Za-z -]{0,39}$'
+
+# How many languages a registration may name.
+languages_most = 16
+
+# The window, in tokens.
+[context_tokens]
+min = 8192
+max = 16777216
+
+# The answer ceiling where the key's tier names none, in tokens, smaller than the window as well.
+[answer_tokens]
+min = 1024
+max = 131072

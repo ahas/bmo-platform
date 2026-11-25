@@ -1,0 +1,45 @@
+[Unit]
+Description=herdr server: the panes agency's agents run in
+After=network-online.target
+# herdr is a runtime agency stands on, not one of its programs: the unit carries no deploy mark, so a
+# deployment of agency neither links nor restarts it, and a restart of herdr ends every pane it holds. It is
+# installed once by hand, by linking this file into the user units and enabling it.
+
+[Service]
+# herdr keeps nothing across a restart: a server that comes back answers session.snapshot with
+# empty lists, and whatever was running in its panes died with it. So it is kept standing rather
+# than started on demand, and it is restarted rather than left down: a herdr that is absent is
+# a herdr that can hold no agent at all.
+#
+# The server writes its log to herdr-server.log beside its socket and nothing to its standard
+# streams, so a follower of that file starts with it in this unit and carries its lines into this
+# unit's journal. The server is the main process, and the follower goes with the unit.
+ExecStart=/bin/sh -c 'tail -n 0 -F %h/.config/herdr/herdr-server.log & exec %h/.local/bin/herdr server'
+Restart=always
+RestartSec=2
+# A process the kernel's OOM killer takes costs its own pane and nothing else. The kernel takes
+# the largest process when the machine runs out, which is often one in here though something else
+# ate the memory, and systemd's default then stops the whole unit: every pane and every turn
+# with it (docs/agent-control.md).
+OOMPolicy=continue
+# What the panes start — the programs, the development servers and browsers their runs stand up — is held
+# under a ceiling of the machine's memory, so it can never take the machine and its services with it: past
+# MemoryMax the kernel takes the largest process inside the unit alone, at once. No MemoryHigh is set, since
+# a unit held at a soft ceiling with its swap spent is throttled until every pane in it stalls. Swap is
+# bounded but left room: with too little, a unit near its ceiling cannot set idle pages aside and evicts
+# its own running code until every pane stalls, and with none of its own bound it fills the machine's. The
+# share is of the machine's memory, so it fits any machine.
+MemoryMax=65%
+MemorySwapMax=12G
+# The socket, and everything herdr writes beside it, sit under this directory. XDG_CONFIG_HOME is
+# the only thing that moves them: there is no flag for the socket path alone, and
+# HERDR_CONFIG_PATH moves the configuration file while leaving the socket where it was. It is
+# named here so that the path is one written-down fact instead of a thing each caller works out.
+Environment=XDG_CONFIG_HOME=%h/.config
+# What an agent in a pane needs on its PATH. A pane's shell inherits this, so the claude CLI
+# (~/.local/bin), bun (~/.bun/bin) and the tools a login shell reaches for (~/.cargo/bin) all
+# belong here.
+Environment=PATH=%h/.local/bin:%h/.bun/bin:%h/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=default.target

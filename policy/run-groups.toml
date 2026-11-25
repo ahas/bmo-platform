@@ -1,0 +1,14 @@
+# How what a run leaves running is taken down when the run ends (docs/run-groups.md), read by the run's
+# reaper, the door and the sweep alike.
+
+# How long the run's processes are given to end on TERM before what still stands is killed. A dev server
+# or a browser asked to end is gone within a second or two; one that is still there after this ignored
+# the ask, and holding its memory any longer is what ran the machine out of it.
+grace_ms = 10000
+
+# How long what was killed is waited on to be gone before the record is left for the sweep. A process
+# killed is gone at once unless it is stuck in the kernel, which no wait would end.
+kill_wait_ms = 5000
+
+# How often the run's processes are read again while they are waited on.
+look_ms = 100

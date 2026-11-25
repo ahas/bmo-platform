@@ -1,0 +1,25 @@
+[package]
+name = "jobs-tool"
+description = "Files an item, stops a job and moves a job's review for the supervisor whose session calls it, through agency's server, for a supervisor whose program stands on a node."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "jobs-tool"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+bmo-agency-client.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tool-call = { path = "../../crates/tool-call" }

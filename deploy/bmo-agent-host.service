@@ -1,0 +1,22 @@
+[Unit]
+Description=Agency agent host: every structured execution, and what each head pane becomes
+# The agent host of the deployment's own data root (docs/agent-control.md, 「The host」). A copy of the data
+# root has a host of its own, started by its launcher as a transient unit.
+
+[Service]
+WorkingDirectory=%h/.local/share/bmo-agency/deploy
+# The deploy tree's binary, which the deployment places into bin/ and then restarts this unit on.
+ExecStart=%h/.local/share/bmo-agency/deploy/bin/agent-host serve --data-root %h/.local/share/bmo/data --code-root %h/.local/share/bmo-agency/deploy
+Restart=always
+RestartSec=2
+# A restart stops the host alone: each supervisor and its child stand in process groups of their own
+# and publish their own outcomes, and the next host adopts what they hold. One process killed for
+# memory costs its own execution, never the unit.
+KillMode=process
+OOMPolicy=continue
+Environment=PATH=%h/.local/bin:%h/.bun/bin:%h/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=default.target
+# Linked, enabled and restarted by every deployment.
+X-BMO-Deploy=restart

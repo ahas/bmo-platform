@@ -1,0 +1,234 @@
+# The lines agency runs, named for what the run is for rather than for the program that carries it: a
+# room's turn of any conversational agent, a judgement, a job, a search, a browse
+# (docs/launch-lines.md, docs/agents.md). One table to a line, read by every side that composes a run of it.
+#
+# needs: what its program has to offer for the line to go out on it. The runners' tools are agency's own
+#   MCP servers and the co-worker gate, so a program that cannot withhold its own tools or gate each
+#   call does not carry them; every other line goes out on whatever program its road names.
+# keeps_session: whether its turns follow one another in one program standing in the agent's pane; a line that
+#   stands none runs each run apart, whose session, a new one or a kept one, is its role's setting
+#   (docs/agents.md, 「Runs apart」).
+# composes_typed_lines: whether a line a person types into the line's standing program is handed, by
+#   the place's submit hook, the composition a turn the deployment puts in would carry.
+# holds_stops: whether the place's stop hook holds a bot's turn's end while its background work runs, while
+#   its final answer is a tool call written as text, or while that answer uses a word the glossary bans
+#   (docs/agent-control.md, 「What a resident turn reads」), on every road its Claude Code program goes.
+# background_apart: whether a bot's turn ends at its stop while its program's own background work still runs,
+#   that work's finished notice carried to the room the turn was in as a wake of that room's own, rather than
+#   taken into a turn (docs/agent-control.md, 「Background work on a line that carries it apart」).
+# guards_job_shell: whether the line's programs are jobs', whose shell hook refuses what the job guard refuses of
+#   a job's shell command: print mode, a removal the CLI would stop on, the shell habits that stall a job, a change
+#   to STRUCTURE.md its item does not open, a write into another worker's checkout, a heavy command outside the
+#   testbed, and a live Claude session the job has not opened; it takes the file tools that write too, for the
+#   checkout and STRUCTURE.md alone (docs/live-claude-guard.md).
+# capabilities: what every run of the line may reach of the tool host, whoever it runs for;
+#   absent on a line whose runs hold only what their
+#   agent's role gives (docs/agent-roles.md), or that is handed no tools.
+# namespaces: the tool host namespaces a run of the line is issued; absent on a line that is handed no
+#   tools.
+# shown: the placed tool entries, by full name, every run of the line is shown by name in their namespace
+#   whatever its agent's role, where it holds them; every other entry it holds is reached with `bmo use`.
+#   Each must be an entry the tool host's registry holds, which no build can read (docs/policy.md, 「A
+#   line's shown entries」).
+# variables: the deployment's variables every run of the line hands its record, each where the deployment
+#   sets it, for the placed tools that read them: a record's variable wins over the tool host's own.
+# carries: what the line's program carries, the declaration its launch is built from (docs/launch-lines.md,
+#   「What a line carries」):
+#   prompt: the pieces of its system prompt, in order — harness, the platform's opening; opening, the
+#     platform's opening or the base prompt of the account the run goes out on; platform-rules,
+#     organisation, role, personal and persona, the layers docs/prompt-layers.md names, a role's provider
+#     prompt standing in its role layer; rules, the line's rules file; instructions, what the session's caller hands in; purpose, a translation's instructions.
+#   setting_sources: the setting sources its program reads; none reads no CLAUDE.md, memory, setting or hook.
+#   skills: the sources of its skills, a list: role, the plugin bundle of its run's role; attached, the person's
+#     skills attached to the run's holder (docs/person-nodes.md, 「Attaching skills and MCP servers」).
+#   mcp: the sources of its MCP servers, a list: line, the line's own MCP configuration; attached, the person's MCP
+#     servers attached to the run's holder, every other one withheld from the run's record.
+#   slash_commands: whether its program keeps its own commands.
+#   subagents: the program's own subagent types it keeps; every other type the provider names is denied.
+
+[chat]
+needs = []
+keeps_session = true
+carries.prompt = ["harness", "platform-rules", "organisation", "role", "personal", "persona"]
+carries.setting_sources = []
+carries.skills = ["attached"]
+carries.mcp = ["line", "attached"]
+carries.slash_commands = true
+carries.subagents = ["Explore", "general-purpose"]
+composes_typed_lines = true
+background_apart = true
+capabilities = ["room.tools", "gate.translate", "gate.reference", "research.ask"]
+namespaces = ["bmo", "gate", "eye", "ear", "testbed", "voice", "research"]
+shown = [
+  "bmo/brain_fold", "bmo/brain_consolidated", "bmo/brain_duplicates", "bmo/brain_episode", "bmo/brain_learn",
+  "bmo/brain_list", "bmo/brain_merge", "bmo/brain_move", "bmo/brain_similar", "bmo/brain_unconsolidated",
+  "bmo/say",
+  "bmo/worker_ask",
+  "gate/translate", "gate/reference_index", "gate/reference_piece", "gate/reference_search",
+]
+# The one restriction on a supervisor's program, which runs in bypass-permissions mode on every road
+# (docs/launch-lines.md, 「What a line's program is allowed, by road」): the CLI's own web search and fetch and
+# its Artifact tools, since explorer and artifact are the chat line's own servers; the claude.ai Docs
+# connector, named by its server; the tools that bring a session back after its turn has ended, since a
+# supervisor's turns are the ones its runner puts in; and the job plugin's own item creation, since an item is
+# filed through the agency's file_item, which reads the turn's room and whether the owner asked it
+# (docs/api.md, 「assignments and jobs」). The job plugin is started without each of its own tools named here,
+# so no program lists it. Its own subagent tool stands: a subagent reads and searches inside the
+# supervisor's turn (docs/supervisors.md, 「A supervisor's long work」). The program's own tools no supervisor
+# is asked to use stand there too: its design sync, plan mode, phone notifications, remote triggers, findings
+# report, feedback and the sends to its own projects.
+tools_denied = [
+  "WebSearch", "WebFetch", "Artifact", "ArtifactCheck", "ArtifactComments", "ArtifactData",
+  "mcp__claude_ai_Claude_Docs", "Monitor", "ScheduleWakeup", "CronCreate", "CronDelete", "CronList",
+  "mcp__job__job_item_create",
+  "DesignSync", "EnterPlanMode", "ExitPlanMode", "PushNotification", "RemoteTrigger", "ReportFindings",
+  "SendFeedback", "SendToProject", "SendToProjectContext",
+]
+# The gate's address and the path of its token file, which the gate's translate tool calls it with.
+variables = ["BMO_GATE_URL", "BMO_GATE_TOKEN_FILE"]
+
+# What a supervisor's tool limit names beside the tool host's capabilities (docs/supervisors.md, 「What each
+# capability stands for」): each a capability, the servers of the chat configuration that stand under it outside
+# the tool host, by the names the configuration gives them, and the program's own tools that stand under it. A
+# limit that leaves the capability out leaves those servers out of the supervisor's configuration and adds those
+# tools to the denied list; a limited supervisor's program is started with the built-in tools of the capabilities
+# it names and those of `limited_keeps`, and no other. A supervisor with no limit holds them all.
+#
+# limited_keeps: the program's own tools no capability gives that a limited supervisor's program keeps: the
+#   tool search, which loads the definitions of the MCP tools it holds and reaches nothing else.
+# hosted: what stands in for a capability's servers where the supervisor's program stands on a node — a person's
+#   PC or an account's isolation node — which holds none of the addresses and secrets those servers run with
+#   (docs/person-nodes.md, 「A supervisor's tools on a node」): the tool host's namespaces its configuration and
+#   record name beside the line's, the capabilities its record holds for them, and the entries shown by name. Each
+#   is served at home by the tool host and reached over the node's link with the session's own token.
+limited_keeps = ["ToolSearch"]
+
+[[chat.held]]
+capability = "jobs.file"
+servers = ["job", "agency"]
+hosted = { namespaces = ["agency"], capabilities = ["jobs.file"], shown = ["agency/file_item", "bmo/todo_list", "bmo/todo_show"] }
+
+[[chat.held]]
+capability = "web.pages"
+servers = ["explorer"]
+hosted = { namespaces = ["web"], capabilities = ["web.read"], shown = ["web/web_search", "web/web_fetch"] }
+
+[[chat.held]]
+capability = "documents.file"
+servers = ["artifact"]
+hosted = { namespaces = ["artifact"], capabilities = ["documents.file"], shown = ["artifact/artifact_publish", "artifact/artifact_search", "artifact/artifact_share"] }
+
+[[chat.held]]
+capability = "program.shell"
+tools = ["Bash", "BashOutput", "KillShell"]
+
+[[chat.held]]
+capability = "program.files"
+tools = [
+  "Read", "Grep", "Glob", "LS", "Write", "Edit", "MultiEdit", "NotebookEdit", "NotebookRead", "EnterWorktree",
+  "ExitWorktree",
+]
+
+[gate]
+needs = []
+keeps_session = false
+carries.prompt = ["instructions"]
+carries.setting_sources = []
+carries.skills = []
+carries.mcp = []
+carries.slash_commands = true
+carries.subagents = []
+
+# A translation asked of the translator runner (docs/launch-lines.md, 「Translate runner」): no tools, no
+# session, the purpose's instructions as its system prompt.
+[translate]
+needs = []
+keeps_session = false
+carries.prompt = ["role", "purpose"]
+carries.setting_sources = []
+carries.skills = []
+carries.mcp = []
+carries.slash_commands = false
+carries.subagents = []
+
+# tools_denied: what its program is never shown — the CLI's web tools, its Artifact tools, the
+#   claude.ai Docs connector, named by its server so every tool it serves is covered, the tools that
+#   bring a session back after its turn has ended, which a job, whose turn's end is its answer, has no
+#   use for, and the CLI's own question tool, whose choice among options the session contract cannot
+#   answer and a job's pane has nobody to answer; a job asks its supervisor through bmo job ask; and the
+#   program's own tools no job is asked to use, the same the chat line names beside its own.
+[worker]
+needs = []
+keeps_session = true
+carries.prompt = ["opening", "organisation", "role", "personal", "rules"]
+carries.setting_sources = ["project", "local"]
+carries.skills = ["role", "attached"]
+carries.mcp = ["line", "attached"]
+carries.slash_commands = true
+carries.subagents = ["Explore", "general-purpose"]
+holds_stops = true
+guards_job_shell = true
+# `bmo` stands in the record alone, for the brain's lessons form `bmo use` reaches; no configuration names it.
+namespaces = ["web", "worker", "bmo"]
+# The gate's address and the path of its token file, which the queue tools read the titles' kept translations with.
+variables = ["BMO_GATE_URL", "BMO_GATE_TOKEN_FILE"]
+lessons = true
+shown = [
+  "web/web_fetch", "web/web_search", "worker/todo_show",
+]
+tools_denied = [
+  "WebSearch", "WebFetch", "Artifact", "ArtifactCheck", "ArtifactComments", "ArtifactData",
+  "mcp__claude_ai_Claude_Docs", "Monitor", "ScheduleWakeup", "CronCreate", "CronDelete", "CronList",
+  "AskUserQuestion",
+  "DesignSync", "EnterPlanMode", "ExitPlanMode", "PushNotification", "RemoteTrigger", "ReportFindings",
+  "SendFeedback", "SendToProject", "SendToProjectContext",
+]
+
+# A run of the plain line goes out with the instructions its caller hands in as the whole of its system prompt
+# (docs/launch-lines.md, 「Plain runner」): no harness opening, no tool, no MCP server and no namespace, so its
+# record holds nothing of the tool host's.
+[plain]
+needs = []
+keeps_session = false
+carries.prompt = ["instructions"]
+carries.setting_sources = []
+carries.skills = []
+carries.mcp = ["line"]
+carries.slash_commands = false
+carries.subagents = []
+
+# A run of the search or browse line goes out with the instructions its caller hands in, its record narrowed
+# to the capabilities that caller lets it keep (docs/api.md, 「sessions」). The research namespace shows a run
+# the research unit's rulebook reader where its record holds web.rulebooks. The eye namespace and the
+# room.tools capability its entries ask for give a run its look at a picture, eye/see. The brain tools it
+# holds are the supervisor's own memory (docs/agent-roles.md, 「The voyager and the seeker roles」): the
+# record names the supervisor, the default answerer, as the turn its brain tools write, so a run
+# establishes what it found in the same brain the supervisor reads.
+[search]
+needs = ["tool-gate", "mcp-only-tools"]
+keeps_session = false
+carries.prompt = ["harness", "instructions"]
+carries.setting_sources = []
+carries.skills = []
+carries.mcp = ["line"]
+carries.slash_commands = true
+carries.subagents = []
+capabilities = ["room.chat", "room.tools"]
+namespaces = ["bmo", "web", "eye", "research"]
+shown = ["bmo/brain_learn", "bmo/brain_similar", "research/rulebook", "web/research", "web/web_fetch", "web/web_search", "eye/see"]
+brain_agent = true
+
+[browse]
+needs = ["tool-gate", "mcp-only-tools"]
+keeps_session = false
+carries.prompt = ["harness", "instructions"]
+carries.setting_sources = []
+carries.skills = []
+carries.mcp = ["line"]
+carries.slash_commands = true
+carries.subagents = []
+capabilities = ["room.chat", "room.tools"]
+namespaces = ["bmo", "web", "eye", "research"]
+shown = ["bmo/brain_learn", "bmo/brain_similar", "research/rulebook", "web/research", "web/web_fetch", "web/web_search", "eye/see"]
+brain_agent = true
+

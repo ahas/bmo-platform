@@ -1,0 +1,17 @@
+[package]
+name = "agent-session"
+description = "The agent-session contract: the ten operations every backend answers, and their request and answer types."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true

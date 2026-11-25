@@ -1,0 +1,3 @@
+# The one scale an agent's own effort is named on, lowest first (docs/model-tiers.md, 「An agent's own
+# thinking and effort」). Each provider says which of its levels a run of one of its models takes.
+levels = ["low", "medium", "high", "xhigh", "max"]

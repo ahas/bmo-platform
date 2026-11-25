@@ -1,0 +1,121 @@
+# A supervisor's turn as its runner carries it (docs/supervisors.md): where its guard cuts a turn going
+# nowhere, how it waits for its engine, how the room's words and what its gates attached are laid out, and
+# every fixed line its log, its refusals and its cut are written in. Read by every side that
+# runs a supervisor's turn; `{name}` marks what each line carries.
+
+# The answer that is no answer at all: nothing is sent and the turn ends answered.
+skip = "<<SKIP>>"
+
+# How long a line of the system prompt is before an answer carrying it whole is taken for one that
+# repeats the prompt: shorter lines are a persona's own sayings, which an answer may well echo.
+echoed_line_chars = 60
+
+# How often a turn waiting for its engine looks again whether the job holding it has ended.
+engine_wait_ms = 2000
+
+# How often a run writes what the turn's words have spent between the lines of its log, so a restart
+# loses at most this much.
+tally_every_ms = 60000
+
+# The stage a supervisor's whole answer is recorded at, and the stage its turn's own run is written down at.
+answer_stage = "supervisor"
+turn_stage = "chat"
+
+# The note a session hands over with is no note where it says only this.
+no_note = "none"
+
+# Where a turn is cut short as going nowhere (「A turn that goes nowhere」): repetition first, the caps on
+# its calls and its time last.
+[limits]
+# How many failed results of one tool in a row cut the turn.
+failures = 6
+# How many calls in a row that repeat an earlier one and learn nothing cut the turn, and how many calls
+# back a repeated call is looked for.
+repeats = 8
+repeat_window = 8
+# How alike two inputs of one tool are, from 0 to 1, to be one call repeated.
+likeness = 0.9
+# The most tool calls a turn's words take. No clock cuts a turn.
+calls = 80
+
+# How a room's words read in a turn (「Whose words are whose」).
+[words]
+# The mark the owner's lines, and only theirs, open with. A picture with no words reads as the mark the archive
+# keeps it under (the roads' file).
+owner_mark = "[owner]"
+# The opening every quiet instruction is read under.
+quiet_head = "Quiet instruction from the system:"
+
+# The blocks a turn's words open with.
+[blocks]
+reference_opening = "Reference for this turn ({count}):"
+reference_closing = "END OF REFERENCE"
+handoff_opening = "Your handoff note, written by you as your previous session in this room closed:"
+handoff_closing = "END OF HANDOFF NOTE"
+
+# The runs a turn and a handoff are logged as, by the room and the moment in seconds.
+[runs]
+turn = "chat:{chat}:{at}"
+handoff = "handoff:{chat}:{at}"
+
+# The turn's log and the bot's events.
+[log]
+start = "{name}: {messages} message(s), {instructions} instruction(s)"
+skipped = "skipped"
+answered = "answered"
+cleared = "A session reset was asked for, so this turn starts on a new session."
+system_changed = "The system prompt changed, so the session hands over to one composed from the new documents."
+system_moved_owed = "The system prompt changed: this turn goes on in the session as it stands, and the session hands over once the turn has ended."
+road_changed = "Its road changed, so the session hands over to one stood on the road its row names now."
+carried = "An earlier run spent {calls} tool calls and {minutes} minutes on these words; only what is left of the limits goes on."
+handoff_start = "{name}: handoff at {percent}% of the window"
+handoff_documents = "{name}: handoff because the documents its prompt is composed from changed"
+handoff_road = "{name}: handoff because its road changed"
+handoff_reset = "{name}: handoff because a reset of its session was asked"
+handoff_clean = "{name}: a clean reset of its session was asked, so it consolidates its brain and writes no note"
+started_clean = "started clean in {seconds}s: generation {generation} opens with no note"
+handoff_inside = "This turn carries the receiver's handoff of this session, so it asks for no handoff of its own."
+handoff_waited_out = "the receiver did not answer the handoff within {seconds}s"
+handoff_stopped = "a stop ended the wait for the handoff"
+handoff_paced = "This session was asked for its handoff a moment ago, so this ask waits {seconds}s and is then made."
+no_handoff = "the session wrote no handoff note, so it goes on as it was"
+handed_over = "handed over: a note of {chars} characters in {seconds}s, generation {generation} opens with it"
+waits = "{name} waits for its engine: job {job}{item}"
+waits_item = " of item #{item}"
+# What a turn put into the supervisor's program is called on its pane, for a person watching herdr.
+title = "{agent}: a turn in a room"
+
+# What the answer is read under as it is cleaned, and how it is written down.
+[answer]
+label = "a message the supervisor {name} is about to send to a chat room"
+verdict = "REPLY: {text}"
+verdict_chars = 120
+echoed_words = "the harness's own words \"{words}\""
+echoed_line = "a line of its system prompt \"{line}…\""
+
+# Why a turn fails, each in one sentence.
+[refused]
+no_pin = "The supervisor has no pinned model, so it cannot answer."
+no_provider = "The provider {provider} the supervisor is pinned to is not in this build."
+no_line = "The {label} provider does not carry a supervisor's answers."
+no_model = "The model {model} the supervisor is pinned to is missing or has no address."
+echoed = "{name}'s answer repeated what it was given, so it was not sent: {echoed}"
+empty = "{name}'s answer was empty."
+
+# A turn its guard cut short: why, what the session keeps in place of an answer, the line the room is told
+# under the supervisor's number, and the data the quiet instruction to the owner's chat carries, with its
+# kind and sort. The instruction carries no order: what a cut asks stands in the supervisor's manual
+# (prompts/agents/chat/manual.md, 「A SUPERVISOR'S CUT TURN」).
+[cut]
+too_many_calls = "No answer came after {calls} tool calls."
+failing = "The {tool} tool failed {count} times in a row."
+repeating = "It repeated nearly the same {tool} call {count} times and learned nothing."
+mark = "[turn cut]"
+notice = "{name}'s turn was cut short. {reason} From the next message it answers on a new session."
+instruction = [
+  "{name} ({agent}), a supervisor, had its turn in the room {room} ({chat}) cut short by its turn guard: {reason}",
+  "Its run was stopped; the words it was answering stay taken, and the room was told in one line under its number; its session in that room opens afresh with its next turn there.",
+  "The turn's log is the run {run}.",
+]
+kind = "supervisor-cut:{agent}:{chat}"
+sort = "supervisor_cut"

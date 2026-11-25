@@ -1,0 +1,1864 @@
+{
+ "status": [
+  {
+   "at": 1789960910518,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "effort": {
+     "level": "low"
+    },
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0,
+     "total_duration_ms": 14659,
+     "total_api_duration_ms": 0,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 0,
+     "total_output_tokens": 0,
+     "context_window_size": 1000000,
+     "current_usage": null,
+     "used_percentage": null,
+     "remaining_percentage": null
+    },
+    "exceeds_200k_tokens": false,
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    }
+   }
+  },
+  {
+   "at": 1789960930364,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.017391,
+     "total_duration_ms": 34524,
+     "total_api_duration_ms": 2965,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 3871,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 3869,
+      "cache_read_input_tokens": 0
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964529,
+     "requests": 1,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0,
+     "cache_write_tokens": 3869,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 3871
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960932498,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.017391,
+     "total_duration_ms": 36659,
+     "total_api_duration_ms": 2965,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 3871,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 3869,
+      "cache_read_input_tokens": 0
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964529,
+     "requests": 1,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0,
+     "cache_write_tokens": 3869,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 3871
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960934395,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0193688,
+     "total_duration_ms": 38555,
+     "total_api_duration_ms": 4879,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 3961,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 3869
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964533,
+     "requests": 2,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.49399897854954034,
+     "cache_write_tokens": 3959,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 3961
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960936439,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0193688,
+     "total_duration_ms": 40600,
+     "total_api_duration_ms": 4879,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 3961,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 3869
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964533,
+     "requests": 2,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.49399897854954034,
+     "cache_write_tokens": 3959,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 3961
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960937656,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.021364599999999997,
+     "total_duration_ms": 41817,
+     "total_api_duration_ms": 6109,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4051,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 3959
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964537,
+     "requests": 3,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.658756206345199,
+     "cache_write_tokens": 4049,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4051
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960939703,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.021364599999999997,
+     "total_duration_ms": 43865,
+     "total_api_duration_ms": 6109,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4051,
+     "total_output_tokens": 84,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 3959
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964537,
+     "requests": 3,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.658756206345199,
+     "cache_write_tokens": 4049,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4051
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960940935,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.023398399999999996,
+     "total_duration_ms": 45096,
+     "total_api_duration_ms": 7338,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4141,
+     "total_output_tokens": 86,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 86,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 4049
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964540,
+     "requests": 4,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.7412006989515726,
+     "cache_write_tokens": 4139,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4141
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960942982,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.023398399999999996,
+     "total_duration_ms": 47144,
+     "total_api_duration_ms": 7338,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4141,
+     "total_output_tokens": 86,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 86,
+      "cache_creation_input_tokens": 90,
+      "cache_read_input_tokens": 4049
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964540,
+     "requests": 4,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.7412006989515726,
+     "cache_write_tokens": 4139,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4141
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960950799,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "48d8020b-9b52-4e45-b92d-03b39a093bfc",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.029828199999999996,
+     "total_duration_ms": 54960,
+     "total_api_duration_ms": 15151,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4233,
+     "total_output_tokens": 523,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 523,
+      "cache_creation_input_tokens": 92,
+      "cache_read_input_tokens": 4139
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964543,
+     "requests": 5,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.7906402724983956,
+     "cache_write_tokens": 4231,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4233
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960951610,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "48d8020b-9b52-4e45-b92d-03b39a093bfc",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0372666,
+     "total_duration_ms": 55771,
+     "total_api_duration_ms": 16948,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 4811,
+     "total_output_tokens": 10,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 4,
+      "output_tokens": 10,
+      "cache_creation_input_tokens": 576,
+      "cache_read_input_tokens": 4231
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964551,
+     "requests": 6,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.8076831019626616,
+     "cache_write_tokens": 4807,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 4811
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789960988946,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "14e9d13a-906f-4114-90a0-14027449c98c",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0431974,
+     "total_duration_ms": 93107,
+     "total_api_duration_ms": 18554,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 5525,
+     "total_output_tokens": 8,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 4,
+      "output_tokens": 8,
+      "cache_creation_input_tokens": 704,
+      "cache_read_input_tokens": 4817
+     },
+     "used_percentage": 1,
+     "remaining_percentage": 99
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964588,
+     "requests": 7,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.8192723825711764,
+     "cache_write_tokens": 5511,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 5525
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789961003926,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "066ad86a-97d9-4598-81b3-2147ba8c1520",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0482994,
+     "total_duration_ms": 108087,
+     "total_api_duration_ms": 20968,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 5628,
+     "total_output_tokens": 126,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 4,
+      "output_tokens": 126,
+      "cache_creation_input_tokens": 95,
+      "cache_read_input_tokens": 5529
+     },
+     "used_percentage": 1,
+     "remaining_percentage": 99
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964603,
+     "requests": 8,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.8446205240054112,
+     "cache_write_tokens": 5606,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 5628
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789961006948,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "066ad86a-97d9-4598-81b3-2147ba8c1520",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0482994,
+     "total_duration_ms": 111110,
+     "total_api_duration_ms": 20968,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 5628,
+     "total_output_tokens": 126,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 4,
+      "output_tokens": 126,
+      "cache_creation_input_tokens": 95,
+      "cache_read_input_tokens": 5529
+     },
+     "used_percentage": 1,
+     "remaining_percentage": 99
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964603,
+     "requests": 8,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.8446205240054112,
+     "cache_write_tokens": 5606,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 5628
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789961019223,
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "aa434ee2-c350-44ef-b2e6-43a0d6b06860",
+    "effort": {
+     "level": "low"
+    },
+    "session_name": "RUN-A header line",
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0482994,
+     "total_duration_ms": 123383,
+     "total_api_duration_ms": 20968,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 5628,
+     "total_output_tokens": 126,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 4,
+      "output_tokens": 126,
+      "cache_creation_input_tokens": 95,
+      "cache_read_input_tokens": 5529
+     },
+     "used_percentage": 1,
+     "remaining_percentage": 99
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964603,
+     "requests": 8,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.8446205240054112,
+     "cache_write_tokens": 5606,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 5628
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  },
+  {
+   "at": 1789961031941,
+   "payload": {
+    "session_id": "17b6fc70-c3fe-4ef6-a414-b48d2911d186",
+    "effort": {
+     "level": "low"
+    },
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0,
+     "total_duration_ms": 371,
+     "total_api_duration_ms": 0,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 0,
+     "total_output_tokens": 0,
+     "context_window_size": 1000000,
+     "current_usage": null,
+     "used_percentage": null,
+     "remaining_percentage": null
+    },
+    "exceeds_200k_tokens": false,
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    }
+   }
+  },
+  {
+   "at": 1789961044949,
+   "payload": {
+    "session_id": "17b6fc70-c3fe-4ef6-a414-b48d2911d186",
+    "prompt_id": "8b0326a8-9a32-4019-ac01-cabb12b3cb6f",
+    "effort": {
+     "level": "low"
+    },
+    "model": {
+     "id": "claude-sonnet-5",
+     "display_name": "Sonnet 5"
+    },
+    "version": "2.1.278",
+    "output_style": {
+     "name": "default"
+    },
+    "cost": {
+     "total_cost_usd": 0.0043794,
+     "total_duration_ms": 13422,
+     "total_api_duration_ms": 777,
+     "total_lines_added": 0,
+     "total_lines_removed": 0
+    },
+    "context_window": {
+     "total_input_tokens": 3738,
+     "total_output_tokens": 6,
+     "context_window_size": 1000000,
+     "current_usage": {
+      "input_tokens": 2,
+      "output_tokens": 6,
+      "cache_creation_input_tokens": 939,
+      "cache_read_input_tokens": 2797
+     },
+     "used_percentage": 0,
+     "remaining_percentage": 100
+    },
+    "exceeds_200k_tokens": false,
+    "prompt_cache": {
+     "warm": true,
+     "caching_observed": true,
+     "ttl": "1h",
+     "expires_at": 1789964644,
+     "requests": 1,
+     "misses": 0,
+     "expected_rebuilds": 0,
+     "hit_ratio": 0.7482611021936865,
+     "cache_write_tokens": 939,
+     "miss_recache_tokens": 0,
+     "last_miss_at": null,
+     "last_miss_cause": null,
+     "miss_causes": {},
+     "recache_tokens_if_cold": 3738
+    },
+    "fast_mode": false,
+    "thinking": {
+     "enabled": true
+    },
+    "rate_limits": {
+     "five_hour": {
+      "used_percentage": 24,
+      "resets_at": 1789962600
+     },
+     "seven_day": {
+      "used_percentage": 11,
+      "resets_at": 1790528400
+     }
+    }
+   }
+  }
+ ],
+ "hooks": [
+  {
+   "at": 1789960910521,
+   "kind": "start",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "model": "claude-sonnet-5"
+   }
+  },
+  {
+   "at": 1789960928045,
+   "kind": "submit",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "permission_mode": "dontAsk",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "\n\n<pasted_content id=\"ef7e\">\nRUN-A header line. Run these Bash commands one per tool call, in order: 'sleep 2; echo a', "
+   }
+  },
+  {
+   "at": 1789960944400,
+   "kind": "submit",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "permission_mode": "dontAsk",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "<pasted_content id=\"ef7e\">\nWORD-X: also say the word PINEAPPLE at the very end.\n</pasted_content id=\"ef7e\">"
+   }
+  },
+  {
+   "at": 1789960950488,
+   "kind": "stop",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "b2ab9fb6-1381-4d33-b526-d38ba233a87e",
+    "permission_mode": "dontAsk",
+    "effort": {
+     "level": "low"
+    },
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "t, with small variations in flavor and texture.\n\nOutputs:\n1. a\n2. b\n3. c\n4. last",
+    "background_tasks": [],
+    "session_crons": []
+   }
+  },
+  {
+   "at": 1789960951298,
+   "kind": "stop",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "48d8020b-9b52-4e45-b92d-03b39a093bfc",
+    "permission_mode": "dontAsk",
+    "effort": {
+     "level": "low"
+    },
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "PINEAPPLE",
+    "background_tasks": [],
+    "session_crons": []
+   }
+  },
+  {
+   "at": 1789960987783,
+   "kind": "submit",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "14e9d13a-906f-4114-90a0-14027449c98c",
+    "permission_mode": "dontAsk",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "\n\n<pasted_content id=\"ef7e\">\n[run bmo-chat-777 · room test · 12:30]\nFiller line 1 of the long prompt body.\nFiller line 2"
+   }
+  },
+  {
+   "at": 1789960988644,
+   "kind": "stop",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "14e9d13a-906f-4114-90a0-14027449c98c",
+    "permission_mode": "dontAsk",
+    "effort": {
+     "level": "low"
+    },
+    "hook_event_name": "Stop",
+    "stop_hook_active": false,
+    "last_assistant_message": "OK-LONG",
+    "background_tasks": [],
+    "session_crons": []
+   }
+  },
+  {
+   "at": 1789961002156,
+   "kind": "submit",
+   "payload": {
+    "session_id": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+    "prompt_id": "066ad86a-97d9-4598-81b3-2147ba8c1520",
+    "permission_mode": "dontAsk",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "\n\n<pasted_content id=\"ef7e\">\nRun one Bash command: 'for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do sleep 1; echo $i; d"
+   }
+  }
+ ],
+ "transcript": [
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:08.037Z",
+   "isSidechain": false,
+   "message": {
+    "content": "\n\n<pasted_content id=\"ef7e\">\nRUN-A header line. Run these Bash commands one per tool call, in order: 'sleep 2; echo a', 'sleep 2; echo b', 'sleep 2; echo c', 's"
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:10.015Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsD13a53SH2mvzFqwx3",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 3869,
+     "cache_read_input_tokens": 0,
+     "output_tokens": 84,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 3869,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 2,
+       "output_tokens": 84,
+       "cache_read_input_tokens": 0,
+       "cache_creation_input_tokens": 3869,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 3869
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_019Cw7QikHJ2YB5t3mqxbLGd",
+      "name": "Bash",
+      "input": {}
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:12.164Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_019Cw7QikHJ2YB5t3mqxbLGd"
+     }
+    ]
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:14.065Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsDJFAHmjZ3dCD6Z2fn",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 90,
+     "cache_read_input_tokens": 3869,
+     "output_tokens": 84,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 90,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 2,
+       "output_tokens": 84,
+       "cache_read_input_tokens": 3869,
+       "cache_creation_input_tokens": 90,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 90
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01D46vRkRSj1WfbJ66xfdmcc",
+      "name": "Bash",
+      "input": {}
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:16.116Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01D46vRkRSj1WfbJ66xfdmcc"
+     }
+    ]
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:17.332Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsDbLpPh6r165GDgMSX",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 90,
+     "cache_read_input_tokens": 3959,
+     "output_tokens": 84,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 90,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 2,
+       "output_tokens": 84,
+       "cache_read_input_tokens": 3959,
+       "cache_creation_input_tokens": 90,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 90
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_0158NUpRY7qvBN5WrJuroLzE",
+      "name": "Bash",
+      "input": {}
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:19.379Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_0158NUpRY7qvBN5WrJuroLzE"
+     }
+    ]
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:20.606Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsDqCkPtfjC6GQ9HLTB",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 90,
+     "cache_read_input_tokens": 4049,
+     "output_tokens": 86,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 90,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 2,
+       "output_tokens": 86,
+       "cache_read_input_tokens": 4049,
+       "cache_creation_input_tokens": 90,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 90
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01BiNVv3ye7utk9cHpmo61tv",
+      "name": "Bash",
+      "input": {}
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:22.653Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01BiNVv3ye7utk9cHpmo61tv"
+     }
+    ]
+   }
+  },
+  {
+   "type": "queue-operation",
+   "operation": "enqueue",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:24.373Z"
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:30.443Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsE58ecaRvXQjNvYG6S",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 92,
+     "cache_read_input_tokens": 4139,
+     "output_tokens": 523,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 92,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 2,
+       "output_tokens": 523,
+       "cache_read_input_tokens": 4139,
+       "cache_creation_input_tokens": 92,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 92
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "Sourdough bread is one of the oldest forms of leavened baking. It relies on a living culture of wild yeast and lactic acid bacteria, usually called a starter, i"
+     }
+    ]
+   }
+  },
+  {
+   "type": "queue-operation",
+   "operation": "dequeue",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:30.517Z"
+  },
+  {
+   "type": "system",
+   "subtype": "stop_hook_summary",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:30.495Z",
+   "isSidechain": false
+  },
+  {
+   "type": "system",
+   "subtype": "turn_duration",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:30.499Z",
+   "isSidechain": false
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:30.525Z",
+   "isSidechain": false,
+   "message": {
+    "content": "<pasted_content id=\"ef7e\">\nWORD-X: also say the word PINEAPPLE at the very end.\n</pasted_content id=\"ef7e\">"
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:31.255Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsEexdEPD6LVJeagC7w",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 4,
+     "cache_creation_input_tokens": 576,
+     "cache_read_input_tokens": 4231,
+     "output_tokens": 10,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 576,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 4,
+       "output_tokens": 10,
+       "cache_read_input_tokens": 4231,
+       "cache_creation_input_tokens": 576,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 576
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "PINEAPPLE"
+     }
+    ]
+   }
+  },
+  {
+   "type": "system",
+   "subtype": "stop_hook_summary",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:31.306Z",
+   "isSidechain": false
+  },
+  {
+   "type": "system",
+   "subtype": "turn_duration",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:22:31.310Z",
+   "isSidechain": false
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:07.776Z",
+   "isSidechain": false,
+   "message": {
+    "content": "\n\n<pasted_content id=\"ef7e\">\n[run bmo-chat-777 · room test · 12:30]\nFiller line 1 of the long prompt body.\nFiller line 2 of the long prompt body.\nFiller line 3 "
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:08.616Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsHQcFx6Ryw7vmXqhMh",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 4,
+     "cache_creation_input_tokens": 704,
+     "cache_read_input_tokens": 4817,
+     "output_tokens": 8,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 704,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 4,
+       "output_tokens": 8,
+       "cache_read_input_tokens": 4817,
+       "cache_creation_input_tokens": 704,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 704
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "OK-LONG"
+     }
+    ]
+   }
+  },
+  {
+   "type": "system",
+   "subtype": "stop_hook_summary",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:08.649Z",
+   "isSidechain": false
+  },
+  {
+   "type": "system",
+   "subtype": "turn_duration",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:08.653Z",
+   "isSidechain": false
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:22.149Z",
+   "isSidechain": false,
+   "message": {
+    "content": "\n\n<pasted_content id=\"ef7e\">\nRun one Bash command: 'for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do sleep 1; echo $i; done', then say DONE.\n</pasted_content id"
+   }
+  },
+  {
+   "type": "assistant",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:23.589Z",
+   "isSidechain": false,
+   "message": {
+    "id": "msg_011CfFsJTh5wYh4fk538oCEH",
+    "model": "claude-sonnet-5",
+    "usage": {
+     "input_tokens": 4,
+     "cache_creation_input_tokens": 95,
+     "cache_read_input_tokens": 5529,
+     "output_tokens": 126,
+     "output_tokens_details": {
+      "thinking_tokens": 0
+     },
+     "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+     },
+     "service_tier": "standard",
+     "cache_creation": {
+      "ephemeral_1h_input_tokens": 95,
+      "ephemeral_5m_input_tokens": 0
+     },
+     "inference_geo": "not_available",
+     "iterations": [
+      {
+       "input_tokens": 4,
+       "output_tokens": 126,
+       "cache_read_input_tokens": 5529,
+       "cache_creation_input_tokens": 95,
+       "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 95
+       },
+       "type": "message"
+      }
+     ],
+     "speed": "standard"
+    },
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01QMv2Ftuftr1u3DMxwqG8qZ",
+      "name": "Bash",
+      "input": {}
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:28.568Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01QMv2Ftuftr1u3DMxwqG8qZ"
+     }
+    ]
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:28.570Z",
+   "isSidechain": false,
+   "message": {
+    "content": [
+     {
+      "type": "text",
+      "text": "[Request interrupted by user for tool use]"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cost-state",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "totalCostUSD": 0.0482994,
+   "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+     "inputTokens": 1001,
+     "outputTokens": 14,
+     "thinkingTokens": 0,
+     "cacheReadInputTokens": 0,
+     "cacheCreationInputTokens": 0,
+     "webSearchRequests": 0,
+     "costUSD": 0.001071
+    },
+    "claude-sonnet-5": {
+     "inputTokens": 1540,
+     "outputTokens": 1053,
+     "thinkingTokens": 39,
+     "cacheReadInputTokens": 45152,
+     "cacheCreationInputTokens": 6147,
+     "webSearchRequests": 0,
+     "costUSD": 0.047228400000000004
+    }
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:39.222Z",
+   "isSidechain": false,
+   "message": {
+    "content": "<local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider"
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:39.222Z",
+   "isSidechain": false,
+   "message": {
+    "content": "<command-name>/exit</command-name>\n            <command-message>exit</command-message>\n            <command-args></command-args>"
+   }
+  },
+  {
+   "type": "user",
+   "sessionId": "6096288f-1bcf-42d2-a1f5-4963bc592176",
+   "timestamp": "2026-09-21T03:23:39.222Z",
+   "isSidechain": false,
+   "message": {
+    "content": "<local-command-stdout>See ya!</local-command-stdout>"
+   }
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+# The agents' sleep (docs/sleep.md): when a supervisor sleeps, how often the pass comes round, and what the
+# sleep is asked.
+
+# The deployment's clock, as hours east of UTC.
+utc_offset_hours = 9
+
+# The hour a supervisor whose setting names none sleeps at, on the deployment's clock.
+hour = 4
+
+# How many hours from a supervisor's hour on its sleep may still go out, one try an hour.
+window_hours = 3
+
+# How often the pass comes round, and how long after the process starts its first pass waits.
+tick_seconds = 300
+start_delay_seconds = 120
+
+# The tokens a sleep may spend reading its brain, told to it in its instruction.
+budget_tokens = 200000
+
+# What the sleep is asked; {date} is the day it sleeps for and {budget} the budget above.
+instruction = """
+SLEEP. This is your nightly sleep for {date}: a pass over your own brain outside every room. Say nothing in any room and send no message; nobody reads this turn's words but agency.
+
+1. Consolidate. Read brain_unconsolidated again and again until it answers no episode or you have read about {budget} tokens of material. For each episode, draft what it comes to (a fact, a reflection or a correction), read brain_similar for each draft, write it with brain_learn naming the episodes it rests on in grounds, and mark every episode you read with brain_consolidated, those that came to nothing among them.
+2. Merge. Read brain_duplicates. Judge each pair: two rows that say one thing are merged with brain_merge into one row holding what both said; where one says the other more fully, write it with brain_learn strengthening the other; for a contradiction keep the newer or the better grounded row and move the other to invalidated with brain_move; leave a pair that says two things as it is. A name and a fact about what a person is called are one thing only where they say the same name.
+3. Close what has ended. Read brain_list for the types state, followup and promise, and move each whose release condition has come true by today, or whose promise was kept, to done with brain_move. Never delete or invalidate a row only because it is old.
+4. Answer with one JSON object and nothing else: {"summary": "<what you learned, merged and closed tonight, in English, a few sentences>", "learned": <memories written>, "merged": <pairs merged or folded>, "closed": <rows moved to done or invalidated>}.
+"""

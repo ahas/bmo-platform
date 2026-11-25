@@ -1,0 +1,30 @@
+# The handoff a job's session leaves as the job's work moves to another session (docs/sessions.md, 「The
+# handoff a job's session leaves」; docs/api.md, 「assignments and jobs」): what the session is asked, how the
+# next session's prompt opens on it, what stands in its place where the session cannot be asked, and how the
+# note is written onto the item.
+
+# The turn a session going away is asked, on its own road.
+instruction = "Quiet instruction from the system: this job's work moves to another session now, and the next session remembers nothing of this one but the handoff you write now. Use no tool for it; do not commit, push or change anything.\n\nWrite your handoff in English, in plain sentences, naming files, branches, commits and commands exactly:\n\n- what is done, and how it was checked;\n- what you found that the next session needs, causes and pitfalls among them;\n- what you were in the middle of when this came;\n- what is left, and where it stands: the branch, the files, the commit that holds it, anything uncommitted.\n\nAt most 4,000 characters. Output the handoff and nothing else. If nothing is worth carrying, output the single word: none"
+
+# How the handoff stands ahead of the prompt of the session that goes on, with `{handoff}` and `{prompt}`.
+opened = "## The last session's handoff\n\nThe session that worked on this item before this one wrote this as the work moved on; carry on from it, and check what it says against the checkout before you rely on it:\n\n{handoff}\n\n{prompt}"
+
+# The handoff written where the session cannot be asked, with `{why}` and `{lines}`.
+from_log = "The session could not be asked for its handoff ({why}); the last lines its run logged stand in its place, oldest first:\n\n{lines}"
+
+# How many of the job's last run log lines stand in for a session that cannot be asked, and how many
+# characters of each.
+log_lines = 40
+line_chars = 400
+
+# The note's writer, and the label value that marks a handoff among an item's notes.
+actor = "agency"
+kind = "handoff"
+
+# Why a session could not be asked, as the note says it.
+[why]
+road_stopped = "its road stopped answering"
+no_answer = "it answered nothing"
+stopped_idle = "no turn of the job was running when it was stopped"
+failed = "the ask failed"
+record_gone = "its session's record is gone"

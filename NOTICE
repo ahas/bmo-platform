@@ -1,0 +1,11 @@
+bmo-agency
+
+The cache-siren crate is derived from the cache-siren project, carried forward through
+bmo-cache-siren.
+
+The cache-lifetime judgement and the keeping of an account's usage windows that the crate holds come
+from the cache watch that project designed and built, carried forward through bmo-cache-siren. This
+repository carries them forward with its own changes.
+
+The upstream project's licence could not be confirmed, so the cache-siren crate carries no licence
+declaration and is not covered by the repository's MIT licence.

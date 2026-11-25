@@ -1,0 +1,82 @@
+# The registry's models: every registration is a service of its own, reached through the model
+# gateway (docs/own-llm.md). Read by this provider's own declaration on each side.
+
+# The provider's name as a screen shows it.
+label = "Registered models"
+
+# The lines it carries: its program is Claude Code pointed at the registration, which carries the chat, a gate's
+# judgement, a worker's job, a translation and a search's own run; the browse line, which needs a browser the
+# registration's window does not carry, stays off it.
+lines = ["chat", "gate", "worker", "translate", "search"]
+
+# A mapping of it carries a ceiling on the answer's tokens beside its model and effort.
+caps_answer_tokens = true
+
+# Its engine is the owner's own: the registry's registrations, the engines the owner registers.
+owners_engine = true
+
+[effort]
+# Every effort word a mapping of it may hold: whether the registration thinks.
+words = ["thinking", "no-thinking"]
+# A mapping may also name no effort, which leaves thinking to the registration.
+none_held = true
+# What a launch makes of the mapping's word: either is taken.
+launch = "either"
+
+[gateway]
+# The note the gateway opens a system turn with where it turns one into a user message of its own
+# (docs/own-llm.md, 「The gateway」): words the road writes into what the model reads, beside the program's.
+own_words = ["originally a mid-conversation system-role reminder"]
+# Where the model gateway answers where the process names no address of its own in BMO_LLM_GATEWAY_URL.
+url = "http://127.0.0.1:18030"
+
+[presence]
+# The gateway's key, a private file under the data root's env directory.
+key_file = "llm-gateway.key"
+# What it says where the key file is not usable, and where no registration is offered: each a
+# kebab-case code a screen words in its own language, and the English sentence the log keeps.
+missing_code = "gateway-key-unusable"
+missing = "The gateway's key file (llm-gateway.key) is missing or its mode is not 0600."
+# What the registry itself says where it cannot answer.
+no_archive = "There is no store to read the registered models from."
+no_address_code = "no-registration-addressed"
+no_address = "No registered model has an address or a card service."
+# What a pin, or a job, naming one registration says where the registry holds none of that name with an
+# address; the name follows it.
+not_registered = "Not a registered model"
+# What a run naming a node the registration no longer has says: {name} and {node}.
+node_missing = "The registered model {name} has no node {node}."
+
+[resident]
+# The keys typed into the pane of its standing program, Claude Code pointed at the registered endpoint,
+# that cut a working turn short (docs/agent-control.md, 「Stopping」).
+interrupt = ["escape"]
+# Its surface carries its own turns: Claude Code's transcript door, each turn on a session of its own
+# unless it goes on in the one the program stands on (docs/own-llm.md, 「Claude Code in the pane」).
+turns = "endpoint"
+# Words put in while a turn works are taken into that turn: its pane's Claude Code takes them as the
+# claude-code provider's does, and a registration's window carries them.
+words_mid_turn = true
+# A conversation grown to its mark is handed over by a turn asking it for its note, which a new session opens
+# with: the program's own fold goes out on a request of its own shape the engine holds no saved state for, and
+# reads the whole conversation again (docs/supervisors.md, 「Its limit」).
+handover = "handoff"
+# A conversation's turn is watched for going nowhere and cut at the conversation limits: a model on its own
+# engine loops where Claude would not (docs/supervisors.md, 「A turn that goes nowhere」).
+turn_limits = true
+# A conversation's turn waits while an open job runs on its registration, since the engine serves one slot
+# (docs/supervisors.md, 「The engine it shares」).
+waits_for_engine = true
+
+[[reads]]
+# The media a registration's model reads natively (docs/provider-order.md, 「The media a model reads」),
+# named by the start of the model the registration's row keeps, so every registration standing on one
+# engine reads what that engine reads: the Qwen flash models take pictures, and a Claude model served as
+# a registration takes pictures and documents. An engine no rule names, the translators and the embedding
+# among them, reads nothing.
+model = "qwen3.8-flash"
+media = ["image"]
+
+[[reads]]
+model = "claude"
+media = ["image", "pdf"]

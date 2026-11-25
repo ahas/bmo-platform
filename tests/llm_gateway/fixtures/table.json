@@ -1,0 +1,76 @@
+{
+  "model_list": [
+    {
+      "model_name": "nodes",
+      "litellm_params": {
+        "model": "openai/RVN-model",
+        "api_base": "http://127.0.0.1:18021/v1",
+        "api_key": "os.environ/BMO_KEY_ALPHA_LLM_TOKEN",
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    {
+      "model_name": "nodes@alpha",
+      "litellm_params": {
+        "model": "openai/RVN-model",
+        "api_base": "http://127.0.0.1:18021/v1",
+        "api_key": "os.environ/BMO_KEY_ALPHA_LLM_TOKEN",
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    {
+      "model_name": "nodes",
+      "litellm_params": {
+        "model": "openai/RVN-model",
+        "api_base": "http://127.0.0.1:18023/v1",
+        "api_key": "no-key",
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    {
+      "model_name": "nodes@bravo",
+      "litellm_params": {
+        "model": "openai/RVN-model",
+        "api_base": "http://127.0.0.1:18023/v1",
+        "api_key": "no-key",
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    {
+      "model_name": "single",
+      "litellm_params": {
+        "model": "openai/served-model",
+        "api_base": "https://llm.example.com/v1",
+        "api_key": "os.environ/BMO_KEY_REGISTERED_SINGLE_D_VEX_KEY",
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    }
+  ],
+  "litellm_settings": {
+    "drop_params": true,
+    "use_chat_completions_url_for_anthropic_messages": true,
+    "callbacks": [
+      "thinking.handler",
+      "sampling.handler",
+      "reminders.handler",
+      "long_tools.handler",
+      "roles.handler",
+      "unclocked.handler",
+      "costs.handler"
+    ],
+    "num_retries": 0
+  },
+  "general_settings": {
+    "master_key": "os.environ/LLM_GATEWAY_KEY"
+  }
+}

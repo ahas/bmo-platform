@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "amount": { "type": ["number", "null"], "description": "The amount the owner named, above zero, in the currency DeepSeek keeps the balance in." }
+  }
+}

@@ -1,0 +1,22 @@
+# What the places write where a person reads it (docs/agent-control.md, 「One standing pane per agent」,
+# 「A worker standing with nothing to do」): the labels herdr shows a place under, and the notes a worker's
+# log is given when its pane's program is replaced for its pin. Each `{name}` is filled in with what it
+# names.
+
+# The label of a home on a copy of the data root: the home's own {label} and the copy's {name}.
+copy_label = "{label} · copy {name}"
+
+# The tab a worker's dev server stands in.
+dev_tab = "dev server"
+
+# A standing branch checkout's label while nothing of an item runs in it: its {pool} and its {number}.
+coworker_place = "co-worker {pool} {number}"
+
+# A pinned worker's pane holding another provider's program, replaced for its pin: the provider that
+# stood there, {was}, read as `unknown_provider` where none owns the program; the pin's provider, {pin};
+# and the {model} the pin's program stands on.
+[standby]
+unknown_provider = "another"
+replaced = "Took down the {was} program standing in the pane and stood the program of the pinned provider {pin}"
+replaced_on = "Took down the {was} program standing in the pane and stood the program of the pinned provider {pin} on the model {model}"
+released = "Took down the {was} program standing in the pane. The program of the pinned provider {pin} stands with the first turn"

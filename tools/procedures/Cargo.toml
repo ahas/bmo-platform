@@ -1,0 +1,27 @@
+[package]
+name = "procedures-tool"
+description = "Agency's procedures as resources: one document each, listed and read under the `bmo` namespace, to a session holding `room.tools`."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "procedures-tool"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+regex.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+store = { path = "../../crates/store" }
+tokio.workspace = true
+tool-call = { path = "../../crates/tool-call" }

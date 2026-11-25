@@ -1,0 +1,25 @@
+[package]
+name = "skill-put-tool"
+description = "Saves a skill of the person a session acts for, or removes one."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "skill-put-tool"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tool-call = { path = "../../crates/tool-call" }

@@ -1,0 +1,18 @@
+# The words a run's spend and a job's spans are said in (docs/run-records.md): how long a stretch took,
+# each of the four kinds of token a run reports, and their total. Each `{name}` is filled in with what it
+# names.
+
+total = "{tokens} in all"
+
+[clock]
+seconds = "{seconds}s"
+minutes = "{minutes}m {seconds}s"
+hours = "{hours}h {minutes}m"
+
+# The four kinds: what a model reads and writes, and the same two verbs against the cache its session
+# keeps.
+[kinds]
+input = "read"
+output = "write"
+cache_read = "cache read"
+cache_write = "cache write"

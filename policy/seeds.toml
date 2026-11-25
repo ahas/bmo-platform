@@ -1,0 +1,13 @@
+# What agency's server seeds a fresh store with as it settles it (docs/store.md, 「Its seeds」), beside the roles
+# roles.toml declares. A seed given once is not given again, so what the owner changed or removed afterwards
+# stands.
+
+# The catalogue's entries, written once as its table is made (docs/model-catalogue.md): none, since a model file
+# is a deployment's. A deployment's own entry is written here in the catalogue's own fields.
+catalogue = []
+
+# The one account a store holding none is given: the login the machine already has. Its credential is the
+# Claude Code login directory of the machine the server runs on, read where the store is settled.
+[account]
+id = "default"
+name = "Default account"

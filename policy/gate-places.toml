@@ -1,0 +1,16 @@
+# The places a gate's turns stand in on a road whose program carries its own turns, one set for each
+# program a gate's ask composes (docs/agent-control.md, 「A gate's places」): how many may stand and how
+# long its session may grow. Counts alone bound them; no clock ends a place.
+
+# The most gate places standing at once, every program's together. A place is one terminal client with its dsh,
+# some 170 MB between them, so eight hold under 1.5 GB; it is also the most gate turns on such a road that
+# run at once.
+places = 8
+
+# The most places one program stands in: the most judgements of one gate that run side by side, the pool
+# the gate's own profile names for the translator.
+per_program = 4
+
+# The tokens a place's session may hold before it is let go after the turn that found it so, and the
+# next turn begins a fresh session in the same program.
+session_tokens = 200000

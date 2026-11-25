@@ -1,0 +1,42 @@
+# The co-worker pool's warming of the places its reservations will use (docs/coworker-pool.md,
+# 「Reserving places and keepalive」). Each kind of place answers for its own table here; the pool reads
+# none of them by name.
+
+# How much of a provider's published lifetime is left unspent: a place is chosen at one instant and its
+# run opens its prefix some minutes later, so a lifetime counted to its last second promises a read the
+# provider has already let go of.
+margin_minutes = 5
+
+[branch]
+# A standing branch checkout's ping: one word on a cold network, which goes until it answers.
+
+# What a ping is titled as in the place's own pane; {place} is the place as a person reads it.
+title = "Warming {place}"
+
+[native]
+# Why a native co-worker's reservation holds seats and warms nothing, recorded as its ping's outcome.
+refusal = "A native co-worker's prefix is assembled by the parent CLI inside its own session, and sending those bytes from outside it would take opening a new Claude Code session, which is refused."
+
+[pings]
+# Why a ping came back without warming its place, each recorded as the ping's outcome.
+
+# The provider is turned off; {mode} is the provider.
+off = "{mode} is turned off."
+
+# A registered model publishes no lifetime, so there is no prefix to keep.
+no_prefix = "A registered model has no prefix to warm."
+
+# Every login the place's line is offered failed on the login.
+no_account = "No account answered."
+
+# The place stands where this machine names no herdr, so there is no pane to ping in.
+no_pane = "There is no pane to ping this place in."
+
+# The OpenRouter key is not set; {variable} names where it is read from.
+no_key = "{variable} is not set."
+
+# The upstream that took the place's last turn was never recorded, so a ping would warm nobody's cache.
+no_upstream = "The upstream that took this prefix was not recorded."
+
+# Another upstream than the recorded one answered; {upstream} is the recorded one.
+other_upstream = "An upstream other than the recorded one ({upstream}) answered."

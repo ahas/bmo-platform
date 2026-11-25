@@ -1,0 +1,160 @@
+# What agency reads off the account service's delegation chain for the person an agent serves, beside its prompt
+# layers (policy/prompt-layers.toml): where a person's organisation supply goes out (docs/supply.md, 「Organisation
+# supply」), which agents an account is given as it is made
+# ready (docs/role-agents.md, 「The agents an account is given」), and who may add and change repositories
+# (docs/repositories.md, 「Who may add and change a repository」). Each setting is declared on the chain under the
+# unit name `policy/prompt-layers.toml` holds, as the prompt layers' are.
+
+# Organisation supply (docs/supply.md, 「The sources a run walks」 and 「Organisation supply」). Which sources a
+# person's runs may take is the account service's word, the order its supply hook answers; agency declares none of
+# them.
+[sources]
+# The source word a run's ledger and the supply hook carry for a run on its organisation's own credential.
+organisation_word = "organisation"
+# Why organisation supply is passed over at a run's start: no credential of the person's organisations answers
+# the road's provider. With {provider}.
+no_organisation = "no credential of the person's organisations answers {provider} now"
+# The account service's setting whether organisation supply stands open, which agency reads for the units of a
+# person's path, whether a unit's supply stands open and who heads a unit.
+organisation_kind = "supply.organisation"
+
+# The agents an account is given as it is made ready: which roles its people may use, and how many agents of each
+# role, on which road, are made for a person at once. A JSON object agency judges and writes on the chain itself;
+# none set anywhere gives one agent for every role that has an agent of no account, on that agent's road.
+[composition]
+key = "signup.composition"
+description = "Which roles the people here may use, and the agents each is given as their account is made ready: for each role named, whether it is off, and the agents made of it, each on its road. A role named nowhere gives one agent on the road of the role's own agent."
+shape = "json"
+mode = "nearest"
+rules = false
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+# The most agents of one role a composition makes for one person.
+most_agents = 8
+
+# Who may add and change repositories: a person here, for their own account; and a head of a unit, for the unit's.
+[repositories]
+key = "repositories.manage"
+description = "Whether the people here may add and change repositories: a person their account's own, and a head their unit's. Off, a member's write of a repository is refused."
+shape = "flag"
+mode = "nearest"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+# Personal apps (docs/person-nodes.md, 「Personal apps」): whether a person here may put an app of their own, and the
+# ceiling of what an app's manifest may ask for beyond its own folders. Each narrows down the chain.
+[personal_apps.make]
+key = "personal-apps.make"
+description = "Whether a person here may make personal apps: tools of their own, which their BMO writes and builds on their PC. A link turns it off for everyone below it; none turns it back on."
+shape = "flag"
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+[personal_apps.network]
+key = "personal-apps.network"
+description = "Whether a personal app here may ask to reach the network, at the addresses its manifest names. Off until the platform turns it on for a company, by a rule naming it at the platform's link; a link below only turns it off."
+shape = "flag"
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+default = false
+
+[personal_apps.secrets]
+key = "personal-apps.secrets"
+description = "Whether a personal app here may ask to be handed its person's secrets, by the names its manifest gives. Off until the platform turns it on for a company, by a rule naming it at the platform's link; a link below only turns it off."
+shape = "flag"
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+default = false
+
+# Shared apps (docs/person-nodes.md, 「Shared apps」): whom a person here may share a personal app with, whether a head
+# of the maker's home unit approves a shared version before anybody installs it, and whether a person here may
+# install an app shared with them.
+[personal_apps.share_scope]
+key = "personal-apps.share-scope"
+description = "Whom a person here may share a personal app with: their team (their home unit and every unit under it), the heads of the units on their line, and anyone of their company. A link below only narrows it."
+shape = "keys"
+choices = ["team", "heads", "company"]
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+default = ["team", "heads"]
+
+[personal_apps.share_review]
+key = "personal-apps.share-review"
+description = "Whether a head of the maker's home unit approves each version of a personal app shared here before anybody installs it. The nearest link decides; off until a link turns it on."
+shape = "flag"
+mode = "nearest"
+rules = true
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+default = false
+
+[personal_apps.install]
+key = "personal-apps.install"
+description = "Whether a person here may install a personal app a colleague shared with them. A link turns it off for everyone below it; none turns it back on."
+shape = "flag"
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+# A person's own local AI (docs/supply.md, 「A person's local AI」): whether a person here may add a local AI of their
+# own, served on their PC, as a source of their own supply. A link turns it off for everyone below it.
+[personal_local_ai]
+key = "supply.personal-local-ai"
+description = "Whether a person here may add a local AI of their own: an OpenAI-compatible server their own PC reaches, which carries their own runs alone. A link turns it off for everyone below it; none turns it back on."
+shape = "flag"
+mode = "narrowing"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+# A person's own agents (docs/role-agents.md, 「A person's own agents」): the organisation supplies the agents its
+# people are given — the sign-up composition above — and each person lays their own changes over that set. Each change
+# a person may make is a setting of its own, allowed or locked by their organisation.
+[own_agents]
+# The most characters one of a person's instructions holds.
+most_characters = 20000
+
+[own_agents.add]
+key = "agency.own-agents"
+description = "Whether a person here may change the set of agents their organisation supplies: add agents of their own to a role the organisation leaves on, and switch a supplied agent off. Off, the set stands as supplied."
+shape = "flag"
+mode = "nearest"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+[own_agents.road]
+key = "agency.road-choice"
+description = "Whether a person here may choose the road of their own agents: the provider, the model and the effort, among what their supply carries. Off, every agent stands on the road its organisation supplies."
+shape = "flag"
+mode = "nearest"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true

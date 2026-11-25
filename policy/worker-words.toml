@@ -1,0 +1,44 @@
+# A word said to a worker (docs/agent-control.md, 「Words said to a worker」): the clock its own turn
+# carries, what that turn is called, what one word may carry, and the lines written under it in the
+# worker's log.
+
+# How long a word's turn on the worker's session is given before it is cut, so a program that never
+# answers holds the worker no longer than this.
+answer_minutes = 10
+
+# What one word may carry: its text in UTF-16 units, the files said with it, and the most bytes one file
+# holds. The console's own box is cut at the same count of files and a larger file, so a word it sends over
+# these is refused as too large before anything is written.
+most_words = 1000000
+most_files = 10
+most_file_bytes = 8388608
+
+# What a person watching herdr reads over a word's turn. `{worker}` is filled in.
+title = "Words said to {worker}"
+
+# The line written under a word for what held it, once for each reason.
+[held]
+person = "The pane is stopped on a question waiting for a person's answer, so the words did not go in."
+untrusted = "The folder-trust question would not clear, so the words did not go in."
+unsubmitted = "The words did not become a turn from the input box, so they did not go in."
+stopped = "The turn was stopped before the words went in."
+disabled = "Claude Code is switched off, so the words did not go in."
+lost = "The CLI lost the session before the words went in."
+resting = "No login may carry the turn now, so the words did not go in."
+pinned = "The worker is pinned to {provider}, and no turn on that pin carries words, so the words did not go in."
+
+# The line written under the last word a turn took where it wrote no answer.
+[ended]
+silent = "The worker ended its turn without an answer."
+
+# The words for a running job (docs/agent-control.md, 「Words for a running job」).
+[job]
+# The paragraph a note added to the job's item goes into its turn behind. `{item}`, `{actor}` and `{note}`
+# are filled in.
+note = "A note was added to item #{item} by {actor} while you work. It is part of this job; act on it in this work:\n\n{note}"
+# The paragraph a later turn of the job carries the words that waited for it behind, after its own prompt.
+waited = "These words for this job arrived while no turn of it could take them. They are part of this job; act on them in this turn:"
+# The line written under a word no turn of the job took now.
+kept = "No turn of the job took the words now, so they are kept and go into its next turn."
+# The line written as a later turn of the job carries words kept for it. `{count}` is filled in.
+carried = "The job's next turn carried the {count} words kept for it."

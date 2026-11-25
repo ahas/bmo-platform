@@ -1,0 +1,38 @@
+[package]
+name = "deepseek-top-up-tool"
+description = "Tops the DeepSeek balance up by the amount the owner names, paying on DeepSeek's web platform in the owner's own Firefox with the card and login saved in the console's secret store."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "deepseek-top-up-tool"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+bmo-agency-client.workspace = true
+chrono.workspace = true
+futures-util.workspace = true
+libc.workspace = true
+harness-providers = { path = "../../crates/harness-providers" }
+policy = { path = "../../crates/policy" }
+procfs.workspace = true
+reqwest.workspace = true
+rust-ini.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+tool-call = { path = "../../crates/tool-call" }
+toml.workspace = true
+url.workspace = true
+uuid.workspace = true

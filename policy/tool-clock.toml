@@ -1,0 +1,112 @@
+# The clock a run's tool calls are held to (docs/agent-control.md, 「A run's tool calls are held to a
+# clock」), read by the door that carries the turn. A call that has burned no processor, begun no process and
+# written no output for its stall is stopped, so a blocked read or write on a pipe or a socket cannot hold
+# the turn for ever. A call that is working is never stopped however long it runs: a build or a test that
+# keeps burning processor time, and a check that keeps writing while it waits on a step run elsewhere, is
+# left to finish. A call that writes nothing and stands nearly idle, as a wait that polls does, is asked about
+# instead: the supervisor keeps it or cuts it.
+
+[call]
+# How long a call goes before the clock watches it at all. A call shorter than this is a short one.
+min_seconds = 180
+
+# How long a call's process tree may burn no processor time, begin no process and write no output before
+# the call is stopped.
+stall_seconds = 300
+
+# How often the call's process tree is read.
+look_seconds = 10
+
+# How long a call with no process of its own may run before it is cut. A call that waits inside the
+# program on a socket or a pipe leaves nothing in the tree to read, so nothing says whether it is
+# working. A job's program reads this bound as its MCP idle window, and aborts a silent call inside
+# itself, handing the model a failed result; a call that window does not cover is cut by words put into
+# the working turn, and the program ends the waiting call and hands the model a failed result.
+in_process_seconds = 300
+
+# After such a call is cut, how long it may still stand unanswered before the turn is ended at a bound of
+# its own, so a program that cannot take the words does not hold its item.
+in_process_grace_seconds = 120
+
+# The words put into the working turn when a call with no process of its own is cut. `{tool}` is the
+# call's tool and summary, `{seconds}` its age at the cut.
+in_process_cut = "The tool call {tool} did not complete: it was cut after {seconds} seconds with no process of its own and no answer. Nothing it would have returned is coming. Go on with the work without its result, and call a tool again only where the work cannot go on without one."
+
+# Why a job's turn was cut at the bound after a cut call did not take the words. `{tool}` is the call and
+# `{seconds}` the grace it was given.
+in_process_grace_cut = "cut at its bound after a tool call did not take its cut: the job's turn held its item without ending, so its item is released for a rerun"
+
+# When the first still-running line is written for a call, and how often it is repeated.
+log_after_seconds = 30
+still_every_seconds = 60
+
+# On a stop, how long a running call may burn no processor time before it is stopped, so the stop's words
+# can be read at the next tool boundary.
+stop_stall_seconds = 5
+
+# A stop the job has not ended with itself within this long is ended by the surface's interrupt.
+stop_bound_seconds = 600
+
+[call.silent]
+# How long a call that owns processes may write no output, with its processes idle, before an overtime ask
+# is opened on it. The call is never cut for it: only the supervisor's verdict on the ask cuts it. This is
+# also the ask's clock, and the length a keep that names none holds it for.
+window_seconds = 300
+
+# The share of one processor, in percent across the window, under which the call's processes, the children
+# they reaped counted, stand idle. A wait that sleeps and then runs a search or a process listing spends
+# well under it; a build, a test or a search over a tree spends far more.
+idle_cpu_percent = 5
+
+# How many characters of the call's command and of the last line of its output the ask carries, so the
+# supervisor can read what the call waits on.
+ask_chars = 400
+
+# What the ask says the call is. `{job}` is the job, `{item}` its item, `{tool}` the call's tool and
+# command, `{cpu}` the share of one processor its processes burned across the window and `{minutes}` how long
+# it has stood silent and idle as the clock counted it when it opened the ask.
+what = "job {job} (item #{item}): the tool call {tool} has gone silent and idle for {minutes} minutes, with no new output and {cpu}% of one processor"
+
+# What the ask says the call is where its silence counts from the job's own work it waited on, not from its
+# own output: the marks of `what`, and `{awaited}`, what that work was and when it last moved.
+what_awaited = "job {job} (item #{item}): the tool call {tool} has gone silent and idle for {minutes} minutes since {awaited}, with no new output and {cpu}% of one processor"
+
+# What the job's own work in the background was, for an ask: `{path}` is the file its process wrote, which the
+# call's command names, and `{at}` the last moment that process was seen alive.
+awaited_work = "the job's own work writing {path} was last seen moving at {at}"
+
+# What the job's own question was, for an ask: `{question}` is its number and `{at}` the last moment it was
+# seen waiting for its answer.
+awaited_question = "the job's own question #{question} was last seen waiting at {at}"
+
+# The last activity the ask names for a call that has written nothing.
+nothing_written = "it has written nothing"
+
+# The words put into the working turn when the supervisor cuts such a call. `{tool}` is the call, `{seconds}`
+# its age at the cut and `{why}` the supervisor's reason.
+cut = "The tool call {tool} was cut on the supervisor's call after {seconds} seconds with no new output: {why}. Do not start the same wait again. Go on with the work without its result, and where the work cannot go on without it, say so in your report."
+
+[turn]
+# A job turn past this clock is cut and its item released, so a turn held by something the call clock
+# cannot see does not keep its item and the queue behind it. It is generous: a working job does not reach
+# it, and the call clock catches a blocked call in minutes.
+bound_minutes = 240
+
+# Why a job's turn was cut at its bound, in the job's report. `{minutes}` is the bound in minutes.
+cut = "cut at its {minutes}-minute bound: the job's turn held its item without ending, so its item is released for a rerun"
+
+[stall]
+# A job's turn that has made no progress for this long while it still works is told to its item's orderer as
+# `job-stalled`, once a stall; nothing is cut. Progress is a line of the record the model wrote, a subagent's
+# record grown, output grown with a new last line, or processor time above the silent window's idle share,
+# read as docs/agent-control.md, 「A run's tool calls are held to a clock」, says.
+after_seconds = 900
+
+# How many of the turn's own last lines, and of each call's last output lines, a new line is compared with:
+# a line alike one of them, every run of digits taken as one, is no progress.
+recent = 16
+
+# How many last lines of what a call waits on the notice carries, and how many characters of a call's
+# command and of each such line.
+lines = 5
+chars = 300

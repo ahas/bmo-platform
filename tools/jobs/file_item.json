@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "brief",
+    "queueName"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The item's name in the queue: a short line in the asker's language."
+    },
+    "brief": {
+      "type": "string",
+      "description": "The run's whole instruction, in English."
+    },
+    "queueName": {
+      "type": "string",
+      "description": "The queue it is filed in."
+    },
+    "repository": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The repository the work is in, by its internal name, so only that repository's worker takes it;\nleft out for host work, which is in no repository. One change that reaches two or more repositories is one\nitem: its repository the one it runs in, an umbrella where it has no home of its own, and its label\n`repositories` naming every repository it reaches, comma-separated."
+    },
+    "priority": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "assigneeName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The worker it is to go to, where it names one; the repository's name where `repository` names one."
+    },
+    "requesterName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Who asked for it."
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Labels of the filer's own, each a string."
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The stages the item's job runs in, in order, each examined before the next (docs/job-review.md): each one\nthe question its agent is asked at that stage, in your words. The job's worker cannot change them."
+    },
+    "stepsCheck": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Left out the first time: the filing is then refused `steps-unchecked` with the skills and tools of the\nagent the item runs on and what to check the steps against. Check them, and file again with the steps as\nthey then stand and this set to the mark that refusal named."
+    }
+  }
+}

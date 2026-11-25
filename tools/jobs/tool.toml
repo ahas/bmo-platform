@@ -1,0 +1,36 @@
+# The supervisor's own filing, stopping and reviewing of work, for a supervisor whose program stands on a node,
+# which holds neither agency's address nor its token (docs/tools.md, 「The job tools on a node」). Each entry is
+# shown under the name the supervisor's own server gives it at home, and each call asks agency's server here for
+# the supervisor the session's record is held by.
+[tool]
+name = "jobs"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p jobs-tool && cp "$BMO_CARGO_TARGET/release/jobs-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["jobs-tool"]
+
+[[entry]]
+namespace = "agency"
+name = "file_item"
+title = "File an item"
+description = "File an item in the job service: the room it was asked in and whether the owner asked for it are the turn's, which the agency reads; an item the owner asked for himself opens at once, any other is a draft until an approver approves it. Name the repository the work is in, so only that repository's worker takes it, and none for host work; one change that reaches two or more repositories is one item, its repository the one it runs in, the umbrella repository where it has no home of its own, and its repositories label naming every repository it reaches, comma-separated."
+input = "file_item.json"
+capabilities = ["jobs.file"]
+
+[[entry]]
+namespace = "agency"
+name = "stop_job"
+title = "Stop a job"
+description = "Stop a running job on the owner's word, by its job id or by its item, with a short reason that becomes the job's report: only a turn whose every message is the owner's stops one. The job's turn is asked to end first, and the answer is the job once its turn has ended, stopped, however long that takes."
+input = "stop_job.json"
+capabilities = ["jobs.file"]
+hints = { destructive = true }
+
+[[entry]]
+namespace = "agency"
+name = "review_job"
+title = "Review a job"
+description = "Examine a job's report under review, the one a job-review instruction names, on the check due now: ask puts your question to the worker in the job's own session and its answer comes back to you; reject sends the work back with why and what is to be done, to the stage under way or, naming stage, to an earlier stage whose work the report shows falls short, whose step is handed over again with the stages after it following; pass passes the check; escalate puts the work to the owner, refused until the work was sent back as often as the review's ceiling. Any reason to send the work back sends it back."
+input = "review_job.json"
+capabilities = ["jobs.file"]

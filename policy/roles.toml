@@ -1,0 +1,247 @@
+# The roles and what is no role's own (docs/agent-roles.md). The roles themselves are the store's rows,
+# which the owner adds and changes on the control port; this file seeds them once and keeps the rest.
+#
+# job: the role a job runs as where its item names none (docs/repositories.md, 「A job」).
+# renewal: the role agency's own runs hold that stand for no one's work, the usage reader's renewal turn and a
+#   judging batch among them (docs/agents.md, 「A run in a pane of its own」).
+# translate: the role a translation agency is asked for runs as (docs/agent-roles.md, 「The translator and the
+#   transliterator roles」).
+# app_review: the role a shared app's review runs as (docs/agent-roles.md, 「The app-reviewer role」).
+# send: the bundle that opens sending into a room, which every guard of a send reads here.
+# supervisor: the bundles every supervisor's session record holds (docs/supervisors.md, 「The bundles a
+#   supervisor holds」).
+# brain: the capabilities through which a session reaches a brain, which a supervisor whose brain switch is off
+#   holds none of (docs/supervisors.md, 「Its settings」).
+# reference: the capabilities through which a session reaches the gate's reading of a brain, which a supervisor
+#   whose reference switch is off holds none of (docs/supervisors.md, 「Its settings」).
+# name_pattern, name_most: the shape of a role's name, kebab-case, and the most characters it holds.
+# label_most: the most characters a role's label holds.
+# [icons]: the mark a screen shows beside every supervisor, every role and every repository.
+# [[bundles]]: one function bundle a role may give, a capability of the tool host, with the short name a
+#   screen writes it by. A role gives no bundle this file does not declare.
+# [[roles]]: the roles a store is given once by name, in the order a screen lists them: each one's name, its
+#   label, its line, the bundles it gives, its cap, the file under prompts/roles/ whose text is its prompt,
+#   the files under prompts/roles/ whose text a run of it is given beside that prompt where its program is a
+#   named provider's (provider_prompts), the one sentence that is its description, whether its runs keep
+#   their sessions, and its provider order,
+#   each entry a provider once with the model, the effort and the thinking it runs on there, or none for a
+#   role that follows the supervisor asking it. Its compaction threshold is its first provider's declared
+#   default.
+
+job = "worker"
+renewal = "upkeep"
+translate = "translator"
+app_review = "app-reviewer"
+send = "room.send"
+supervisor = ["room.chat", "room.send", "web.read"]
+brain = ["room.chat", "gate.reference", "brain.lessons"]
+reference = ["gate.reference"]
+name_pattern = "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+name_most = 40
+label_most = 60
+
+[icons]
+supervisor = "i-material-symbols-chat-bubble-outline"
+role = "i-material-symbols-construction"
+repository = "i-material-symbols-folder-outline"
+
+[[bundles]]
+name = "room.chat"
+label = "Memory, notes and TODO"
+
+[[bundles]]
+name = "room.send"
+label = "Send"
+
+[[bundles]]
+name = "queue.read"
+label = "TODO reading"
+
+[[bundles]]
+name = "web.read"
+label = "Web reading"
+
+[[bundles]]
+name = "web.sites"
+label = "Site tools"
+
+[[bundles]]
+name = "web.branches"
+label = "Research branches"
+
+[[bundles]]
+name = "web.rulebooks"
+label = "Rulebooks"
+
+# The brain of the supervisor a run works for, read and given the run's lessons (docs/agent-roles.md, 「The bundles」).
+[[bundles]]
+name = "brain.lessons"
+label = "Brain lessons"
+
+# The job worker: DeepSeek's flash model first (the owner's decision of 2026-11-02).
+[[roles]]
+name = "worker"
+label = "Worker"
+description = "Works one job of a repository's queue in its checkout, from the item's brief to its report, where the item names no other role."
+line = "worker"
+max_concurrent = 3
+bundles = ["queue.read", "web.read", "brain.lessons"]
+order = [
+  { provider = "deepseek", model = "deepseek-flash", effort = "high" },
+  { provider = "claude-code", model = "claude-opus-5", effort = "high" },
+  { provider = "codex", model = "gpt-5.6-sol", effort = "max" },
+  { provider = "openrouter", model = "google/gemma-4-31b-it:free" },
+]
+
+# The coder: the coding work of a job's item, on the worker line with the coding skills the line carries
+# (docs/agent-roles.md, 「The coder role」). Its order is seeded empty, so a run of it a supervisor asks
+# follows that supervisor until the owner sets one; no provider order is declared for it here.
+[[roles]]
+name = "coder"
+label = "Coder"
+description = "Holds the coding work of a job's item: the code, its design and its tests, in the item's repository under the worker line's rules."
+line = "worker"
+prompt = "coder.md"
+provider_prompts = { claude-code = "coder-claude-code.md" }
+max_concurrent = 3
+bundles = ["queue.read", "web.read", "brain.lessons"]
+order = []
+
+# The helper: the role a hard problem a supervisor could not settle in its own turn runs as. Its order is the
+# strongest road the deployment names (docs/agent-roles.md, 「The helper role」).
+[[roles]]
+name = "helper"
+label = "Helper"
+description = "Takes a hard problem a supervisor hands off by name — a design question, a stubborn bug, a plan, an analysis — on the strongest road, and answers the cause or the decision in plain sentences."
+line = "worker"
+prompt = "helper.md"
+max_concurrent = 2
+bundles = ["queue.read", "web.read", "brain.lessons"]
+order = [
+  { provider = "claude-code", model = "claude-fable-5-2", effort = "high" },
+  { provider = "codex", model = "gpt-5.6-sol", effort = "max" },
+  { provider = "deepseek", model = "deepseek-flash", effort = "high" },
+]
+
+# The producer: a role whose items make videos with the video-shotcraft studio, which reads its items, the
+# web and sends the finished file into a room (docs/agent-roles.md, 「The producer role」).
+[[roles]]
+name = "producer"
+label = "Producer"
+description = "Turns a brief into a finished video with the video-shotcraft studio and sends the file into the item's room."
+line = "worker"
+prompt = "producer.md"
+max_concurrent = 2
+bundles = ["queue.read", "web.read", "room.send", "brain.lessons"]
+order = [
+  { provider = "claude-code", model = "claude-opus-5", effort = "high" },
+  { provider = "codex", model = "gpt-5.6-sol", effort = "max" },
+  { provider = "deepseek", model = "deepseek-flash", effort = "high" },
+]
+
+[[roles]]
+name = "voyager"
+label = "Voyager"
+description = "A research run on the search line: searches the web, reads pages, opens branches and reads rulebooks to answer one question."
+line = "search"
+max_concurrent = 4
+bundles = ["web.read", "web.sites", "web.branches", "web.rulebooks"]
+sessions = "fresh"
+order = [
+  { provider = "claude-code", model = "claude-opus-5", effort = "high" },
+  { provider = "deepseek", model = "deepseek-flash", effort = "high" },
+]
+
+[[roles]]
+name = "seeker"
+label = "Seeker"
+description = "A research run on the browse line: visits and reads the sites and pages it is named rather than searching."
+line = "browse"
+max_concurrent = 4
+bundles = ["web.read", "web.sites", "web.branches", "web.rulebooks"]
+sessions = "fresh"
+order = [{ provider = "claude-code", model = "claude-opus-5", effort = "high" }]
+
+[[roles]]
+name = "translator"
+label = "Translator"
+description = "Renders one text into the language its caller names, keeping its shape and its named terms, and answers the translation alone."
+line = "translate"
+prompt = "translator.md"
+max_concurrent = 4
+bundles = []
+sessions = "fresh"
+order = [{ provider = "claude-code", model = "claude-sonnet-5", effort = "high" }]
+
+[[roles]]
+name = "transliterator"
+label = "Transliterator"
+description = "Spells the written words of a line as the spoken words the voice unit asks for, using no tool."
+line = "search"
+max_concurrent = 4
+bundles = []
+# A narration's spoken words go out on the road of the supervisor whose narration asks them, the agents' own
+# roads standing where none does.
+follows_asker = true
+order = [
+  { provider = "claude-code", model = "claude-haiku-4-5-20251001", effort = "low" },
+  { provider = "deepseek", model = "deepseek-flash", effort = "low" },
+]
+
+# Upkeep: the role agency's own runs hold where they stand for no one's work, the usage reader's renewal turn
+# among them.
+[[roles]]
+name = "upkeep"
+label = "Upkeep"
+description = "Agency's own housekeeping runs that stand for no one's work, the usage reader's renewal turn among them."
+line = "worker"
+max_concurrent = 1
+bundles = []
+sessions = "fresh"
+order = [{ provider = "claude-code", model = "claude-haiku-4-5-20251001", effort = "low" }]
+
+# The actor: one person of a rehearsal's mock company, played under that person's own account; it reaches
+# nothing itself and answers the console calls the person would make (docs/agent-roles.md, 「The actor
+# role」). Its one agent of no account is the one the console copies for an account it makes ready; a cheap
+# general model plays a person through the screens, and the deployment or the rehearsal sets another road on
+# an agent as on any.
+[[roles]]
+name = "actor"
+label = "Actor"
+description = "Plays one person of a rehearsal's mock company from their roster line and the goal handed to them, answering the console calls that person would make and what they have done so far."
+line = "worker"
+prompt = "actor.md"
+max_concurrent = 1
+bundles = []
+sessions = "fresh"
+order = [{ provider = "deepseek", model = "deepseek-flash", effort = "low" }]
+
+# The note assistant: the note unit's Agent, which works one passage or one whole note for the person asking,
+# on the instructions the note unit hands each session (docs/agent-roles.md, 「The note-assistant role」). It
+# goes out on the plain line, whose system prompt is those instructions alone, and reaches nothing: no bundle,
+# no tool and no MCP server. Its agents keep no session of agency's choosing, since one agent carries every
+# note's asks of its account; the note unit names the session a talk's next round continues. Its road is the
+# deployment's default answerer's as the owner set it, Claude Code's Opus 5.5 at medium effort with thinking on.
+[[roles]]
+name = "note-assistant"
+label = "Note assistant"
+description = "Works one passage or one whole note for the person asking — rewrites, translates, summarizes or answers over it — from the note unit's instructions, using no tool."
+line = "plain"
+max_concurrent = 2
+bundles = []
+sessions = "fresh"
+order = [{ provider = "claude-code", model = "claude-opus-5-5", effort = "medium", thinking = true }]
+
+# The app reviewer: reads a personal app a person shares within their company and writes the review report its
+# receivers and their heads read (docs/agent-roles.md, 「The app-reviewer role」). One turn on the translate line,
+# no tool and no session, its input the app's manifest, permissions and source.
+[[roles]]
+name = "app-reviewer"
+label = "App reviewer"
+description = "Reads a personal app shared within a company and reports what it does and whether its code reaches for more than its manifest declares."
+line = "translate"
+prompt = "app-reviewer.md"
+max_concurrent = 2
+bundles = []
+sessions = "fresh"
+order = [{ provider = "claude-code", model = "claude-sonnet-5", effort = "high" }]

@@ -1,0 +1,14 @@
+# The keepalive pass, by whichever process runs it.
+
+# What a ping says. It asks for nothing back, so a session reads it as nobody having spoken.
+prompt = "«keepalive»"
+
+# How long after the process starts the first pass waits: a start has real work to do first — the
+# backlog, the instructions, the reload notices — and keepalive is upkeep. The wait and the idle mark of
+# Claude Code's declaration still land inside its cache.
+start_delay_seconds = 30
+
+# How often the pass comes round.
+tick_seconds = 60
+
+# A ping carries no clock: it goes until it answers or fails on its own, like any other turn.

@@ -1,0 +1,290 @@
+# How the testbed tests, checks, builds and deploys this repository, in the testbed's declaration format.
+
+testbed = 0
+name = "agency"
+
+[test]
+# The Cargo workspace's crates, the root package's test harness among them, and the TypeScript test files
+# under tests/packages. Each TypeScript test file imports its setup first, so it runs from any folder; the
+# bunfig.toml in tests/packages preloads the same setup for a run started there.
+languages = ["cargo", "bun"]
+# A release runs the TypeScript half of agency, so its packages are installed in every fresh tree.
+setup = ["cd packages && bun install --frozen-lockfile", "cd screen-kit && bun install --frozen-lockfile"]
+# The root package's test harness holds every Rust test this repository keeps, and several of its modules
+# run a server against the test database; as one unit it needs more than the testbed's default guard on a
+# machine carrying other work, so the guards stand above that harness's measured time here (the testbed's
+# docs/suite.md, 「The guards」).
+guard_seconds = 600
+file_guard_seconds = 300
+# The server crate is compiled as one unit, and the compiler writes nothing while it works on one: its release
+# build stands silent for longer than the testbed's ten minutes on a bench carrying other work, with nothing
+# wrong. The limit stands above that build's measured time (the testbed's docs/testbed.md, 「A holder whose
+# command falls silent lets go」).
+silence_seconds = 1800
+
+# The tests make their own scratch databases on the server, so no template is named.
+[test.database]
+
+# A test server reaches no peer of the deployment's. It is started with an environment built for it — no
+# address or token inherited from the worker that runs the suite — and marked a test's, so every peer
+# call is refused and logged; a test that needs a stand-in calls the call itself with a map of its own
+# (docs/api.md, 「Calls agency makes」).
+
+[projects]
+# packages/ is the Bun workspace; its type check covers the tests under tests/packages as well.
+check_script = "check:types"
+
+[tools]
+# Agency's own tools, each checked by the command its tool.toml names.
+dir = "tools"
+
+[check]
+quick = ["layout", "dependencies", "cargo-profile", "shared-versions", "personal-data"]
+base_libraries = [
+  "bmo-chat",
+  "bmo-chat-client",
+  "bmo-secret-shapes",
+  "bmo-gate-client",
+  "bmo-ui",
+  "bmo-brain-client",
+  "bmo-cache-warmer-schedule",
+  "bmo-node-client",
+  "bmo-pocket-client",
+  "bmo-testbed-client",
+]
+
+# The repository whose root holds the shared versions the manifests and the lock hold to.
+[check.shared_versions]
+repository = "bmo-chat"
+
+# No Cargo static step is declared. The testbed's own Cargo workspace check formats and lints every member,
+# every target compiled, through its Cargo verb in the shared build directory, wherever a change marks a crate,
+# and the change check compiles every crate a change marks; a change that marks none has no Rust to judge.
+
+[build]
+# The server and the verbs, the agent host and the programs it runs out of bin/, the model gateway, and
+# the executables of agency's tools.
+binaries = [
+  "agency-server",
+  "bmo-agency",
+  "agent-host",
+  "pane-head",
+  "harness-machine",
+  "harness-providers",
+  "node-link",
+  "llm-gateway",
+  "procedures-tool",
+  "worker-ask-tool",
+  "app-put-tool",
+  "skill-put-tool",
+  "jobs-tool",
+  "relay-tool",
+  "deepseek-top-up-tool",
+]
+
+# Agency's own deploy tree, which every unit, tool and document of agency names and which holds nothing
+# of another service's, and the data root agency shares with the services that read its files
+# (docs/agent-control.md, 「The job's release」). The server and the agent host carry the restart mark, the
+# gateway the binary mark, so a deployment that leaves its launcher as it stands leaves it serving
+# (docs/own-llm.md, 「The gateway」); herdr's unit carries none, since herdr is a runtime agency stands on
+# rather than one of its programs: it is hand-installed, and no deployment links or restarts it.
+[deploy]
+root = "~/.local/share/bmo-agency"
+link = "deploy"
+data_root = "~/.local/share/bmo/data"
+units = ["deploy/*.service"]
+# Answers 0 where agency's server holds no work its restart would cut: a turn it carries that no program has
+# taken yet, which the next server could not pick up (the testbed's docs/deploy.md). A turn a program carries
+# is not counted, since the next server picks it up and its caller re-attaches by its key, nor is a running
+# job, whose lease pass takes its item again (docs/sessions.md, 「A restart hands the session over」).
+quiet = "sh deploy/quiet"
+
+# The verbs' binary, linked into `.local/bin` under the home directory beside `bmo`, which serves the nouns it
+# declares from there (bmo-cli's docs/api.md, 「The unit command」).
+[[deploy.step]]
+id = "link-command"
+phase = "before-flip"
+command = '''
+set -eu
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$HOME/.local/share/bmo-agency/deploy/bin/bmo-agency" "$HOME/.local/bin/bmo-agency"
+'''
+
+# The worker plugin is the skills repository's worker bundle, placed over the copy the release carries by
+# that repository's own placer (docs/launch-lines.md, the skills handed over as a plugin directory): from
+# the skills checkout beside agency's in the workspace the checkout stands in, or the one BMO_SKILLS_DIR
+# names, built into the shared Cargo target.
+[[deploy.step]]
+id = "place-worker-skills"
+phase = "before-flip"
+command = '''
+set -eu
+common="$(git rev-parse --path-format=absolute --git-common-dir)"
+skills="${BMO_SKILLS_DIR:-$(dirname "$common")/../../resources/skills}"
+target="${BMO_CARGO_TARGET_DIR:-$HOME/.local/share/bmo/cargo-target}"
+cargo build --quiet --release --manifest-path "$skills/Cargo.toml" --bin bmo-skills --target-dir "$target"
+"$target/release/bmo-skills" place --bundle worker --into prompts/agents/worker/plugin --from "$skills"
+'''
+
+# The coder's and the producer's own bundles, each into its role's plugin directory: a run of the role
+# hands its directory to Claude Code, and every other run carries the worker's. The worker bundle's skills,
+# the ones every job needs whatever its work, are placed beside the role's own, a skill at a time after the
+# bundle, since placing a bundle writes the directory afresh.
+[[deploy.step]]
+id = "place-coder-skills"
+phase = "before-flip"
+command = '''
+set -eu
+common="$(git rev-parse --path-format=absolute --git-common-dir)"
+skills="${BMO_SKILLS_DIR:-$(dirname "$common")/../../resources/skills}"
+target="${BMO_CARGO_TARGET_DIR:-$HOME/.local/share/bmo/cargo-target}"
+cargo build --quiet --release --manifest-path "$skills/Cargo.toml" --bin bmo-skills --target-dir "$target"
+"$target/release/bmo-skills" place --bundle coder --into prompts/agents/coder/plugin --from "$skills"
+"$target/release/bmo-skills" list --from "$skills" | awk -F '\t' '$2 == "worker" { print $1 }' | while read -r name; do
+  "$target/release/bmo-skills" place --skill "$name" --into prompts/agents/coder/plugin/skills --from "$skills"
+done
+'''
+
+[[deploy.step]]
+id = "place-producer-skills"
+phase = "before-flip"
+command = '''
+set -eu
+common="$(git rev-parse --path-format=absolute --git-common-dir)"
+skills="${BMO_SKILLS_DIR:-$(dirname "$common")/../../resources/skills}"
+target="${BMO_CARGO_TARGET_DIR:-$HOME/.local/share/bmo/cargo-target}"
+cargo build --quiet --release --manifest-path "$skills/Cargo.toml" --bin bmo-skills --target-dir "$target"
+"$target/release/bmo-skills" place --bundle producer --into prompts/agents/producer/plugin --from "$skills"
+"$target/release/bmo-skills" list --from "$skills" | awk -F '\t' '$2 == "worker" { print $1 }' | while read -r name; do
+  "$target/release/bmo-skills" place --skill "$name" --into prompts/agents/producer/plugin/skills --from "$skills"
+done
+'''
+
+# Each tool is placed in its folder's .placed/, the folder the tool host reads (docs/tools.md, 「A tool's
+# folder」): the executable the release's bin/ holds, its manifest and the schemas beside it.
+[[deploy.step]]
+id = "place-procedures"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/procedures/.placed
+mkdir -p tools/procedures/.placed
+cp bin/procedures-tool tools/procedures/tool.toml tools/procedures/.placed/
+'''
+
+# The gateway's members: the seed of the deployment's own file, the provider APIs it serves beside the
+# registry, each with the key file under the data root's env/ that holds its credential. The deployment
+# places the seed only where the file is absent; a file it already holds is the deployment's and is not
+# overwritten. The gateway reads the file again on each beat.
+[[deploy.step]]
+id = "place-gateway-members"
+phase = "before-flip"
+command = '''
+set -eu
+mkdir -p "$HOME/.local/share/bmo/data/llm-gateway"
+if [ ! -e "$HOME/.local/share/bmo/data/llm-gateway/members.json" ]; then
+  cp deploy/llm-gateway-members.json "$HOME/.local/share/bmo/data/llm-gateway/members.json"
+fi
+'''
+
+# The graph service is retired: the external server an earlier deployment registered for its reads is taken out
+# of the tool host's registry, where it still stands.
+[[deploy.step]]
+id = "take-worker-graph"
+phase = "after-health"
+command = '''
+set -eu
+if bmo-pocket list | grep -q worker-graph; then bmo-pocket take worker-graph --service agency; fi
+'''
+
+# Every agent's place rewritten to hand agency's tokens as the files they stand in, once the new server stands
+# and has written them (docs/agent-control.md, 「A token is handed as the file it stands in」): a place no
+# launch composes again keeps what it was written with otherwise. A program standing goes on as it is.
+[[deploy.step]]
+id = "hand-place-tokens"
+phase = "after-health"
+command = '''
+set -eu
+bin/bmo-agency hand-tokens
+'''
+
+[[deploy.step]]
+id = "place-worker-ask"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/worker_ask/.placed
+mkdir -p tools/worker_ask/.placed
+cp bin/worker-ask-tool tools/worker_ask/tool.toml tools/worker_ask/worker_ask.json tools/worker_ask/.placed/
+bmo-pocket put tools/worker_ask/.placed --placed --service agency --allow room.tools
+'''
+
+[[deploy.step]]
+id = "place-app-put"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/app_put/.placed
+mkdir -p tools/app_put/.placed
+cp bin/app-put-tool tools/app_put/tool.toml tools/app_put/app_put.json tools/app_put/.placed/
+bmo-pocket put tools/app_put/.placed --placed --service agency --allow room.tools
+'''
+
+[[deploy.step]]
+id = "place-skill-put"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/skill_put/.placed
+mkdir -p tools/skill_put/.placed
+cp bin/skill-put-tool tools/skill_put/tool.toml tools/skill_put/skill_put.json tools/skill_put/.placed/
+bmo-pocket put tools/skill_put/.placed --placed --service agency --allow room.tools
+'''
+
+[[deploy.step]]
+id = "place-jobs"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/jobs/.placed
+mkdir -p tools/jobs/.placed
+cp bin/jobs-tool tools/jobs/tool.toml tools/jobs/file_item.json tools/jobs/stop_job.json tools/jobs/review_job.json tools/jobs/.placed/
+bmo-pocket put tools/jobs/.placed --placed --service agency --allow jobs.file
+'''
+
+# The tool host's registry holds no tool of agency's named `delegate` or `room_grant`, since no folder under tools/
+# declares one: a deployment that finds one registered for agency takes it out, once the new server stands
+# (docs/tools.md, 「A tool's folder」).
+[[deploy.step]]
+id = "take-delegate"
+phase = "after-health"
+command = '''
+set -eu
+for name in delegate room_grant; do
+  if bmo-pocket list | grep -q "^$name .* for the service agency:"; then
+    bmo-pocket take "$name" --service agency
+  fi
+done
+'''
+
+[[deploy.step]]
+id = "place-relay"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/relay/.placed
+mkdir -p tools/relay/.placed
+cp bin/relay-tool tools/relay/tool.toml tools/relay/relay.json tools/relay/chat.json tools/relay/.placed/
+bmo-pocket put tools/relay/.placed --placed --service agency --allow room.tools
+'''
+
+[[deploy.step]]
+id = "place-deepseek-top-up"
+phase = "before-flip"
+command = '''
+set -eu
+rm -rf tools/deepseek_top_up/.placed
+mkdir -p tools/deepseek_top_up/.placed
+cp bin/deepseek-top-up-tool tools/deepseek_top_up/tool.toml tools/deepseek_top_up/deepseek_top_up.json tools/deepseek_top_up/.placed/
+bmo-pocket put tools/deepseek_top_up/.placed --placed --service agency --allow room.tools --allow platform.payment
+'''

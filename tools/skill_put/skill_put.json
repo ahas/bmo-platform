@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$", "description": "The skill's name, its folder's and its SKILL.md front matter's name." },
+    "action": { "type": "string", "enum": ["put", "remove"], "description": "put saves the files given as the whole skill, remove takes one of the person's own skills away; put where left out." },
+    "files": { "type": "object", "additionalProperties": { "type": "string" }, "description": "For put: every file of the skill by its path, SKILL.md among them, as text." }
+  }
+}

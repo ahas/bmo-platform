@@ -1,0 +1,104 @@
+# What the resident door writes as a turn goes (docs/agent-control.md, 「The order for putting in one turn
+# and waiting for it to end」, 「What a resident turn reads」): the notes a turn writes into its run's log, the
+# heading a kept screen is filed under, what is written of a confirmation's answer, the one line at the foot
+# of a resident program's screen, and why a turn on a provider switched off is refused. Each `{name}` is
+# filled in with what it names.
+
+# Why a run is refused where the owner switched its provider off (docs/cache-fallback.md).
+provider_off = "The provider is switched off."
+
+# The title a fold of a worker's session stands under in its pane (docs/sessions.md, 「Session
+# compaction」).
+fold_title = "fold"
+# The title of the pane a kept session's warm ping runs in.
+keepalive_title = "keepalive"
+
+# What a turn put into a standing program writes into its run's log as it goes, read by a person on the
+# console and by whoever follows the run up: the {config} and the {cwd} whose trust was written, {why} the
+# trouble, the run's {title}, {model} and {attempt}, the {seconds} herdr stood silent and the {state} the
+# pane came back in, and what the record counted at a quiet end: {queued} words waiting,
+# {owed} turns owed and {ended} turns ended.
+[notes]
+title = "{title} · {model} · attempt {attempt}"
+trust_written = "Wrote into the Claude Code settings {config} that this folder ({cwd}) is trusted"
+trust_unwritten = "Could not write the trust of this folder ({cwd}) into the Claude Code settings {config}: {why}"
+trusted_folder = "The program came up in this folder for the first time and asked whether to trust it; answered that it is trusted"
+declined_offer = "The program offered to install a code-intelligence plugin; declined every such offer for good"
+person_turn = "Waiting for the turn a person put in through herdr to end"
+stand_again = "{why}, so the program is stood up again and this turn put in once more"
+untrusted = "The program did not get past the folder-trust question"
+not_ready = "The program did not come to wait for input"
+not_taken = "The program did not take the words put in"
+enter_pressed = "The words put in stayed on the input line unsubmitted, so Enter was pressed again"
+overrun_unasked = "The turn ran past its clock and nothing could be asked about it, so it goes on and is asked again: {why}"
+herdr_silent = "herdr is not answering the question about the pane, so the turn waits reading the record ({cause})"
+herdr_back = "herdr answered again after {seconds} seconds; the pane is {state}"
+quiet = "The program is at rest and its record ends on a turn's end, so the round is read as ended. Counted from the record: {queued} waiting, {owed} turns owed, {ended} turns ended"
+error_menu = "The turn ended on the program's error with a menu of what to do next standing, so it was closed with Esc"
+
+# The heading a kept screen is filed under as a turn ends without its answer: the pane gone, the program
+# standing at a question nobody answers or not taking the words ({code}, {message}), the turn stopped, cut
+# on its caller's verdict or silent, or a window the reading does not know with its {screen}.
+[screens]
+vanished = "The pane went away before it was ready. The screen at that moment:"
+not_ready = "The program stood at a question nobody is coming to answer. The screen at that moment:"
+not_taken = "The program did not take the words put in ({code}: {message}). The screen at that moment:"
+stopped = "The turn was stopped from outside. The screen at that moment:"
+overran = "The turn was cut on its caller's verdict past its clock. The screen at that moment:"
+silent = "The turn wrote no answer into the record. The screen at that moment:"
+unknown_window = "The turn stopped at a window this reading does not know. The screen at that moment:\n\n{screen}"
+
+# A confirmation the program puts up in the middle of a turn: the mark the job question asking it carries,
+# and what the run writes down of how it was answered — after {tries} tries, stopped at its {question}, or
+# left to a person for {why}.
+[confirm]
+mark = "[confirmation]"
+left_to_person = "The confirmation is left for a person to answer"
+no_allow = "No place to allow it was found on the screen, so the confirmation is left to a person"
+allowed = "Answered the confirmation by allowing it"
+refused_with_reason = "Answered the confirmation by refusing it, and sent the reason with it"
+refused = "Answered the confirmation by refusing it"
+closed = "Closed the confirmation"
+tries = "The confirmation stood after {tries} answers, so it is left to a person"
+again = "The confirmation still stands after the answer was put in, so the same answer is put in again"
+answered = "The confirmation took the answer and closed"
+changed = "The window's question had changed when the answer came, so the answer was not put in"
+repeated = "A confirmation already answered in this turn came up again, so it is answered as it was then"
+closed_early = "The confirmation closed before it took an answer"
+stopped_at = "Stopped at a confirmation: {question}"
+unasked = "The confirmation could not be asked, so it is left to a person: {why}"
+
+# Claude Code's screen while a background agent of its own is opened (docs/agent-control.md, 「Background work
+# on a line that carries it apart」): the words its input box opens on when it addresses that agent rather
+# than the main conversation, the cursor that marks the list's chosen row, the list's main row and the words
+# its foot shows while the list is focused; the keys that move along the list and take a row, and how many
+# keys the door gives itself before it ends the turn blocked. A note names what it did, and the screen kept
+# where it could not names why.
+[agent_view]
+addressed = "Message @"
+cursor = "❯"
+main_row = "main"
+list_focused = "to select"
+open_list = "down"
+up = "up"
+take = "enter"
+steps = 6
+returned = "The program's input addressed one of its background agents, so it was taken back to the main conversation before anything was typed"
+stuck = "The program's input still addresses one of its background agents, so nothing was typed into it"
+
+# What a stop of a turn on a line that carries its background apart ended of its program's background work:
+# {tasks} the tasks it named running, and how.
+[background_stop]
+ended_program = "The stop ended the program, and with it its background work: {tasks}"
+ended_shells = "The stop ended the background shells: {tasks}"
+left = "The stop could not end every process of the background work within its bound: {pids}"
+
+# The one line at the foot of a resident program's screen (docs/agent-control.md, 「What a resident turn
+# reads」): what is going and since when, or since when the agent has been resting and which run it last
+# did. A run is named by its {name} and {title}, and each moment is an {at} on the deployment's clock.
+[status_line]
+resting = "resting"
+person = "typed in directly · started {at}"
+running = "running · {name} · {title} · started {at}"
+rested_after_person = "resting · since {at} · last was typed in directly"
+rested_after_run = "resting · since {at} · last run {name}"

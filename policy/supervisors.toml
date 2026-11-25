@@ -1,0 +1,32 @@
+# The supervisors' settings (docs/supervisors.md, 「Its settings」), read by every side that saves them
+# or composes a supervisor's system prompt.
+
+# The role every turn of the pieces shape is given, after the rulebook against destroying the system, in its
+# fixed order; the persona follows it (docs/supervisors.md, 「What a turn is given」).
+pieces_role = ["absolute-rules", "frame", "turn", "agent-words"]
+
+# The platform's rulebooks under prompts/platform/ a supervisor of the platform's administrator reads on a turn of
+# the pieces shape, after its harness and before its role (docs/prompt-layers.md), in the order it reads them.
+pieces_platform = ["environment", "preservation"]
+
+# Whether the gate's reading of a supervisor's brain reaches its turns — the sheets, memories and rows
+# the gate picks in front of its words, and the index it reads the brain through — where its settings
+# never held the switch: a supervisor with no row, or a row older than the switch that its seed names
+# nothing for (docs/supervisors.md, 「Its settings」).
+reference_on = true
+
+# How long, in characters, a persona its settings hold may be.
+persona_most = 100000
+
+# What a supervisor may be registered as, its agent name and its room's key: a lowercase
+# letter, then lowercase letters, digits and hyphens, forty characters at most.
+name_pattern = '^[a-z][a-z0-9-]{0,39}$'
+
+# The call names a supervisor's row may hold, the words beside its label that call it in a room
+# (docs/supervisors.md, 「Its call names」): at most this many, each one to this many characters once trimmed.
+call_names_most = 10
+call_name_longest = 40
+
+# The mark a screen puts beside a supervisor added on the console.
+added_icon = "i-material-symbols-face-outline"
+

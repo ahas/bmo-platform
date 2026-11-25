@@ -1,0 +1,66 @@
+# The words of the one road resolution (docs/provider-order.md, 「Whether a road can answer」): why a provider
+# cannot answer now, why a login of it cannot, the sentence a closed road is refused or held with, the line
+# a job launched again on the next road is opened with and its report's account of where it ran, how often a
+# job waiting for a road asks again, and how long a road a walk left for its provider's failure is blocked. A provider's own words, the place its balance is topped up
+# among them, stand in that provider's file.
+
+[reasons]
+# A provider the owner turned off.
+off = "the owner turned it off"
+# A provider that offers a balance, its last reading at or below zero, on a model that costs.
+balance = "its balance is spent ({amount} {currency} left)"
+# A provider with no quota left, the window with the least left read full (docs/provider-order.md, 「Quota:
+# what a provider has left」).
+quota = "its {window} window is full"
+# A provider that holds logins, none of the logins the run may go out on open; each login's own reason
+# follows it.
+no_login = "no login of it is open"
+# A provider on the road a caller named whose program does not carry the row's line.
+uncarried = "its program does not carry the {line} line"
+# A provider on the road a caller named that does not list the model named.
+unlisted = "it lists no model {model}"
+
+[logins]
+# One login's own reason, by what closes it.
+off = "{account} is turned off"
+resting = "{account} is at its limit until {until}"
+model_resting = "{account} is at its {model} limit until {until}"
+person = "{account} waits for a person to sign in again"
+no_login = "{account} holds no login on this machine: it is not signed in"
+key = "{account} has no key in its key file"
+balance = "{account} has spent its balance"
+
+[closed]
+# The sentence a closed road is refused or held with: its head, the order's or a named road's, one line for
+# each provider, the moment the first road that waits for a window reopens, and what a person does to reopen
+# the first a person can.
+head = "No provider of the order can answer now."
+# The head where the caller named the road the work goes out on.
+named = "Nothing can carry the work on the road it was asked on."
+provider = "{provider}: {reason}"
+reopens = "The first road reopens on its own at {at}."
+person = "To reopen {provider} now: {command}"
+# The providers on whose program a row's line cannot go out, where some are: the line and what it needs.
+uncarried = "{providers}: no program of theirs carries the {line} line, which needs {needs}."
+
+[job]
+# The line a job's prompt is opened with as it goes out again on the next road, ahead of its own words.
+continued = "This job already ran on {from}, which stopped answering ({why}). Its work so far stands in this checkout: read what is there — the branch, its commits and what is left uncommitted — and carry the job on from there; never start it over."
+# The line its report ends with where it went out on more than one road, and each road's part of it.
+moved = "The job ran on {roads}."
+road = "{road} until it stopped answering ({why})"
+# How often a job waiting for a road asks the resolution again, in seconds.
+wait_seconds = 60
+
+[blocks]
+# How long a road a walk left for its provider's failure stays passed over, in seconds, by the failure's kind
+# (docs/provider-order.md, 「A road that fails」): an outage — a server error, a refused connection
+# or a failure no kind is read off —, a refused access — a credential or balance refused —, and a limit whose
+# failure names no reset.
+outage_seconds = 60
+access_seconds = 300
+limit_seconds = 900
+# The reason a walk's block is written with: the failure's kind and its words.
+reason = "{kind}: {why}"
+# Why a blocked road was passed over: the moment its block opens and the reason it was written with.
+passed = "it did not answer a run moments ago and is passed over until {until} ({reason})"

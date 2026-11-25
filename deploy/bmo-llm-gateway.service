@@ -1,0 +1,26 @@
+[Unit]
+Description=Agency model gateway — Anthropic Messages API over the registered models and the own LLM members that serve only OpenAI's
+After=network-online.target
+# Its own key is the only door every request passes, so without it the gateway does not start at all.
+ConditionPathExists=%h/.local/share/bmo/data/env/llm-gateway.key
+
+[Service]
+# The launcher reads the registry out of the store, writes LiteLLM's table from it under the data root
+# and runs LiteLLM on it as a child, serving the front on loopback and checking its own key on every
+# request; the keys are read from their files into the child's environment and never written into the
+# table (docs/own-llm.md, 「The gateway」). It runs out of the deploy tree, whose bin/ holds it and whose
+# crates/llm-gateway/hooks/ holds the hooks it copies beside each table.
+WorkingDirectory=%h/.local/share/bmo-agency/deploy
+ExecStart=%h/.local/share/bmo-agency/deploy/bin/llm-gateway
+Restart=always
+RestartSec=5
+# On its SIGTERM the launcher takes no new request, lets every request in hand end and then stops its
+# children itself (docs/own-llm.md, 「The gateway」), and the unit waits for that however long it takes; a
+# stop is never escalated to a kill.
+TimeoutStopSec=infinity
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=default.target
+# Linked and enabled by every deployment, and restarted only by one that placed a different launcher.
+X-BMO-Deploy=binary

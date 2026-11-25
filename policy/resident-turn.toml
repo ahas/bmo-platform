@@ -1,0 +1,99 @@
+# One turn put into an agent's standing program and read back out of its record (docs/agent-control.md,
+# 「The order for putting in one turn and waiting for it to end」), by every process that puts one in.
+
+# What the typed lead says about the words pasted after it. Claude Code records what arrives by paste as
+# pasted material and, on its default system prompt, acts on an instruction inside it only where the
+# person's own words ask it to; typed text is cut once it is long, so a turn's words go in pasted behind a
+# typed line that names whose they are. The lead carries no instruction: the harness opening says those
+# words are read and acted on (prompts/harness.md), and the worker's rules say it for a line on a base
+# prompt (prompts/agents/worker/standing-rules.md). A job's and an upkeep turn's words are the owner's own.
+pasted_lead = "The text pasted after this line is put in by the bot you run inside, on the owner's behalf."
+
+# A room's round carries no typed lead. The program's own instructions say how a message and its round are
+# read, and a round is not the owner's, so nothing is typed before it: its head line is typed and the
+# round's words are pasted after it (docs/agent-control.md, 「The order for putting in one turn and waiting
+# for it to end」).
+round_lead = ""
+
+# What the typed lead says about a run apart's words pasted after it (docs/agents.md, 「Runs apart」): the
+# task of a run apart, named as such. The role's prompt says the task is taken whole.
+apart_lead = "The text pasted after this line is the task of this run, put in by the bot you run inside."
+
+# How often the agent is asked what it is doing. A turn runs for minutes or hours, so this is paced for
+# the watching rather than for the answer.
+poll_ms = 1000
+
+# How long a question just answered may still stand on the screen before its answer is read as not taken
+# and typed again: the program redraws within a poll or two of the keys.
+redraw_ms = 5000
+
+# How many times one wait answers a question the line answers itself, the folder-trust question and the
+# plugin offer together, where an answer typed did not take and the question still stands.
+screen_answers = 3
+
+# How long after a prompt went in, and between presses after that, `enter` is pressed again while the
+# prompt is not seen submitted. A submitted prompt shows within a second or two; the presses go on until
+# it is, and none of them ends the turn.
+submit_ms = 10000
+
+# The pane program that carries its own turn writes its record line by line, so it is looked at more often
+# (「The interactive surface a provider declares」).
+inbox_poll_ms = 250
+
+# The most lines of a pane program's error stream one turn's run log takes (docs/run-records.md, 「Agent
+# log」): a client that did not activate writes its cause with its stack, a few dozen lines a server.
+stderr_lines = 300
+
+# How a pane found missing is confirmed gone: looks in a row, each herdr answering without it, this far
+# apart.
+gone_looks = 3
+gone_gap_ms = 500
+
+# How often a program ended is looked at until its process is gone, however long that takes: until then
+# the place still names it and reads it alive (docs/agent-control.md, 「Stopping, falling back and
+# standing up again」).
+end_poll_ms = 20
+# How long a turn whose record has closed it waits for the reading of its price that follows its end: the status
+# line's call after the turn, or the account line a program of the turn's own writes as its pane closes
+# (docs/agent-control.md, 「What a resident turn reads」). The program makes the call about a second after the end;
+# one through a node's home bridge can be lost with the link and is never made again. Past it the turn ends answered
+# with the transcript's tokens and no price. It cuts no turn: the turn is already over.
+status_after_ms = 10000
+
+# How full a session's context may be, as a share of its window, before it is folded once the turn that
+# found it so is over, where neither the fold-ratio table holds a row for the session's provider and tier
+# nor the provider declares a share of its own (docs/sessions.md, 「Session compaction」). Inside a turn,
+# Claude Code compacts at its own default share of its model's window, a job worker's as every other.
+fold_ratio = 0.85
+
+# How long a turn picked up across agency's restart that no job holds may go from its start before it is cut
+# (docs/sessions.md, 「A restart hands the session over」): its caller went away with the process before, so
+# nothing else would ever end it. A job's turn is held to the job's own bound (`tool-clock.toml`, `[turn]`).
+adopted_bound_minutes = 240
+
+# Why such a turn was cut, as its end says. `{minutes}` is the bound in minutes.
+adopted_cut = "cut at the {minutes}-minute bound of a turn picked up after agency restarted: its caller went away with the process before, so the turn is ended"
+
+# How long a program on a node may go without taking its turn — come up, come to rest and take the words — counted
+# while the node's link is heard, before the turn's waiting names it, and before the program is ended and the turn
+# ends unsubmitted (docs/work-nodes.md, 「When a node drops」). A program here is held to no such bound.
+node_take_notice_ms = 60000
+node_take_bound_ms = 300000
+
+# What the turn's waiting, its run log and agency's log say as the notice passes, and why the turn ends as the
+# bound does. {node} is the node, {seconds} how long the program stood there without taking the turn.
+node_take_waiting = "The program on {node} has stood {seconds} seconds without taking the turn"
+node_take_cut = "The program on {node} stood {seconds} seconds without taking the turn, so it was ended and the turn ends unsubmitted"
+
+# How long a program on a person's PC is waited on while the link's far end there could not listen on a port the
+# program reaches home through, before the program is ended and the turn ends unsubmitted (docs/work-nodes.md,
+# 「When a node drops」); the waiting names it at once.
+node_listen_bound_ms = 30000
+
+# What the waiting says, and why the turn ends. {node} is the node, {port} the port, {why} what the far end said.
+node_listen_waiting = "The far end on {node} could not listen on port {port} ({why}), so the program there cannot reach home"
+node_listen_cut = "The far end on {node} could not listen on port {port} ({why}), so the program there cannot reach home; it was ended and the turn ends unsubmitted"
+
+# How long a call to a node's herdr is waited on before it is answered as herdr silent, so a turn's waits go on
+# reading their bounds (docs/work-nodes.md, 「When a node drops」).
+node_herdr_ceiling_ms = 30000

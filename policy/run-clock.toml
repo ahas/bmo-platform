@@ -1,0 +1,18 @@
+# The clock a run of work is held to and the ask put past it (docs/agent-control.md, 「A clock asks, it
+# never cuts」), read by the server as it carries a clocked run and by the verb that answers an ask. An ask
+# stands until the supervisor's verdict or the run's end; nothing cuts a run for want of a verdict.
+
+# How often a run waiting on a verdict looks for one.
+look_every_seconds = 5
+
+# The longest one keep gives; the run is asked about again when it runs out.
+longest_keep_seconds = 7200
+
+# How long a clock's rows are kept once its run has ended.
+kept_days = 7
+
+# The command a verdict is given with, which an ask names for the order that carries it.
+verb = "bmo-agency overtime"
+
+# Why a run cut on its clock failed: the supervisor's call, with the clock's length in minutes.
+cut_by_agent = "cut at its {minutes}-minute clock on the supervisor's call: {why}"

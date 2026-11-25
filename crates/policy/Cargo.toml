@@ -1,0 +1,17 @@
+[package]
+name = "policy"
+description = "Agency's policy: the fixed numbers and words it runs by, read from the TOML files under policy/."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+serde.workspace = true
+toml.workspace = true

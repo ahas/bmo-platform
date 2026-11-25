@@ -1,0 +1,58 @@
+# The names under a worker's workbench agency keeps (docs/worker-bench.md, 「An item's scratch」): the
+# folder that holds each item's scratch, one folder per item number, and what an item's own database on
+# the store's cluster is named from, the item number and an underscore following it, which a job's
+# prompt names in its bench header (`[bench]` below).
+
+[workbench]
+scratch = "items"
+item_database = "bmo_item_"
+
+# How much of its item's notes a job's prompt carries (docs/api.md, 「assignments and jobs」): the newest notes
+# that fit these bytes, and the line saying how many older ones were left out, with `{n}` their count.
+[notes]
+most_bytes = 4096
+left_out = "{n} older notes are left out of this prompt; they stand on the item."
+
+# What opens a job's prompt under its title where checkouts of other repositories are lent to it
+# (docs/worker-slots.md, 「A checkout lent to a job」): the heading, the line before the list, and one line a
+# checkout, with `{repository}`, `{path}` and `{branch}`.
+[lent]
+heading = "## Checkouts lent to this job"
+lead = "Each of these repositories' checkouts is this job's until it ends, standing on the job's branch. Work, commit and close there as in this job's own checkout; one close closes them all, each named by a --checkout."
+line = "- `{repository}`: `{path}`, on `{branch}`"
+
+# The preamble bundle a job's prompt carries under its title (docs/worker-bench.md, 「The bundle is agency's
+# header plus the owner's text」): the header's heading and its lines, each said where it holds, then the heading
+# the repository's preamble stands under as the owner wrote it. `{checkout}`, `{repository}` and `{path}` name the
+# job's checkout; `{slot}` its support number; `{branch}` the item's branch; `{head}` and `{origin}` in the line
+# of a git checkout what `on_branch` or `detached` and `origin` or `no_origin` say, with `{branch}`, `{commit}`
+# and `{origin}` where it stands and its origin's address; `{workbench}`, `{scratch}` and `{database}` the
+# workbench folder, the item's folder in it and its database's name; `{log}`, `{start}`, `{restart}` and
+# `{stop}` the dev server's log and the lines that start, restart and stop it.
+[bench]
+heading = "## This job's checkout"
+checkout = "This job runs in `{checkout}`, a checkout of `{repository}` at `{path}`."
+support = "It is support checkout {slot} of `{repository}`, a worktree of its own with a workbench of its own. Where the repository's preamble names the base checkout's workbench, console or ports, it means this checkout's own."
+git = "`{path}` is a git checkout {head}; {origin}. Commit in it and close as the closing steps say."
+on_branch = "on the branch `{branch}`"
+detached = "detached at commit `{commit}`"
+origin = "its origin is `{origin}`"
+no_origin = "it has no origin"
+not_checkout = "`{path}` is not a git checkout: there is nothing to commit, push or deploy. Skip the closing steps that need git, and make no repository."
+branch = "It stands on the item's branch `{branch}`. The close lands that branch, so it is never pushed."
+workbench = "Its workbench folder is `{workbench}`, where what jobs here reuse across sessions is kept. What this item alone needs goes in `{scratch}`, and a PostgreSQL database made for it on this machine's cluster is named `{database}` followed by anything; both go once no job of the item is open."
+dev = "The repository's dev server stands in a pane outside this job, and only once this job starts it: start it before looking at what it serves. Start it with `{start}`, restart it with `{restart}` and stop it with `{stop}`; its log is `{log}`. A dev server that is down, failing or serving stale code is restarted and the work goes on; it is never left as unfinished."
+preamble_heading = "## The repository's preamble"
+
+# How what a person wrote for a job's worker, the owner's part of its preamble and a word handed to a running job,
+# is put into the worker's language on its way in (docs/worker-language.md, 「What agency translates on the way
+# in」): the language the gate is asked for, by the tag the gate's translation policy names; the most originals one
+# call to the gate carries, as the gate's contract bounds them; the longest one hand-over waits for the gate's
+# answer before it goes on with the texts as written; the line set over a text that goes in untranslated; and the
+# words set after a title that goes in untranslated, as the queue tools mark one.
+[translation]
+language = "en"
+most_originals = 16
+wait_ms = 90000
+untranslated = "The text below could not be translated into English and stands in its original language."
+untranslated_title = "[not translated]"

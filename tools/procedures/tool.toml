@@ -1,0 +1,15 @@
+# Agency's procedures as resources (docs/tools.md, 「The procedures」): one document each, listed and read under
+# the `bmo` namespace, to a session holding `room.tools`. The tool serves no entry, and its executable answers
+# only what the documents are.
+
+[tool]
+name = "procedures"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p procedures-tool && cp "$BMO_CARGO_TARGET/release/procedures-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["procedures-tool"]
+
+[resources]
+namespace = "bmo"
+capabilities = ["room.tools"]

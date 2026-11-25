@@ -1,0 +1,359 @@
+# What agency's control routes answer a caller with where they refuse a change (docs/api.md). Each
+# `{name}` is filled in with what it names.
+
+# A request no route can read.
+[request]
+not_json = "The request body is not JSON."
+action = "The requested action is not valid."
+
+# The fallback roads and the run modes: a work key no provider can answer ({key} unknown to the routes),
+# a {provider} model list that could not be had for {why}, the provider order and switches, and the
+# model settings retired for the tiers.
+[fallback]
+no_provider = "No provider that is on can answer this work key. Check the providers' installs, keys and model settings."
+models_unread = "The {provider} model list could not be read: {why}"
+unknown_key = "Unknown fallback key: {key}"
+models_retired = "Per-provider model settings are retired. Use the model tier settings."
+order = "The order must name each of {providers} once."
+all_off = "Not every provider can be turned off: keep at least one on."
+not_carried = "{provider} cannot carry this run."
+provider_switch = "A provider's name and an on or off value are needed."
+run_mode = "The run mode is automatic or one provider."
+unknown_action = "Unknown fallback action."
+not_offered = "The {key} key cannot be put on {mode}."
+# What a tier screen's cell says where a work key cannot go out on a provider: one short clause, and the whole
+# of why beside it, {provider} the provider's label and {line} the key's line.
+cell_off = "Switched off."
+cell_off_detail = "{provider} is switched off in the provider order, so the key goes out on it only once it is turned on."
+cell_not_carried_detail = "{provider}'s program does not carry the {line} line the key runs on, so the key never goes out on it."
+cell_unsettled = "A choice to review."
+cell_unsettled_detail = "An owner's choice for this key on {provider} from before the tiers waits for review on the tier screen."
+cell_unresolved = "No mapping."
+
+# The Claude accounts: what a change to one names wrongly, an {id} or a {name} not known or already
+# taken, a name longer than its {most} characters, a credential kind that is none of {kinds}, a credential
+# path that is not what it says, an endpoint account's base URL and key file missing or not what they
+# say, a base prompt none that is kept, and the order and switches that would leave no account to run on.
+[accounts]
+switch = "An account and an on or off value are needed."
+run_on = "An account to run on is needed."
+credential_kind = "A credential's kind is one of: {kinds}."
+credential_path = "Give the credential's path."
+endpoint_needed = "An endpoint account needs its endpoint's base URL."
+endpoint_url = "An endpoint's base URL is an absolute http or https address."
+key_file_needed = "An endpoint account needs the file its key sits in."
+key_not_file = "A key's path must be a file."
+models_shape = "The models are an object from opus, sonnet or haiku to the endpoint's model id."
+base_prompt_shape = "A base prompt is a prompt's name, none, or null."
+name_needed = "Give the account a name."
+which_to_change = "Which account to change is needed."
+which_to_remove = "Which account to remove is needed."
+choice = "The account is automatic or one account."
+unknown = "There is no account {id}."
+off = "{name} is turned off."
+no_id = "No identifier could be made for the account."
+id_shape = "An identifier is 2 to 32 characters opening with a lowercase letter or a digit, with only dots, underscores and hyphens besides."
+id_taken = "There is already an account {id}."
+name_empty = "The account's name is empty."
+name_long = "An account's name is at most {most} characters."
+name_taken = "There is already an account named \"{name}\"."
+path_empty = "The credential's path is empty."
+path_relative = "The path must be absolute."
+path_missing = "That path does not exist."
+path_not_directory = "That path is not a directory."
+path_not_file = "A token's path must be a file."
+order = "The order must name each registered account once."
+last_off = "Not every account can be turned off: keep at least one on."
+last_gone = "The last account cannot be removed."
+chosen_off = "An account that is off cannot be chosen. Turn it on first."
+base_prompt = "There is no base prompt {name} for the account to name."
+secret_needed = "An api-key account needs the name of the secret its key sits in."
+secret_name = "A secret is named by one plain file name in the secret store."
+lend_owner = "Whether an account is lent is the administrator's alone to set."
+not_unit_owned = "{name} is a person's own account, which no organisation can own."
+unit_owner = "Which organisation an account belongs to is the owner's alone to set."
+unit_named = "An organisation is named by its unit's number, or null to give the account back to the platform."
+platform_only = "Ordering or choosing the platform's accounts is the owner's alone."
+
+# A Claude account signed in from the console (docs/cache-fallback.md, 「Signing an account in from the console」):
+# what is refused, with `{name}`, `{path}`, `{login}`, `{node}` and `{said}` filled in.
+[logins]
+which = "Name the account to sign in again, or a name for a new one, not both."
+not_directory = "{name} keeps no login of its own: only a directory account is signed in from here."
+directory_taken = "{path} already holds files: give the account another name."
+no_link = "The sign-in gave no address to approve it at: {said}"
+none = "There is no sign-in {login} under way: start it again."
+code_needed = "Paste the code the sign-in page shows."
+refused = "The sign-in did not take the code: {said}"
+no_login = "The sign-in ended but left no login in {path}."
+silent = "the CLI said nothing"
+no_node = "There is no node to sign you in on yet."
+node_not_attached = "{node} is not attached now: sign in once its link is heard again."
+node_unready = "{node} has no ready workplace to sign in on yet."
+login_elsewhere = "{name} was signed in on {node}, not on the PC you sign in on now: sign a new login in instead."
+no_cli = "Claude Code is not installed on {node} yet: it is being installed now, so sign in again in a few minutes."
+unread = "The sign-in's pane on {node} could not be read: {said}"
+
+# A person's own keys for the gateway's roads (docs/supply.md, 「What a person brings」): a call naming no
+# person, a {road} no member serves, a key {id} not the caller's, a change naming nothing it takes, and the
+# off-boarding a person's own call asks.
+[personal_supply]
+no_person = "Only a signed-in person keeps keys of their own."
+unknown_road = "No member of the gateway serves the road {road}."
+road_needed = "Name the road the key serves."
+unknown = "There is no key {id} of yours."
+place = "A key's place is a whole number from 1."
+enabled = "A key's switch is true or false."
+nothing = "Give the key's place or its switch."
+off_boarding = "Off-boarding is the deployment's own call."
+taken = "That secret already stands as your key for {road}."
+
+# An organisation's own supply (docs/supply.md, 「Organisation supply」): a caller who heads no such unit, the
+# account service out of reach, a unit whose chain leaves organisation supply closed, a key {id} of no such unit's,
+# a switch that is not true or false, and a secret the unit already holds as its key for {road}.
+[organisation_supply]
+not_head = "Only a head of the unit, or the owner, manages its own supply."
+unchecked = "Whether you head the unit could not be checked: the account service did not answer."
+closed = "The unit's supply is closed: the platform has not opened organisation supply to its company, or a unit above closed it."
+unknown = "There is no supply {id} of the unit's."
+enabled = "A switch is true or false."
+taken = "That secret already stands as the unit's key for {road}."
+no_person = "Only a signed-in person reads the sources their organisations leave open."
+
+# A worker brought back to this machine with no path of this machine, and a worker's own sampling: an
+# {agent} not known, one whose {label} is no worker's or a support worker's that follows its base, a save
+# that is not names with values, and a setting {name} the sampling does not take.
+[workers]
+back_here_path = "To bring it back to this machine, give a path on this machine."
+not_found = "There is no worker {name}."
+nothing = "There is nothing to change."
+not_removed = "It could not be removed."
+
+[workers.sampling]
+no_agent = "There is no agent {agent}."
+not_worker = "{label} is not a worker, so it keeps no sampling of its own."
+follows_base = "{label}'s sampling follows its base worker's."
+shape = "A sampling is names paired with values."
+unknown = "The sampling has no setting {name}."
+
+# An agent's own switches and its registration: an {agent} not known, one that answers in no room, the
+# {gates} its turn passes, the {levels}, {roles} and {kinds} a choice must be one of, an owner that is no
+# account id, and an agent whose registration cannot end, by its {label}: one the deployment seeds, and
+# one a turn holds now. A fixed model's refusals name the {providers} agency carries, a provider's {label},
+# and the {line} an agent's runs go out on.
+[agents]
+not_found = "There is no agent {agent}."
+no_gates = "{agent} answers in no room, so its turns pass no gate."
+gates_of = "The gates {agent}'s turn passes are {gates}."
+gate_switch = "A gate is on or off."
+follows_tier = "{agent}'s thinking and effort follow the tier settings."
+follows_base = "{agent}'s thinking and effort follow its base worker's."
+thinking = "Thinking is on, off or the default."
+effort = "Effort is one of {levels}, or the default."
+role = "A role is one of {roles}."
+kind = "A kind is one of {kinds}."
+owner = "The owner is the id of a login account, or none for the administrator's."
+seeded = "{label} is an agent the deployment seeds, so its registration cannot be ended."
+running = "{label} is running a turn now. End it once the turn is over, or force it."
+model_method = "A model is selected by its key's route or kept as a fixed model."
+model_registration = "There is no registered model {name}."
+model_registration_missing = "A fixed model names a provider and a model, or a registered model."
+model_route_only = "{agent} answers on no supervisor route: only a supervisor selects one, and any agent may keep a fixed model."
+model_provider = "A fixed model's provider is one of {providers}."
+model_line = "{label} does not carry {agent}'s line, {line}."
+model_none = "{label} takes no model of its own to fix."
+
+# The roles: a {name} out of its shape of at most {most} characters, one a role already holds, or none the
+# store holds; a label past its {most} characters, {bundles} the policy declares, one of the {lines}, a cap, a
+# prompt, a description, a compaction threshold and a sessions setting; and a role that
+# stays, its runs going or waiting or a default the roles policy names.
+[agent_roles]
+name = "A role's name is lowercase letters and digits in words joined by single hyphens, starting with a letter, at most {most} characters."
+taken = "There is already a role {name}."
+unknown = "There is no role {name}."
+label = "A role's label is 1 to {most} characters."
+bundles = "A role gives a list of bundles, each one of {bundles}."
+line = "A role's line is one of {lines}."
+bound = "A role's cap is a whole number of zero or more."
+prompt = "A role's prompt is text, or null for none."
+description = "A role's description is text, or null for none."
+fold_ratio = "A role's compaction threshold is a fraction above 0 and at most 1."
+sessions = "A role's sessions are keep, its runs going on in the session an earlier run left while its cache is warm, or fresh, each run opening its own."
+held = "{name} has runs going or waiting. Let them end first."
+default_role = "{name} is a role the roles policy names as a default, so it stays."
+
+# The base prompts: a {name} not known, already taken or out of its shape, a label or a text past its
+# {most} characters, a prompt the {agents} still choose or the {accounts} still name, an {agent} that
+# chooses none, and the reason the resets a changed prompt reaches are kept under.
+[base_prompts]
+unknown = "There is no base prompt {name}."
+label = "A label is 1 to {most} characters."
+text = "A text is 1 to {most} characters."
+name_shape = "A name starts with a lowercase letter and holds only lowercase letters, digits and hyphens, at most {most} characters."
+taken = "The name is already taken: {name}"
+in_use = "It cannot be removed while agents choose it: {agents}"
+in_use_accounts = "It cannot be removed while accounts name it: {accounts}."
+in_use_both = "It cannot be removed while agents choose it or accounts name it: agents {agents}; accounts {accounts}."
+not_chooser = "This agent does not choose a base prompt: {agent}"
+choice = "Choose a base prompt's name, or none."
+reset_reason = "base prompt changed"
+
+# A session's reset: an {agent} holding no session to clear, in a {room} or none, a body that names no
+# session, and the reason an ask is kept under.
+[sessions]
+none = "There is no session to clear: {agent}"
+none_in_room = "There is no session to clear: {agent} (room {room})"
+asked_shape = "Name the session to clear by its agent and its room."
+asked = "session reset asked"
+
+# A supervisor's settings: an {agent} that is no supervisor, a {field} a save does not take, a setting
+# {name} not known, an own piece's
+# {name} out of its shape, beside the {pieces} every supervisor has, or past its {most} characters, the
+# pieces {offered} to choose from, and the reason the rooms a saved generation reaches are reset under.
+[supervisors]
+not_supervisor = "There is no supervisor {agent}."
+generation_pairs = "Generation settings are names paired with values."
+not_generation = "Not a generation setting: {name}"
+reference = "The reference switch is on or off."
+brain = "The brain switch is on or off."
+tools = "A tool limit is null or a list of capabilities among {offered}."
+own_pairs = "Own pieces are names paired with texts."
+own_name = "The own piece name {name} cannot be used: it starts with a lowercase letter, holds only lowercase letters, digits and hyphens, is at most 40 characters, and is none of {pieces}."
+own_size = "The own piece {name} is 1 to {most} characters."
+pieces = "Pieces are chosen from {offered}."
+pieces_twice = "A piece cannot be put in twice."
+pieces_none = "A system prompt holds at least one piece."
+persona = "A persona is a text of at most {most} characters."
+registration = "Choose a registered model with an address."
+not_field = "Not a supervisor setting: {field}"
+thinking = "Thinking is on, off or the default."
+reset_reason = "generation settings saved"
+
+# A generation setting's value out of what it takes: its {name}, and the {span} it must stand in, made
+# of a {least} bound above or from its {min} and a {max} it may reach.
+[generation]
+switch = "{name} is on or off."
+number = "{name} is a number."
+whole = "{name} is a whole number."
+range = "{name} is {span}."
+above = "above {min}"
+least = "at least {min}"
+most = "{least} and at most {max}"
+
+# The tier settings: a provider, a tier, a work key or a mapping not chosen, kept earlier settings not yet
+# accepted, and an answer ceiling only the {providers}
+# that cap one take, out of its {choices}.
+[tiers]
+provider = "Choose a provider."
+tier = "Choose a tier."
+key = "Choose a registered work key."
+conflicts = "Review the kept earlier settings and agree to the tier first."
+mapping = "Choose a provider, a model and an effort."
+answer_tokens = "An answer ceiling is set only on {providers}, as one of {choices}."
+
+# The registry of models: what names a registration — a {tier}, a {worker}'s pin, a {supervisor}'s pin, a
+# work {key}'s own registration, a model file {entry} — a name, a node, an address or a key file out of its
+# shape, a field's {label} out of its {min} to {max}, a label past its {most} characters, a {name} not
+# registered or with no address on a {node}, {what} cannot be removed while the {names} name it, an address
+# refused to a {name} naming a card {service}, languages past their {most} or out of their shape, an owner
+# that is no user's id or set by another than the owner, a gateway member {name} the members file holds none
+# of, and that file unread for {why}.
+[registry]
+tier = "the {tier} tier"
+worker_pin = "worker {worker}'s pin"
+supervisor_pin = "supervisor {supervisor}'s pin"
+key_pin = "work key {key}'s own registration"
+model_file = "model file {entry}"
+name = "A name starts with a lowercase letter and holds only lowercase letters, digits and hyphens, at most 40 characters."
+node = "A node's name starts with a lowercase letter and holds only lowercase letters, digits and hyphens, at most 40 characters."
+url_unread = "The address could not be read."
+url_shape = "An address is an http(s) address ending in /chat/completions."
+key_file = "The key file's name could not be read."
+whole = "{label} is a whole number from {min} to {max}."
+label = "A label is 1 to {most} characters."
+model = "The model's name could not be read."
+context_label = "The context window"
+answer_label = "The answer size"
+answer_under_window = "The answer size must be smaller than the context window."
+switches = "The thinking default and the automatic walk are each on or off."
+keeps_research = "Whether voyagers keep to this model is on or off."
+unknown = "Not a registered model: {name}"
+key_text = "A key is given as text."
+role_files = "Whether an address keeps role files is on or off."
+in_use = "{what} cannot be removed while something names it: {names}"
+last_address = "The last address of {name}"
+no_address = "{name} has no address on {node}."
+the_registration = "The registration {name}"
+card_service = "A card service starts with a lowercase letter and holds only lowercase letters, digits and hyphens, at most 40 characters."
+card_role_files = "Whether a card service's instances keep role files is on or off."
+card_service_address = "{name} names the card service {service}: where it stands is the arbiter's to say, so it holds no address."
+languages = "Languages are a list of at most {most} names, each a language's English name of letters, spaces and hyphens, at most 40 characters, or none."
+account = "An owner is a user's id, a whole number, or none for the platform's."
+owner_only = "Who owns a model or a member of the gateway is the owner's alone to set."
+unknown_member = "Not a member of the gateway: {name}"
+members_unread = "The gateway's members file could not be read: {why}"
+key_file_name = "A key file is one plain file name in the platform's secret space."
+key_both = "An address gives a key or names a key file, not both."
+
+# The model catalogue: a source, a {what}'s word, a field's {label} out of its {min} and {max}, a label
+# or a note past its {most} characters, a {name} not catalogued or being switched to, an {engine} serving
+# it or busy — set aside for its {reason}, or answering {count} requests — an entry with no engine or no
+# way to reach its file, and a unit that could not be made for {why}.
+[models]
+source_unread = "The source could not be read."
+source_address = "The source's address could not be read."
+source_shape = "A source is an https address or a path under the data root."
+word_unread = "The {what}'s name could not be read."
+above = "{label} is above {min} and at most {max}."
+whole = "{label} is a whole number from {min} to {max}."
+number = "{label} is a number from {min} to {max}."
+label = "A label is 1 to {most} characters."
+file = "A file is a file name ending in .gguf, not a path."
+bytes = "A size is a number of bytes, a positive whole number."
+sha256 = "A SHA-256 is 64 lowercase hexadecimal characters."
+note = "A note is at most {most} characters."
+engine_word = "engine"
+registration_word = "registered model"
+thinking = "Thinking is on, off or the default."
+name = "A name starts with a lowercase letter and holds only lowercase letters, digits and hyphens, at most 40 characters."
+unknown = "Not a model in the catalogue: {name}"
+switching_to = "{name} cannot be removed while the engine is being switched to it."
+serving = "{name} cannot be removed while the {engine} serves it."
+aside = "The engine is set aside ({reason}). Switch once the work holding the card has ended."
+in_hand = "The engine is answering {count} requests. Switch once they are answered."
+no_engine = "{name} names no engine to serve it."
+nowhere = "{name}'s file lies on no node and has no https source to fetch, so it cannot be brought to the head."
+engine_switching = "The {engine} engine is being switched to {entry}; try again once that has ended."
+unit_failed = "The run unit could not be made: {why}"
+node_unread = "The node's name could not be read."
+
+# A supervisor registered or changed: a name out of its shape or already an agent's, no label, and call names
+# out of their bounds.
+[supervisor_roster]
+name = "A name starts with a lowercase letter and holds only lowercase letters, digits and hyphens, 40 characters at most."
+name_taken = "The name {name} is already another agent's."
+label = "Enter a label."
+call_names = "Call names are a list of at most {most} names, each 1 to {longest} characters with no comma."
+
+# A supervisor's reset: one naming no supervisor or no range, an {agent} that is no supervisor or whose
+# folder is the brain root, and the reason a room session it ended is recorded under.
+[supervisor_reset]
+no_agent = "Name the supervisor to reset."
+no_range = "Choose at least one range to take, the conversation or the person record. To start only its session afresh, reset the session."
+not_supervisor = "There is no supervisor {agent}."
+brain_root = "{agent}'s memory folder is the brain root, so it is not reset."
+reason = "supervisor reset"
+
+# The cards the arbiter's master grants a run on a registration naming a card {service}: a master named
+# nowhere, a run waiting on its grant and {why}, a master that could not be reached, a {demand} handed in
+# that the master no longer holds, what an ask hands back where its run's own model stood down for it, a
+# {run} stopped while it waited, its demand given back, and a card's {entry} the gateway did not serve within
+# its {seconds}.
+[cards]
+no_master = "{name} names the card service {service}, and no arbiter master is named (AGENCY_ARBITER_URL)."
+waiting = "Waiting for a card of {service}: {why}"
+unreachable = "The arbiter's master could not be reached; asked again."
+gone = "The demand {demand} handed in is one the arbiter's master no longer holds."
+stood_down = "Your own model stood down while this work ran on its card, and it has come back."
+stopped = "{run} was stopped while it waited for a card of {service}; its demand was given back."
+unserved = "The gateway did not take {entry} into its table within {seconds} seconds."

@@ -1,0 +1,22 @@
+# A supervisor puts the personal app a worker ask wrote for the person it serves, sends it back to an earlier
+# version, or removes it (docs/tools.md, 「The app put」). A put waits for the build on the person's PC however long
+# it takes.
+[tool]
+name = "app_put"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p app-put-tool && cp "$BMO_CARGO_TARGET/release/app-put-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["app-put-tool"]
+
+[[entry]]
+namespace = "bmo"
+name = "app_put"
+title = "Put a personal app"
+description = "Build the personal app a worker run wrote for the person you serve into a new version on their PC and put it, so it stands in their sessions' toolbook as my/<name> from the next turn; or send it back to an earlier version, or remove it."
+input = "app_put.json"
+capabilities = ["room.tools"]
+
+[entry.listing]
+line = "- app_put — put the personal app a worker run wrote for your person, send it back to an earlier version, or remove it"
+order = 5

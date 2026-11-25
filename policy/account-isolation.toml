@@ -1,0 +1,79 @@
+# An account's isolation node on this machine (docs/account-isolation.md): its name, the system user it runs as and
+# that user's home, and the sandbox every program of it runs in. The scope these words hold changes on the owner's
+# direct word alone (docs/account-isolation.md, 「Who may change it」).
+
+# The isolation node of an account is this prefix and the account's id.
+node_prefix = "account-"
+
+# The system user an isolation node runs as is this prefix and the account's id; its home stands under the base.
+user_prefix = "bmo-account-"
+home_base = "/home"
+
+# The folder in the home the link's two sockets stand in, owned by the owner's user and shared with the account's
+# group alone.
+link_folder = "link"
+
+# The folder in the home every program of the node sees as /tmp and /var/tmp.
+scratch_folder = "tmp"
+
+# How long after a setup of an isolation node that left something missing agency's server stands it up again by
+# itself, in seconds.
+setup_again_seconds = 3600
+
+# The folder that stands only where systemd is the system manager, which the sandbox's transient units need.
+system_manager_mark = "/run/systemd/system"
+
+# The words every program of an isolation node is started under, ahead of its own command line: a transient unit of
+# the system manager's, started with sudo by the owner's user, running as the account's user with the whole file tree
+# read-only but the home, every other home, /root and every user's runtime folder hidden under empty read-only
+# folders, its scratch folder as its temporary folders, a shared-memory folder of its own, no new privileges, no
+# process but its own user's to see in /proc and none of the kernel's other files there, and the firewall below stood
+# as root before its program starts, so a sandbox whose firewall does not stand runs nothing. Standard input and
+# output are the caller's, and a program it leaves standing outlives the command that started it. {user} is the
+# account's user, {home} its home, {scratch} its scratch folder, {path} the search path its programs are handed,
+# {nft} the firewall's program and {firewall} the firewall below, filled in.
+sandbox = [
+  "sudo", "-n", "systemd-run", "--quiet", "--pipe", "--wait", "--collect",
+  "--uid={user}", "--gid={user}", "--working-directory={home}",
+  "--setenv=HOME={home}", "--setenv=USER={user}", "--setenv=LOGNAME={user}", "--setenv=SHELL=/bin/bash",
+  "--setenv=PATH={path}",
+  "--property=ProtectSystem=strict",
+  "--property=TemporaryFileSystem=/home:ro /root:ro /run/user:ro",
+  "--property=BindPaths={home}",
+  "--property=BindPaths={scratch}:/tmp {scratch}:/var/tmp",
+  "--property=TemporaryFileSystem=/dev/shm:mode=1777",
+  "--property=NoNewPrivileges=yes",
+  "--property=ProtectProc=invisible",
+  "--property=ProcSubset=pid",
+  "--property=ExecStartPre=+{nft} \"{firewall}\"",
+  "--property=KillMode=process",
+  "--",
+]
+
+# The network rule of an isolation node's user, one script of the firewall's, which replaces the user's own table
+# whole in one step: every connection the user makes to an address of this machine, its loopback and its own address
+# on every interface, or to a private, shared, link-local or multicast address is refused at once, a stream with a
+# reset, but for the ports this machine's runs reach on the loopback, the tool host's and the model gateway's, and
+# the system's stub resolver. An address of this machine is
+# told by the loopback device the system routes every one of them through, which every kernel's firewall reads,
+# where a lookup of the address's type needs a module some kernels lack, WSL's among them; the loopback's own block
+# is refused by its address as well, since a system may route it through a device of its own, as WSL's mirrored
+# network does to reach the Windows side's loopback. It is keyed on the user, so it holds for every program the user
+# runs, and handed to the firewall's program as one word, so it holds no double quote, backslash, dollar sign or
+# percent sign. {user} is the account's user, which names the table, and {ports} the loopback ports it may reach,
+# separated by commas.
+firewall = "add table inet {user}; delete table inet {user}; table inet {user} { chain refuse { meta l4proto tcp reject with tcp reset; reject; }; chain account { ip daddr 127.0.0.1 tcp dport { {ports} } accept; ip daddr { 127.0.0.53, 127.0.0.54 } meta l4proto { tcp, udp } th dport 53 accept; meta oif lo goto refuse; ip daddr { 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4 } goto refuse; ip6 daddr { ::1, fc00::/7, fe80::/10, ff00::/8 } goto refuse; }; chain out { type filter hook output priority filter; policy accept; meta skuid {user} jump account; }; }"
+
+# The programs that make an isolation node's user, its home and its folders, the firewall's program its sandbox
+# stands the network rule with, and the programs its teardown stops the user's units, ends its processes and takes
+# the user away with (docs/account-isolation.md, 「Taking it down」), run as root by these paths and never by a name a
+# search path resolves; the setup refuses a machine where one does not stand at its path.
+[user_programs]
+useradd = "/usr/sbin/useradd"
+chmod = "/usr/bin/chmod"
+setfacl = "/usr/bin/setfacl"
+install = "/usr/bin/install"
+nft = "/usr/sbin/nft"
+systemctl = "/usr/bin/systemctl"
+pkill = "/usr/bin/pkill"
+userdel = "/usr/sbin/userdel"

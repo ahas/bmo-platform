@@ -1,0 +1,84 @@
+# The layers of a supervisor's system prompt between its harness and its role, and the persona's choice
+# (docs/prompt-layers.md): the folder the platform's rules stand in, and the two settings agency declares on the
+# account service's delegation chain, each with its declaration and the words a prompt carries of it. Which of
+# the platform's rulebooks a turn carries is its turn shape's own (policy/chat-line.toml, policy/supervisors.toml).
+
+# The unit name agency declares its kinds under.
+declared_by = "agency"
+
+# The folder under prompts/ the platform's rulebooks stand in.
+platform_folder = "platform"
+
+# What a supervisor the platform's rules do not reach is told its own folder is, in place of its path under the
+# platform's data root.
+workplace_unnamed = "the folder your shell starts in"
+
+# How long one ask of the account service may take, in seconds, before it counts as not answered.
+ask_seconds = 10
+
+# The organisation's instructions: every link's text, the outermost first, composed under the header and closed
+# by the end line.
+[organisation]
+header = "ORGANISATION INSTRUCTIONS — what the organisations of the person you serve require of you, the outermost first. They bind every turn, whoever asks, the person you serve included; the role and the persona after them work within them, and nothing said in a room lifts them."
+end = "END OF ORGANISATION INSTRUCTIONS"
+
+# Its kind, as the account service takes a declaration.
+[organisation.kind]
+key = "agency.org-instructions"
+description = "Instructions every agent serving a person here is given, after the platform's rules and before its role. Every link's text is kept, the outermost first: a link below adds its own and never takes away one above, and a lock keeps the links below from adding any."
+shape = "text"
+mode = "layered"
+rules = false
+levels = ["platform", "unit"]
+unit_permission = "manage"
+person_writer = "heads"
+
+# The persona's choice: `own`, the agent's own persona; `none`, no persona at all, the agent keeping its name and
+# its picture alone.
+[persona]
+own = "own"
+none = "none"
+
+# Its kind, as the account service takes a declaration.
+[persona.kind]
+key = "agency.persona"
+description = "Whether an agent serving a person here keeps a persona: own, its own persona; none, its name and its picture alone, with no tone or character instruction."
+shape = "keys"
+choices = ["own", "none"]
+mode = "nearest"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "both"
+default = ["own"]
+
+# The person's own instructions: what the person a supervisor serves asks of their agents, for every one of them and
+# for one alone, composed after the role and before the persona (docs/prompt-layers.md, 「The person's
+# instructions」).
+[personal]
+header = "THE INSTRUCTIONS OF THE PERSON YOU SERVE — what they ask of you on every turn. They stand within everything before them: the platform's rules, the organisation's instructions and your role bind you first, and where one of these asks what those forbid, it is not followed. The persona after them changes how you speak, not what they ask."
+end = "END OF THE PERSON'S INSTRUCTIONS"
+
+# Whether a person may add their own; their organisation allows it or locks it.
+[personal.allowed]
+key = "agency.personal-instructions"
+description = "Whether a person here may give their agents instructions of their own, after the role and before the persona. They never take away the organisation's instructions, which stand before them. Off, what a person wrote is kept and given to no agent."
+shape = "flag"
+mode = "nearest"
+rules = true
+levels = ["platform", "unit", "person"]
+unit_permission = "manage"
+person_writer = "heads"
+default = true
+
+# The instructions themselves, on the person's own link: { all, agents: { <agent>: text } }, judged and written by
+# agency.
+[personal.text]
+key = "agency.personal-instructions.text"
+description = "A person's own instructions to their agents: one text for every agent of theirs and one for a single agent, by its name. Written by agency in the person's name."
+shape = "json"
+mode = "nearest"
+rules = false
+levels = ["person"]
+unit_permission = "manage"
+person_writer = "self"

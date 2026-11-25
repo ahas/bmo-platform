@@ -1,0 +1,361 @@
+# What agency's verbs print to a person at a shell (docs/api.md). Each `{name}` is filled in with what it
+# names.
+
+# One Claude account's token for the work nodes, made and kept on this machine by
+# `bmo-agency node claude-token` (docs/work-nodes.md, 「The logins on a node」).
+[claude_token]
+# No account is registered under the name or id given, {named}.
+unknown_account = 'claude-token: no registered Claude account is named "{named}". List the accounts with bmo-agency agent.'
+# The account {name} is an endpoint account, which runs on this machine alone and has no token for the nodes.
+endpoint_account = 'claude-token: "{name}" is an endpoint account, which runs on this machine alone and has no token for the work nodes. Nothing was kept.'
+# The verb starts on the account {name}.
+making = "Making the work nodes' token of the Claude account \"{name}\"."
+# The browser's sign-in is to be approved as the account, its address {email} where its directory names one.
+approve = "When the browser opens, check it is signed in to this account, and approve."
+approve_as = "When the browser opens, check it is signed in as {email}, and approve."
+# The CLI's sign-in did not run through.
+sign_in_failed = "claude-token: claude setup-token did not run through. Nothing was kept."
+# The prompt for the token, which is not shown as it is typed.
+paste = "Paste the token printed above and press Enter (it is not shown): "
+# The paste was given up.
+stopped = "claude-token: stopped. Nothing was kept."
+# Why a pasted text, refused as {fault}, was not kept.
+refused = "claude-token: {fault} Nothing was kept."
+not_a_token = "It is not a token claude setup-token printed (one starting sk-ant-oat)."
+cut = "The token was cut off or holds a space. Paste it again as one line."
+# Where the token was kept, {file}, and what follows from it.
+kept = "Kept: {file}"
+from_next_run = "From the next run on, every node runs Claude Code on this token."
+
+# The model catalogue as `bmo-agency model` tells it (docs/model-catalogue.md, 「Where it is set」).
+[models]
+# How the verb is run, said where it was run otherwise.
+usage = """usage: bmo-agency model [--db <store>]
+       bmo-agency model add <name> --file <file.gguf> --bytes <bytes> --sha256 <hash> [fields…]
+       bmo-agency model set <name> [fields…]
+       bmo-agency model remove <name>
+       bmo-agency model use <name>
+       bmo-agency model --entry <name> --json
+       bmo-agency model --placed <name> <node>
+
+fields: --label <name> --source <https address | path under the data root> --engine <engine> --registration <registered model>
+        --note <note> --thinking on|off --temperature <number> --top-p <number> --presence-penalty <number> --max-tokens <number>
+In set, a field given as default or none is emptied.
+
+With no arguments it shows every entry of the catalogue and the latest model switch of each engine.
+use switches the entry's engine to it: it stands a user unit in which the engine's installer downloads, checks and installs it, and ends at once.
+--entry and --placed are the engine installers'."""
+# The entry {name} the verb was asked about is not in the catalogue, or already is.
+not_held = "Not a model in the catalogue: {name}"
+already_held = "The name is already taken: {name}"
+# The node {node} the file of entry {name} lies on was written down.
+placed = "Wrote that {name}'s file lies on {node}."
+removed = "Removed {name} from the catalogue."
+# A choice of entry {entry} for engine {engine} began, its unit's log at {log}.
+choosing = "Began switching the {engine} engine to {entry} (user unit bmo-model-use-{engine}, log {log})."
+
+# The listing: the latest choice for each engine, then each entry over five lines.
+[models.listing]
+# The engine, the entry chosen, who chose it, when, how it stands, and its step and reason where it has them.
+use_line = "model switch · {engine} ← {entry} · {chosen_by} · {at} · {state}{step}{reason}"
+serving = " [serving]"
+file = "  file {file} · {bytes} B · sha256 {sha256}"
+where_line = "  source {source} · engine {engine} · registered model {registration} · nodes {nodes}"
+defaults = "  generation defaults · thinking {thinking} · temperature {temperature} · top_p {top_p} · presence_penalty {presence_penalty} · max_tokens {max_tokens}"
+thinking_on = "on"
+thinking_off = "off"
+note = "  note {note}"
+
+# A choice carried out by its unit: the step it is at while the engine's installer runs, a choice that is
+# not running, {id}, and an installer that failed saying nothing.
+[models.run]
+installing = "the installer is running"
+not_running = "Not a model switch in progress: {id}"
+failed = "The installer failed."
+
+# What a node's workspace in herdr shows (docs/work-nodes.md, 「In herdr」): the node as the node service
+# lists it, how it is reached, and what Enter does there.
+[node_pane]
+# How the node is reached, {kind}, as the node service writes it: ssh, or jake for a node behind a hub.
+kind = "connection   {kind}"
+# The state word {state}, with what the service says of it, {detail}, in brackets where it says something.
+state = "state        {state}{detail}"
+detail = " ({detail})"
+ssh_enter = "Press Enter to log in."
+no_login = "A node reached through a hub offers no shell, so only its state is shown."
+# The node, {name}, left the list, so its pane closes.
+gone = "The node {name} is no longer listed, so this pane closes."
+
+# What `bmo-agency worker fold` says of the job workers' sessions it folds after a prefix change
+# (docs/agent-control.md): each line under its head, what it leaves alone and why, what it would fold, what
+# became of each fold, and the run's last line. {name} is a session's worker and model, {session} its id,
+# {count} how many.
+[worker_fold]
+# Every line the verb prints opens with this, {line} the rest of it.
+line = "fold: {line}"
+# With --dry-run, a session that would be folded.
+due = "{name}: would fold {session}"
+
+# A session left as it stands: no prefix word on its row, or a prefix that has not moved.
+[worker_fold.untouched]
+no_record = "{name}: no prefix record, left as it is (--all folds it)"
+same = "{name}: its prefix has not moved, nothing to fold"
+
+# What became of one fold, after the session's {name}.
+[worker_fold.outcomes]
+compacted = "{name}: folded"
+too_short = "{name}: too little had built up; the summariser found nothing to fold"
+busy = "{name}: a job holds its checkout's lock, so it was skipped"
+failed = "{name}: could not be folded"
+
+# The run's last line: nothing found, {count} sessions with each outcome counted, and the {count} left
+# standing because their prefix had not moved.
+[worker_fold.tally]
+none = "no session to fold"
+sessions = "{count} sessions: {parts}"
+part = "{word} {count}"
+left = "{count} with their prefix unmoved"
+due = "would fold {count} sessions"
+
+[worker_fold.tally.words]
+compacted = "folded"
+too_short = "nothing to fold"
+busy = "skipped"
+failed = "failed"
+
+# The agents and their settings as `bmo-agency agent` tells them (docs/agent-control.md,
+# docs/worker-slots.md, docs/work-nodes.md, 「A checkout on a node」).
+[agents]
+# An order that does not name every provider once, each provider this build carries listed in {names}.
+provider_order = "Name every provider once: {names}"
+# A provider switched that this build does not carry.
+provider_unknown = "Unknown provider: name one of {names}."
+# An address's key in one word, the key itself never shown.
+key_usable = "key set"
+key_none = "no key"
+key_unusable = "key to check"
+# A switch given as something other than on or off, the flag {flag} as it was typed.
+on_off = "{flag} is on or off."
+heal_on_off = "--downgrade-heal is on or off."
+# An account named by an id or a name {named} that no account has.
+no_account = "There is no account named {named}."
+# A --kind that is none of the credential kinds, each listed in {kinds}.
+credential_kind = "--kind is one of: {kinds}."
+# The usage a misread --account-add or --account-set is answered with, and a --models text that is not
+# family words paired with model ids.
+account_add = "usage: bmo-agency agent --account-add <name> --path <dir|file> [--kind directory|token|endpoint] [--endpoint <url>] [--key-file <path>] [--models opus=<id>,sonnet=<id>,haiku=<id>] [--base-prompt <name|none>]"
+account_set = "usage: bmo-agency agent --account-set <account> [--name <name>] [--path <dir|file>] [--kind directory|token|endpoint] [--endpoint <url>] [--key-file <path>] [--models opus=<id>,sonnet=<id>,haiku=<id>] [--base-prompt <name|none>]"
+models_shape = "--models is opus, sonnet or haiku each paired with the endpoint's model id, as --models opus=<id>,sonnet=<id>,haiku=<id>."
+no_worker = "There is no worker named {worker}."
+# A repository named {name} that the store does not hold.
+no_repository = "There is no repository named {name}."
+# A support count that is neither `auto` nor a whole number from zero to the most one repository may have,
+# {most}.
+support_count = "A support count is auto or a whole number from 0 to {most}."
+# The usage a --support with no --set is answered with.
+support_usage = "usage: bmo-agency agent --set <repository> --support auto|<count>"
+# A worker brought back from a node with no path of this machine to work in.
+back_here_path = "Coming back to this machine, give this machine's path with --path."
+nothing_to_change = "There is nothing to change."
+# The two parts of a turn a gate stands in.
+pre_gate = "pre-gate"
+post_gate = "post-gate"
+
+# Why a base {base} cannot have its checkout on a node {node}, or lose it.
+[agents.node_checkout]
+not_base = "{base} is not a base worker."
+base_on_node = "{base} stands on node {node} itself, so it cannot have a node checkout."
+already = "{base} already has a checkout on {node}."
+# The checkout's name {name} the worker rule refuses.
+name_long = "{base}'s name is too long to name its node checkout ({name})."
+name_taken = "There is already an agent named {name}."
+path = "A node's path starts with / or ~/."
+missing = "{base} has no checkout on {node}."
+# The checkout's worker {worker} a job holds, or whose row could not be taken away.
+busy = "A job is running on {worker}, so it cannot be taken away now."
+not_removed = "{worker} could not be removed."
+
+# Why a worker {worker} cannot stand on a node {node}.
+[agents.node_placing]
+no_node = "There is no node named {node}."
+# The node's own reason {why} it takes no job.
+no_jobs = "{node} cannot take jobs: {why}"
+builtin = "The built-in worker is the checkout the deploy tree is built from, so it cannot leave this machine."
+# A support worker of {base}.
+support = "{worker} is a support worker of {base}, placed only by its base worker's settings."
+has_support = "{worker} has support workers or node checkouts, so its base checkout stays on this machine."
+path = "Placing it on a node, give that node's path too, starting with / or ~/."
+
+# A worker's dev server as `bmo-agency dev-server`, `bmo-agency dev-server list` and the dev-server pane
+# tell it (docs/worker-bench.md, 「Dev server」).
+# `bmo-agency dev-server start|restart|stop <worker>`: {worker} the worker, {group} the server's process
+# group, {log} its log, {seconds} how long was waited.
+[dev_servers.server]
+no_worker = "There is no worker named {worker}."
+not_up = "{worker}'s dev server is not up."
+down = "{worker}'s dev server is down."
+no_command = "The worker {worker} has no dev-server command."
+no_job = "No job is running on the worker {worker}, so its dev server is not started. A dev server stands only while a job runs."
+already_up = "{worker}'s dev server is already up (process group {group}). Read its output in {log}."
+# No new server stood before the request was taken away or the job let its hold go.
+not_started = "No new dev server stood before the pane closed or the job ended. Log: {log}"
+# The server came up, started anew or again: {done} is `started` or `restarted`.
+up = "{worker}'s dev server {done} (process group {group}). Ask the server itself whether it is ready, and read its output in {log}."
+started = "started"
+restarted = "restarted"
+
+# `bmo-agency dev-server list [--sweep]`: every worker's dev server and every run's record with what the
+# run still holds (docs/run-groups.md), with the memory each holds.
+[dev_servers.listing]
+head = "Workers' dev servers"
+# One worker's server: its process group {group}, how long it has stood {minutes}, its memory {megabytes},
+# and whether a job of it runs {job}.
+worker = "- {worker}: group {group}, {minutes} min up, {megabytes} MB, {job}"
+job_running = "job running"
+no_job = "no job running"
+left_head = "What runs hold"
+# One run's record: its name {run}, the folder it worked in {cwd}, whether its program still runs
+# {program}, how many processes it holds {count} and their memory {megabytes}.
+run = "- {run} in {cwd}: program {program}, {count} processes, {megabytes} MB"
+program_running = "running"
+program_ended = "ended"
+none = "- none"
+# How many servers and runs stand, {count}, and the memory they hold together, {megabytes}.
+total = "Total: {count}, {megabytes} MB"
+nothing_to_end = "No ended run holds anything."
+
+# The dev-server pane, line by line as it writes to its screen and its log.
+[dev_servers.pane]
+# Its heading: the worker, the workbench and the log.
+head = "Dev server · {worker}\nWorkbench: {workbench}\nLog: {log}"
+leftover = "An earlier dev server (process group {group}) is left standing; ending it."
+# A server started: its command and the directory it runs in.
+start = "Start: {command}  ({cwd})"
+# A server ended by itself with its code {code}, started again after {seconds}, and how many quick endings
+# in a row it has had where more than one, {quick}.
+ended = "The dev server ended (code {code}). Starting it again in {seconds} seconds{quick}."
+quick = " (quick ending number {count} in a row)"
+# Why the server is no longer wanted, put before what follows.
+job_over = "The job is over;"
+not_asked = "The job asked for the dev server to go down;"
+no_command = "There is no dev-server command or the worker is resting;"
+# {why} is one of the three above.
+closing = "{why} closing this pane."
+stopping = "{why} taking the dev server down."
+# Memory is short and no client is on the server.
+pressed = "Memory is short and nobody is on the dev server; taking it down and closing this pane. A job that needs it again starts it again."
+restarting = "Asked to, starting the dev server again."
+moved = "The dev-server command or its working path changed; starting it again."
+starting_now = "Asked to, starting the dev server now."
+pane_closed = "The pane closed; taking the dev server down."
+
+# A supervisor's session in a room followed as its standing pane prints it (docs/supervisors.md, 「The
+# session」): an {agent} not in the agents table, a {room} it holds no session in with the {rooms} it does,
+# each turn's heading with {who} spoke and {at} when, and each generation's heading.
+[supervisor_follow]
+usage = "usage: bmo-agency supervisor follow <room> --agent <agent>"
+unknown_agent = "'{agent}' is not a name in the agents table."
+no_session = "{label} holds no session in room '{room}'. Rooms it holds one in: {rooms}."
+turn = "── {who} · {at}"
+room = "room"
+generation = "══ generation {generation}"
+generation_opened = "══ generation {generation} · opened {at}"
+
+# The supervisor's verdict on a run past its clock, as `bmo-agency overtime` gives it
+# (docs/agent-control.md, 「A clock asks, it never cuts」).
+[overtime]
+# How the verb is run, said where it was run otherwise.
+usage = "usage: bmo-agency overtime --list | --keep <ask> [--for <length>] --why '<one line>' | --cut <ask> --why '<one line>'"
+# A length --for does not read as one: `20m`, `1h` or a plain number of minutes.
+length = "overtime: {length} is no length; give 20m, 1h or a number of minutes"
+# No ask stands open.
+none_open = "(no run is waiting on a verdict)"
+# One open ask: its number, the run and what it is doing, and when it was asked; it stands until a verdict
+# or the run's end.
+open = "#{ask} {run}: {what}; asked at {asked_at}, waiting on a verdict"
+# A verdict taken: kept until a moment, or cut within seconds.
+kept = "#{ask} {run}: kept until {until}"
+cut = "#{ask} {run}: cut; the run ends within seconds"
+# No ask has the number given, or it was settled already or its run ended.
+unknown = "overtime: no ask is numbered {ask}"
+closed = "overtime: ask {ask} is closed: its run was settled or ended, so there is nothing left to decide"
+
+# How much memory each program on this machine holds, as `bmo-agency machine memory` prints it
+# (docs/agent-control.md, 「What each program holds」): the machine's figures, the processes counted, and a
+# table for the runtimes and for each unit asked.
+[machine_memory]
+machine = "machine · {at} · total {total} MB · available {available} MB · swap {swap_total} MB ({swap_free} MB free)"
+counted = "{counted} processes counted, {unreadable} could not be read"
+runtimes = "runtimes"
+programs = "programs · {name}"
+none = "(no process holds any)"
+# The table's heading: the program, its process count, what it holds, the resident and swapped-out parts of
+# that, its resident size, and its median holding. Figures are MB.
+head = "  program                           n     held MB resident MB    swap MB     RSS MB   median MB"
+
+# A supervisor started afresh from the shell, as `bmo-agency supervisor reset` prints it
+# (docs/supervisors.md, 「Starting it afresh」).
+[supervisor_reset]
+# The variable {variable} is not set in this process, so the server whose route the reset is cannot be asked.
+no_token = "supervisor reset: {variable} is not set in this process, so the reset cannot be asked"
+# No server answered on the control port {port}, and why.
+unanswered = "supervisor reset: no agency server answered on port {port} ({why})"
+refused = "supervisor reset: {why}"
+# The supervisor {label} ({agent}), whether {mode} is a preview or a run, in the {ranges} asked.
+head = "{label} ({agent}) · {mode} · {ranges}"
+preview = "preview"
+run = "run"
+conversation = "conversation"
+person = "person"
+alone = "answers alone: {rooms}"
+shared = "shares with others: {rooms}"
+none = "none"
+# A room {title} by its number {room}, or a room the owner gave no title.
+room = "{title} ({room})"
+room_untitled = "room {room}"
+rows = "rows: {count}"
+# One table's {table}, its {range} and its {rows}.
+row = "  {table} · {range} · {rows}"
+files = "files: {count}"
+file = "  {path}"
+# What the brain takes, {took} rows, and how many it {could_not} reach.
+brain = "brain: {took} taken, {could_not} could not"
+# Something left behind, {failure}.
+failure = "left: {failure}"
+
+# What is running and what is waiting, as `bmo-agency run list` prints it
+# (docs/agent-control.md, 「Reading everything running at once」).
+[run_list]
+runs = "[runs]"
+# One open run: its stop {target}, its agent, its unit, when it {started}, and its {elapsed} time.
+run = "stop {target} · {agent} · {unit} · started {started} · {elapsed}"
+executions = "[executions]"
+# One open execution: its stop {target}, its {line}, what it runs {detail}, when it {started}, and its
+# {elapsed} time.
+execution = "stop {target} · {line} · {detail} · started {started} · {elapsed}"
+jobs = "[jobs]"
+# One open job: its stop {target}, its {worker}, its {item}, its {state}, when it {started} and its
+# {elapsed} time.
+job = "stop {target} · {worker} · item {item} · {state} · started {started} · {elapsed}"
+panes = "[herdr]"
+# One pane: the {run} it carries, its {label} and the agent {status}.
+pane = "{run} · {label} · {status}"
+panes_unreached = "herdr did not answer: {why}"
+panes_unnamed = "herdr is not named for this machine"
+machine = "[machine]"
+machine_line = "load {load} / {threads} threads · memory {available} of {total} MB available · swap {swap_free} of {swap_total} MB free"
+none = "(nothing)"
+
+# Stopping a run from the shell, as `bmo-agency run stop` prints it
+# (docs/agent-control.md, 「Stopping one from a shell」).
+[run_stop]
+bad_target = "run stop: '{target}' is no stop target; give unit:<id>, execution:<id> or item:<id>"
+unknown = "run stop: nothing running is named {target}"
+no_reason = "run stop: a work order's stop needs --why '<reason>'"
+nothing = "(nothing is running)"
+left_out = "{count} row(s) with nothing to aim at are left out"
+asked = "asked {target}"
+confirmed = "confirmed {target}"
+not_confirmed = "{target} was asked to end; it has not gone yet"
+all_done = "{asked} asked, {confirmed} confirmed"
+row = "{target}  {what}"

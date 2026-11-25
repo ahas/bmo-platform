@@ -1,0 +1,40 @@
+[package]
+name = "llm-gateway"
+description = "The model gateway: the front every run asks, serving the registered models through a LiteLLM child."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Its binary holds no tests of its own, so `cargo test` links no test binary of it.
+[[bin]]
+name = "llm-gateway"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+axum.workspace = true
+futures-util.workspace = true
+harness-machine = { path = "../harness-machine" }
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+libc.workspace = true
+percent-encoding.workspace = true
+procfs.workspace = true
+policy = { path = "../policy" }
+sea-orm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+sse-stream.workspace = true
+store = { path = "../store" }
+tokio.workspace = true
+url.workspace = true

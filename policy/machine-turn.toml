@@ -1,0 +1,7 @@
+# Which jobs stand in the machine's turn (docs/role-agents.md, 「When an agent is busy」): how often the testbed's
+# lanes and the job service's items under a close are read, and the labels the close writes on its item, its
+# phase and the commit it handed over. Each sums up the labels of every repository's close, named as it is
+# followed by a colon and the repository.
+read_seconds = 5
+close_label = "close-phase"
+commit_label = "close-commit"

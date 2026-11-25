@@ -1,0 +1,64 @@
+# What the queue's mechanics say where a person reads it (docs/worker-slots.md, docs/own-llm.md, 「A worker
+# pinned to a provider」, docs/agent-control.md, 「Stopping」, 「One standing pane per agent」): why a worker
+# cannot be added, changed or removed as asked, why a pin or a job's model names nothing that could run,
+# why a stop is not over, and what a job's end left in herdr. Each `{name}` is filled in with what it names.
+
+# Why a worker cannot be added, changed or removed, as the console shows it: a {name}, its {base}, a
+# {path}, a bound's {most}, the {count} and {keepalive} asked, and the {last} support worker's name.
+[workers]
+name_shape = "A name starts with a lowercase letter or a digit, is 2 to 32 characters long, and holds nothing but those, dots, underscores and hyphens."
+name_taken = "An agent named {name} already exists."
+label_empty = "The label is empty."
+label_long = "A label is at most {most} characters."
+path_empty = "The path is empty."
+path_relative = "The path must be absolute."
+path_missing = "That path does not exist."
+path_not_directory = "That path is not a directory."
+made_blocked = "Something that is not a directory stands at {path}, so the working directory cannot be made."
+preamble_long = "A preamble is at most {most} characters."
+dev_one_line = "The dev server command must be one line."
+dev_long = "The dev server command is at most {most} characters."
+support_change = "{name} is a support worker of {base}, so its name, path, preamble, dev server, keepalive and pinned provider are changed in {base}'s settings."
+builtin_move = "{name} is the built-in worker that runs in this repository, so its path cannot be moved."
+missing = "There is no worker named {name}."
+support_remove = "{name} is a support worker of {base}: rather than removing it, lower {base}'s support worker count."
+builtin_remove = "{name} is the built-in worker and cannot be removed."
+support_settings = "{name} is a support worker of {base} and has no settings of its own. Change them in {base}'s settings."
+support_count = "The support worker count is a whole number from 0 to {most}."
+keepalive_count = "The keepalive count is a whole number of 0 or more."
+keepalive_over = "The keepalive count ({keepalive}) cannot exceed the support worker count ({count})."
+support_name_long = "{name}'s name is too long to name its support worker ({last})."
+
+# Why a worker's pin names nothing that could run: the {providers} this build carries, a provider's
+# {label}, and a {model} its catalogue reads without naming.
+[pins]
+unknown = "A pinned provider is auto or one of {providers}."
+no_line = "Workers cannot run on {label}."
+no_model = "{label} takes no model of its own to pin."
+unlisted = "{label}'s catalogue names no model {model}."
+
+# Why a job's model names nothing that could run: the {selection} it asked for.
+[routes]
+model_wrong = "Not a valid work model: {selection}"
+no_model = "No provider that is on offers a registered work model."
+
+# Why a run's provider cannot be had, and why a standing branch checkout could not be had: a provider switched
+# off, no place to be had, and a checkout that could not be laid out of the order's checkout.
+[pool]
+off = "The provider is switched off."
+no_place = "No place could be had for the branch."
+head_unread = "The working checkout's commit could not be read."
+change_unread = "The working copy's change could not be read."
+new_files_unread = "The list of new files could not be read."
+
+# Why a stop of several runs is not over: the {units} still standing.
+[stops]
+not_ended = "The runs were asked to stop but are not yet confirmed ended: {units}"
+
+# What a job's end left open in herdr, as the leftovers event says it: each workspace's {label} and its
+# {panes}, marked where nothing of this system's is known to be there, and the whole as one sentence of the
+# {panes} counted and the workspaces {named}.
+[leftovers]
+workspace = "{label} ({panes} pane(s))"
+unmarked = "{workspace}, unmarked"
+account = "After a job ended, {panes} pane(s) were left open in herdr: {named}."

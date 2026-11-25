@@ -1,0 +1,145 @@
+# A person's supply: the sources a run of theirs takes inside its road, the reservations of the platform's, and
+# what is said when one runs out (docs/supply.md).
+
+# The meter's beat while a reserved run goes, in seconds: its running cost read and its reservation extended.
+meter_seconds = 30
+# The share of a reservation's amount the running cost reaches before it is extended.
+extend_at = 0.8
+# How often a job waiting for supply asks its order again, in seconds.
+wait_seconds = 60
+
+# The supply outbox's tries: the first wait and the ceiling it doubles to, in seconds.
+retry_first_seconds = 5
+retry_ceiling_seconds = 600
+
+[words]
+# Why personal supply is passed over at a run's start: no credential of the person's for the road's provider.
+no_personal = "no credential of the person's own answers {provider} now"
+# Why a run has no source at all: the order named none.
+no_order = "the supply order named no source for this run"
+# Why a platform source is passed over on Claude Code: no platform account lent to other people's runs answers.
+no_lendable = "no platform login lent to other people's runs answers {provider} now"
+# Why a platform source is passed over on Claude Code where the person's node is one other accounts share: a lent
+# login is never placed where other accounts' programs read it (docs/supply.md, 「The lendable accounts」).
+shared_node = "no platform login is lent to a node other accounts share, so none answers {provider} there"
+# Why a platform source is passed over on a gateway road or the registry: the run's model is a person's own.
+# With {model}.
+owned = "{model} is a person's own, which no platform source carries"
+# Why a platform source is passed over: the hook refused its reservation.
+refused = "{source} refused a reservation"
+# Why a person's run starts on another source than their last run took. With {source}.
+taken_first = "the order took {source} first as the run started"
+# Why a source left mid-run.
+ran_out = "{source} ran out"
+# Why a run has no source: the hook's order named none for the person.
+withheld = "the supply hook's order names no source for the person"
+# Where the hook named a moment the source reopens. With {at}.
+reopens = ", and it reopens at {at}"
+# A person's key or login the provider refused, told to their own supervisor room once. With {source} and {why}.
+refused_told = "Your own supply {source} was refused by its provider ({why}); runs go on the next supply source until you renew it."
+# The order to the person's supervisor room as a run moves to another source. With {from}, {to} and {why}.
+moved_told = "A run moved from {from} to {to}: {why}."
+# The console section a person opens to change their supply.
+settings_section = "settings → supply"
+
+# The one sentence a supervisor's turn ends with, and a job waits with, where no source is left: one to each reason
+# the last source tried could not take the run, each saying what the person can do (docs/supply.md, 「Running out
+# mid-turn」). With {source}, {reopens} and {settings}.
+[words.closed]
+# The order named no source.
+no_order = "No supply is left for this run: none is set for it. Add a login or key of your own in your settings ({settings}), or ask the platform's administrator."
+# The person's organisations close every source the order named.
+withheld = "No supply is left for this run: your organisation's settings turn every source off for you. Ask your organisation's administrator to turn one on."
+# The person holds no open login or key of their own for the road's provider.
+no_personal = "No supply is left for this run: you hold no login or key of your own for its provider. Add one in your settings ({settings})."
+# The provider refused the person's own key.
+own_refused = "No supply is left for this run: the provider refused your own key. Add it again in your settings ({settings})."
+# The person's organisations hold no open login or key for the road's provider.
+no_organisation = "No supply is left for this run: your organisation holds no open login or key for its provider. Ask your organisation's administrator."
+# The hook refused a reservation of the organisation's own supply.
+organisation_refused = "No supply is left for this run: your organisation's credits ran out{reopens}. Ask your organisation's administrator to grant more."
+# No platform Claude account is lent to other people's runs now.
+no_lendable = "No supply is left for this run: no Claude account is marked lendable for other people's runs now. Add your own Claude login in your settings ({settings}), or ask the platform's administrator."
+# The person's node is one other accounts share, where no platform Claude login is lent.
+shared_node = "No supply is left for this run: your PC is shared with other accounts, and the platform's Claude logins are not lent to a shared PC. Add your own Claude login in your settings ({settings}), or ask the platform's administrator for a PC of your own."
+# The run's model is another person's own, which no platform source carries.
+owned = "No supply is left for this run: its model is another person's own, which no platform supply carries. Choose another model for the agent."
+# The hook refused a reservation of a platform source: the person's credits are spent.
+refused = "No supply is left for this run: {source} ran out{reopens}. Top up or change the supply order in your settings ({settings})."
+# The source the run went out on ran out while it went on, and no other took it.
+ran_out = "The run stopped: {source} ran out while it went on{reopens}. Top up or change the supply order in your settings ({settings})."
+
+# The test of one source of a road (docs/supply.md, 「Testing a source」): how long its one request through the
+# gateway is waited for, in seconds, on a gateway road's member and on a registration, whose engine may be a card the
+# arbiter stands first; and the one word it asks.
+[test]
+gateway_seconds = 30
+registered_seconds = 60
+asked = "Hi"
+
+# What the test says where the source does not answer, each with {road}; {model} names a registration and {why} what
+# the gateway or the provider said.
+[test.words]
+# The owner switched the road's provider off.
+off = "The owner switched {road} off, so no source answers on it."
+# A person holds no credential of their own on the road that is on.
+no_source_own = "You hold no login or key of your own for {road} that is on."
+# The platform holds no credential on the road that is on.
+no_source_platform = "The platform holds no login or key for {road} that is on."
+# A registration with no address and no card service.
+no_address = "{model} has no address and names no card service, so nothing serves it."
+# Claude logins are on, and every one waits to be signed in.
+login_needed = "Every login for {road} that is on waits to be signed in again."
+# The gateway does not serve the key's member yet.
+not_ready = "The gateway does not serve this key on {road} yet. Try again in a few seconds."
+# The provider refused the key.
+refused = "The provider refused the key on {road}: {why}"
+# The test reached no answer.
+failed = "The test on {road} reached no answer: {why}"
+# A road the test does not know. With {roads}.
+road = "A road is one of {roads}."
+# The registry's road names no registration.
+model_needed = "The registration to test is named by model."
+# A registration the registry does not hold.
+unknown_model = "Not a registered model: {model}"
+# A person's local AI is refused by their chain, the person holds no PC of their own, or the PC or the address on it
+# could not be reached. With {why}.
+withheld = "Your organisation does not let you add a local AI of your own."
+no_pc = "Your local AI is reached from your own PC, and you hold none attached that is yours alone."
+unreachable = "Your PC did not reach the local AI: {why}"
+
+# A person's own local AI (docs/supply.md, 「A person's local AI」; docs/own-llm.md, 「A person's local AI」).
+[local_ai]
+# The node label its one address stands under.
+node = "pc"
+# How long, in characters, the name a person gives one may be; its registration's name is that name after the
+# account's mark, held to the registry's rule as well.
+name_most = 24
+# The window a run on it is told where the person names none, and its answer size, in tokens, held to the
+# registry's bounds (policy/registry.toml).
+context_tokens = 32768
+answer_tokens = 4096
+# How long its test's one request is waited for, in seconds: a local server may load its model first.
+test_seconds = 120
+# The ports of this machine's loopback its addresses are asked at, the PC's link listening on each
+# (docs/person-nodes.md, 「A local AI on a PC」): the first and the last of the range.
+first_port = 47300
+last_port = 47799
+
+# What its routes say, each to the person.
+[local_ai.words]
+no_person = "Only a signed-in person keeps a local AI of their own."
+# A name out of its rule. With {most}.
+name = "A local AI's name is a lowercase letter, then lowercase letters, digits and hyphens, {most} characters at most."
+# An address that is not a plain http chat completions address.
+url = "The address is a plain http address of an OpenAI-compatible server, such as http://localhost:11434/v1."
+model = "Name the model the server serves."
+key_name = "A key is the name of one of your secrets."
+enabled = "A switch is true or false."
+# No local AI of the person's of that {name}.
+unknown = "There is no local AI {name} of yours."
+unchecked = "Whether your organisation lets you add a local AI could not be checked: the account service did not answer."
+# A candidate a test names without its address or its model.
+candidate = "A local AI to test names its address and its model."
+# The address taken by none of the policy's ports.
+no_port = "No port is free to reach another local AI."

@@ -1,0 +1,23 @@
+# How every Chrome agency starts stands apart from a person's session:
+# read by the web package that starts one and by every side that writes a line's configuration starting one.
+
+# The arguments it always carries, so nothing of the machine's own session is asked for: passwords stay in
+# the profile rather than a keyring, and the platform is X11, the only display it is given.
+detached_arguments = ["--password-store=basic", "--ozone-platform=x11"]
+
+# The variables through which a program finds a person's graphical session, its bus and what hangs off
+# them; none of them reaches a Chrome agency starts.
+session_variables = [
+  "DISPLAY",
+  "WAYLAND_DISPLAY",
+  "XAUTHORITY",
+  "XDG_RUNTIME_DIR",
+  "DBUS_SESSION_BUS_ADDRESS",
+  "XDG_SESSION_ID",
+  "XDG_SESSION_TYPE",
+  "XDG_SESSION_DESKTOP",
+  "XDG_CURRENT_DESKTOP",
+  "DESKTOP_SESSION",
+  "GNOME_KEYRING_CONTROL",
+  "SSH_AUTH_SOCK",
+]

@@ -1,0 +1,41 @@
+# The far end of the link on a person's PC (docs/person-nodes.md, 「The workplace on a PC」): the ports it
+# stands on at the PC's loopback, which the PC's jake agent offers as stream ports.
+
+# The port the link's mirror is spoken on.
+mirror_port = 47201
+
+# The port the far end joins to the node's herdr session socket.
+herdr_port = 47202
+
+# How often a run of an account waits on its node asks again whether the node's link has been heard from, in
+# seconds.
+wait_seconds = 5
+
+# How long a run of an account waits on its node's link before it ends failed, in seconds: a turn whose caller has
+# left, or whose PC stays off, ends rather than waiting for ever.
+wait_bound_seconds = 600
+
+# The administrator's grants (docs/person-nodes.md, 「Who reaches a node」): the resources every tool session agency
+# issues for a supervisor of no account holds, and no other caller does. The node service's tool reads node.admin
+# as reaching every node, and agency's DeepSeek top-up declares platform.payment, the platform's own card
+# (docs/tools.md, 「The DeepSeek top-up」).
+administrator_grants = ["node.admin", "platform.payment"]
+
+# The capabilities that operate the platform (docs/person-nodes.md, 「Who reaches a node」): held by every tool
+# session agency issues for a supervisor of no account or of the administrator's account, beside what its line and
+# its bundles give, and by no other caller's, a person's supervisor among them. The testbed's deploy asks deploy, and
+# the research unit's taking, dismissing, stopping and resuming of the research queue ask research.owner.
+administrator_capabilities = ["deploy", "research.owner"]
+
+# The verbs of the CLI's bmo a node an account's record names may ask the home bridge to run here, each the first
+# word of its call (docs/person-nodes.md, 「Who reaches a node」): the status line's and the hooks' reading, a hosted
+# tool, and the other units' verbs a supervisor's manual names. Every other verb and every script is refused.
+bridge_verbs = ["agent-status", "use", "see", "watch", "talk", "archive"]
+
+# How often agency looks for the PCs heard again since its last look, to keep their shared apps' copies, in seconds
+# (docs/person-nodes.md, 「Keeping the copies」).
+copies_seconds = 30
+
+# How long after a setup, sync or check of a person's PC that left it not ready agency's server stands it up again by
+# itself, while its hub holds it, in seconds (docs/person-nodes.md, 「The workplace on a PC」).
+setup_again_seconds = 3600

@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "The app's name, its folder's in the person's 'my apps' and its entry's under my/." },
+    "action": { "type": "string", "enum": ["put", "back", "remove"], "description": "put builds the folder into a new version and puts it, back sends it to an earlier version its PC keeps, remove takes it away; put where left out." },
+    "version": { "type": ["string", "null"], "description": "For back: the version to go back to; the newest kept older than the current where none is named." }
+  }
+}

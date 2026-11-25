@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jobId",
+    "action"
+  ],
+  "properties": {
+    "jobId": {
+      "type": "integer",
+      "description": "The job under review, as its review instruction names it."
+    },
+    "action": {
+      "type": "string",
+      "description": "`ask` puts a question to the worker on the check due; `reject` sends the work back with why and what is to\nbe done; `pass` passes the check due; `escalate` puts the work to the owner, refused until the work was sent\nback as often as the review's ceiling."
+    },
+    "text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The question, the reason and the rework, what the check found, or what the owner is asked and why."
+    },
+    "stage": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "For `reject` only: the stage, counted from one, the work goes back to — one already passed whose work the\nreport shows falls short, or the stage under way; left out, the stage under way is sent back. Its step is\nhanded over again with `text` as what is to be done, and the stages after it follow again."
+    }
+  }
+}

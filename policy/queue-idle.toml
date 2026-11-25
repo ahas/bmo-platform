@@ -1,0 +1,14 @@
+# The queue's minute pass (docs/agent-control.md, 「An idle agent is told to the orderers of the items it could
+# take」): how often the queue is looked at; how long an agent stays idle before the orderers of the items it
+# could take are told, and the data they are told, `{agent}`, `{role}`, `{provider}`, `{model}` and `{items}`,
+# each item as `agent_idle_item` gives it with `{item}` and `{title}`, one a line; and, for a draft awaiting
+# approval, how much of its brief the supervisor is told, in lines and at most in characters, and the data it
+# is told, `{item}`, `{title}`, `{raised_by}`, `{repository}` and `{brief}` marking what it carries. What to do
+# with each kind stands in the supervisor's manual (prompts/agents/chat/manual.md, 「THE QUEUE」).
+check_seconds = 60
+launch_seconds = 60
+agent_idle_order = "The agent {agent} ({role} role, {provider}/{model}) is idle, and could take these items of this room, first in the queue's order first:\n{items}"
+agent_idle_item = "#{item} ({title})"
+draft_brief_lines = 6
+draft_brief_chars = 800
+draft_order = "Item #{item} ({title}) is a draft awaiting approval. Raised by: {raised_by}. Repository: {repository}. Its brief begins:\n{brief}"

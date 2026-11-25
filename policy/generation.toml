@@ -1,0 +1,80 @@
+# The generation settings a supervisor's turns are asked with (docs/supervisors.md, 「Its generation
+# settings」), each by the name the engine's chat completions path reads it under, with its bounds.
+# A setting with no max is held below the window of the registration it runs on; above_min refuses
+# the lowest value itself; whole takes whole numbers only. A switch takes on or off and has no bounds.
+# A setting the chat template reads is sent under the request's chat_template_kwargs.
+
+[[settings]]
+name = "temperature"
+min = 0
+max = 2
+
+[[settings]]
+name = "top_p"
+min = 0
+max = 1
+above_min = true
+
+[[settings]]
+name = "top_k"
+min = 0
+max = 1000
+whole = true
+
+[[settings]]
+name = "min_p"
+min = 0
+max = 1
+
+[[settings]]
+name = "presence_penalty"
+min = -2
+max = 2
+
+[[settings]]
+name = "frequency_penalty"
+min = -2
+max = 2
+
+[[settings]]
+name = "repeat_penalty"
+min = 0
+max = 2
+
+[[settings]]
+name = "repeat_last_n"
+min = -1
+max = 32768
+whole = true
+
+[[settings]]
+name = "dry_multiplier"
+min = 0
+max = 5
+
+[[settings]]
+name = "dry_base"
+min = 1
+max = 4
+
+[[settings]]
+name = "dry_allowed_length"
+min = 1
+max = 100
+whole = true
+
+[[settings]]
+name = "seed"
+min = 0
+max = 4294967295
+whole = true
+
+[[settings]]
+name = "max_tokens"
+min = 1
+whole = true
+
+[[settings]]
+name = "preserve_thinking"
+switch = true
+template = true

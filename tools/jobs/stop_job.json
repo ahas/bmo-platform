@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reason"
+  ],
+  "properties": {
+    "jobId": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "The job, where the stop names it by its id."
+    },
+    "itemId": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "The item whose starting or running job is stopped, where the stop names it by its item."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why, in a short line: the job's report."
+    }
+  }
+}

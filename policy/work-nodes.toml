@@ -1,0 +1,5 @@
+# The workplaces on the work nodes (docs/work-nodes.md): how often one not ready is checked again by the process
+# keeping the links, so a check that failed on something passing does not keep its link down.
+
+# How long after a workplace's last setup, sync or check that left it not ready it is checked again, in seconds.
+check_again_seconds = 600

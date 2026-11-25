@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [
+      "bun-types"
+    ],
+    "paths": {
+      "@agency/agent/*": [
+        "./agent/*"
+      ],
+      "@agency/archive/*": [
+        "./archive/*"
+      ],
+      "@agency/support/*": [
+        "./support/*"
+      ],
+      "@agency/client": [
+        "./client/src/index.ts"
+      ],
+      "@agency/client/schema": [
+        "./client/src/schema.ts"
+      ],
+      "openapi-typescript": [
+        "./client/node_modules/openapi-typescript"
+      ],
+      "@agency/policy/*": [
+        "../policy/*"
+      ],
+      "@agency/test-support/*": [
+        "../tests/packages/support/*"
+      ]
+    }
+  },
+  "include": [
+    "agent",
+    "archive",
+    "support",
+    "client",
+    "../tests/packages"
+  ]
+}

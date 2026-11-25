@@ -1,0 +1,7 @@
+# Agency's server draining on its stop (docs/sessions.md, 「A restart hands the session over」; docs/api.md,
+# 「health」, the drain): how long the calls in hand at a SIGTERM may go on before the server exits, and
+# what a caller refused meanwhile is told to wait before it asks again. A turn's send and an event stream
+# are answered at once and never wait on this span; it bounds the short calls, and then once more the store's
+# writing of the events published before the stop.
+short_calls_seconds = 20
+retry_after_seconds = 3

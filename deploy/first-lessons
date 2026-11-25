@@ -1,0 +1,50 @@
+#!/bin/sh
+# The first chat agent's starting lessons (docs/supervisors.md, 「A fresh brain's starting lessons」): each lesson
+# of first-lessons.json beside this script written into that agent's brain through the brain's own routes, only
+# where the brain holds no memory at all. `done` answers 0 where nothing is left to write: no brain deployed, or
+# a brain that holds a memory of any status; `run` writes the lessons into an empty brain and leaves any other
+# alone. The brain, its token and the agent's key are read from agency's settings, and the agent's brain is found
+# by its key among the brains of the kind agent, as agency finds it.
+set -eu
+mode="${1:-run}"
+here="$(cd "$(dirname "$0")" && pwd)"
+lessons="$here/first-lessons.json"
+env="${BMO_DATA_DIR:-$HOME/.local/share/bmo/data}/env/agency.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+
+base="$(field AGENCY_BRAIN_URL)"
+if [ -z "$base" ]; then
+  echo "no brain is deployed: no lessons are written"
+  exit 0
+fi
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+token="$(field AGENCY_BRAIN_TOKEN)"
+if [ -z "$token" ] && [ -n "$(field AGENCY_BRAIN_TOKEN_FILE)" ]; then
+  token="$(cat "$(field AGENCY_BRAIN_TOKEN_FILE)")"
+fi
+printf 'Authorization: Bearer %s\n' "$token" > "$header"
+
+brain="$(curl -sf -G -H @"$header" --data-urlencode kind=agent --data-urlencode limit=1 \
+  --data-urlencode "agentKey=$(field AGENCY_AGENT_KEY)" "$base/brains" | jq -r '.items[0].id // empty')"
+if [ -z "$brain" ]; then
+  echo "the first chat agent has no brain yet" >&2
+  exit 1
+fi
+held="$(curl -sf -H @"$header" "$base/brains/$brain/memories?limit=1&record=false" | jq '.items | length')"
+
+if [ "$mode" = done ]; then
+  [ "$held" -gt 0 ]
+  exit
+fi
+if [ "$held" -gt 0 ]; then
+  echo "the brain already holds memories: no lessons are written"
+  exit 0
+fi
+jq -c '.lessons[] | {type: "situation", text, recallCondition, labels: {source: "seed"}, actorName: "install"}' \
+  "$lessons" | while read -r lesson; do
+  printf '%s' "$lesson" |
+    curl -sf -o /dev/null -H @"$header" -H 'Content-Type: application/json' --data-binary @- \
+      "$base/brains/$brain/memories"
+done
+echo "wrote $(jq '.lessons | length' "$lessons") lessons into brain $brain"

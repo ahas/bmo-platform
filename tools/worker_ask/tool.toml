@@ -1,0 +1,21 @@
+# A supervisor hands a small coding task to a run of the worker role, with no queue item (docs/tools.md, 「The
+# worker ask」). A call waits for a slot of the role and for the run to end however long they take.
+[tool]
+name = "worker_ask"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p worker-ask-tool && cp "$BMO_CARGO_TARGET/release/worker-ask-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["worker-ask-tool"]
+
+[[entry]]
+namespace = "bmo"
+name = "worker_ask"
+title = "Ask a worker run"
+description = "Give a run of the worker role a small coding task, without filing a queue item, and answer with what it wrote and the files it changed. A task worth keeping and reviewing is a queue item."
+input = "worker_ask.json"
+capabilities = ["room.tools"]
+
+[entry.listing]
+line = "- worker_ask — hand a run of the worker role a small coding task, with no item, and read what it wrote and changed"
+order = 4

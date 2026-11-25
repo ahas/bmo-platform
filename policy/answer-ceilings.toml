@@ -1,0 +1,4 @@
+# The ceilings on an answer's tokens a tier mapping that carries one may name (docs/model-tiers.md): below
+# a thousand tokens an answer of any length is cut, and above eight the context leaves nothing for the
+# input. Which providers' mappings carry one, each provider's own file says.
+choices = [1024, 2048, 4096, 8192]

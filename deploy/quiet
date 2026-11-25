@@ -1,0 +1,6 @@
+#!/bin/sh
+# The pre-flip quiet: agency's own count of the work its restart would cut, the turns its server carries that
+# no program has taken yet (docs/sessions.md, 「A restart hands the session over」). The release's own verb
+# asks the server that runs now, and its code is the answer: 0 quiet, 1 work under way, any other could not
+# tell.
+exec bin/bmo-agency quiet

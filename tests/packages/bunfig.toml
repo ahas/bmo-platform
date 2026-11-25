@@ -1,0 +1,3 @@
+[test]
+# Every test file runs in a home of its own, on agency's own composition and the tests' seeds.
+preload = ["./support/setup.ts"]

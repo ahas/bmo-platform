@@ -1,0 +1,28 @@
+# The base prompts (docs/base-prompts.md), read by every side that saves one or composes a run from one.
+
+# What a prompt may be called: a lowercase letter, then lowercase letters, digits and hyphens. The name
+# is fixed once made and is what an agent's choice names.
+name_pattern = "^[a-z][a-z0-9-]*$"
+
+# How long, in characters, a name may be.
+name_most = 40
+
+# How long, in characters, the label a screen shows a prompt under may be.
+label_most = 60
+
+# How long, in characters, a prompt's text may be: a harness's whole system prompt fits well inside it.
+text_most = 200000
+
+# The values a prompt may name as {{name}}, filled in as a run is composed. Every side that composes a
+# run answers each of them with its own reading of the run; any other {{word}} stays as written.
+values = ["cwd", "date", "platform", "os_version", "shell", "model"]
+
+# The prompts a store is seeded with (docs/base-prompts.md, 「The seeds」): each given once by its name, its
+# text read from its file under prompts/base/ as the store is settled. A prompt of that name already kept is
+# left as it stands, and one the owner removed stays removed. `agents` names the agents given the choice as
+# the seed is first written; the repository's own policy gives it to none, since agents are a deployment's.
+[[seed]]
+name = "dsh"
+label = "DeepSeek Harness based"
+file = "dsh.md"
+agents = []

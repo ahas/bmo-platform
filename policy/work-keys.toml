@@ -1,0 +1,117 @@
+# Agency's work keys and the profile each starts on (docs/cache-fallback.md, 「The canonical name of a road
+# is the work key, not a Claude model name」). The keys are the stable names callers, the archive and the
+# console share: one for the supervisor, one for all job workers (their launch line is common), one for each
+# key a runner line's work goes out under — each search depth on the search line, and the browse line
+# (docs/launch-lines.md) — one for the translator runner, and one for each gate kind a turn or a caller
+# asks. A gate the gate declares shelved has none, since nothing asks it; the gate's own order is the gate's
+# and is declared to agency at run time (docs/api.md, 「Gate kinds」).
+#
+# A profile's values are defaults only: an owner's explicit choice is an archive row and survives a
+# later change here. The small gates start on the registry's provider, on the registration their tier maps
+# to there; the supervisor and the worker start on auto.
+#
+# Each profile names its key, the label a screen shows, its kind (bmo, worker, runner or gate), the
+# run line it goes out on, the road it takes where the owner wrote none, the tier it starts on, and
+# the Claude and Codex choices the tier store's first seed drew on. A gate may add:
+# - switchable: the owner may switch it off, since its caller has a way of its own without it;
+# - holds_no_session: its turns are asked about a session rather than held as one;
+# - gate_answer_tokens: the room its answer is given, where its answer is not the shape the common
+#   default was measured against (docs/own-llm.md);
+# - gate_sampling: how its request with no tools samples, each setting by the name the engine reads
+#   it under (docs/own-llm.md, 「Sampling per gate」): a verdict at 0.1, a faithful rewrite at 0.3, a
+#   polished one at 0.5, none of them the chat's;
+# - gate_pool: the most programs its pool stands on Claude Code, where its callers keep more parts out at
+#   once than the pool's default bound.
+# A key that is no gate may add answer_floor and thinking_answer_floor (docs/own-llm.md, 「Answer slots」).
+# A key whose prompt is a fixed role may add prefix_role, the role whose saved prefix an engine that keeps
+# role files starts its requests from (docs/own-llm.md, 「Role files」).
+
+[[profile]]
+key = "bmo"
+label = "Supervisor"
+kind = "bmo"
+line = "chat"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Supervisor"
+default_codex = { model = "gpt-5.6-sol", effort = "xhigh" }
+prefix_role = "chat"
+
+[[profile]]
+key = "job-worker"
+label = "Job worker"
+kind = "worker"
+line = "worker"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Frontier"
+default_codex = { model = "gpt-5.6-sol", effort = "max" }
+
+[[profile]]
+key = "search:basic"
+label = "Search, basic depth"
+kind = "runner"
+line = "search"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Frontier"
+default_codex = { model = "gpt-5.6-sol", effort = "high" }
+
+[[profile]]
+key = "search:thorough"
+label = "Search, thorough depth"
+kind = "runner"
+line = "search"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Frontier"
+default_codex = { model = "gpt-5.6-sol", effort = "high" }
+
+[[profile]]
+key = "search:exhaustive"
+label = "Search, exhaustive depth"
+kind = "runner"
+line = "search"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Frontier"
+default_codex = { model = "gpt-5.6-sol", effort = "high" }
+
+[[profile]]
+key = "browse"
+label = "Browse"
+kind = "runner"
+line = "browse"
+default_route_mode = "auto"
+default_claude_model = "claude-opus-5"
+tier = "Frontier"
+default_codex = { model = "gpt-5.6-sol", effort = "high" }
+
+# The translator runner's key (docs/launch-lines.md, 「Translate runner」): the registered translation model
+# first, the walk after. Its answer is the whole text it was given, rendered.
+[[profile]]
+key = "translate"
+label = "Translator"
+gate_sampling = { temperature = 0.3, top_p = 0.8, top_k = 20, min_p = 0 }
+kind = "runner"
+line = "translate"
+default_route_mode = "registered"
+default_claude_model = "claude-sonnet-5"
+tier = "Reliable"
+default_codex = { model = "gpt-5.6-terra", effort = "high" }
+gate_answer_tokens = 2048
+
+# The translator's answer is the whole part it was given, rendered; parts are cut small enough that
+# this holds one with room to spare, so the first of them shows within seconds.
+[[profile]]
+key = "translator"
+label = "Translator"
+gate_sampling = { temperature = 0.3, top_p = 0.8, top_k = 20, min_p = 0 }
+kind = "gate"
+line = "gate"
+default_route_mode = "registered"
+default_claude_model = "claude-sonnet-5"
+tier = "Reliable"
+default_codex = { model = "gpt-5.6-terra", effort = "high" }
+gate_answer_tokens = 2048
+gate_pool = 4

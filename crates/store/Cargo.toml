@@ -1,0 +1,21 @@
+[package]
+name = "store"
+description = "Agency's store: its connection pool, statement helpers, registry readers and migrations."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+dotenvy.workspace = true
+sea-orm.workspace = true
+sea-orm-migration.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true

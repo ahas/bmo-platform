@@ -1,0 +1,4 @@
+# A turn's caller key (docs/api.md, 「sessions」, a turn re-attached to by its caller's key): how long the end
+# of a keyed turn is kept after it ended, so a caller that lost its send to a restart and asks again with the
+# same key is answered with the end instead of sending the turn a second time.
+kept_seconds = 86400

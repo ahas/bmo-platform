@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["to", "text", "room"],
+  "properties": {
+    "to": { "type": "string", "minLength": 1, "description": "The other person's BMO, by its name." },
+    "text": { "type": "string", "minLength": 1, "description": "The line the chat opens with, as it stands." },
+    "room": { "type": "integer", "description": "The person's room the chat is opened into." },
+    "person": { "type": ["integer", "null"], "description": "The receiving person's account id, where you know it." }
+  }
+}

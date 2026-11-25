@@ -1,0 +1,19 @@
+[package]
+name = "bmo-agency-client"
+description = "The agency service's client: every body and member of its API as a Rust type, and one method for each route."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+reqwest.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true

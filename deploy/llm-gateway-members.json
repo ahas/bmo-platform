@@ -1,0 +1,38 @@
+[
+  {
+    "name": "deepseek-flash",
+    "road": "deepseek",
+    "label": "DeepSeek V4.1 Flash",
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "api_base": "https://api.deepseek.com/v1",
+    "key_file": "deepseek.key",
+    "context_tokens": 1048576,
+    "answer_tokens": 32768,
+    "thinking": true
+  },
+  {
+    "name": "deepseek-v4-pro",
+    "road": "deepseek",
+    "label": "DeepSeek V4 Pro",
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "api_base": "https://api.deepseek.com/v1",
+    "key_file": "deepseek.key",
+    "context_tokens": 1048576,
+    "answer_tokens": 32768,
+    "thinking": true
+  },
+  {
+    "name": "openrouter-deepseek-flash",
+    "road": "openrouter",
+    "label": "DeepSeek V4.1 Flash on OpenRouter",
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "api_base": "https://openrouter.ai/api/v1",
+    "key_file": "openrouter.key",
+    "context_tokens": 1048576,
+    "answer_tokens": 32768,
+    "thinking": true
+  }
+]

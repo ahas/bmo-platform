@@ -1,0 +1,21 @@
+# A supervisor saves a skill of the person it serves, kept at home and reaching only the agents it is attached to,
+# or removes one (docs/tools.md, 「The skill put」).
+[tool]
+name = "skill_put"
+protocol = 1
+language = "rust"
+build = 'cargo build --release -p skill-put-tool && cp "$BMO_CARGO_TARGET/release/skill-put-tool" "$BMO_TOOL_OUT/"'
+check = 'cargo test -p agency-checks --test main tools::'
+run = ["skill-put-tool"]
+
+[[entry]]
+namespace = "bmo"
+name = "skill_put"
+title = "Save a personal skill"
+description = "Save a skill of the person you serve — its SKILL.md and reference files, whole — kept at home, where it reaches only the agents the person attaches it to; or remove one of their own."
+input = "skill_put.json"
+capabilities = ["room.tools"]
+
+[entry.listing]
+line = "- skill_put — save a skill of your person's (SKILL.md and its reference files), or remove one"
+order = 6

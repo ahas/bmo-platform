@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["to", "text"],
+  "properties": {
+    "to": { "type": "string", "minLength": 1, "description": "The other person's BMO, by its name." },
+    "text": { "type": "string", "minLength": 1, "description": "The line to hand over, as it stands." },
+    "room": { "type": ["integer", "null"], "description": "The room the line is said in; the turn's own room where none is named." },
+    "person": { "type": ["integer", "null"], "description": "The receiving person's account id, where you know it." }
+  }
+}

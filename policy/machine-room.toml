@@ -1,0 +1,49 @@
+# This machine's room (docs/agent-control.md, 「Room on the machine」): the limits a launch is held by, and
+# the clocks of the held launch's watch and of the node service's event stream.
+
+# The machine's five limits, judged over the standing the node service reports. Its default replaces a row
+# of the settings table keyed `machine_limit:<name>` only where that row holds no positive number. The
+# reason a launch held by it is written as marks {value} with the reading, {limit} with the limit and, for
+# the load, {threads} with the thread count.
+[launch_memory_full_pct]
+default = 5
+held = "memory pressure {value}% >= {limit}%"
+
+[launch_memory_available_gb]
+default = 4
+held = "available memory {value}GB < {limit}GB"
+
+[launch_load_per_thread]
+default = 2
+held = "load {value} >= {threads} threads x {limit}"
+
+[launch_disk_free_gb]
+default = 20
+held = "disk free {value}GB < {limit}GB"
+
+# What one job is reckoned to grow to, in gigabytes: what each job at work still lacks of it, and one more
+# share for the job to be launched, are taken from the available memory before it is judged against
+# `launch_memory_available_gb`. Its reason marks {value} with the available memory, {growth} with what the
+# jobs at work still lack, {jobs} with their count, {share} with this limit and {limit} with the available
+# memory's limit.
+[launch_job_memory_gb]
+default = 2
+held = "available memory {value}GB less {growth}GB the {jobs} jobs at work are still to grow into and {share}GB for one more < {limit}GB"
+
+# Each job-count limit: no fixed count holds a launch, so it stands only where the owner wrote a positive
+# number in a row of the settings table keyed `machine_limit:<name>`; and the reason a launch held by it is
+# written as, beside the machine's own; {jobs} is the count and {limit} the limit.
+[launch_jobs]
+held = "jobs {jobs} >= {limit}"
+
+[launch_browser_jobs]
+held = "browser jobs {jobs} >= {limit}"
+
+[clocks]
+# How often the room is read again while a held launch's notice stands, in seconds.
+held_watch_seconds = 60
+# How long after the node service's event stream drops, or cannot be opened, it is opened again, in
+# seconds.
+pressure_reopen_seconds = 10
+# How often the item scratch sweep looks whether the items with an open job have changed, in seconds.
+item_sweep_seconds = 60

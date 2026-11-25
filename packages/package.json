@@ -1,0 +1,20 @@
+{
+  "name": "agency-ts",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "agent",
+    "archive",
+    "support",
+    "client"
+  ],
+  "scripts": {
+    "check": "bunx tsc --noEmit",
+    "check:types": "bunx tsc --noEmit"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.0",
+    "typescript": "^7.0.2"
+  }
+}

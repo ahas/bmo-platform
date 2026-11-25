@@ -1,0 +1,52 @@
+# What a run that died is said to have come to, and the notice of one that came back (docs/policy.md): the
+# words agency writes an account of a dead run in, why it died, where a turn was, and the line said once a
+# run answers again. `{name}` marks what each line carries; the side that tells a room or the owner
+# decides when and in whose voice.
+
+# Where a turn was, as a line names it: the owner's own chat, or another room by its title.
+[places]
+owner_chat = "the owner's own chat"
+room = "the room {room}"
+
+# A run that came back after a failure the owner heard of: where it failed ({where}), how many times in a
+# row ({times}, from `repeated` with its {count}), the cause read then ({cause}), and the agent's name in its
+# records ({sender}).
+[recovered]
+failed = "A run of {sender}'s own failed in {where}{times}."
+repeated = ", {count} times in a row"
+cause = "The cause read at the time, in the owner's own language: {cause}."
+answering = "A run has just answered again, so {sender} is working and can speak."
+intent = "tell the owner, without being asked, that you are answering again after having been broken, and name in one clause what had been wrong."
+kind = "doctor-recovered"
+# A recovery nobody heard of within the hour is no longer news.
+ttl_minutes = 60
+
+# The account of a dead run, in two lines: {opening}, the room {room} it was in, its {cause} and what it
+# {said}, then the {rest} of it, what it was doing and where its record is.
+[account]
+line = "{opening}{room}: {cause}.{said}\n{rest}"
+# The opening for a run that broke, and for one that held together and said nothing, each naming the
+# agent ({agent}).
+broke = "A run of {agent} failed"
+silent = "{agent} gave no answer this turn"
+room = " ({room})"
+said = " What came back: {said}"
+# The tool the run was last calling, with what it was handed where that reads in a breath ({detail}).
+action = "It was last using the {tool} tool{detail}."
+detail = " ({detail})"
+record = "The record is in {record}."
+# Where the run's own account is: its log under the agent's name ({agent}) and the run ({run}).
+run_log = "{agent}'s run log {run}"
+# A tool call whose log names no tool.
+unnamed_tool = "an unnamed tool"
+
+# Why a run died, out of what was read where it ended: an exit with its {code}, a signal from outside with
+# its number {signal}, an error handed back in place of an answer, a run that only asked to wait, a pane it
+# never had, and an ending nothing could read.
+[causes]
+exit = "the run ended abnormally (exit code {code})"
+signal = "the run was cut off from outside (signal {signal})"
+error_result = "the run went to its end, but an error came back in place of an answer"
+silent = "the run itself was sound, and at its turn to answer it only said it would wait"
+transport = "the run never got a pane to stand in"
+unknown = "how the run ended could not be read"

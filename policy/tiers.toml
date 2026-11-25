@@ -1,0 +1,5 @@
+# Agency's tier ladder (docs/model-tiers.md). A tier names a level of work — how capable a model it takes —
+# and each provider maps every tier to one of its own models; which model is the archive's row.
+
+# Every tier, in the order the tiers are shown and compared.
+ladder = ["Supervisor", "Frontier", "Reliable", "Fine", "Light", "Simple"]

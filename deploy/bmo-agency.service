@@ -1,0 +1,30 @@
+[Unit]
+Description=Agency server: sessions, places, the co-worker pool and the control routes
+After=network-online.target
+# Without its control token the server does not stand, so the unit does not start where the deployment wrote
+# none (docs/api.md, 「The control port」).
+ConditionPathExists=%h/.local/share/bmo/data/env/agency.env
+
+[Service]
+# The server settles the store at the address env/agency.env names (docs/store.md), stands the places in this
+# machine's herdr, starts its clocks — the readers of the accounts' usage windows and the keepalive pass among
+# them, which it runs itself rather than calling another service (docs/usage-windows.md,
+# docs/keepalive-schedule.md) — and serves the quota source and the control routes on the ports and under the
+# token env/agency.env names (docs/api.md). It runs out of the deploy tree, whose bin/ holds it and whose
+# prompts/ it writes the agents' documents from as it starts.
+WorkingDirectory=%h/.local/share/bmo-agency/deploy
+ExecStart=%h/.local/share/bmo-agency/deploy/bin/agency-server --data-root %h/.local/share/bmo/data
+EnvironmentFile=%h/.local/share/bmo/data/env/agency.env
+Environment=BMO_DATA_DIR=%h/.local/share/bmo/data
+Environment=PATH=%h/.local/bin:%h/.bun/bin:%h/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Restart=always
+RestartSec=2
+# A stop waits for the server to drain on its SIGTERM and end: it takes no new call, ends its event streams
+# and answers its turns' sends so their callers re-attach, and lets the calls in hand finish within the drain's
+# span (docs/sessions.md, 「A restart hands the session over」). It is never escalated to a kill.
+TimeoutStopSec=infinity
+
+[Install]
+WantedBy=default.target
+# Linked, enabled and restarted by every deployment.
+X-BMO-Deploy=restart

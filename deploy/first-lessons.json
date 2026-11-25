@@ -1,0 +1,172 @@
+{
+  "lessons": [
+    {
+      "recallCondition": "an item that changes the supervisor's own behaviour is filed or approved",
+      "text": "Put an item that changes your own behaviour (your manual, rulebooks, persona, or what you do by hand against what you hand to workers) at the front of the queue as you file it."
+    },
+    {
+      "recallCondition": "writing a job's brief that names waits, retries or status checks",
+      "text": "Say in a job's brief that the waits, retries and checks it names are carried out as written, without the worker's own judgement, so a short task does not stall on long reasoning."
+    },
+    {
+      "recallCondition": "the owner asks for a plan",
+      "text": "When the owner asks for a plan, write the plan and wait for his word before filing an item or starting a run on it."
+    },
+    {
+      "recallCondition": "filing a report to the archive for the owner",
+      "text": "Give every report filed to the archive for the owner a voice briefing in his language, a minute or two of the conclusion and the decisions, attached as the document's head narration; a report without it is not finished."
+    },
+    {
+      "recallCondition": "a round of security patches is finished",
+      "text": "After a round of security patches, file a patch report to the archive: what changed where, what was verified, what was reverted and why, and what still needs the owner's own hand, such as rotating a key at an outside service."
+    },
+    {
+      "recallCondition": "reporting progress or status to the owner",
+      "text": "Report to the owner when something actually happens, never by periodic progress updates."
+    },
+    {
+      "recallCondition": "the owner asks why something broke",
+      "text": "When the owner asks why something broke, open with the cause in one line, then its evidence in a few lines, then what happens next; establish the cause and decide rather than handing him options."
+    },
+    {
+      "recallCondition": "reporting finished work to the owner",
+      "text": "Report finished work to the owner as an archive document that sets the real before and after side by side, the actual text or output rather than counts, and send him its link."
+    },
+    {
+      "recallCondition": "an answer gives a link to an archive document",
+      "text": "Put an archive document's link on the answer's first line and its summary below it."
+    },
+    {
+      "recallCondition": "explaining a process of several stages",
+      "text": "Explain a process of several stages with an archive document that charts it as a flowchart: give its link first, then the stage it stands at now and only the key points."
+    },
+    {
+      "recallCondition": "adding or changing an agent role, its concurrency or pool limits",
+      "text": "Add or change an agent role and its concurrency on the console's roles screen or through agency's agent-role routes, never in the roles policy file, which only seeds a fresh store; a role's prompt change reaches its next launch."
+    },
+    {
+      "recallCondition": "a symptom shows only on one person's phone or device",
+      "text": "For a symptom that shows only on one person's device, do not fix from the source: put a readout of every deciding value, assumed ones included, where that person already looks, say beforehand how to read it, then fix it and take the readout away."
+    },
+    {
+      "recallCondition": "the same deviation is found across several repositories",
+      "text": "Where the same deviation stands in several repositories, fix the root first: give the shared thing one owner and one implementation and a check that refuses the deviation, then move each repository onto it."
+    },
+    {
+      "recallCondition": "running a test with the fix switched off to prove it fails",
+      "text": "Before running a test with its fix switched off, bound every wait in it and the run itself, since the reverted code may leave an answer that never comes."
+    },
+    {
+      "recallCondition": "a developer tool is missing on the machine",
+      "text": "Where a missing developer tool causes a warning or a failed step, install it yourself with the user-level package manager already in use and say what you installed, rather than handing the owner the command."
+    },
+    {
+      "recallCondition": "a check fails only on browser test timeouts while the machine is loaded",
+      "text": "Where a check fails only on browser test hooks timing out under high machine load, run it once more at once, never waiting in a silent loop for the load to drop."
+    },
+    {
+      "recallCondition": "researching a new AI model, tool or service",
+      "text": "Compare a newly researched AI item with the earlier research in the same category as well as with the rivals its maker names, and put the comparison in the document."
+    },
+    {
+      "recallCondition": "researching, comparing or recommending a product to buy",
+      "text": "When researching a product, read its web pages and the detail pages inside them, their images read through the vision unit, and answer only from all of them together."
+    },
+    {
+      "recallCondition": "the asker narrows the target while a search is still running",
+      "text": "When the asker narrows the target while a search runs, launch a new search for the narrowed target at once, pinned to it, rather than waiting on the broad one."
+    },
+    {
+      "recallCondition": "searching for a product's price or comparing prices",
+      "text": "Have a price search also look for news of successor models, upcoming releases and announced price changes in that product line."
+    },
+    {
+      "recallCondition": "finding or comparing places, businesses or products, or asked for their photos",
+      "text": "When bringing photos of places, businesses or products, bring several of each, only ones you opened and checked yourself, grouped by place and by composition, and put those conditions into the search you launch."
+    },
+    {
+      "recallCondition": "building or using a reference set for a drawing",
+      "text": "Keep drawing references per subject and per category (face, hair, body, outfit, whole character), at least three where they exist; use the asker's own references first and research only where none were given."
+    },
+    {
+      "recallCondition": "gathering references for a fictional character",
+      "text": "Take a fictional character's references from the work itself, scenes or promotional stills, never photos of the actor out of character."
+    },
+    {
+      "recallCondition": "drawing a picture with no size given",
+      "text": "Draw a picture with no size given in portrait short-video size, 720x1280."
+    },
+    {
+      "recallCondition": "sending a drawn picture",
+      "text": "Say in the message that goes with a drawn picture which model drew it."
+    },
+    {
+      "recallCondition": "a picture was drawn for someone",
+      "text": "Let the person a picture was drawn for judge the result; an eye verdict does not stand in for theirs."
+    },
+    {
+      "recallCondition": "a drawing is to be changed with marks on it",
+      "text": "When a drawing is to be changed, hand over the clean original first and put the marks on it afterwards, so a redraw starts from the unmarked original."
+    },
+    {
+      "recallCondition": "transcribing a voice message and asked for its link",
+      "text": "When asked for the link to a transcribed voice message, answer as a reply to that voice message with the console's download link."
+    },
+    {
+      "recallCondition": "reading a model number off a photographed label",
+      "text": "Where a label's model number wraps onto a second line, read the continuation as part of the model number."
+    },
+    {
+      "recallCondition": "reaching a person who has no one-to-one chat on a messenger",
+      "text": "A messenger's room list holds only chats already talked in, and each device keeps its own: to reach a person with no one-to-one, open one from the friends or contacts list, never standing a group room in for them, and say so where opening fails."
+    },
+    {
+      "recallCondition": "writing the word for a worker's job in Korean text",
+      "text": "In Korean text, write a worker's job as the English word job, never transliterated."
+    },
+    {
+      "recallCondition": "a sign-in made on the owner's behalf sends a verification mail",
+      "text": "When a sign-in you make on the owner's behalf sends a verification mail, read it from the system's own mailbox and approve the sign-in yourself rather than asking him."
+    },
+    {
+      "recallCondition": "a performance or operations change shows a small gain",
+      "text": "Apply a measure that is faster or better whatever the size of its gain; only a trade-off against a loss elsewhere needs a decision, made by numbers on the real load, and each applied measure is reported as before and after."
+    },
+    {
+      "recallCondition": "adopting something new, or changing a model or a deployment",
+      "text": "Research something new before adopting it and base the choice on that research; a change of model or deployment waits on the owner's word."
+    },
+    {
+      "recallCondition": "working a numbered stage of a plan",
+      "text": "Take one stage of a plan as the whole goal and finish it, documents, code, deployment and live check, before reporting it done, once."
+    },
+    {
+      "recallCondition": "the owner names a number for a wait, a limit or a count",
+      "text": "When the owner names a number, set exactly that value everywhere it applies and hold it in the service; nothing lengthens it on its own judgement."
+    },
+    {
+      "recallCondition": "a decided test or decision is blocked by a configuration detail",
+      "text": "Where work the owner already decided is blocked by a configuration detail, change the configuration and carry on, never asking him to choose between configuration options."
+    },
+    {
+      "recallCondition": "proposing ways to cut prompt size, tokens or cost",
+      "text": "Offer only ways of cutting prompt size, tokens or cost that keep every capability, and write that condition into a job's brief as well."
+    },
+    {
+      "recallCondition": "recording a company, brand or product name",
+      "text": "Record a company or brand name as the person said it or by its official name, never by a rendering of your own."
+    },
+    {
+      "recallCondition": "tuning a model or an engine",
+      "text": "Before tuning a model, reproduce its maker's published benchmark on our own machines and take that as the baseline, judging figures by the exact weight version."
+    },
+    {
+      "recallCondition": "applying a model spec measured on someone else's hardware",
+      "text": "Apply a model spec page measured on someone else's machine to our own installation rather than looking for that machine."
+    },
+    {
+      "recallCondition": "handing out or doing model serving, training or bench tuning work",
+      "text": "Before model serving, engine, training or bench tuning, draw the whole environment as a graph read from the machines themselves: each node's GPU, memory, buses, disks and links, the card arbiter's occupants, and every way of moving data with its measured speed."
+    }
+  ]
+}

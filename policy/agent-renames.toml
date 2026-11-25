@@ -1,0 +1,8 @@
+# The agents that stood under another name (docs/policy.md): the store's settling renames their rows by
+# it, and the side that keeps the agents' places closes an old name's herdr workspace and moves a renamed
+# worker's checkout by it (docs/agent-control.md; docs/worker-slots.md).
+#
+# Each rename names the name it had and the one it has now; the label, and the aliases where they moved,
+# as the row was seeded and as it reads now; the scope its settings were kept under; its checkout's
+# directory before and after; and the label herdr shows it by. No agent stands under another name now.
+renames = []

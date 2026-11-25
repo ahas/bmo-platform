@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.9.0",
+        "--headless",
+        "--isolated",
+        "--no-usage-statistics",
+        "--no-category-performance",
+        "--no-category-memory",
+        "--screenshotFormat=jpeg",
+        "--screenshotMaxWidth=1280",
+        "--chromeArg=--no-sandbox",
+        "--chromeArg=--disable-dev-shm-usage"
+      ],
+      "env": {}
+    }
+  }
+}

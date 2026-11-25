@@ -1,0 +1,223 @@
+# What installing agency on a fresh machine needs, read by the testbed's install verb (bmo-testbed's
+# docs/install.md, 「The install declaration」). The sibling checkouts agency builds against are the presets'
+# to clone; nothing here names them.
+
+install = 1
+
+# The server, the agent host and the model gateway, each a user unit of the deploy tree.
+restart = "systemctl --user restart bmo-agency.service bmo-agent-host.service bmo-llm-gateway.service"
+
+[[needs]]
+program = "claude"
+what = "Claude Code, the program every agent agency runs is, signed in once by a person: install it with `curl -fsSL https://claude.ai/install.sh | bash`, then run `claude` and sign in."
+
+# herdr, the terminal server every agent's pane stands in (https://github.com/herdrdev/herdr, Apache-2.0), at the
+# release agency runs, built from its repository where it is missing and placed as the one binary herdr.service runs.
+[[needs]]
+check = 'test -x "$HOME/.local/bin/herdr"'
+what = "herdr, the terminal server every agent's pane stands in, as the one binary ~/.local/bin/herdr: the install builds it from https://github.com/herdrdev/herdr at v0.9.3, which needs Zig 0.16.0 on the PATH (https://ziglang.org/download/) besides Rust's rustup, which fetches the toolchain the repository pins."
+
+[needs.source]
+name = "herdr"
+repository = "https://github.com/herdrdev/herdr.git"
+rev = "v0.9.3"
+build = '''
+set -eu
+zig="${ZIG:-zig}"
+if ! "$zig" version 2> /dev/null | grep -qx '0.16.0'; then
+  echo "herdr's build needs Zig 0.16.0 on the PATH, or ZIG naming one (https://ziglang.org/download/)" >&2
+  exit 1
+fi
+cargo build --release --locked --bin herdr
+install -D -m 755 target/release/herdr "$HOME/.local/bin/herdr"
+'''
+
+[[needs]]
+check = 'PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin" command -v litellm'
+what = "LiteLLM's proxy, which the model gateway runs as its child, on the gateway's own PATH: `uv tool install 'litellm[proxy]'` or `pipx install 'litellm[proxy]'`."
+
+[[needs]]
+program = "cargo"
+what = "Rust's Cargo, which a deployment builds the skills placer with: `curl https://sh.rustup.rs -sSf | sh`."
+
+[[needs]]
+check = 'test -x "$HOME/.bun/bin/bun"'
+what = "Bun at ~/.bun/bin/bun, which installs and runs agency's TypeScript packages: `curl -fsSL https://bun.sh/install | bash`."
+
+[[needs]]
+program = "git"
+what = "git, which the deployment and the jobs' checkouts run: the `git` package."
+
+[[needs]]
+program = "rsync"
+what = "rsync, which copies a release and a work node's tree: the `rsync` package."
+
+[[needs]]
+program = "systemd-run"
+what = "systemd-run, which starts a run or a deployment in a user unit of its own: part of systemd."
+
+[[needs]]
+program = "pg_isready"
+what = "PostgreSQL, the server agency's store stands on, reached on its local socket by the user the install runs as: the `postgresql` package."
+
+[[needs]]
+program = "curl"
+what = "curl, which the after-steps call agency's control routes with: the `curl` package."
+
+[[needs]]
+program = "jq"
+what = "jq, which the after-steps write and read JSON with: the `jq` package."
+
+[[port]]
+name = "agency.control"
+number = 3220
+
+[[port]]
+name = "agency.quota"
+number = 9200
+
+# The model gateway's front, which listens on its own fixed port.
+[[port]]
+name = "agency.gateway"
+number = 18030
+
+# The control token every caller of agency presents; also kept as its own file for the units that read it there.
+[[token]]
+name = "agency.control"
+file = "env/agency.token"
+
+# The gateway's own key, the one door every request passes; the gateway reads it from this file alone.
+[[token]]
+name = "agency.gateway"
+file = "env/llm-gateway.key"
+
+# The first chat agent: its registration name and the label a room calls it by.
+[[value]]
+name = "agent.name"
+value = "bmo"
+
+[[value]]
+name = "agent.label"
+value = "BMO"
+
+# The account key the administrator's agents' brains are filed under: the console's first account, the owner's.
+[[value]]
+name = "agency.brain-account"
+value = "1"
+
+[[database]]
+name = "bmo_agency"
+
+# The server's settings (docs/api.md, 「The control port」 and 「Calls agency makes」; docs/policy.md, 「The
+# deployment's names」), which the gateway and agency's verbs read as well.
+[[settings]]
+file = "env/agency.env"
+text = '''
+AGENCY_CONTROL_PORT={{port.agency.control}}
+AGENCY_CONTROL_TOKEN={{token.agency.control}}
+AGENCY_QUOTA_PORT={{port.agency.quota}}
+BMO_DATA_DIR={{data_root}}
+BMO_ARCHIVE_URL=postgres:///bmo_agency?host={{postgres.host}}&port={{postgres.port}}
+AGENCY_AGENT_KEY={{value.agent.name}}
+AGENCY_AGENT_NAME={{value.agent.label}}
+AGENCY_SENDER_NAME={{value.agent.label}}
+AGENCY_OWNER_NAME={{input.web.owner-name}}
+AGENCY_BRAIN_URL=http://127.0.0.1:{{port.brain.server}}
+AGENCY_BRAIN_TOKEN={{token.brain.service}}
+AGENCY_BRAIN_ACCOUNT={{value.agency.brain-account}}
+AGENCY_PERSONA_VALUES={{data_root}}/env/persona.toml
+BMO_JOB_URL=http://127.0.0.1:{{port.job.server}}
+BMO_JOB_TOKEN={{token.job.agency}}
+BMO_JOB_PLUGIN={{prefix}}/bmo-job/deploy/bin/bmo-job
+BMO_AGENCY_URL=http://127.0.0.1:{{port.agency.control}}
+BMO_MCP_HOST_PORT={{port.pocket.tools}}
+BMO_GATE_URL=http://127.0.0.1:{{port.gate.server}}
+BMO_GATE_TOKEN_FILE={{data_root}}/env/gate.token
+BMO_RECEIVER_URL=http://127.0.0.1:{{port.receiver.server}}
+BMO_RECEIVER_TOKEN_FILE={{data_root}}/env/receiver.token
+BMO_ARTIFACT_URL=http://127.0.0.1:{{port.artifact.server}}
+BMO_ARTIFACT_TOKEN_FILE={{data_root}}/env/artifact.token
+BMO_EXPLORER_PLUGIN={{prefix}}/bmo-explorer/deploy/bin/bmo-explorer
+BMO_CONSOLE_ADDRESS={{input.web.public-address}}
+'''
+
+# The console reaches agency on its control port, under the control token.
+[[line]]
+file = "env/web-console.env"
+key = "AGENCY_ADDRESS"
+value = "http://127.0.0.1:{{port.agency.control}}"
+
+[[line]]
+file = "env/web-console.env"
+key = "AGENCY_TOKEN"
+value = "{{token.agency.control}}"
+
+# herdr's unit, which no deployment links (deploy/herdr.service): linked from the deploy tree and started once,
+# then the server restarted so it stands its places in it.
+[[after]]
+id = "herdr"
+run = '''
+set -eu
+systemctl --user enable --now "$BMO_INSTALL_PREFIX/bmo-agency/deploy/deploy/herdr.service"
+systemctl --user restart bmo-agency.service
+'''
+done = "systemctl --user is-enabled --quiet herdr.service && systemctl --user is-active --quiet herdr.service"
+
+# The first chat agent registered as a supervisor (docs/api.md, 「supervisors」), on Claude Code with the
+# machine's own login; its brain is made with it. The name and label are read from the server's settings.
+[[after]]
+id = "first-chat-agent"
+run = '''
+set -eu
+env="${BMO_DATA_DIR:-$HOME/.local/share/bmo/data}/env/agency.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+base="http://127.0.0.1:$(field AGENCY_CONTROL_PORT)"
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+printf 'Authorization: Bearer %s\n' "$(field AGENCY_CONTROL_TOKEN)" > "$header"
+tries=0
+until curl -sf -o /dev/null -H @"$header" "$base/supervisors"; do
+  tries=$((tries + 1))
+  if [ "$tries" -ge 150 ]; then
+    echo "agency's control port did not answer" >&2
+    exit 1
+  fi
+  sleep 2
+done
+jq -n --arg name "$(field AGENCY_AGENT_KEY)" --arg label "$(field AGENCY_AGENT_NAME)" \
+  '{name: $name, label: $label, provider: "claude-code", model: "claude-opus-5", effort: "high"}' |
+  curl -sf -o /dev/null -H @"$header" -H 'Content-Type: application/json' --data-binary @- "$base/supervisors"
+'''
+done = '''
+set -eu
+env="${BMO_DATA_DIR:-$HOME/.local/share/bmo/data}/env/agency.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+printf 'Authorization: Bearer %s\n' "$(field AGENCY_CONTROL_TOKEN)" > "$header"
+curl -sf -o /dev/null -H @"$header" "http://127.0.0.1:$(field AGENCY_CONTROL_PORT)/supervisors/$(field AGENCY_AGENT_KEY)"
+'''
+
+# The first chat agent's starting lessons, written into its brain once and only where it holds no memory
+# (docs/supervisors.md, 「A fresh brain's starting lessons」).
+[[after]]
+id = "first-lessons"
+run = "sh deploy/first-lessons run"
+done = "sh deploy/first-lessons done"
+
+[[verify]]
+id = "chat-agent-road"
+what = "the first chat agent's road can take a turn now: Claude Code is installed and signed in"
+run = '''
+set -eu
+env="${BMO_DATA_DIR:-$HOME/.local/share/bmo/data}/env/agency.env"
+field() { sed -n "s/^$1=//p" "$env" | tail -n 1; }
+header="$(mktemp)"
+trap 'rm -f "$header"' EXIT
+printf 'Authorization: Bearer %s\n' "$(field AGENCY_CONTROL_TOKEN)" > "$header"
+road="$(curl -sf -H @"$header" "http://127.0.0.1:$(field AGENCY_CONTROL_PORT)/supervisors/$(field AGENCY_AGENT_KEY)/road")"
+if ! printf '%s' "$road" | jq -e '.answers == true' > /dev/null; then
+  printf '%s' "$road" | jq -r '.reason // "the road gave no reason"' >&2
+  exit 1
+fi
+'''

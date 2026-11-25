@@ -1,0 +1,16 @@
+# How a run is stopped from outside (docs/agent-control.md, 「Stopping」), read by every process that
+# stops one.
+
+# What a run in a pane is told when it is being stopped. Being asked and being killed reach a pane
+# through the same call, so the difference is entirely in these words: they say to end the work rather
+# than to drop it, and they name the order — commit, report, exit — because a run that simply stopped
+# would leave its change in the checkout and its row open. A job's answer to them is its handoff
+# (docs/sessions.md, 「The handoff a job's session leaves」).
+# One basic string with its line breaks escaped, which every TOML reader on both sides reads alike.
+instruction = "Stop here. Do not start anything further and do not carry on with what you were doing.\n\nEnd properly rather than simply stopping: commit and push what you have, then answer with your handoff for whoever takes this work up next, in plain sentences: what is done and how it was checked, what you found, what you were in the middle of, and what is left and where it stands (branch, files, commit, anything uncommitted). Then exit normally."
+
+
+# How long the interrupt of a turn waits for the turn to end before it answers that the stop stands over a turn
+# still going, in milliseconds, and how often it looks meanwhile (docs/api.md, 「sessions」).
+interrupt_wait_ms = 10000
+interrupt_look_ms = 200

@@ -1,0 +1,120 @@
+# The public OpenRouter gateway, reached by Claude Code through agency's gateway member, with the key the
+# member names (docs/own-llm.md, 「The gateway's members」). Read by this provider's own declaration on each
+# side.
+
+# The provider's name as a screen shows it.
+label = "OpenRouter"
+
+# The lines its program carries. Its runs are Claude Code's on the gateway, which carries the chat, a worker's
+# job and a gate's one-request judgement.
+lines = ["chat", "gate", "worker"]
+
+# A mapping of it carries a ceiling on the answer's tokens: its member names one.
+caps_answer_tokens = true
+
+# Its engine is not the owner's own: what a session reads goes to the outside service.
+owners_engine = false
+
+# The share of a model's window a session may fill before it is folded, at a tier the fold-ratio table
+# holds no row for (docs/sessions.md, 「Session compaction」): half the window.
+fold_ratio = 0.5
+
+[effort]
+# Every effort word a mapping of it may hold.
+words = ["none", "minimal", "low", "medium", "high", "xhigh"]
+# A mapping may also name no effort.
+none_held = true
+# What a launch makes of the mapping's word: either is taken. Which levels a routed model offers is that
+# model's, never the tier's, so a level the member's backend refuses is clamped to the member's allowed word.
+launch = "either"
+
+[presence]
+# The member's key file under the data root's env directory, private to its owner; its value is never held
+# anywhere else.
+key_file = "openrouter.key"
+# What it says where the key file or the gateway's key file is not usable: the kebab-case code a screen words
+# in its own language, and the English sentence the log keeps.
+missing_code = "openrouter-key-unusable"
+missing = "OpenRouter cannot be chosen: its member's key file (openrouter.key) or the gateway's key file is missing or its mode is not 0600."
+# What a pin or a job naming a model this provider does not serve says; the name follows it.
+not_held = "Not an OpenRouter model"
+
+[claude]
+# The Claude Code effort word a run goes out with, by the word its tier mapping or its agent named.
+effort = { none = "low", minimal = "low", low = "low", medium = "medium", high = "high", xhigh = "xhigh" }
+
+[gateway]
+# Where its API answers: the chat completions dsh's route asks under, and the listing of a model's
+# upstreams an upstream's cache is read from. A test names a stand-in's address in the variable below.
+api = "https://openrouter.ai/api/v1"
+api_env = "BMO_OPENROUTER_API_URL"
+
+[cache]
+# The cache belongs to the upstream that actually took a turn, so its lifetime is read by that upstream's
+# name as the gateway reports it, then by the longest model name an entry of it begins. Only lifetimes the
+# upstream itself publishes are written; an upstream missing here keeps nothing warm (docs/cache-fallback.md).
+upstreams = [
+  { upstream = "Anthropic", prefix = "anthropic/", ttl_minutes = 60, keepalive_idle_minutes = 40 },
+  { upstream = "OpenAI", prefix = "openai/gpt-5.6", ttl_minutes = 30, keepalive_idle_minutes = 20 },
+  { upstream = "OpenAI", prefix = "openai/gpt-6", ttl_minutes = 30, keepalive_idle_minutes = 20 },
+]
+
+[catalogue]
+# Where the model listing is read from; the request waits for its answer. It needs no key, so a machine given
+# none can still show the choice. A test names a stand-in's address in the variable below.
+url = "https://openrouter.ai/api/v1/models"
+url_env = "BMO_OPENROUTER_LISTING_URL"
+
+[resident]
+# The keys typed into the pane of its standing program, Claude Code, that cut a working turn short
+# (docs/agent-control.md, 「Stopping」).
+interrupt = ["escape"]
+# Its surface carries its own turns: put into Claude Code's transcript door and read back out of its record.
+turns = "endpoint"
+# Words put in while a turn works are taken into that turn.
+words_mid_turn = true
+# A conversation grown to its mark is handed over by a turn asking it for its note, which a new session
+# opens with.
+handover = "handoff"
+# A conversation's turn is watched for going nowhere and cut at the conversation limits.
+turn_limits = true
+# No engine of its own holds a slot; every request goes to OpenRouter's API.
+waits_for_engine = false
+
+# The dsh route the road no longer uses; kept for a rollback to the dsh harness, which no run of this build
+# names.
+[dsh]
+api = "https://openrouter.ai/api/v1"
+api_env = "BMO_OPENROUTER_API_URL"
+key_env = "BMO_OPENROUTER_KEY"
+
+[balance]
+# What the account has left, asked with the key in its key variable on a clock (docs/usage-windows.md,
+# 「Balances」): where it is asked, the variable a test names a stand-in's address in, how often it is read
+# and for how many passes a reading stands, and, for a balance spent, where a person tops it up
+# (docs/cache-fallback.md, 「One road resolution」). Its credits are US dollars.
+url = "https://openrouter.ai/api/v1/credits"
+url_env = "BMO_OPENROUTER_BALANCE_URL"
+pass_seconds = 300
+fresh_passes = 6
+currency = "USD"
+top_up = "buy OpenRouter credits at https://openrouter.ai/settings/credits"
+# The second address, asked with the same key, which states the day's allowance of free-model requests.
+requests_url = "https://openrouter.ai/api/v1/key"
+requests_url_env = "BMO_OPENROUTER_REQUESTS_URL"
+requests_scope = "free-models"
+
+[[reads]]
+# The media a model of this road reads natively (docs/provider-order.md, 「The media a model reads」):
+# what its answer carries to the model is a picture, whatever the model behind it, so no rule names a
+# document. A model no rule names reads nothing.
+model = "anthropic/claude"
+media = ["image"]
+
+[[reads]]
+model = "google/gemini"
+media = ["image"]
+
+[[reads]]
+model = "openai/gpt"
+media = ["image"]

@@ -1,0 +1,12 @@
+{
+  "name": "@agency/archive",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@agency/support": "workspace:*"
+  }
+}

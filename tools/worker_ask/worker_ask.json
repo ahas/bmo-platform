@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["words"],
+  "properties": {
+    "words": { "type": "string", "minLength": 1, "description": "The task, in the words the worker run is given." },
+    "folder": { "type": ["string", "null"], "description": "Where to work; the asking supervisor's scratch workspace where neither it nor an app is named. A repository's checkout may be named only in the owner's turn." },
+    "app": { "type": ["string", "null"], "description": "A personal app of the person you serve, by its name: the run works in that app's folder on their PC and follows the make-app guide. Not with a folder." }
+  }
+}

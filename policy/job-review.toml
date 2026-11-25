@@ -1,0 +1,81 @@
+# How a job's reports are examined by its orderer before the job goes on or ends (docs/job-review.md): how many
+# times the work is sent back before it may be put to the owner, how long the owner's question waits before the
+# job gives its checkout up, the name the record's own entries are written under, how a work order that cannot be
+# read is asked again, the two checks in their order with what each requires, what the orderer is told, and what
+# each turn the review asks for is told. Each line names the marks it is filled with.
+escalate_after = 10
+owner_wait_seconds = 60
+actor = "agency"
+# How a work order that could not be read is asked again (docs/job-review.md, 「Stages」): after a pause that
+# doubles from the first to the longest, however long it takes, with the job's `heldFor` naming the wait. A
+# deployment may name the first pause in `BMO_WORK_ORDER_PAUSE_MS` instead.
+# `{item}` is the item and `{why}` what the read came to.
+work_order_first_ms = 2000
+work_order_longest_ms = 60000
+work_order_wait = "it waits for item #{item}'s work order, which could not be read: {why}"
+# What the orderer is told: `{job}`, `{item}`, `{worker}`, `{stage}`, `{round}`, `{rejections}`, `{language}`,
+# `{check}`, `{requirement}`, `{heading}`, `{words}` and `{moves}`.
+review_order = "The job {job} of item #{item} on {worker} is under review: {stage}, round {round}, its work sent back {rejections} times so far. {language}\n\nThe check due now is {check}: {requirement}\n\n{heading}\n\n{words}\n\nGive the verdict by calling review_job on job {job} with one of its actions: {moves}. The call alone is the verdict, and the room's reply says nothing of it, neither an action's name nor an account of the verdict. Where this instruction came into a turn that already wrote a reply, answer <<KEEP>> after the call to keep that reply as it is, never an empty answer, which reads as no answer at all; words the round carries from the room are answered as they would be without this instruction. Where it came in a round of its own and nothing is for the room, answer <<SKIP: <why>>>."
+# The language the run writes its results for a person in, as the order names it (docs/job-review.md, 「The
+# checks」): on a registration that names the languages it writes, `{model}` the registration and `{languages}`
+# its languages; on every other road, the brief's language.
+result_language_listed = "It ran on {model}, which writes a result for a person in {languages} alone: where the brief names a language outside these, its results for a person are written in English and the person reads them through a translation, so an English report is no reason to send the work back."
+result_language_brief = "Its results for a person are written in the language its brief names."
+moves_early = "`ask`, `reject` or `pass`"
+moves_open = "`ask`, `reject`, `pass` or `escalate`"
+report_heading = "The worker's report:"
+# What a later check of a round examining the same report is told in the report's place, its words told once a
+# round with the first check (docs/job-review.md, 「The checks」): `{item}`.
+report_unchanged = "The same report this round's first check was told with, unchanged. Where your session no longer holds it, job_reviews on item #{item} reads it."
+answer_heading = "The worker's answer to your question:"
+ruling_heading = "The owner's word on it:"
+# The stage named in an order and on the owner's question: `{stage}`, `{stages}` and `{step}`.
+stage_one = "its one stage"
+stage_of = "stage {stage} of {stages} ({step})"
+stage_final = "its final report, every stage passed"
+# A job that gave its checkout up while the owner's question waits: `{job}`, `{item}`, `{question}` and `{worker}`.
+parked_order = "The job {job} of item #{item} waits on the owner's question #{question}, past its due time, so it gave its checkout {worker} up; the item stays leased. Launch the work that can go now."
+# The owner's question: `{words}`, `{job}`, `{item}`, `{stage}` and `{rejections}`.
+question_text = "{words}\n\nWhat this asks: a job working on item #{item} (job {job}, {stage}) reports its work, and the supervisor examines each report before the job goes on. It sent this work back {rejections} times and another round would not settle it, so it asks you. Sending the work back hands the job the words above to work on, and it reports again. Taking it as it stands lets the job go on to its next stage, or finish, without what the words above find missing."
+send_back = "Send the work back: the job works on what the review found missing and reports again"
+take_it = "Take the work as it stands: the job goes on without those fixes"
+# The review opened as the job is launched: `{stages}`, how many, and `{plan}`, the steps a line each.
+opened = "The work runs in {stages} stage(s), each examined before the next:\n{plan}"
+# What the first turn of a job of several stages is told after its prompt: `{stages}`, `{plan}` and `{step}`.
+first_stage = "## Stages\n\nThis job runs in {stages} stages, one at a time. Each stage ends with your report, which the supervisor that ordered the work examines before the next stage is handed to you in this same session:\n{plan}\n\nDo stage 1 alone now: {step}\n\nEnd this turn with your report of stage 1."
+# What every turn of a job of one stage is told after its prompt.
+one_stage = "## Review\n\nEnd this turn with your report. The supervisor that ordered the work examines it, and may question you, send the work back or pass it, each as a new turn in this same session."
+# A stage handed over once the one before passed: `{passed}`, `{stage}`, `{stages}`, `{last}` and `{step}`.
+next_stage = "The review passed stage {passed}. Do stage {stage} of {stages} now{last}: {step}\n\nEnd this turn with your report of stage {stage}."
+last_stage = ", the last stage"
+# The turn asking for the final report once every stage passed.
+final_turn = "Every stage passed its review. Write the final report of the whole job now: every stage, what each changed and how it was checked, the commits, and every matter left to the owner with why it is the owner's. Do no further work in this turn."
+# A question of the review: `{check}` and `{words}`.
+question_turn = "The supervisor examining your report asks, on its check {check}:\n\n{words}\n\nAnswer it in this turn. Where the question shows work missing, do that work before you answer, and say what you did."
+# The work sent back: `{words}`.
+rejection_turn = "The supervisor examining your report sent the work back:\n\n{words}\n\nDo what it asks now, in this checkout, then end this turn with your report of the work as it stands after it."
+# The work sent back to a stage already passed: `{words}`, `{stage}`, `{stages}` and `{step}`.
+rejection_back_turn = "The supervisor examining your report sent the work back to stage {stage} of {stages}: {step}\n\nWhat is to be done:\n\n{words}\n\nDo it now, in this checkout, then end this turn with your report of stage {stage} as it stands after it. The stages after it are handed to you again, in order, once it passes."
+# Opens a turn's prompt where the job's session could not be resumed: `{prompt}` the job's own, then the record.
+carried = "{prompt}\n\n## The review so far\n\nThis job's session could not be resumed, so its record stands here, oldest first:\n\n{record}"
+
+# What a supervisor filing an item is answered with before the item is filed, so its steps are checked against
+# the agent the item runs on: `{role}`, `{agent}`, `{skills}` and `{tools}` a line each, and `{mark}`, the mark the
+# next filing names.
+steps_check = "Check this item's steps before it is filed. It runs on {agent} as the {role} role.\n\nThe skills that agent holds:\n{skills}\n\nThe tools it holds:\n{tools}\n\nRead your brain for the lessons that bear on this work. Then set the steps as the stages its job runs in, each one the question that agent is asked at that stage, in your words; the agent cannot change them. The shape stands as three stages unless the work calls for another:\n1. Investigate: the grounds the implementation will stand on. Where the findings are not simple, the stage ends with an archive document of them and its voice briefing, handed to the owner, and the work goes on without waiting for him unless he asked to approve it.\n2. Implement: the goal carried out and tested, as one stage however many things it does: those are lines of its one step, never stages of their own, so there is no implement 1 and implement 2. The report names, under what was not confirmed, everything it could not confirm.\n3. Verify: everything the implement stage reported as not confirmed, confirmed until nothing of it is left; nothing more where it reported nothing.\nAdd a stage, or a line to one, for any work a skill, a tool or a lesson says is always done for work like this — a review with the design skills before the verify stage for design work, for one — and leave out what does not apply.\n\nThen call file_item again with the steps as they now stand and stepsCheck set to {mark}."
+steps_check_none = "(none)"
+# What a supervisor is answered with where an item it files or launches names no agent: the agent is the
+# supervisor's to name, from what it has learned (docs/repositories.md, 「An agent an item names」).
+agent_unnamed = "{item} names no agent and no model, and nothing chooses one for it: name the agent that does it with the label agent=<name>, or the model it runs on with model=<model> beside role=<role>, which takes whichever agent of that role on that model is free at its launch. The agents of the {role} role:\n{agents}\n\nRead your brain for what you learned of which agent does such work well and which falls short, weigh which are free, and name one, or the model; where the owner named either, his word is the label. Then call again with the label set."
+# What a supervisor filing or launching an item is answered with where its model is one no agent of its role
+# that is switched on runs (docs/repositories.md, 「An agent an item names」).
+no_candidate = "{item} names model={model} for the {role} role, and no agent of that role that is switched on runs that model, so no launch can take it; it is never launched on another agent in its place. The agents of the {role} role:\n{agents}\n\nName a model one of them runs with model=<model>, or one agent with agent=<name>, and call again."
+
+# The checks every report is examined by, in order, each with what it requires.
+[[checks]]
+name = "promises"
+requirement = "Every item the work committed to was carried out: the brief, the stage's step, every rework the review sent back, and each thing the report itself says it would do; nothing of it was left for later."
+
+[[checks]]
+name = "decisions"
+requirement = "Every matter the report leaves to the owner, or calls the owner's to decide, stands on a ground that makes it the owner's: a decision only the owner can give. A matter the worker could settle from the work, the rules and the documents is not the owner's."

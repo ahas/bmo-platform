@@ -1,0 +1,23 @@
+# The deployment's names (docs/policy.md, 「The deployment's names」): what its agent and its owner are
+# called in the records and in a room. These are the neutral defaults; a deployment names its own in the
+# environment variable beside each, which wins over the default wherever it is set and not empty.
+
+# The name the deployment's agent stands under in the records.
+[agent_key]
+default = "agent"
+variable = "AGENCY_AGENT_KEY"
+
+# What the deployment's agent is called by in a room.
+[agent_name]
+default = "Agent"
+variable = "AGENCY_AGENT_NAME"
+
+# What the deployment calls its owner, where no road ever showed the owner by a name.
+[owner_name]
+default = "Owner"
+variable = "AGENCY_OWNER_NAME"
+
+# The name the deployment's agent's own messages are stored under.
+[sender_name]
+default = "Agent"
+variable = "AGENCY_SENDER_NAME"

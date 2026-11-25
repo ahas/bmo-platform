@@ -1,0 +1,106 @@
+# What an item's orderer is told of a change in the queue (docs/agent-control.md, 「An item's change is told to
+# its orderer」): how deep the chain of items an item was raised from is followed to find its orderer; the data
+# each order carries, its marks naming what it is filled with; and the word a notice names where the item goes
+# to any free checkout. An order carries the
+# change's data and a short marker, never an instruction: what to do with each kind stands in the
+# supervisor's manual (prompts/agents/chat/manual.md, 「THE QUEUE」).
+orderer_depth = 16
+any_worker = "any free checkout"
+paused_order = "Item #{item} ({title}) is open in the queue {queue}, which is paused or under a hold and gives no lease."
+unlaunchable_order = "Item #{item} ({title}) names {assignee} as its repository, which no checkout agency holds is of."
+agent_order = "Item #{item} ({title}) carries the label agent={label}, and no launch takes it: {why}"
+# An open item whose `role` label names no role agency holds: `{item}`, `{title}`, `{label}` and `{roles}`, the
+# roles agency holds, joined by a comma.
+role_order = "Item #{item} ({title}) carries the label role={label}, which names no role agency holds. The roles it holds: {roles}."
+# An open item whose model no agent of its role that is switched on runs: `{item}`, `{title}`, `{model}`,
+# `{role}` and `{agents}`, the role's agents with their roads a line each.
+no_candidate_order = "Item #{item} ({title}) names model={model} for the {role} role, and no agent of that role that is switched on runs that model. The agents of the {role} role:\n{agents}"
+moved_order = "Item #{item} ({title}) is now {state}{merged} while its job {job} still runs on {worker}."
+closed_order = "Item #{item} ({title}) was closed as done by {by}."
+# The labels a held item names what it waits on with, one item's number or several separated by commas; and
+# what its orderer is told once every item it waits on is done and none waits to go live: `{item}`, `{title}`,
+# `{label}` and `{waited}`, the items it waited on, each as `waited_item` gives it with `{item}`, `{title}` and
+# `{state}`.
+wait_labels = ["follows", "waiting-on"]
+wait_ended_order = "Item #{item} ({title}) is held under {label}, and every item it waits on has ended: {waited}."
+waited_item = "#{item} ({title}), {state}"
+# An item whose closes merged commits that wait for their repositories' batch deployments: `{item}`, `{title}`
+# and `{merged}`, each waiting commit as `merged_commit` gives it with `{commit}` and `{repository}`, joined by
+# a semicolon.
+deploy_order = "Item #{item} ({title}): its job's close merged {merged}, and the item waits for each repository's batch deployment: put each live once no related work is left, else agency's hourly flush of the deploy queue puts it live; close the item once every one is live, as the todo procedure says."
+merged_commit = "commit {commit} into {repository}'s main"
+# The deploy queue's flush (docs/agent-control.md, 「The deploy queue is flushed every hour」): how many minutes pass
+# between two flushes, unless the owner's own settings row `deploy_flush_minutes` names another; how often the
+# clock is read for it; the reason each deployment it starts is made with, `{items}` the items whose commits wait
+# for the repository, each as `deploy_flush_item` gives it with `{item}`, joined by a comma, whose words before
+# `{items}` mark the deployment as the flush's in the repository's deployment record; and the order a flushed
+# deployment that went live is told with: `{repository}`, `{commit}`, `{unit}` and `{items}`, the waiting items it
+# carries in the room, each as `deploy_failed_item` gives it, joined by a semicolon.
+deploy_flush_minutes = 60
+deploy_flush_read_seconds = 60
+deploy_flush_why = "Hourly flush of the deploy queue, carrying {items}"
+deploy_flush_item = "#{item}"
+deploy_live_order = "The hourly flush of the deploy queue put {repository} live at commit {commit} (unit {unit}). The waiting items it carries: {items}\nTake each item's pair for this repository off and close every item whose every commit is now live, as the todo procedure's batch that goes live says."
+# Commits waiting for their repositories' batch deployments that are not going live (docs/agent-control.md, 「The
+# deploy queue is flushed every hour」): a repository no deployment of this machine puts live, told at once; and a
+# commit still waiting `deploy_stale_minutes` after the first flush read it waiting, told once. `{repository}`,
+# `{why}`, one of the `deploy_why_*` words, `{hours}`, how long the longest of them has waited, and `{items}`, each
+# waiting item as `deploy_stalled_item` gives it with `{item}`, `{title}` and `{commit}`, joined by a semicolon.
+deploy_undeployable_order = "Commits wait for {repository}'s batch deployment, and no deployment of this machine puts {repository} live: {why}. The waiting items: {items}\nNothing goes live until a deployment of {repository} is declared or it is put live another way; tell the owner, and close each item once its commit is live."
+deploy_stale_minutes = 360
+deploy_stale_order = "Commits have waited {hours} hours for {repository}'s batch deployment and are still not live: {why}. The waiting items: {items}\nFind what holds {repository} back and mend it, or tell the owner."
+deploy_stalled_item = "#{item} ({title}) at {commit}"
+deploy_why_no_checkout = "agency holds no checkout of it on this machine"
+deploy_why_no_root = "the testbed declaration in its checkout names no [deploy] root, and the testbed refused its deployment: {said}"
+deploy_why_main_unread = "its main could not be read: {said}"
+deploy_why_failed_at = "its last deployment, {unit}, ended {outcome} at main's commit {commit}, and main waits for a mend: {reason}"
+deploy_why_refused = "the testbed refused the deployment the flush asked: {said}"
+deploy_why_asked = "every flush asks its deployment, and none has put the commit live yet"
+# A deployment that ended without going live (docs/agent-control.md, 「A deployment that did not go live is
+# told」): `{repository}`, `{commit}`, `{unit}`, `{outcome}`, `{stage}`, `{reason}`, `{items}`, the waiting items
+# it carries in the room, each as `deploy_failed_item` gives it with `{item}` and `{title}`, else
+# `deploy_failed_no_items`, and `{journal}`, the last lines of its unit's journal. The words stand in for a run cut
+# off with no outcome, one that named no stage, and one that gave no reason. How often the progress records are
+# read, and how many lines of a unit's journal the order carries.
+deploy_failed_order = "The deployment of {repository} at commit {commit} (unit {unit}) ended {outcome} without going live, in the stage {stage}: {reason}\nThe waiting items it carries: {items}\nThe last lines of its journal:\n{journal}"
+deploy_failed_item = "#{item} ({title})"
+deploy_failed_no_items = "none of the items waiting for this repository's batch deployment"
+deploy_cut_off = "cut off"
+deploy_no_stage = "none named"
+deploy_no_reason = "its run gave no reason"
+deploy_read_seconds = 5
+deploy_journal_lines = 20
+question_order = "A run asked question #{question} on item #{item}: {text}\nChoices: {choices}"
+# A job's question the job service put to the owner once the supervisor's minute on it passed: the same marks.
+question_handed_order = "Your minute on question #{question} on item #{item} passed, so the job service put it to the owner as the job wrote it; he has a minute before its recommendation, if any, settles it. Tell him of it in his chat now, in his language: {text}\nChoices: {choices}"
+waiting_order = "The job of item #{item} on {worker} waits: {why}\n\nIt goes on by itself once it can."
+# A job's turn that has made no progress for its stall span (docs/agent-control.md, 「A run's tool calls are held
+# to a clock」): `{job}`, `{item}`, `{worker}`, `{minutes}`, `{since}`, the time of day of its last progress, and
+# `{waiting}`, each running call as `stalled_call` gives it with `{tool}` and `{lines}`, else `stalled_no_call`.
+# `stalled_no_lines` stands for the lines of a call that has written none.
+stalled_order = "The job {job} of item #{item} on {worker} is still working but has made no progress for {minutes} minutes, since {since}. It waits on:\n{waiting}"
+stalled_call = "the tool call {tool}, its last lines:\n{lines}"
+stalled_no_call = "no tool call: the model's own turn has written nothing new"
+stalled_no_lines = "(nothing written)"
+close_order = "The job of item #{item} ended, and item #{item} is still leased under lease {lease}: it is not closed."
+# A person's question still open past its due time: `{question}`, `{item}`, `{asker}`, `{text}` and `{choices}`.
+question_due_order = "Question #{question} on item #{item}, asked by {asker}, is still open past its due time: {text}\nChoices: {choices}"
+# A question its due time passed on with no answer, settled by the job service on its recommendation:
+# `{question}`, `{item}`, the item worded by `question_settled_item` where the question names one and nothing
+# where it does not, `{answer}` and `{why}`, the recommendation's reason.
+question_settled_order = "Question #{question}{item} was not answered by its due time, so it was settled on its recommendation, with the answer: {answer}. The recommendation's reason: {why}"
+question_settled_item = " on item #{item}"
+# A job ended failed or blocked in a room other than the owner's private room, told in his room as well:
+# `{job}`, `{item}`, `{worker}`, `{outcome}` and `{room}`.
+failed_order = "The job {job} of item #{item} on {worker} ended {outcome} in room {room}."
+# Agency's outbox: how often its sender sends what is due; the wait after a failed try, doubled after each
+# failure up to the most; how long a standing notice waits after it was last told before it is told again; and
+# how long one try waits for the receiver's answer.
+send_seconds = 5
+retry_first_seconds = 5
+retry_most_seconds = 300
+retell_seconds = 300
+answer_seconds = 30
+# How long after a job's end, a check of its review coming due or its wait beginning, the sender waits before it
+# owes a notice of it that was not owed yet itself: past the time the change's own path takes to owe it.
+owe_grace_seconds = 120

@@ -1,0 +1,82 @@
+[package]
+name = "agency-server"
+description = "The agency service: sessions, places, lines, the co-worker pool, control routes and verbs."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[[bin]]
+name = "agency-server"
+path = "src/bin/agency-server.rs"
+test = false
+
+[[bin]]
+name = "bmo-agency"
+path = "src/bin/bmo-agency.rs"
+test = false
+
+[dependencies]
+agent-host = { path = "../agent-host" }
+agent-session = { path = "../agent-session" }
+axum.workspace = true
+base64.workspace = true
+hex.workspace = true
+hmac.workspace = true
+bmo-agency-client.workspace = true
+bmo-brain-client.workspace = true
+bmo-cache-warmer-schedule.workspace = true
+bmo-chat.workspace = true
+bmo-secret-shapes.workspace = true
+bmo-gate-client.workspace = true
+bmo-node-client.workspace = true
+bmo-pocket-client.workspace = true
+bmo-testbed-client.workspace = true
+brush-parser.workspace = true
+cache-siren = { path = "../cache-siren" }
+chrono = { workspace = true, features = ["clock"] }
+clap.workspace = true
+diffy.workspace = true
+dotenvy.workspace = true
+futures-util.workspace = true
+glob.workspace = true
+harness-machine = { path = "../harness-machine" }
+harness-providers = { path = "../harness-providers" }
+herdr = { path = "../herdr" }
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+indexmap.workspace = true
+inventory.workspace = true
+libc.workspace = true
+matchit.workspace = true
+node-link = { path = "../node-link" }
+percent-encoding.workspace = true
+policy = { path = "../policy" }
+tool-call = { path = "../tool-call" }
+procfs.workspace = true
+pulldown-cmark.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+rev_lines.workspace = true
+rmcp.workspace = true
+schemars.workspace = true
+sea-orm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_norway.workspace = true
+sha2.workspace = true
+sse-stream.workspace = true
+store = { path = "../store" }
+strip-ansi-escapes.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+toml.workspace = true
+url.workspace = true
+uuid.workspace = true

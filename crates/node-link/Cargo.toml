@@ -1,0 +1,45 @@
+[package]
+name = "node-link"
+description = "The node link: what the two ends of a link between machines say to each other, and the two ends."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Its binary holds no tests of its own, so `cargo test` links no test binary of it.
+[[bin]]
+name = "node-link"
+path = "src/main.rs"
+test = false
+
+# The crate's tests stand in the root package's harness, so the library's own test target holds none: left
+# on, every test build compiles the whole library a second time for an empty binary.
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+base64.workspace = true
+clap.workspace = true
+# The jake hub's own file, which names its control port and the key its control credentials are made with.
+dotenvy.workspace = true
+# The control credential scoped to one agent, made as the jake hub checks it.
+hex.workspace = true
+hmac.workspace = true
+# The call's proxy a personal tool reaches the network through (docs/person-nodes.md, 「The network and secrets of a
+# call」).
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+# The jake hub asked to let go of the listens it keeps for a person's PC.
+reqwest.workspace = true
+libc.workspace = true
+# An MCP server's version spoken to as a client inside its confinement (docs/person-nodes.md, 「MCP servers」).
+rmcp = { workspace = true, features = ["client", "transport-child-process", "transport-streamable-http-client-reqwest"] }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+# An app's manifest read as the runner places it (docs/person-nodes.md, 「Personal apps」), and an MCP server's
+# manifest written as its listing makes it (「MCP servers」).
+toml = { workspace = true, features = ["display"] }

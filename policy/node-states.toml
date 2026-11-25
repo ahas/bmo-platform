@@ -1,0 +1,30 @@
+# What a node's last check came to, in the words every list says it in, and how each reads at a
+# glance: reached, not reached, or not yet asked (docs/work-nodes.md).
+
+[connected]
+word = "connected"
+tone = "good"
+
+[disconnected]
+word = "disconnected"
+tone = "bad"
+
+[auth]
+word = "authentication failed"
+tone = "bad"
+
+[hostkey]
+word = "host key mismatch"
+tone = "bad"
+
+[unreachable]
+word = "unreachable"
+tone = "bad"
+
+[error]
+word = "check failed"
+tone = "bad"
+
+[unknown]
+word = "not checked yet"
+tone = "unknown"

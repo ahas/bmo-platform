@@ -1,0 +1,98 @@
+# The Codex models, reached by Claude Code through agency's gateway member on an OpenAI API key
+# (docs/own-llm.md, 「The gateway's members」). Read by this provider's own declaration on each side.
+
+# The provider's name as a screen shows it.
+label = "Codex"
+
+# The lines its program carries. Its runs are Claude Code's on the gateway, which carries the chat, a worker's
+# job and a gate's one-request judgement.
+lines = ["chat", "gate", "worker"]
+
+# A mapping of it carries a ceiling on the answer's tokens: its member names one.
+caps_answer_tokens = true
+
+# Its engine is not the owner's own: what a session reads goes to the outside service.
+owners_engine = false
+
+[effort]
+# Every effort word a mapping of it may hold.
+words = ["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]
+# A mapping may also name no effort: it is held, and the member's default word stands.
+none_held = true
+# What a launch makes of the mapping's word: either is taken.
+launch = "either"
+
+[presence]
+# The member's key file under the data root's env directory, private to its owner.
+key_file = "openai.key"
+# What it says where the key file or the gateway's key file is not usable: the kebab-case code a screen words
+# in its own language, and the English sentence the log keeps.
+missing_code = "codex-key-unusable"
+missing = "Codex cannot be chosen: its member's key file (openai.key) or the gateway's key file is missing or its mode is not 0600."
+# What a pin or a job naming a model this provider does not serve says; the name follows it.
+not_held = "Not a Codex model"
+
+[claude]
+# The Claude Code effort word a run goes out with, by the word its tier mapping or its agent named.
+effort = { none = "low", minimal = "low", low = "low", medium = "medium", high = "high", xhigh = "xhigh", max = "max", ultra = "max" }
+
+[catalogue]
+# The catalogue bundled with the installed executable, which needs neither a network request nor a
+# model run; its answer is waited for until the run ends. The executable is read by the chooser that declares a
+# member; no run of this build goes out on it.
+program = "codex"
+args = ["debug", "models", "--bundled"]
+
+[cache]
+# How long a prefix its models hold stays cached, and how long a thread may stand idle before a ping
+# warms it again, by the longest model name each entry begins: OpenAI publishes 30 minutes for GPT-5.6
+# and later. A model no entry begins publishes no lifetime, and its thread is neither closed for age
+# alone nor warmed (docs/cache-fallback.md).
+models = [
+  { prefix = "gpt-5.6", ttl_minutes = 30, keepalive_idle_minutes = 20 },
+  { prefix = "gpt-6", ttl_minutes = 30, keepalive_idle_minutes = 20 },
+]
+
+[usage]
+# The subscription's windows, read on a clock where Codex is installed (docs/usage-windows.md, 「The Codex
+# reader」): how often, and for how many passes a reading stands. The newest rollout's reading is taken
+# where a turn wrote it within rollout_fresh_seconds, the newest rollout_days day folders searched for it
+# (a thread resumed today still writes into the day it began on); otherwise the app-server is started with
+# app_server_args and asked, and its answer or its closed output waited for. The
+# app-server starts its sandbox host as it boots, which this machine's sandbox setup cannot make a user
+# namespace for, so its line asks for full access and never to be asked.
+pass_seconds = 60
+fresh_passes = 6
+rollout_fresh_seconds = 60
+rollout_days = 3
+app_server_args = [
+  "app-server",
+  "--listen",
+  "stdio://",
+  "--config",
+  'sandbox_mode="danger-full-access"',
+  "--config",
+  'approval_policy="never"',
+]
+
+[resident]
+# The keys typed into the pane of its standing program, Claude Code, that cut a working turn short
+# (docs/agent-control.md, 「Stopping」).
+interrupt = ["escape"]
+# Its surface carries its own turns: put into Claude Code's transcript door and read back out of its record.
+turns = "endpoint"
+# Words put in while a turn works are taken into that turn.
+words_mid_turn = true
+# A conversation grown to its mark is handed over by a turn asking it for its note, which a new session
+# opens with.
+handover = "handoff"
+# A conversation's turn is watched for going nowhere and cut at the conversation limits.
+turn_limits = true
+# No engine of its own holds a slot; every request goes to the member's API.
+waits_for_engine = false
+
+[[reads]]
+# The media a model of this road reads natively (docs/provider-order.md, 「The media a model reads」):
+# the GPT models take pictures into the request their runs go out on; nothing else on this road does.
+model = "gpt"
+media = ["image"]
