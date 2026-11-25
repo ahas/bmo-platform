@@ -443,7 +443,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Runs newest first: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far. */
+        /** Runs newest first, of the owners the caller reaches: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far. */
         get: operations["listRuns"];
         put?: never;
         /** Open a run in the ledger. */
@@ -760,7 +760,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Registered models, by provider or tier. */
+        /** Registered models the caller reaches, by provider or tier. */
         get: operations["listModels"];
         put?: never;
         /** Register a model. */
@@ -1686,7 +1686,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every supervisor, each with the login account that owns it. */
+        /** Every supervisor the caller reaches, each with the account or unit that owns it. */
         get: operations["listSupervisors"];
         put?: never;
         /** Register a supervisor; it is given its brain. */
@@ -1916,7 +1916,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every agent of every role, by role and name, or one role's. */
+        /** Every agent of every role the caller reaches, by role and name, or one role's. */
         get: operations["listRoleAgents"];
         put?: never;
         /** Add an agent to a role. */
@@ -2091,7 +2091,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every repository. */
+        /** Every repository the caller reaches. */
         get: operations["listRepositories"];
         put?: never;
         /** Add a repository. */
@@ -3270,6 +3270,18 @@ export interface components {
             agentName: string;
             unitName: string;
             /**
+             * Format: int64
+             * @description the account the run's agent was seated on when it opened; null where it is none's or predates the column
+             * @default null
+             */
+            ownerAccount: number | null;
+            /**
+             * Format: int64
+             * @description the organisation unit the run's agent was seated on when it opened; null where it is none's
+             * @default null
+             */
+            ownerUnit: number | null;
+            /**
              * @description What the run was asked to do: a role session's turn's title, or the title the body opening it named.
              * @default null
              */
@@ -3843,6 +3855,12 @@ export interface components {
              * @default null
              */
             account: number | null;
+            /**
+             * Format: int64
+             * @description the organisation unit the registration is filed under; null where it is no unit's
+             * @default null
+             */
+            unit: number | null;
         };
         /** @description The body that saves or removes a registration, or sets or removes one of its addresses. */
         ModelChange: {
@@ -5147,6 +5165,12 @@ export interface components {
             label: string | null;
             /** Format: int64 */
             ownerAccount: number | null;
+            /**
+             * Format: int64
+             * @description the organisation unit it is filed under; null where it is no unit's
+             * @default null
+             */
+            ownerUnit: number | null;
             /** @description its call names as one line, joined by a comma and a space; null for none */
             aliases: string | null;
             icon: string | null;
@@ -5562,6 +5586,18 @@ export interface components {
         RoleAgent: {
             name: string;
             role: string;
+            /**
+             * Format: int64
+             * @description the login account whose seat it is; null for the deployment's own
+             * @default null
+             */
+            ownerAccount: number | null;
+            /**
+             * Format: int64
+             * @description the organisation unit whose seat it is; null where it is no unit's
+             * @default null
+             */
+            ownerUnit: number | null;
             /** @description its road's provider, or null where it follows the supervisor that asks it */
             provider: string | null;
             model: string | null;
@@ -8514,6 +8550,9 @@ export interface operations {
                 after?: number;
                 before?: number;
                 limit?: number;
+                ownerAccount?: number;
+                unit?: number;
+                unitSubtree?: boolean;
             };
             header?: never;
             path?: never;
@@ -9263,6 +9302,9 @@ export interface operations {
             query?: {
                 provider?: string;
                 tier?: string;
+                ownerAccount?: number;
+                unit?: number;
+                unitSubtree?: boolean;
             };
             header?: never;
             path?: never;
@@ -11305,7 +11347,11 @@ export interface operations {
     };
     listSupervisors: {
         parameters: {
-            query?: never;
+            query?: {
+                ownerAccount?: number;
+                unit?: number;
+                unitSubtree?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11873,6 +11919,9 @@ export interface operations {
         parameters: {
             query?: {
                 role?: string;
+                ownerAccount?: number;
+                unit?: number;
+                unitSubtree?: boolean;
             };
             header?: never;
             path?: never;
@@ -12281,7 +12330,11 @@ export interface operations {
     };
     listRepositories: {
         parameters: {
-            query?: never;
+            query?: {
+                ownerAccount?: number;
+                unit?: number;
+                unitSubtree?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;

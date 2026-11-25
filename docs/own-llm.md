@@ -150,9 +150,12 @@ never the model's name.
   them, and writes its results in English where its brief names a language outside them (「A run on the
   worker line is composed as on Claude」 below; `docs/worker-language.md`, 「A model that writes only some
   languages」).
-- **Its owner:** the account it belongs to, or none for the platform's (`docs/supply.md`, 「Owned supply」). An
-  owned registration is served to its owner's call key and the gateway's own key alone; none is owned until the
-  owner names one.
+- **Its owner:** the account it belongs to, or the organisation unit it is filed under, or neither for the
+  platform's (`docs/supply.md`, 「Owned supply」; `docs/api.md`, 「Who a caller acts for」). An
+  owned registration is served to its owner's call key and the gateway's own key alone, and a registration
+  filed under a unit is no one's personal supply and no platform source — the walk that takes a unit's things
+  takes its keys and Claude accounts, not its registrations (`docs/supply.md`, 「Organisation supply」); none
+  is owned until the owner names one.
 - **Nothing else of a run's prompt:** what a run on it is told is its line's, and an agent's base prompt is
   the agent's own choice (`docs/base-prompts.md`); the gateway passes every prompt as it stands.
 

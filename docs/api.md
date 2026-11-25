@@ -106,22 +106,36 @@ a field's exact shape matters, the OpenAPI document is the one to read.
   guessed. Agency keeps no permission of its own: the console's is the only one.
 - **A member's change of a repository needs repository management** on the delegation chain, and a repository
   an organisation unit owns is changed by that unit's heads (`docs/repositories.md`, 「Who may add and change a
-  repository」 and 「An organisation's repository」). **A unit's repository asks no console section:** a member's
-  `POST /repositories` naming `ownerUnit`, and a change or removal under `/repositories/{repositoryName}` of a
-  repository a unit owns, goes past the section's check, since whether they head the unit is the whole of who
-  may; the chain's check that follows refuses anyone else.
+  repository」 and 「An organisation's repository」). The same rule stands the other resources an organisation
+  unit holds: a supervisor, a role agent's seat and a registered model filed under the unit, and the run
+  records of the agents seated on it, belong to that unit's heads alone — heading the unit is the whole of who
+  may, the chain's answer of who writes the unit's link of `agency.unit-resources.manage` being the head
+  check, and a head of a unit heading the units below it as the chain answers them. **Such a call asks no
+  console section:** a member's `POST` naming `ownerUnit` — a `POST /models` naming `unit` — and a change or
+  removal of a row a unit owns go past the section's check; the chain's check that follows refuses anyone else.
 - **A section's write reaches a member's own rows alone.** Every row of agent management but a role is filed
-  under the login account it belongs to, its `ownerAccount`, the user id `Owner-Key` names, or under none, the
-  platform's. A member's change — any method but `GET` and `HEAD` — of a supervisor, a repository or a role
-  agent the path names goes on only where that row is filed under the member's own account: one filed under
-  another account, or one of the platform's, is refused 403 `forbidden`, the sentence naming the row and
-  whose it is, before the route reads the body. A row a member adds — `POST /supervisors`, `POST /repositories`,
-  `POST /role-agents` — is filed under their own account, and a body naming another account as `ownerAccount`
-  is refused 403 `forbidden`; a member's change of a role agent keeps it filed under their own account the same
-  way. A role is no account's: the roles are the platform's presets, and a member's `POST`, `PATCH` or
-  `DELETE` under `/roles` is refused 403 `forbidden` whatever the section grants. A path naming a row the store
-  does not hold goes on to its route, which answers it as it does. The administrator and the caller carrying no
-  key change every row and file it where the body says.
+  under the login account it belongs to, its `ownerAccount`, the user id `Owner-Key` names, or under an
+  organisation unit, its `ownerUnit`, or under neither, the platform's; a body naming both owners is refused.
+  A member's change — any method but `GET` and `HEAD` — of a supervisor, a repository or a role agent the path
+  names goes on only where that row is filed under the member's own account — one filed under another account,
+  or one of the platform's, is refused 403 `forbidden`, the sentence naming the row and whose it is, before
+  the route reads the body — or, where the row is filed under a unit, where the member heads it. A row a
+  member adds — `POST /supervisors`, `POST /repositories`, `POST /role-agents`, `POST /models` — is filed
+  under their own account, or, where the body names `ownerUnit` (`unit` for a model), under a unit they head;
+  a body naming another account as `ownerAccount` is refused 403 `forbidden`; a member's change of a role
+  agent keeps its filing the same way. A role is no account's: the roles are the platform's presets, and a
+  member's `POST`, `PATCH` or `DELETE` under `/roles` is refused 403 `forbidden` whatever the section grants. A
+  path naming a row the store does not hold goes on to its route, which answers it as it does. The
+  administrator and the caller carrying no key change every row and file it where the body says.
+- **The lists answer the rows the caller reaches.** `GET /supervisors`, `/role-agents`, `/repositories`,
+  `/models` and `/runs` answer a member the rows filed under their own account and those filed under the units
+  they head, a head above heading the units below; rows of the platform's and of another account stand in no
+  member's list, and the read of a single row the reader does not reach is answered as none stood there. Each
+  list takes `ownerAccount`, `unit`, and `unitSubtree=true` with `unit` — the named unit and every unit under
+  it, the units below read off the account service — and answers only the rows both named and reached; a
+  member may name their own account and a unit they head alone, refused 403 `forbidden` otherwise, and values
+  that are not ids or name both axes at once are refused 400. The administrator's and the deployment's own
+  calls name any owner and reach every row.
 - **A person's own supply is theirs alone** (`docs/supply.md`, 「What a person brings」). On `/fallback`,
   `/accounts`, `/claude-logins` and `/personal-supply`, a call naming a person with `Owner-Key` and
   `Owner-Role: member` acts on that person's own Claude accounts and keys alone: what it reads holds no other
@@ -208,9 +222,9 @@ both. `road-verbs` is what the procedures tool asks a room's road.
 
 | Method | Path | Does |
 |---|---|---|
-| GET | `/supervisors` | Every supervisor, each with the login account that owns it. |
+| GET | `/supervisors` | Every supervisor the caller reaches, each with the account or unit that owns it. |
 | POST | `/supervisors` | Register a supervisor; it is given its brain. |
-| GET | `/supervisors/{supervisorName}` | One supervisor: its row, order, warming, threshold, gates, sampling, voice, and what it stands on now. |
+| GET | `/supervisors/{supervisorName}` | One supervisor the caller reaches: its row, order, warming, threshold, gates, sampling, voice, and what it stands on now. |
 | GET | `/supervisors/{supervisorName}/rooms` | The rooms a supervisor's turns went into, each with its last run there. |
 | GET | `/supervisors/{supervisorName}/reset-point` | A supervisor's reset point alone. |
 | GET | `/supervisors/{supervisorName}/road` | A supervisor's one road, and whether it can take a turn now. |
@@ -224,10 +238,12 @@ both. `road-verbs` is what the procedures tool asks a room's road.
 
 - **Every supervisor is a row** (`docs/supervisors.md`), and these routes add, change, reset and end any of
   them alike.
-- **A supervisor is owned by a login account,** `ownerAccount`: the id of the user it belongs to, the same id
-  an account's `owner_account` names (`docs/store.md`). None means the administrator's. A member named on the call
-  registers, changes, resets and ends the supervisors of their own account alone, and registers one under it
-  (「Who a caller acts for」); the platform's own call writes the owner it is handed.
+- **A supervisor is owned by a login account,** `ownerAccount`, the id of the user it belongs to, the same id
+  an account's `owner_account` names (`docs/store.md`), **or stands under an organisation unit,** `ownerUnit`,
+  never both and neither for the platform's. A member named on the call
+  registers, changes, resets and ends the supervisors of their own account and, for a supervisor filed under a
+  unit, only where they head it, and registers one under either (「Who a caller acts for」); the platform's own
+  call writes the owner it is handed.
 - **A supervisor answers its row:** `name`, `label`, `ownerAccount`; `aliases`, its call names as one line
   joined by a comma and a space, or null for none (`docs/supervisors.md`, 「Its call names」); `sessionScope`,
   `turnShape`, `brainFolder`, `repository`, the repository its TODO items go to; its road, `provider`, `model`, `effort`,
@@ -266,7 +282,8 @@ both. `road-verbs` is what the procedures tool asks a room's road.
   then lowercase letters, digits and hyphens, forty characters at most, held by no supervisor yet, 409
   `name-taken` where one holds it; `label`, given; the road, `provider` and `model` with `effort`, `thinking`,
   `answerTokens` and `advisor` where it names them, judged as a road is (below);
-  `repository`, a repository the store holds, or none; `ownerAccount`, none where the caller gives none; and
+  `repository`, a repository the store holds, or none; `ownerAccount`, none where the caller gives none, or
+  `ownerUnit` where the body files the supervisor under a unit the caller heads; and
   `foldRatio`, the first provider's declared default where none is given. The row is written as one added
   on the console is: the `room` scope, the `pieces` shape, warmed on its road's provider, the brain folder
   `agents/<name>`, and no prompt folder.
@@ -389,7 +406,7 @@ both. `road-verbs` is what the procedures tool asks a room's road.
 | PATCH | `/roles/{roleName}` | Change any field of a role. |
 | DELETE | `/roles/{roleName}` | Remove a role no run holds or waits for and no default names. |
 | GET | `/roles/{roleName}/sessions` | The sessions the role's runs opened, newest first. |
-| GET | `/role-agents` | Every agent of every role, by role and name, or one role's. |
+| GET | `/role-agents` | Every agent of every role the caller reaches, by role and name, or one role's. |
 | POST | `/role-agents` | Add an agent to a role. |
 | PATCH | `/role-agents/{agentName}` | Change any field of an agent. |
 | DELETE | `/role-agents/{agentName}` | Remove an agent that carries no run. |
@@ -443,9 +460,10 @@ both. `road-verbs` is what the procedures tool asks a room's road.
   it stands. A role removed takes its provider prompts with it. 404 `not-found` for a role the store
   does not hold. A change reaches the role's next run; a run already let in finishes under the row it began
   under.
-- **Role agents.** `GET /role-agents` answers `items`, every agent by role and by name,
-  narrowed to one role's by `role`; each is its row (`docs/role-agents.md`, 「What an agent row holds」):
-  `name`, `role`, `ownerAccount`, `provider`, `model`, `effort`, `thinking`, `answerTokens`, `advisor`, `enabled`,
+- **Role agents.** `GET /role-agents` answers `items`, every agent the caller reaches by role and by name,
+  narrowed to one role's by `role` and to one owner's by `ownerAccount`, `unit` and `unitSubtree` (「Who a
+  caller acts for」); each is its row (`docs/role-agents.md`, 「What an agent row holds」):
+  `name`, `role`, `ownerAccount`, `ownerUnit`, `provider`, `model`, `effort`, `thinking`, `answerTokens`, `advisor`, `enabled`,
   `keepsCache`, `sessions`, `foldRatio`, `prompt`, `bundles`, `skills`, `addedAt`, `followsAsker`, true or false
   where it sets whether it follows its asker and null where its role's setting stands (`docs/role-agents.md`, 「An
   agent that follows its asker」), with `followsSupervisor`, true where it names no road or follows its asker by its
@@ -460,7 +478,9 @@ both. `road-verbs` is what the procedures tool asks a room's road.
   already taken. `DELETE /role-agents/{agentName}` answers 204, 404 for an agent the store does not hold and
   409 while it carries a run. An agent added, switched or removed holds from the next admission, and one
   more seat lets in at once the reserved slots it frees. A member named on the call adds agents under their
-  own account and changes and removes those alone (「Who a caller acts for」).
+  own account or, naming `ownerUnit`, under a unit they head, and changes and removes those and the seats
+  filed under the units they head alone; a body naming both owners is refused 422 (「Who a caller acts
+  for」).
 - **`DELETE /roles/{roleName}`** answers 204; 404 `not-found` for a role the store does not hold, and 409
   `conflict` while a run of it goes or waits, or for a role the roles policy names as a default.
 - **`GET /roles/{roleName}/sessions` answers `items`,** the sessions the role's runs opened, newest first, a
@@ -863,9 +883,9 @@ Every route that takes a body names the request type it reads, holding only the 
 
 | Method | Path | Does |
 |---|---|---|
-| GET | `/runs` | Runs newest first: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far. |
+| GET | `/runs` | Runs newest first, of the owners the caller reaches: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far. |
 | POST | `/runs` | Open a run in the ledger, under the title a body names. |
-| GET | `/runs/{runId}` | One run, its clock among its fields. |
+| GET | `/runs/{runId}` | One run the caller reaches, its clock among its fields. |
 | PATCH | `/runs/{runId}` | Close a run, or stop it, or attach the message its answer went out as. |
 
 A run is a row of the ledger (`docs/run-records.md`, 「The run ledger」): a unit the job unit opens and
@@ -886,9 +906,13 @@ by a run's id: with `before`, the runs before that id; with `after`, the runs af
 neither, the newest. `more` says whether more runs lie beyond the page in the direction it was asked —
 older ones, or with `after` newer ones. It narrows by `live` — `true` the runs still open, `false` the
 closed ones —, by `agentName`, by `roomId`, by `round`, and by `names`, a comma-separated list each
-matched against a run's unit and its round, every filter named holding at once; `search` answers instead
-every run that carried that search, newest first. A query naming anything else, or a value that does not
-read as its filter's kind, is refused 400. A change naming `messageId` alone attaches the message, on an open or a closed run alike, and
+matched against a run's work unit and its round, every filter named holding at once; `search` answers instead
+every run that carried that search, newest first. By `ownerAccount`, `unit` and `unitSubtree=true` it narrows
+to one owner's runs — a unit and, with the subtree, every unit under it (「Who a caller acts for」) — and a
+member sees only the runs standing under the accounts and units they reach. A query naming anything else, or a
+value that does not read as its filter's kind, is refused 400. Each run answers `ownerAccount` and `ownerUnit`,
+the owners its agent was seated on when it opened, and `unitName`, the name its log lines are written under —
+its work unit, which names no organisation unit. A change naming `messageId` alone attaches the message, on an open or a closed run alike, and
 leaves the run's closing as it stands. A closed run answers `counts.tools`, how many tool calls its log
 lines held as it closed; an open run's `counts` is empty.
 
@@ -1097,9 +1121,9 @@ node's link keeps of that checkout instead.
 | GET | `/providers` | Every provider agency carries, with its switch and what it has left. |
 | GET | `/providers/{providerName}` | One provider. |
 | PATCH | `/providers/{providerName}` | Throw the owner's switch on a provider. |
-| GET | `/models` | The registered models. |
+| GET | `/models` | The registered models the caller reaches. |
 | POST | `/models` | Register a model. |
-| GET | `/models/{modelKey}` | One registered model and its health. |
+| GET | `/models/{modelKey}` | One registered model the caller reaches, and its health. |
 | PATCH | `/models/{modelKey}` | Change a model's registration. |
 | DELETE | `/models/{modelKey}` | Take a model's registration away. |
 | PUT | `/models/{modelKey}/addresses/{node}` | Set one address of a model's registration, its key named by a file. |
@@ -1150,9 +1174,11 @@ key is answered. A member's change takes `account`, a user id or null, and write
 field and member left as it stands; it answers the member as it now stands, 404 `unknown-member` for a name the file
 holds none of, 400 with `field` for an account that is not a whole number, 503 `members-unread` where the file
 cannot be read and 500 `members-unwritten` where it cannot be written. Both are the administrator's and the
-deployment's own: a member's call is refused 403 `forbidden`. A registration's owner is its `account` the same way,
-a user id or null, answered with the registration and changed with `PATCH /models/{modelKey}` (`docs/supply.md`,
-「Owned supply」).
+deployment's own: a member's call is refused 403 `forbidden`. A registration's owner is its `account`, a user
+id or null, or, filed under an organisation unit, its `unit` — never both, answered with the registration and
+changed with `PATCH /models/{modelKey}` (`docs/supply.md`, 「Owned supply」). The account is the owner's alone to
+set, a member's `PATCH` naming it refused; the unit is the platform's call's or a head of that unit's, and a
+head may change and remove the registrations of their unit alone (「Who a caller acts for」).
 
 A provider's change throws the owner's switch on it; the last provider left on is not thrown off, since
 nothing would answer. A provider that is off answers on no road (`docs/provider-order.md`, 「The owner's
@@ -1177,14 +1203,15 @@ what a road and a repository's pin name on the registry's provider; and the regi
 settings, `contextTokens`, its window, `answerTokens`, its answer ceiling, and `thinking`, its thinking
 default — what a run on it does where its road leaves thinking to the provider (`docs/own-llm.md`,
 「Registered models」), so a screen marks the entry's thinking equal to it as the default. A create starts a registration
-under its own name as its label, at the registry's smallest window and answer and with no address, and is
+under its own name as its label, at the registry's smallest window and answer and with no address, filed under
+a unit where the body names `unit` and its caller heads one, and is
 refused where the name already stands. `healthy` and `lastAnsweredAt` are read back: `healthy` is whether the
 engine answers now, and `lastAnsweredAt` the moment it last answered a probe, in seconds. Each answer carries
 `usedBy`, every supervisor whose road names it, every role an agent of which stands on
 it and every repository whose pin names it, and a take-away is refused 409
 while any does. Each answer carries `cardService`, the arbiter service the registration's engine is or null,
 and `roleFiles`, whether that service's instances keep role files; the create and the change take both, and a
-change names at least one of `model`, `cardService`, `roleFiles` and `languages`. Each answer carries
+change names at least one of `model`, `cardService`, `roleFiles`, `languages`, `account` and `unit`. Each answer carries
 `languages`, the languages a run on the registration writes a result for a person in, each by its English
 name, empty where it names none, which means every language; the create and the change take it as a list,
 an empty list or null naming none (`docs/own-llm.md`, 「What a registration holds」). Naming a card service takes the
@@ -1562,6 +1589,10 @@ new login the same way where it names neither, a name another account holds 409 
   - `isolation-users`: the system user of the account's isolation node, taken away with its home and its
     firewall table by the isolation node's teardown (`docs/account-isolation.md`, 「Taking it down」).
 - **An organisation unit's kinds:**
+  - `supervisors`: the supervisors filed under the unit, each removed as the account's removal above takes one,
+    its conversation reset first and its brain kept for the brain's own removal;
+  - `role-agents`: the seats filed under the unit, with their own plugins of attached skills;
+  - `registered-models`: the registrations filed under the unit, as the registry removes one;
   - `repositories` and `repository-checkouts`: the repositories the unit owns, as above;
   - `organisation-supply`: the unit's own keys for the gateway's roads;
   - `claude-accounts`: the Claude accounts given to the unit, as above;
@@ -1581,33 +1612,46 @@ new login the same way where it names neither, a name another account holds 409 
 | GET | `/settings` | Agency's own switches: the research supervisor, the downgrade return, the DeepSeek top-up's card and login, and the deploy queue's flush minutes. |
 | PATCH | `/settings` | Change agency's switches. |
 
+- **These four switches stand on the delegation chain** (`docs/prompt-layers.md`, 「The settings agency
+  declares」): the read answers the platform link's value in the administrator's name, and the write puts it
+  there, the administrator's account being the writer of the platform's link. Where no account service is
+  named, each stands in the settings row it stood under before the value moved, and the row is read and
+  written in its place; a value found in a row as the server stands is moved onto the platform's link once and
+  the row given up. A write the chain refuses — a lock above the platform's link — is refused; one the account
+  service cannot answer is failed, nothing guessed.
 - **`researchSupervisor`** names the supervisor whose brain a run of the search or browse line writes into
   (`docs/agent-roles.md`, 「The voyager and the seeker roles」), and the one whose brain a run of the worker
-  line reads and writes its lessons into (「The bundles」 there), or null for none. `PATCH /settings` takes a supervisor the store holds, or null; another name is refused 400 with
-  `field`. `downgradeReturn` is always null.
+  line reads and writes its lessons into (「The bundles」 there), or null for none. The kind
+  `agency.research-supervisor` stands at the platform and at units: for a run, the nearest link of the person
+  the run stands for names the supervisor; the read here answers the platform's word. `PATCH /settings` takes a
+  supervisor the store holds, or null; another name is refused 400 with `field`. `downgradeReturn` is always
+  null.
 - **`deepseekCardSecret`** names the console secret, of the kind `card`, the DeepSeek top-up reads its card
   from at each call (`docs/tools.md`, 「The DeepSeek top-up」), or null for none, in which case the tool refuses
-  every call. It is the owner's to change at any time, with no code change and no deployment. `PATCH /settings`
-  takes a secret's name, one plain file name with no directory in it, or null; anything else is refused 400
-  with `field`. Agency keeps the name alone and never reads the secret.
+  every call. It is the owner's to change at any time, with no code change and no deployment; the kind
+  `agency.deepseek.card-secret` stands at the platform alone, the name naming the platform's secret space.
+  `PATCH /settings` takes a secret's name, one plain file name with no directory in it, or null; anything else
+  is refused 400 with `field`. Agency keeps the name alone and never reads the secret.
 - **`deepseekLoginSecret`** names the console secret, of the kind `account-login`, the DeepSeek top-up signs in to
   DeepSeek's platform with where DeepSeek asks a call for a sign-in, or null for none, in which case the tool
   refuses every call. It is the
-  owner's to change as `deepseekCardSecret` is, and `PATCH /settings` takes and refuses it the same way, with its
-  own `field`. Agency keeps the name alone and never reads the secret.
+  owner's to change as `deepseekCardSecret` is, its kind `agency.deepseek.login-secret` standing at the
+  platform alone as the card's does, and `PATCH /settings` takes and refuses it the same way, with its own
+  `field`. Agency keeps the name alone and never reads the secret.
 - **`deployFlushMinutes`** is the minutes between two flushes of the deploy queue in force
-  (`docs/agent-control.md`, 「The deploy queue is flushed every hour」): the owner's own, else the policy's,
-  sixty. It is the owner's to change at any time, with no code change and no deployment, and the next read of
-  the flush's clock takes it. `PATCH /settings` takes a positive whole number, or null to return to the
-  policy's; anything else is refused 400 with `field`.
+  (`docs/agent-control.md`, 「The deploy queue is flushed every hour」): the platform link's word on the kind
+  `agency.deploy-flush-minutes`, else the policy's, sixty; the deploy queue is the platform's one, so the kind
+  stands at the platform alone. It is the owner's to change at any time, with no code change and no
+  deployment, and the next read of the flush's clock takes it. `PATCH /settings` takes a positive whole
+  number, or null to return to the policy's; anything else is refused 400 with `field`.
 
 ### repositories, prefix-checks and room-holdings
 
 | Method | Path | Does |
 |---|---|---|
-| GET | `/repositories` | Every repository. |
+| GET | `/repositories` | Every repository the caller reaches. |
 | POST | `/repositories` | Add a repository. |
-| GET | `/repositories/{repositoryName}` | One repository: checkouts, node, prefix documents, preamble, rules, pin, jobs. |
+| GET | `/repositories/{repositoryName}` | One repository the caller reaches: checkouts, node, prefix documents, preamble, rules, pin, jobs. |
 | PATCH | `/repositories/{repositoryName}` | Change a repository: fields, checkouts, node placement, pin, sampling, ready its bench. |
 | DELETE | `/repositories/{repositoryName}` | Remove a repository no job holds a checkout of. |
 | GET | `/repositories/{repositoryName}/definition` | The definitions a run there is handed: trailer and handoff. |
@@ -1643,9 +1687,10 @@ new login the same way where it names neither, a name another account holds 409 
   them newest first, and a job's run is read by the job's own log; a screen shows the log of the job going in
   the repository, else of its latest.
 - **An add names its path,** the base checkout's directory, and is refused 400 `path` without one: agency makes
-  no checkout and no directory for a repository. It may name `ownerAccount`, the account it is filed under, none
-  being the platform's; a member named on the call adds, changes and removes the repositories of their own
-  account alone (「Who a caller acts for」).
+  no checkout and no directory for a repository. It may name `ownerAccount`, the account it is filed under, or
+  `ownerUnit`, the unit it stands under, neither being the platform's; a member named on the call adds, changes
+  and removes the repositories of their own account and those filed under the units they head (「Who a caller
+  acts for」, `docs/repositories.md`, 「An organisation's repository」).
 - **A repository takes the work of its own side alone.** A side is one account, or the platform's: what is
   filed under no account or under the administrator's own; a repository an organisation unit owns, `ownerUnit`,
   takes the work of the people of that unit's path alone (`docs/repositories.md`, 「An organisation's

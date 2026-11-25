@@ -3762,10 +3762,10 @@ view and a person's room may not mend it alone.
   with a commit waiting, whatever related work is still open, the owner's word on an item and a room's rules
   never read, since a deployment puts the repository's whole main live and carries every commit merged there.
   - **When.** Every `deploy_flush_read_seconds` (`policy/job-notices.toml`) agency reads the clock. A flush is
-    due once the flush minutes have passed since the last one: `deploy_flush_minutes`, sixty, unless the owner's
-    own settings row of the same name names another positive whole number, which `PATCH /settings` sets
-    (`docs/api.md`, 「settings」) and every read takes as it stands, so a change holds from the next read with
-    no deployment. The moment of the last flush is kept in the settings row `deploy_flush_last`
+    due once the flush minutes have passed since the last one: the platform link's word on the chain kind
+    `agency.deploy-flush-minutes`, else the policy's sixty, and `PATCH /settings` sets it
+    (`docs/api.md`, 「settings」); the clock's every read takes the word as it stands, so a change holds from
+    the next read with no deployment. The moment of the last flush is kept in the settings row `deploy_flush_last`
     (`docs/store.md`), so a restart keeps the count; the first read that finds none keeps its own moment and
     starts nothing.
   - **What waits.** At a flush agency reads the job service's items under a close that have not ended

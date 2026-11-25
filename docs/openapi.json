@@ -1744,7 +1744,7 @@
         "tags": [
           "runs"
         ],
-        "summary": "Runs newest first: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far.",
+        "summary": "Runs newest first, of the owners the caller reaches: open or closed, by agent, room, round, names or the search they carried; with the tokens spent so far.",
         "responses": {
           "200": {
             "description": "Answered.",
@@ -1843,6 +1843,33 @@
             "schema": {
               "type": "integer",
               "description": "how many runs a page holds: 50 where none is named, at most 500"
+            }
+          },
+          {
+            "name": "ownerAccount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this account; a member names their own alone"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this organisation unit; a member names a unit they head alone"
+            }
+          },
+          {
+            "name": "unitSubtree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "with unit: that unit and every unit under it"
             }
           }
         ]
@@ -3162,7 +3189,7 @@
         "tags": [
           "models"
         ],
-        "summary": "Registered models, by provider or tier.",
+        "summary": "Registered models the caller reaches, by provider or tier.",
         "responses": {
           "200": {
             "description": "Answered.",
@@ -3198,6 +3225,33 @@
             "schema": {
               "type": "string",
               "description": ""
+            }
+          },
+          {
+            "name": "ownerAccount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this account; a member names their own alone"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this organisation unit; a member names a unit they head alone"
+            }
+          },
+          {
+            "name": "unitSubtree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "with unit: that unit and every unit under it"
             }
           }
         ]
@@ -6853,7 +6907,7 @@
         "tags": [
           "supervisors"
         ],
-        "summary": "Every supervisor, each with the login account that owns it.",
+        "summary": "Every supervisor the caller reaches, each with the account or unit that owns it.",
         "responses": {
           "200": {
             "description": "Answered.",
@@ -6871,6 +6925,35 @@
         },
         "x-codes": [
           "unauthorized"
+        ],
+        "parameters": [
+          {
+            "name": "ownerAccount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this account; a member names their own alone"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this organisation unit; a member names a unit they head alone"
+            }
+          },
+          {
+            "name": "unitSubtree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "with unit: that unit and every unit under it"
+            }
+          }
         ]
       },
       "post": {
@@ -7864,7 +7947,7 @@
         "tags": [
           "roles"
         ],
-        "summary": "Every agent of every role, by role and name, or one role's.",
+        "summary": "Every agent of every role the caller reaches, by role and name, or one role's.",
         "responses": {
           "200": {
             "description": "Answered.",
@@ -7891,6 +7974,33 @@
             "schema": {
               "type": "string",
               "description": ""
+            }
+          },
+          {
+            "name": "ownerAccount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this account; a member names their own alone"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this organisation unit; a member names a unit they head alone"
+            }
+          },
+          {
+            "name": "unitSubtree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "with unit: that unit and every unit under it"
             }
           }
         ]
@@ -8686,7 +8796,7 @@
         "tags": [
           "repositories"
         ],
-        "summary": "Every repository.",
+        "summary": "Every repository the caller reaches.",
         "responses": {
           "200": {
             "description": "Answered.",
@@ -8704,6 +8814,35 @@
         },
         "x-codes": [
           "unauthorized"
+        ],
+        "parameters": [
+          {
+            "name": "ownerAccount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this account; a member names their own alone"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "rows filed under this organisation unit; a member names a unit they head alone"
+            }
+          },
+          {
+            "name": "unitSubtree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "with unit: that unit and every unit under it"
+            }
+          }
         ]
       },
       "post": {
@@ -12870,6 +13009,24 @@
           "unitName": {
             "type": "string"
           },
+          "ownerAccount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the account the run's agent was seated on when it opened; null where it is none's or predates the column",
+            "default": null
+          },
+          "ownerUnit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the organisation unit the run's agent was seated on when it opened; null where it is none's",
+            "default": null
+          },
           "title": {
             "type": [
               "string",
@@ -12989,6 +13146,8 @@
           "name",
           "agentName",
           "unitName",
+          "ownerAccount",
+          "ownerUnit",
           "title",
           "workerName",
           "jobId",
@@ -14426,6 +14585,15 @@
             "format": "int64",
             "description": "The user id the registration belongs to; null for the platform's.",
             "default": null
+          },
+          "unit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the organisation unit the registration is filed under; null where it is no unit's",
+            "default": null
           }
         },
         "required": [
@@ -14442,7 +14610,8 @@
           "answerTokens",
           "thinking",
           "languages",
-          "account"
+          "account",
+          "unit"
         ],
         "description": "Model: one registration of the registry's provider and its health."
       },
@@ -17976,6 +18145,15 @@
             ],
             "format": "int64"
           },
+          "ownerUnit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the organisation unit it is filed under; null where it is no unit's",
+            "default": null
+          },
           "aliases": {
             "type": [
               "string",
@@ -18105,6 +18283,7 @@
           "name",
           "label",
           "ownerAccount",
+          "ownerUnit",
           "aliases",
           "icon",
           "sessionScope",
@@ -19085,6 +19264,24 @@
           "role": {
             "type": "string"
           },
+          "ownerAccount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the login account whose seat it is; null for the deployment's own",
+            "default": null
+          },
+          "ownerUnit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "the organisation unit whose seat it is; null where it is no unit's",
+            "default": null
+          },
           "provider": {
             "type": [
               "string",
@@ -19198,6 +19395,8 @@
         "required": [
           "name",
           "role",
+          "ownerAccount",
+          "ownerUnit",
           "provider",
           "model",
           "effort",

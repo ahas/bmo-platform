@@ -132,6 +132,12 @@ platform pays for takes it.
 - **Where organisation supply stands in the order,** its units are those of the person's path, the nearest first,
   read off the delegation chain's answer for the person; the run takes the nearest of them that holds an open
   credential for the road (「Organisation supply」).
+- **A provider's sources may be turned off along the chain.** Agency declares one `provider.<code>.offered` kind
+  for every provider the build carries (`docs/prompt-layers.md`, 「The settings agency declares」): a flag,
+  narrowing and on by default, held at the platform and at units. Where it stands off below the subject a run
+  walks under, none of that provider's sources is open — the person's own, a unit's and the platform's alike —
+  and the walk ends with the provider named as what closed it; no link below turns it back on. Whether the
+  provider answers now — its switches and its balance — stays platform data beside the chain.
 - **`GET /supply-sources`** answers the signed-in person what the order their runs walk holds — `personal`,
   `platform` (any platform source), `organisation` — whether a unit of their path holds supply of its own that is
   on, `personalOnly`, whether their own login or key is all that can carry their runs, `ownSupply`, whether they
@@ -243,10 +249,14 @@ platform pays for takes it.
     of accounts」);
   - a gateway member by the `account` the members file names for it (`docs/own-llm.md`, 「The gateway's
     members」);
-  - a registration by its own `account` (`docs/own-llm.md`, 「What a registration holds」).
+  - a registration by its own `account` or, filed under an organisation unit, its `unit`
+    (`docs/own-llm.md`, 「What a registration holds」).
 - **What no person and no organisation owns is the platform's,** and a platform source goes out on it and on the
   Claude accounts marked lendable (「The lendable accounts」) alone. What a unit owns is its organisation supply,
-  and a source of no one else's unless it is marked lendable (「Organisation supply」).
+  and a source of no one else's unless it is marked lendable (「Organisation supply」). A registration filed
+  under a unit stands with the unit's things: it answers no person's personal supply and no platform source,
+  and the organisation walk takes no registrations; a run whose order reaches one with nothing else open
+  waits for supply (below, and 「Why none is left」).
 - **What a person owns is that person's personal supply:** their run takes it as personal supply, and nobody
   else's run goes out on it, as a platform source or any other, unless it is a Claude account the
   administrator marked lendable. The gateway holds to the same line on every request (`docs/own-llm.md`,

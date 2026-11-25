@@ -100,11 +100,16 @@ about a message is not agency's: the judgement records belong to the units that 
 
 ## The run ledger
 
-- **A run of the ledger is one row of `runs`:** its supervisor or role, its unit, its title where its opener
-  names one, its room, its depth, when it started and finished in epoch milliseconds, its outcome, the tokens
-  its context carried as it ended, how many tool calls its log lines held under its unit as it closed, every
-  `tool` line under that name, a branch's among them, and whether it is the run of a turn agency carries. A
-  run keeps the first closing it was given (`docs/api.md`, 「runs」).
+- **A run of the ledger is one row of `runs`:** its supervisor or role, its `work_unit` — the name its log
+  lines are written under, a job's run name or a turn's unit, which names work and is no organisation's unit —,
+  its title where its opener names one, its room, its depth, when it started and finished in epoch
+  milliseconds, its outcome, the tokens its context carried as it ended, how many tool calls its log lines
+  held under its unit as it closed, every `tool` line under that name, a branch's among them, and whether it
+  is the run of a turn agency carries. A run keeps the first closing it was given (`docs/api.md`, 「runs」).
+- **A run stands under its agent's owners:** the account or the organisation unit the supervisor's or the
+  seat's row is filed under, written into the run's `owner_account` and `owner_unit` as it opens, neither for
+  a run of the platform's own agents. The reads of the ledger narrow by these (`docs/api.md`, 「Who a caller
+  acts for」); a run opened before the columns stood names neither and stands with the platform's.
 - **A run's cost and its source are kept beside its tokens:** what it cost in millionths of a US dollar, summed
   over the models that answered — a Claude Code turn's the status line's `total_cost_usd` the turn added, a
   gateway road's the sum of the gateway's request records of the run's program while the run went — or none where its road reported none;

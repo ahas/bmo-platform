@@ -140,8 +140,14 @@ What each turn shape composes inside its role is `docs/agent-documents.md` (the 
   other kinds are declared with them, from `policy/organisation.toml`: the sign-up composition (`docs/role-agents.md`, 「The agents an
   account is given」), repository management (`docs/repositories.md`, 「Who may add and change a
   repository」), a person's own changes over the agents supplied to them (`docs/role-agents.md`, 「A person's own
-  agents」), personal apps (`docs/person-nodes.md`, 「Personal apps」), the sharing of them (`docs/person-nodes.md`, 「Shared apps」) and a
-  person's own local AI (`docs/supply.md`, 「A person's local AI」). A `json` kind's value agency judges on its own route and writes on the chain naming itself the
+  agents」), personal apps (`docs/person-nodes.md`, 「Personal apps」), the sharing of them (`docs/person-nodes.md`, 「Shared apps」), a
+  person's own local AI (`docs/supply.md`, 「A person's local AI」) and the head check for the resources filed
+  under a unit, `agency.unit-resources.manage` (`docs/api.md`, 「Who a caller acts for」). With them agency
+  declares its own settings — the research supervisor `agency.research-supervisor`, the deploy queue's flush
+  minutes `agency.deploy-flush-minutes` and the DeepSeek top-up's `agency.deepseek.card-secret` and
+  `agency.deepseek.login-secret`, each read and written as `docs/api.md`, 「settings」 tells — and one
+  `provider.<code>.offered` flag for every provider the build carries, which turns that provider's sources off
+  below a link that says it (`docs/supply.md`, 「The sources a run walks」). A `json` kind's value agency judges on its own route and writes on the chain naming itself the
   kind's declarer.
 - **Every value is read afresh** as a supervisor's prompt is composed — each turn, and each read of its prompt
   on the console — and as a run of an account's role agent starts, with `GET /chain/kinds/{key}/resolve?person=`,

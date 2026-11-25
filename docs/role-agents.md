@@ -26,16 +26,20 @@ holds is `docs/agent-roles.md`; how a run waits for its turn is `docs/role-slots
   is its agent's. Which agent does a job's work is named by the supervisor that orders it, or, where its item
   names a model and a role instead, taken by the agency at the launch from that role's free agents on that model
   (「Which agent a run takes」).
-- **An agent belongs to an account** (`STRUCTURE.md`, 「Accounts, companies and units」): `ownerAccount`, the id of
-  the login account whose seat it is, or none for the deployment's own. A run is let in only on the agents of its
-  own account — the account of the supervisor that asks it, or none — so one account's runs never take another
-  account's seat, and an account's settings of a role are its own agents' prompts, bundles and skills laid over
-  the role's preset. The role itself, its preset, is the deployment's.
+- **An agent is a seat of an account or of an organisation unit** (`STRUCTURE.md`, 「Accounts, companies and
+  units」): `ownerAccount`, the id of the login account whose seat it is, or `ownerUnit`, the unit whose seat it
+  is, or neither for the deployment's own; never both (`docs/api.md`, 「Who a caller acts for」). A run is let in
+  only on the agents of its own account — the account of the supervisor that asks it, or none — so one account's
+  runs never take another account's seat, and an account's settings of a role are its own agents' prompts,
+  bundles and skills laid over the role's preset. A unit's seat is added, changed and removed by that unit's
+  heads alone. A unit's seat carries no run yet: letting a unit's people's runs take its seats stands with the
+  unit's supply. The role itself, its preset, is the deployment's.
 
 ## What an agent row holds
 
 - **Kept in agency's store,** the `role_agents` table (`docs/store.md`), one row an agent:
-  - **its account,** `ownerAccount`, the login account whose seat it is, or none for the deployment's own;
+  - **its owners,** `ownerAccount`, the login account whose seat it is, or `ownerUnit`, the organisation unit
+    whose seat it is, neither for the deployment's own and never both;
   - **its name,** its key, kebab-case, which a screen and a log show the agent by; an agent added with no
     name is named after its role and a number, `coder-01`;
   - **its role,** one the store holds;
