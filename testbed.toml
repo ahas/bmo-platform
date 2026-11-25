@@ -1,7 +1,7 @@
 # How the testbed tests, checks, builds and deploys this repository, in the testbed's declaration format.
 
 testbed = 0
-name = "agency"
+name = "platform"
 
 [test]
 # The Cargo workspace's crates, the root package's test harness among them, and the TypeScript test files

@@ -1,12 +1,15 @@
 # Working in this repository
 
-This repository is agency: the service that supplies, delivers and controls agents. It starts agent
+This repository is the BMO platform: one service for the account model and the organisations,
+the delegation chain every setting follows, the agents and the model gateway that carry the
+work, and the console. The agency part stands here in full: it starts agent
 sessions, carries turns into them, reads their state and output, interrupts, folds and ends them, keeps
 the supervisors, the roles and their slots, the repositories, the accounts and logins, the model registry
-and the links to other machines. It decides nothing about a turn's content: no turn assembly, no room,
+and the links to other machines. The account service and the console move in behind it; until a part
+lands here, its own repository is where that part stands. It decides nothing about a turn's content: no turn assembly, no room,
 permission or rule judgement, no reference selection and no output check. Which role a piece of work runs
-as is the caller's decision; the provider and model it runs on are the role's order's, and agency supplies
-them.
+as is the caller's decision; the provider and model it runs on are the role's order's, and the platform
+supplies them.
 
 ## Principles
 
