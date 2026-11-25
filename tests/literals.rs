@@ -1,6 +1,8 @@
-//! The text of the repository holds no Hangul outside the prompts and the README's translations, and no
-//! personal literal anywhere. The prompts are where Korean stands for the agents, since it is what they are
-//! told and answer in; the README at the root comes in English, Korean, Japanese and Chinese.
+//! The text of the repository holds no Hangul outside the prompts, the README's translations and the console's
+//! own documents, and no personal literal anywhere. The prompts are where Korean stands for the agents, since it
+//! is what they are told and answer in; the README at the root comes in English, Korean, Japanese and Chinese;
+//! and the console's wording guide and the account service's and console's documents hold the Korean a person
+//! reads on the console. A personal literal is passed where it stands only as a public git dependency's address.
 //!
 //! A personal literal is read off the machine the test runs on rather than written here, since a list of
 //! them would itself be one: the account's name where its home is a person's, the machine's host name and
@@ -27,6 +29,32 @@ fn readme(path: &Path) -> bool {
 
 /// The folder of prompts, read for personal literals alone.
 const PROMPTS: &str = "prompts";
+
+/// The documents that state the words a person reads on the console, which stand in Korean: the console's
+/// wording guide and the account service's and console's documents. Like the prompts, they hold Korean on
+/// purpose, for the console answers a person in it; every other document is English.
+const KOREAN_DOCUMENTS: &[&str] = &[
+  "WORDING.md",
+  "docs/accounts.md",
+  "docs/boundary.md",
+  "docs/checks.md",
+  "docs/inventory.md",
+  "docs/language-pack.md",
+  "docs/web.md",
+];
+
+fn relative(path: &Path) -> String {
+  path.strip_prefix(root()).unwrap_or(path).display().to_string()
+}
+
+/// Whether the owner's account name stands in a line only as a public git dependency's address on GitHub,
+/// published under it — a dependency's address the repository names to fetch it, not a personal detail.
+fn dependency_address(line: &str, literal: &str) -> bool {
+  let lowered = line.to_lowercase();
+
+  lowered.contains(&format!("github.com/{literal}/"))
+    && lowered.match_indices(literal).all(|(at, _)| lowered[..at].ends_with("github.com/"))
+}
 
 fn root() -> PathBuf {
   PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -145,7 +173,7 @@ fn no_code_test_or_document_holds_hangul() {
   let mut found = Vec::new();
 
   for (path, text) in files(ENGLISH) {
-    if readme(&path) {
+    if readme(&path) || KOREAN_DOCUMENTS.contains(&relative(&path).as_str()) {
       continue;
     }
 
@@ -156,7 +184,7 @@ fn no_code_test_or_document_holds_hangul() {
     }
   }
 
-  assert!(found.is_empty(), "Hangul outside the prompts: {found:#?}");
+  assert!(found.is_empty(), "Hangul outside the prompts and the console's documents: {found:#?}");
 }
 
 /// The license's copyright line, which names its holder by the owner's public handle, the one place a
@@ -175,7 +203,7 @@ fn no_file_holds_a_personal_literal() {
   for (path, text) in files(&folders) {
     for (index, line) in text.lines().enumerate().filter(|(_, line)| !holder_line(&path, line)) {
       for literal in &literals {
-        if holds(line, literal) {
+        if !dependency_address(line, literal) && holds(line, literal) {
           found.push(format!("{}: {literal}", shown(&path, index + 1)));
         }
       }

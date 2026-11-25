@@ -1856,7 +1856,7 @@ Four groups.
     search finds.
   - **A room's name and picture in the list follow what kind of room it is.** A group room stands under the title it
     was set with, in the list as everywhere else, and wears the picture set for it; no agent's label replaces either, so
-    a group titled AHAS Lab lists as AHAS Lab. A one-to-one room stands under the other party's name and wears the other
+    a group titled Design Lab lists as Design Lab. A one-to-one room stands under the other party's name and wears the other
     party's picture, taken from the messenger the room is connected through — the chat provider's own name and photo for
     that person, not a name guessed from the archive — with the initials avatar the console already draws standing where
     the provider hands over no photo. A room the provider says nothing about keeps the title the record holds. An agent
