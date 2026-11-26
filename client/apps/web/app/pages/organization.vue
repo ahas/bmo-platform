@@ -106,7 +106,9 @@
               />
             </div>
 
-            <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" role="status" aria-busy="true" data-organization-body data-organization-waiting />
+            <!-- The body stands empty in the server's draw and says it is busy only once the browser has taken the
+                 page over and its reads are asked, as `docs/skeleton-loading.md` holds every screen to. -->
+            <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" :role="waitingReady ? 'status' : undefined" :aria-busy="waitingReady" data-organization-body data-organization-waiting />
             <!-- A link node chosen, the platform or the reader's own: the tab's own view of that link of its settings,
                  which stands for no company. Only a tab holding such a view stands in the row, so one is always drawn
                  here. -->
@@ -228,6 +230,12 @@ const treeUnits = computed(() => (mounted.value ? organizations.units.value : nu
 onMounted(() => {
   mounted.value = true;
 });
+
+// The waiting place says it is busy from the frame after the page has been taken over, when the reads begin:
+// a status standing mid-hydration would be a skeleton painted before asking (docs/skeleton-loading.md).
+const waitingReady = ref(false);
+
+onMounted(() => requestAnimationFrame(() => (waitingReady.value = true)));
 
 // A link naming a person but no organisation — a person's tab from before the list, the console search's person —
 // opens the organisation that person stands in, read off the person; until it is read no organisation is chosen. A
@@ -476,7 +484,8 @@ const currentSection = computed<AgentSection | null>(() => {
 
   return value !== undefined && (AGENT_SECTIONS as readonly string[]).includes(value) ? (value as AgentSection) : null;
 });
-const agentInRow = computed(() => tabItems.value.some((one) => agentSections.includes(one.value)));
+const agentRowSections = computed(() => tabItems.value.map((one) => one.value).filter((one): one is AgentSection => agentSections.includes(one)));
+const agentInRow = computed(() => agentRowSections.value.length > 0);
 
 // What the open agent section is handed: writability its own section says, and the search's phrase for its rows to
 // mark themselves with.
@@ -491,13 +500,26 @@ function readable(section: AgentSection): boolean {
 }
 
 // Every part the reader may read, read once under the plain keys the settings share, so the search looks over all of
-// them at once.
-const { data: supervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false, immediate: readable("supervisors") });
-const { data: roles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false, immediate: readable("roles") });
-const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: readable("repositories") });
-const { data: models } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false, immediate: readable("models") });
-const { data: catalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false, immediate: readable("model-files") });
+// them at once — asked only where this node's row holds the tab, so an organisation opened for its people sends no
+// read of agents the node could not answer.
+const { data: supervisors, refresh: rereadSupervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false, immediate: false });
+const { data: roles, refresh: rereadRoles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false, immediate: false });
+const { data: repositories, refresh: rereadRepositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: false });
+const { data: models, refresh: rereadModels } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false, immediate: false });
+const { data: catalogue, refresh: rereadCatalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false, immediate: false });
 const { data: providers } = useProviders();
+
+watch(
+  agentRowSections,
+  (sections) => {
+    if (sections.includes("supervisors") && readable("supervisors")) void rereadSupervisors();
+    if (sections.includes("roles") && readable("roles")) void rereadRoles();
+    if (sections.includes("repositories") && readable("repositories")) void rereadRepositories();
+    if (sections.includes("models") && readable("models")) void rereadModels();
+    if (sections.includes("model-files") && readable("model-files")) void rereadCatalogue();
+  },
+  { immediate: true }
+);
 
 const query = ref("");
 const resultsOpen = ref(false);

@@ -424,10 +424,7 @@ async function openRecorded(width: number): Promise<Page> {
 }
 
 // Every screen that fetches, read from its first frame to the moment its skeletons are gone.
-// The organisation screen is measured above at the drawer, not here: its server draw already stands a busy
-// waiting region before any client read has been asked, which this frame rule counts as a skeleton painted
-// before asking; making the screen ask its reads inside the rule is a row of its own.
-const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'account'];
+const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'organization', 'account'];
 
 describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read to its answer', () => {
   for (const width of [1440, 390]) {

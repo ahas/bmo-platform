@@ -174,8 +174,9 @@ describe.skipIf(!origin || !touchReady())("the agent tabs follow the chain", () 
     const page = await opened(HEAD, address({ company }, "supervisors"));
 
     try {
-      // The scoped answers stand in an empty table: wait the tab out, then read the row as it settled.
-      await until(() => tabRow(page), (row) => row.includes(SUPERVISORS));
+      // The row completes once the reads have said the reader heads this company: the 에이전트 설정 tab, which
+      // stands for no one who heads nothing, says the row has settled; the scoped answers stand in an empty table.
+      await until(() => tabRow(page), (row) => row.includes(SUPERVISORS) && row.includes(wording("org_agents.label.tab")));
 
       const row = await tabRow(page);
 

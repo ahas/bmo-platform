@@ -352,7 +352,7 @@ export async function readRoles(listed: (role: Role) => Role = (role) => role, m
     if (scope === undefined) return listed(role);
     if (reached === null) return { ...role, agents: [] };
 
-    return { ...role, agents: reached.items.filter((one) => one.role === role.name) as unknown as Role["agents"] };
+    return { ...role, agents: reached.items.filter((one) => one.role === role.name) };
   };
 
   return { roles: answer.roles.map((role) => roleViewOf(kept(role))), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
