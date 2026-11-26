@@ -620,7 +620,7 @@ async fn a_role_session_s_turn_runs_as_the_seat_of_its_slot_one_asked_with_no_pa
     },
     ..Asked::default()
   };
-  let held = dispatch::enqueue(db, &ground.events, &asked, "job", async |_, _| Ok(())).await.unwrap();
+  let held = dispatch::enqueue(&ground, &asked, "job", async |_, _| Ok(())).await.unwrap();
   let active = dispatch::acquire(&ground, &held).await.unwrap().expect("let in");
   let seat = active.seat.clone().expect("seated");
   let folder = "/agents/worker";

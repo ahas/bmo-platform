@@ -36,8 +36,7 @@ async fn a_slot_ask_publishes_its_waiting_request_as_an_object_on_the_stream() {
   let mut wire = ground.events.subscribe_wire(Some(vec!["slot-request.changed".into()]));
 
   let held = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
+    &ground,
     &asked("cowork-one", "owner:cowork-one", Some("read the log"), Some("chat-agent")),
     COWORK,
     async |_, _| Ok(()),
@@ -79,15 +78,10 @@ async fn an_admission_publishes_the_request_let_in_on_its_road() {
   deepseek_balance(&ground, 5.0).await;
 
   let mut events = ground.events.subscribe::<SlotRequestChanged>();
-  let held = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
-    &asked("let-in", "owner:let-in", None, None),
-    "job",
-    async |_, _| Ok(()),
-  )
-  .await
-  .unwrap();
+  let held =
+    dispatch::enqueue(&ground, &asked("let-in", "owner:let-in", None, None), "job", async |_, _| Ok(()))
+      .await
+      .unwrap();
   let _waiting = events.next().await.expect("the ask was published");
 
   let let_in = dispatch::acquire(&ground, &held).await.unwrap().expect("within the cap");
@@ -109,15 +103,10 @@ async fn a_binding_publishes_the_child_and_the_run_it_names() {
   deepseek_balance(&ground, 5.0).await;
 
   let mut events = ground.events.subscribe::<SlotRequestChanged>();
-  let held = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
-    &asked("bound", "owner:bound", None, None),
-    "job",
-    async |_, _| Ok(()),
-  )
-  .await
-  .unwrap();
+  let held =
+    dispatch::enqueue(&ground, &asked("bound", "owner:bound", None, None), "job", async |_, _| Ok(()))
+      .await
+      .unwrap();
   let _waiting = events.next().await.unwrap();
   let let_in = dispatch::acquire(&ground, &held).await.unwrap().expect("within the cap");
   let _active = events.next().await.unwrap();
@@ -143,8 +132,7 @@ async fn a_finish_publishes_the_request_given_back_with_its_outcome() {
 
   let mut events = ground.events.subscribe::<SlotRequestChanged>();
   let held = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
+    &ground,
     &asked("finished", "owner:finished", None, None),
     "job",
     async |_, _| Ok(()),
@@ -175,24 +163,14 @@ async fn an_owner_release_publishes_each_request_it_gives_back() {
   let ground = seeded(scratch.db(), home.path()).await;
   let mut events = ground.events.subscribe::<SlotRequestChanged>();
 
-  let first = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
-    &asked("batch-one", "owner:batch", None, None),
-    "job",
-    async |_, _| Ok(()),
-  )
-  .await
-  .unwrap();
-  let second = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
-    &asked("batch-two", "owner:batch", None, None),
-    "job",
-    async |_, _| Ok(()),
-  )
-  .await
-  .unwrap();
+  let first =
+    dispatch::enqueue(&ground, &asked("batch-one", "owner:batch", None, None), "job", async |_, _| Ok(()))
+      .await
+      .unwrap();
+  let second =
+    dispatch::enqueue(&ground, &asked("batch-two", "owner:batch", None, None), "job", async |_, _| Ok(()))
+      .await
+      .unwrap();
   let _first = events.next().await.unwrap();
   let _second = events.next().await.unwrap();
 
@@ -250,8 +228,7 @@ async fn a_vanished_run_publishes_the_request_given_back_on_its_evidence() {
 
   let mut events = ground.events.subscribe::<SlotRequestChanged>();
   let held = dispatch::enqueue(
-    &ground.db,
-    &ground.events,
+    &ground,
     &asked("vanished", "owner:vanished", None, None),
     "job",
     async |_, _| Ok(()),

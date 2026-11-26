@@ -113,7 +113,7 @@
                  which stands for no company. Only a tab holding such a view stands in the row, so one is always drawn
                  here. -->
             <!-- A tab laid across the whole region takes it at any node, a link's own among them. A tab of one table
-                 scrolls in the table's own box and the region stands still; the 에이전트 tab, holding the supervisors'
+                 scrolls in the table's own box and the region stands still; the agents tab, holding the supervisors'
                  table under the roles' agents', is the one region that scrolls, each table's head held at its top
                  (docs/web.md, 「Agent management screen」, every table settings). -->
             <div v-else-if="tab.wide" ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab.value === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'" data-organization-body>
@@ -411,7 +411,7 @@ function choose(node: string | number): void {
   if (company !== null) void router.push(organizationNodeAddress(company, node === company ? null : node, route.query));
 }
 
-// The 에이전트 tab's tables scroll in this region and hold their heads at its top, as the box of a screen that
+// The agents tab's tables scroll in this region and hold their heads at its top, as the box of a screen that
 // stacks one table under another must (docs/web.md, 「Agent management screen」).
 const bodyRef = useTemplateRef<HTMLElement>("body");
 

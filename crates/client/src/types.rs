@@ -997,6 +997,21 @@ pub struct SupplySources {
   /// Whether they may add a local AI of their own now: their chain allows it and they hold a PC of their own.
   #[serde(default)]
   pub local_ai: bool,
+  /// Every provider the build carries as it stands for the person, closed ones named with what closed them.
+  #[serde(default)]
+  pub providers: Vec<SupplyProvider>,
+}
+
+/// One provider the build carries, as a person's supply reads leave it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SupplyProvider {
+  pub provider: String,
+  /// null while its sources stand open for the person; `owner` where the owner's switch stands it off,
+  /// `chain` where the person's chain holds `provider.<code>.offered` off.
+  pub off: Option<String>,
+  /// The link that closed it, where the chain did.
+  pub from: Option<String>,
 }
 
 /// One agent's road in a sign-up composition.
@@ -3182,8 +3197,12 @@ pub struct GatewayMember {
   pub label: Option<String>,
   /// The LiteLLM provider it goes out on.
   pub provider: String,
-  /// The user id it belongs to; null for the platform's.
+  /// The user id it belongs to; null where it is no person's.
   pub account: Option<i64>,
+  /// The organisation unit it is filed under; null where it is no unit's. At most one of `account` and
+  /// `unit` stands, and neither for the platform's.
+  #[serde(default)]
+  pub unit: Option<i64>,
 }
 
 /// The gateway's members, in the members file's order.
@@ -3193,12 +3212,18 @@ pub struct GatewayMemberPage {
   pub items: Vec<GatewayMember>,
 }
 
-/// A change of a gateway member's owner.
+/// A change of a gateway member's owner: exactly one of the two fields is named; whichever it is, the other
+/// owner is given back at the same write, and null gives the named one back too — the member then stands the
+/// platform's (docs/own-llm.md, 「The gateway's members」).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GatewayMemberChange {
-  /// The user id the member belongs to, or null to give it back to the platform.
-  pub account: Option<i64>,
+  /// The user id the member belongs to, or null for no account's.
+  #[serde(default, deserialize_with = "present", skip_serializing_if = "Option::is_none")]
+  pub account: Option<Option<i64>>,
+  /// The organisation unit the member is filed under, or null for no unit's.
+  #[serde(default, deserialize_with = "present", skip_serializing_if = "Option::is_none")]
+  pub unit: Option<Option<i64>>,
 }
 
 /// The body that assigns a tier to a work key or sets a tier's mapping on a provider.
@@ -5038,13 +5063,21 @@ pub struct OwnRole {
   pub agents: Vec<OwnAgent>,
 }
 
-/// A provider a person's road may name.
+/// A provider a person's road may name: every provider the build carries, each standing off for the person
+/// where the owner's switch or their chain says so.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct OwnProvider {
   pub name: String,
   pub label: String,
   pub lines: Vec<String>,
+  /// null while its sources stand open for the person; `owner` where the owner's switch stands it off,
+  /// `chain` where the person's chain holds `provider.<code>.offered` off.
+  #[serde(default)]
+  pub off: Option<String>,
+  /// The link that closed it, where the chain did.
+  #[serde(default)]
+  pub from: Option<String>,
 }
 
 /// The agents supplied to a person and their own changes over them.

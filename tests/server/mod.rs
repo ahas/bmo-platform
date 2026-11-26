@@ -83,6 +83,7 @@ mod control {
   mod loans;
   mod mcp;
   mod models;
+  mod own_agents_view;
   mod own_llm;
   mod owned_accounts;
   mod owner_removal;

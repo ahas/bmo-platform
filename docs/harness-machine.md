@@ -70,6 +70,9 @@ flowchart TD
   caller that runs one refuses a member missing any of them rather than sizing it at a guess.
 - **A member may say whether it costs nothing;** one that leaves it out is read by its road's provider
   (`docs/own-llm.md`, 「The gateway's members」).
+- **A member may name its owner:** the account it belongs to, or the organisation unit it is filed under —
+  one member naming both is a refusal, and one naming neither is the platform's (`docs/supply.md`, 「Owned
+  supply」).
 
 ## An engine's health
 

@@ -152,10 +152,10 @@ never the model's name.
   languages」).
 - **Its owner:** the account it belongs to, or the organisation unit it is filed under, or neither for the
   platform's (`docs/supply.md`, 「Owned supply」; `docs/api.md`, 「Who a caller acts for」). An
-  owned registration is served to its owner's call key and the gateway's own key alone, and a registration
-  filed under a unit is no one's personal supply and no platform source — the walk that takes a unit's things
-  takes its keys and Claude accounts, not its registrations (`docs/supply.md`, 「Organisation supply」); none
-  is owned until the owner names one.
+  owned registration is served to its owner's call key and the gateway's own key alone; a registration filed
+  under a unit is no one's personal supply and no platform source — it is the unit's organisation supply, which
+  the walk that takes a unit's things takes with its keys, Claude accounts and members, for the people of the
+  unit's path alone (`docs/supply.md`, 「Organisation supply」); none is owned until the owner names one.
 - **Nothing else of a run's prompt:** what a run on it is told is its line's, and an agent's base prompt is
   the agent's own choice (`docs/base-prompts.md`); the gateway passes every prompt as it stands.
 
@@ -462,9 +462,12 @@ never the model's name.
   - `context_tokens`, `answer_tokens`, `thinking`: the window, the answer ceiling and the default
     thinking of a run on the member. A member of a road holds all three; a member of no road may
     leave them out.
-  - `account`: the account the member belongs to, or none for the platform's (`docs/supply.md`, 「Owned
-    supply」). The owner sets it with `PATCH /gateway-members/{name}` (`docs/api.md`, 「providers, models and
-    model files」), which writes the file and leaves every other field as it stands; the next beat serves it.
+  - `account`: the account the member belongs to (`docs/supply.md`, 「Owned supply」), the person whose own key
+    it is. `unit`: the organisation unit the member is filed under instead — one member names at most one of
+    the two, none for the platform's. Either owner is set, moved or taken away with
+    `PATCH /gateway-members/{name}` (`docs/api.md`, 「providers, models and model files」), which writes the
+    file and leaves every other field as it stands; the next beat serves it. The setting is the platform's
+    alone; the read of the list is narrowed to what the caller reaches.
   - `free`: whether a run on the member costs nothing, so its road's spent balance leaves it answering
     (`docs/provider-order.md`, 「Quota: what a provider has left」). Where the member leaves it out, its
     road's provider reads it off the member: OpenRouter reads a member whose `model` ends in `:free`, its
@@ -491,8 +494,14 @@ never the model's name.
   it, under its owner's call key goes on, and under the gateway's own key where its owner is the administrator,
   whose supply the deployment's own runs go out on (`docs/supply.md`, 「Owned supply」); under any other key it is
   answered 403 with the code `not-your-member` and the type `permission_error`, as a personal member is
-  (「Personal members」). Every route that lists or describes models — `/v1/models`, `/models` and LiteLLM's
-  model information routes — leaves it out under a call key it does not answer; the gateway's own key lists the
+  (「Personal members」). **What stands filed under a unit answers the unit's people's runs:** a request naming
+  it, or `<name>@<node>` of it, goes on under the call key of an account holding an open reservation naming that
+  unit, as the unit's key variants do (「Personal members」 below), and under no other key, the gateway's own
+  among them — a unit's model is its organisation supply, never a platform source (`docs/supply.md`, 「Owned
+  supply」). Every route that lists or describes models — `/v1/models`, `/models` and LiteLLM's
+  model information routes — leaves it out under a call key it does not answer: a name filed under a unit stands
+  in the lists of the keys holding an open reservation naming that unit alone, and a person's key variant in its
+  own key's list alone. The gateway's own key lists the
   whole table, since the deployment's own reads of it name what stands, not what they may run. An owner set or
   taken away reaches the front on the next beat, read from the members file and the registry whether or not the
   table itself was built again.
@@ -520,8 +529,13 @@ never the model's name.
   account holds an open reservation naming that unit, as the store says at the request, so only a person of the
   unit's path whose run took the unit's supply reaches it; every other key, the gateway's own among them, is
   answered 403 `not-your-member`.
+- **A member a unit itself owns is laid by its own name** (`docs/supply.md`, 「Organisation supply」): its
+  `key_file`, named in the members file beside its `unit`, is already the unit's secret, so the unit's people's
+  run on it goes out under the member's plain name, and it is answered, like the variant laid on the unit's key
+  row, under a call key holding an open reservation naming that unit and under no other.
 - **A run of the person on personal supply** is sent under that name in place of the member's own, and a run
-  on organisation supply under the unit's.
+  on organisation supply under the unit's — under its plain name where the member itself is the unit's, and on
+  the registry's provider under the registration's own name, which needs no variant at all.
 
 
 ## The gateway
@@ -756,6 +770,10 @@ never the model's name.
   platform reservation in the store, read as the call keys are: on the beat, and once more on a miss. With no
   supply hook registered no reservation is ever opened (`docs/supply.md`, 「Choosing a source as a run
   starts」), so a call key reaches nothing of the platform's.
+- **Each reservation opens what it names and nothing else.** A reservation naming a unit opens its account's
+  runs of that unit's names and no others: it is no platform reservation, so a run of that account's on a
+  platform name is still refused for want of supply, and a platform reservation is no unit's, so it opens no
+  run of a unit's name (「An owned member or registration answers its owner alone」 above).
 - **What a request costs is recorded.** A hook of the gateway's own, `costs`, reads the cost of each request
   that ends, answered or failed — the provider's own word where its answer's usage names one, as OpenRouter's
   does, else LiteLLM's price of it — with its model, its tokens, its payer, the run name its `x-bmo-run`

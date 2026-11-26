@@ -2630,6 +2630,7 @@ own_agents:
     from_unit_unnamed: "Received agent · organisation"
     from_platform: "Received agent · default"
     role_off: "Role not available"
+    provider_off: "Provider not available"
     add_decided: "Add and turn off agents: {decided}"
     road_decided: "Choose provider · model: {decided}"
     instructions_decided: "My instructions: {decided}"
@@ -4786,6 +4787,8 @@ supply:
     monthly_cap: Monthly cap
     owner_shared: Shared
     owner_personal: "Personal · {name}"
+    owner_unit: Organisation
+    owner_unit_named: "Organisation · {name}"
     plan_applied_none: No applied plan
     plan_exposed_none: No visible plans
     plan_term: Term

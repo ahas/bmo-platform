@@ -2647,6 +2647,7 @@ own_agents:
     from_unit_unnamed: "받은 에이전트 · 조직"
     from_platform: "받은 에이전트 · 기본"
     role_off: "쓸 수 없는 역할"
+    provider_off: "쓸 수 없는 공급자"
     add_decided: "에이전트 추가·끄기: {decided}"
     road_decided: "공급자 · 모델 선택: {decided}"
     instructions_decided: "내 지침: {decided}"
@@ -4808,6 +4809,8 @@ supply:
     monthly_cap: 월 상한
     owner_shared: 공용
     owner_personal: "개인 · {name}"
+    owner_unit: 조직
+    owner_unit_named: "조직 · {name}"
     plan_applied_none: 적용 플랜 없음
     plan_exposed_none: 노출 플랜 없음
     plan_term: 적용 기간

@@ -526,9 +526,7 @@ async fn a_roles_start_runs_on_the_slot_it_names() {
     },
     ..Asked::default()
   };
-  let held = dispatch::enqueue(&ground.db, &ground.events, &ask("start"), "job", async |_, _| Ok(()))
-    .await
-    .unwrap();
+  let held = dispatch::enqueue(&ground, &ask("start"), "job", async |_, _| Ok(())).await.unwrap();
   let refused_waiting = on_slot(&ground.db, &json!({ "slot": held.token }), &mut Apart::default()).await;
 
   assert_eq!(refused_waiting.unwrap_err().code.as_deref(), Some("slot-not-active"));

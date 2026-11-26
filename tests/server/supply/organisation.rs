@@ -141,7 +141,143 @@ async fn a_person_s_run_takes_the_nearest_unit_s_key_through_a_reservation_namin
       .await,
     1
   );
-  assert_eq!(personal_member(Some(&chosen), "deepseek-flash").as_deref(), Some("deepseek-flash@o4"));
+  // The unit's own key row answers under its variant, not the member's name as the unit never owns it.
+  let machine = harness_providers::Machine::of_process(home.path().join("data"));
+
+  assert_eq!(
+    personal_member(Some(&chosen), &machine, "deepseek-flash").as_deref(),
+    Some("deepseek-flash@o4")
+  );
+
+  consumer.down().await;
+  serving.abort();
+}
+
+// A member the unit itself owns, beside one of no one's: the run of the unit's own member keeps the member's
+// own name, which the reservation naming the unit answers, while a member of no one's on the unit's road goes
+// out under the unit's variant (docs/supply.md, 「Organisation supply」).
+#[test]
+fn the_units_own_member_answers_under_its_own_name_and_another_under_the_units_variant() {
+  let home = tempfile::tempdir().unwrap();
+  let dir = home.path().join("data/llm-gateway");
+
+  std::fs::create_dir_all(&dir).unwrap();
+  std::fs::write(
+    dir.join("members.json"),
+    json!([
+      { "name": "team-flash", "road": "deepseek", "provider": "deepseek", "model": "team-flash-model",
+        "api_base": "http://127.0.0.1:9/v1", "key_file": "team.key", "unit": 4,
+        "context_tokens": 131072, "answer_tokens": 8192, "thinking": false },
+      { "name": "plain-flash", "road": "deepseek", "provider": "deepseek", "model": "plain-flash-model",
+        "api_base": "http://127.0.0.1:9/v1", "key_file": "plain.key",
+        "context_tokens": 131072, "answer_tokens": 8192, "thinking": false },
+    ])
+    .to_string(),
+  )
+  .unwrap();
+
+  let machine = harness_providers::Machine::of_process(home.path().join("data"));
+  let chosen = |model: &str| agency_server::supply::Chosen {
+    run: "job-41".to_owned(),
+    account: Some(PERSON),
+    provider: "deepseek".to_owned(),
+    model: model.to_owned(),
+    source: Source::Organisation {
+      unit: 4,
+      reservation: 1,
+    },
+    order: Vec::new(),
+    units: vec![4],
+    step: 0,
+  };
+
+  assert_eq!(personal_member(Some(&chosen("team-flash")), &machine, "team-flash"), None);
+  assert_eq!(
+    personal_member(Some(&chosen("plain-flash")), &machine, "plain-flash").as_deref(),
+    Some("plain-flash@o4")
+  );
+}
+
+// A registration filed under a unit is the unit's own supply: the walk of a person whose path names the unit
+// takes the run's model as the unit's registration, and no platform source carries what a unit is filed under
+// (docs/supply.md, 「Organisation supply」 and 「Owned supply」).
+#[tokio::test(flavor = "multi_thread")]
+async fn a_registration_filed_under_a_unit_answers_the_walk_of_its_peoples_run() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (address, serving) = account_service().await;
+  let vars =
+    BTreeMap::from([("WEB_ADDRESS".to_owned(), address), ("WEB_TOKEN".to_owned(), "chain".to_owned())]);
+  let ground = ground_with(scratch.db().clone(), home.path(), &vars);
+  let consumer = Consumer::stand().await;
+
+  scratch
+    .run(
+      r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens",
+           "thinking", "walked", "added_at", "owner_unit")
+         VALUES ('team-router', 'Team Router', 'router-1', 131072, 8192, 0, 0, 0, 4)"#,
+      vec![],
+    )
+    .await;
+  scratch
+    .run(
+      r#"INSERT INTO "registered_models" ("name", "label", "model", "context_tokens", "answer_tokens",
+           "thinking", "walked", "added_at")
+         VALUES ('open-router', 'Open Router', 'router-1', 131072, 8192, 0, 0, 0)"#,
+      vec![],
+    )
+    .await;
+
+  consumer.register(&ground);
+  consumer.answers("order", json!({ "sources": ["organisation", "plan"] }));
+  consumer.answers(
+    "reserve:organisation",
+    json!({ "accepted": true, "reservation": "r-org", "amountUsd": 1.0 }),
+  );
+
+  let ask = |model: &'static str| agency_server::supply::Asked {
+    kind: agency_server::supply::Kind::Job,
+    id: 41,
+    agent: super::AGENT,
+    account: Some(PERSON),
+    provider: "registered",
+    model,
+    job: Some(41),
+    supervisor: None,
+    room: None,
+  };
+
+  let chosen = match choose(&ground, &ask("team-router")).await.unwrap() {
+    Choice::Go(chosen) => chosen,
+    Choice::Closed(closed) => panic!("the unit's registration was due to answer: {closed:?}"),
+  };
+
+  assert!(
+    matches!(chosen.source, Source::Organisation { unit: 4, .. }),
+    "the unit's own registration opens its unit: {:?}",
+    chosen.source
+  );
+
+  // What a unit is filed under stands with the unit's things: the platform's sources carry none of it,
+  // and a registration of no one's stands open on them still.
+  assert!(
+    !agency_server::supply::platform_open(&ground, PERSON, "registered", "team-router")
+      .await
+      .unwrap()
+  );
+  assert!(
+    agency_server::supply::platform_open(&ground, PERSON, "registered", "open-router")
+      .await
+      .unwrap()
+  );
+
+  // Filed under no unit, the same registration answers no organisation walk.
+  assert!(
+    agency_server::supply::organisation_source(&ground, &[4], "registered", "open-router")
+      .await
+      .unwrap()
+      .is_none()
+  );
 
   consumer.down().await;
   serving.abort();

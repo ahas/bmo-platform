@@ -138,12 +138,21 @@ platform pays for takes it.
   walks under, none of that provider's sources is open — the person's own, a unit's and the platform's alike —
   and the walk ends with the provider named as what closed it; no link below turns it back on. Whether the
   provider answers now — its switches and its balance — stays platform data beside the chain.
+- **A closed provider is read as closed, not as absent.** A person's supply reads — `GET /supply-sources` and
+  the own-agent read's providers and model lists (`docs/api.md`, 「accounts, rest and usage」 and 「own-agents」) —
+  name every provider the build carries and say of each whether its sources stand open for the reader, closed
+  by the owner's switch, or closed by the reader's chain, naming the link that closed it. A road the chain
+  closes carries nothing: the same reading that ends a walk names it in the reads, and a road choice of it is
+  refused as uncarried (`docs/role-agents.md`, 「A person's own agents」).
 - **`GET /supply-sources`** answers the signed-in person what the order their runs walk holds — `personal`,
   `platform` (any platform source), `organisation` — whether a unit of their path holds supply of its own that is
   on, `personalOnly`, whether their own login or key is all that can carry their runs, `ownSupply`, whether they
   hold one of their own that is on, a local AI among them, and `localAi`, whether they may add a local AI of their
   own now — their chain allows it and they hold a PC of their own (「A person's local AI」) —, which the console reads
-  to ask a new person for one before they start (the web's `docs/web.md`, 「The join page」). With no hook
+  to ask a new person for one before they start (the web's `docs/web.md`, 「The join page」). It answers `providers`
+  beside them: every provider the build carries, each saying whether its sources stand open for the person, or
+  stand closed by the owner's switch, or closed by their chain with the link that said it (「A closed provider is
+  read as closed, not as absent」 above). With no hook
   registered, or one that does not answer, the order is personal supply alone.
 
 ## Testing a source
@@ -185,13 +194,22 @@ platform pays for takes it.
   `personal_supply` naming the unit in place of a person, its secret in the unit's space of the console's secret
   store, `units/<unit>/<name>` under the data root's `env/`; and a Claude account naming the unit in place of a
   person, an `api-key` account its heads register on its Anthropic API key, or any account of no person's the
-  owner gives the unit (`docs/api.md`, 「accounts, rest and usage」).
+  owner gives the unit (`docs/api.md`, 「accounts, rest and usage」). Beside the store's rows the deployment's
+  members file can name a member of a gateway road whose owner is the unit (「The gateway's members」 in
+  `docs/own-llm.md`), and the registry holds registrations filed under the unit (`docs/own-llm.md`, 「What a
+  registration holds」).
 - **Only the people of its path take it.** A run of a person whose chain leaves organisation supply open takes
   the supply of the nearest unit of their path that holds an open credential for the road's provider: a Claude
-  account of the unit's that can answer now on Claude Code, an open key of the unit's on a gateway road; the
-  registry's provider has none. Nobody else's run goes out on it as organisation supply, the platform's own
+  account of the unit's that can answer now on Claude Code, an open key of the unit's on a gateway road, a
+  member of the road the unit itself owns, or, on the registry's provider, a registration of the unit's. Nobody
+  else's run goes out on it as organisation supply, the platform's own
   runs among them; a Claude account of the unit's that the administrator marked lendable goes out for others
   as a platform source (「The lendable accounts」).
+- **The unit's own member and registration go out under their own names.** Where the unit's credential is a key
+  row of the store, the run is sent under the member's `@o` variant laid on that key (`docs/own-llm.md`,
+  「Personal members」); where it is a member or a registration the unit owns,
+  under the member's or the registration's own name, which the gateway answers to the call key whose account
+  holds an open reservation naming that unit and to no other (`docs/own-llm.md`, 「The gateway's members」).
 - **It is reserved through the hook as a platform source is,** under the source `organisation`, the
   reservation naming the unit, so the consumer counts its cost and the gateway lets the person's call key reach
   that unit's members while it is open (`docs/own-llm.md`, 「Personal members」). A Claude account of the unit's
@@ -247,16 +265,20 @@ platform pays for takes it.
   record of the credential says which:
   - a Claude account by its `userId`, or its `unitId` (`docs/cache-fallback.md`, 「The Claude Code road is a list
     of accounts」);
-  - a gateway member by the `account` the members file names for it (`docs/own-llm.md`, 「The gateway's
-    members」);
+  - a gateway member by the `account` or the `unit` the members file names for it (`docs/own-llm.md`, 「The
+    gateway's members」);
   - a registration by its own `account` or, filed under an organisation unit, its `unit`
     (`docs/own-llm.md`, 「What a registration holds」).
 - **What no person and no organisation owns is the platform's,** and a platform source goes out on it and on the
-  Claude accounts marked lendable (「The lendable accounts」) alone. What a unit owns is its organisation supply,
-  and a source of no one else's unless it is marked lendable (「Organisation supply」). A registration filed
-  under a unit stands with the unit's things: it answers no person's personal supply and no platform source,
-  and the organisation walk takes no registrations; a run whose order reaches one with nothing else open
-  waits for supply (below, and 「Why none is left」).
+  Claude accounts marked lendable (「The lendable accounts」) alone. What a unit or a person owns answers none of
+  the other's supply and no platform source, whatever the platform's key itself may reach
+  (`docs/own-llm.md`, 「The gateway's members」); a run whose order reaches a unit's own model with no unit of
+  its path standing on it waits for supply (below, and 「Why none is left」).
+- **What a unit owns is its organisation supply:** a key row, a Claude account, a member of a gateway road or a
+  registration filed under it, and only the people of its path take it as their organisation supply (「Organisation
+  supply」). It is no one's personal supply and no platform source, whatever else the platform may reach of the
+  unit; the gateway answers it, under its own name, to a call key whose account holds an open reservation naming
+  that unit alone (`docs/own-llm.md`, 「The gateway's members」).
 - **What a person owns is that person's personal supply:** their run takes it as personal supply, and nobody
   else's run goes out on it, as a platform source or any other, unless it is a Claude account the
   administrator marked lendable. The gateway holds to the same line on every request (`docs/own-llm.md`,
@@ -283,7 +305,9 @@ platform pays for takes it.
     of the road they own for a gateway road, a registration they own for the registry's provider, a local AI of
     theirs only while it is on and their chain allows it (「A person's local AI」). It goes out on that credential.
   - **organisation supply** is taken where the order holds it and a unit of the person's path holds an open
-    credential for the road and the hook accepts a reservation for it first. It goes out on that credential.
+    credential for the road — a Claude account, a key of the road, a member of the road the unit owns, or, on
+    the registry's provider, the run's model as a registration of the unit's — and the hook accepts a
+    reservation for it first. It goes out on that credential.
   - **a platform source** is taken where the hook accepts a reservation for it first (「Reservations」). It goes
     out on the platform's credential: a lendable Claude account, the gateway's member no person owns, or a
     registration no person owns, under the person's call key. A model another person owns offers no platform
@@ -373,7 +397,8 @@ platform pays for takes it.
     the platform's administrator; no credits ran out, so nothing says to top up;
   - `shared-node`: the person's node is shared with other accounts, where no login is lent (「The lendable
     accounts」) — add their own Claude login, or ask the platform's administrator for a PC of their own;
-  - `owned`: the run's model is another person's own — choose another model;
+  - `owned`: the run's model is another person's own, or a unit's that is not on the run's path — choose
+    another model;
   - `refused`: the hook refused a reservation of a platform source — the source ran out, with when it reopens where
     the hook names a moment, and to top up or change the supply order;
   - `ran-out`: the source the run went out on ran out mid-run and no other took it.
@@ -417,6 +442,6 @@ platform pays for takes it.
 | call keys and request records | a call key per account on its nodes, the platform key here alone, each request recorded with its account, model, run and cost | — |
 | personal supply | personal members, `api-key` accounts, a person's own accounts and keys through their headers, the sign-in on their node, a person's local AI on their PC under the chain's `supply.personal-local-ai`, the test of a source, a local AI's tried from the person's PC before it is kept, the off-boarding switch | — |
 | owned supply | a Claude account's, a gateway member's and a registration's owner, the walk and the gateway holding to it, the administrator's owned supply carrying the deployment's own runs | — |
-| organisation supply | the three source settings on the chain, the order's shape, a unit's keys and Claude accounts, the walk to the nearest unit, its reservation and the gateway's members of it | a Claude subscription login of a unit's own, signed in from its screen |
+| organisation supply | the three source settings on the chain, the order's shape, a unit's keys and Claude accounts, its members and registrations, the walk to the nearest unit, its reservation and the gateway's reach of it | a Claude subscription login of a unit's own, signed in from its screen; a supply test of the unit's credential |
 | sources and reservations | the hook, the walk at a run's start, reservations, extension, the settlement outbox, the capture after a restart | — |
 | running out | the personal pass-over, the platform hand-over, the grace unit, the job's wait, the supervisor's sentence for each reason none is left and the room's line saying it | — |

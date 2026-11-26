@@ -14,9 +14,10 @@
 //! a request of its whose model cannot be read is refused, and its request goes on under the gateway's own
 //! key. A personal member answers its own person alone, a member or registration a person owns answers its
 //! owner alone and the gateway's own key only where that owner is the administrator, whose own call key
-//! is asked for no reservation, and every listing or description of models leaves out what a
+//! is asked for no reservation, what stands filed under a unit answers the call keys of accounts holding an
+//! open reservation naming that unit, and every listing or description of models leaves out what a
 //! call key does not reach while the gateway's own key lists the whole table; a person reaches the
-//! platform's supply only on an open reservation (`supply`). What each request cost comes back from the
+//! platform's supply only on an open reservation of the platform's own (`supply`). What each request cost comes back from the
 //! child's costs hook and is written down (`costs`).
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -529,7 +530,10 @@ impl Front {
       .then(|| ONE_MODEL_PATHS.iter().find_map(|path| parts.uri.path().strip_prefix(path)))
       .flatten()
       .map(|named| percent_decode_str(named).decode_utf8_lossy().into_owned());
-    if payer != Payer::Platform && described.is_some_and(|model| !self.reaches(payer, &model)) {
+    if payer != Payer::Platform
+      && let Some(model) = described.as_ref()
+      && !self.reaches(payer, model).await
+    {
       return not_yours();
     }
     // A model request's body is read whole for the model it names, which a card is asked by and a cut
@@ -708,11 +712,17 @@ impl Front {
     owners.get(model).or_else(|| owners.get(model.rsplit_once('@')?.0)).copied()
   }
 
-  // Whether a request its payer sends reaches the model name: one no person owns always does.
-  fn reaches(&self, payer: Payer, model: &str) -> bool {
-    self
-      .owner_of(model)
-      .is_none_or(|owner| owner.admits(payer, self.supply.administrator()))
+  // Whether a request its payer sends reaches the model name: one no one owns always does, and one filed
+  // under a unit under the key of an account holding an open reservation naming that unit alone
+  // (docs/own-llm.md, 「The gateway's members」).
+  async fn reaches(&self, payer: Payer, model: &str) -> bool {
+    match self.owner_of(model) {
+      None => true,
+      Some(Owner::Organisation(unit)) => {
+        matches!(payer, Payer::Account(account) if self.supply.supplied_by_unit(account, unit).await)
+      }
+      Some(owner) => owner.admits(payer, self.supply.administrator()),
+    }
   }
 
   // A listing or description of models as the child answered it, read whole, without the models the payer
@@ -725,11 +735,23 @@ impl Front {
     let Some(models) = listed.get_mut("data").and_then(Value::as_array_mut) else {
       return Ok(Body::from(bytes));
     };
+    let mut reached: HashMap<String, bool> = HashMap::new();
+
+    for model in models.iter() {
+      if let Some(name) = LISTED_NAMES.iter().find_map(|field| model.get(*field).and_then(Value::as_str))
+        && !reached.contains_key(name)
+      {
+        let reaches = self.reaches(payer, name).await;
+
+        reached.insert(name.to_owned(), reaches);
+      }
+    }
+
     models.retain(|model| {
       LISTED_NAMES
         .iter()
         .find_map(|field| model.get(*field).and_then(Value::as_str))
-        .is_none_or(|name| self.reaches(payer, name))
+        .is_none_or(|name| reached.get(name).is_none_or(|reached| *reached))
     });
     Ok(Body::from(serde_json::to_vec(&listed).expect("a list read is written")))
   }

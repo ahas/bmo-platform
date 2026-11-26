@@ -1289,7 +1289,7 @@ async function ownAgentsAnswer(path: string, request: Request): Promise<Response
       add: { allowed: true, from: null },
       road: { allowed: true, from: null },
       roles,
-      providers: [{ name: "claude-code", label: "Claude Code", lines: ["chat", "worker", "search"] }, { name: "deepseek", label: "DeepSeek", lines: ["chat", "worker"] }]
+      providers: [{ name: "claude-code", label: "Claude Code", lines: ["chat", "worker", "search"] }, { name: "deepseek", label: "DeepSeek", lines: ["chat", "worker"] }, { name: "openrouter", label: "OpenRouter", lines: ["chat", "worker"], off: "owner" }]
     });
   }
 

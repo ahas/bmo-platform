@@ -1881,6 +1881,77 @@ async fn an_owned_member_or_registration_answers_its_owner_alone_and_the_gateway
   assert_openai_error(refused, 400, "model-unread");
 }
 
+// A reservation naming an organisation unit opens that unit's names and none other: the unit's own member and
+// the unit's own registration answer the key that holds it, the platform's names stay behind a platform
+// reservation the unit's does not grant, and a platform reservation opens none of the unit's
+// (docs/own-llm.md, 「Each reservation opens what it names and nothing else」).
+#[tokio::test]
+async fn each_reservation_opens_what_it_names_and_nothing_else() {
+  let unit_of_four = "INSERT INTO supply_reservations (run, opened_step, last_step, account, source, \
+     reservation, amount_micros, unit_micros, expires_at, state, unit_id) \
+     VALUES ('run-org-7', 1, 1, 7, 'organisation', 'r-org-7', 1000000, 1000000, NULL, 'open', 4);";
+  let team = "
+  INSERT INTO registered_models (name, label, model, context_tokens, answer_tokens, thinking, walked, \
+     added_at, owner_unit) VALUES ('team-router', 'Team Router', 'served', 32768, 4096, 0, 1, 1, 4);
+  INSERT INTO registered_model_addresses (registration, node, position, url, key_file, key_owned) \
+     VALUES ('team-router', 'n1', 1, 'http://127.0.0.1:18021/v1/chat/completions', NULL, 0);";
+  let world = World::new(&format!(
+    "{PAIR}{team}{}{}{}{}",
+    call_key(7, "call-key-seven", false),
+    call_key(8, "call-key-eight", false),
+    unit_of_four,
+    reservation(8, "open", None),
+  ))
+  .await
+  .with_members(json!([
+    { "name": "router-team", "road": "openrouter", "provider": "openrouter", "model": "vendor/team",
+      "key_file": "openrouter.key", "context_tokens": 131072, "answer_tokens": 8192, "thinking": false,
+      "unit": 4 },
+    { "name": "router-above", "road": "openrouter", "provider": "openrouter", "model": "vendor/above",
+      "key_file": "openrouter.key", "context_tokens": 131072, "answer_tokens": 8192, "thinking": false,
+      "unit": 5 },
+    { "name": "router-free", "road": "openrouter", "provider": "openrouter", "model": "vendor/free",
+      "key_file": "openrouter.key", "context_tokens": 131072, "answer_tokens": 8192, "thinking": false },
+  ]));
+  private(&world.root().join("data/env/openrouter.key"), "platform-key\n", 0o600);
+  let world = world.start().await;
+  world.serving_holding("router-team").await;
+
+  // The unit's people reach the unit's names: its own member under its own name, and its registration.
+  assert_eq!(chat_on(&world, "call-key-seven", "router-team").await.0, 200);
+  assert_eq!(chat_on(&world, "call-key-seven", "team-router").await.0, 200);
+  // The platform's door stays shut to it: a run of a platform name asks a reservation of the platform's own.
+  assert_openai_error(chat_on(&world, "call-key-seven", "router-free").await, 402, "no-supply");
+  // Another unit's member stands behind that unit's reservation, which this key does not hold.
+  assert_openai_error(chat_on(&world, "call-key-seven", "router-above").await, 403, "not-your-member");
+
+  // And the platform's reservation runs the platform's names and none of the unit's.
+  assert_openai_error(chat_on(&world, "call-key-eight", "team-router").await, 403, "not-your-member");
+  assert_openai_error(chat_on(&world, "call-key-eight", "router-team").await, 403, "not-your-member");
+  assert_eq!(chat_on(&world, "call-key-eight", "router-free").await.0, 200);
+
+  // The listings name each key what it reaches: the unit's people see their unit's names among the standing
+  // ones, and an account holding only the platform's reservation is handed none of the unit's.
+  assert_eq!(
+    listed_models(&world, "/v1/models", "call-key-seven").await,
+    ["pair-0-1", "pair-0-1@alpha", "pair-0-1@bravo", "router-free", "router-team", "team-router"]
+  );
+  assert_eq!(
+    listed_models(&world, "/v1/models", "call-key-eight").await,
+    ["pair-0-1", "pair-0-1@alpha", "pair-0-1@bravo", "router-free"]
+  );
+
+  // The description asks the same reach as the request.
+  let (answered, _, body) =
+    world.ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-seven"))], "").await;
+  assert_eq!(answered, 200, "{body}");
+  assert_openai_error(
+    world.ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-eight"))], "").await,
+    403,
+    "not-your-member",
+  );
+}
+
 #[tokio::test]
 async fn a_call_key_reaches_the_request_routes_and_the_model_lists_alone() {
   let world = World::new(&format!(

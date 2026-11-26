@@ -125,15 +125,25 @@ impl RoleAgent {
     model == named || named.split_once('/') == Some((provider, model))
   }
 
+  /// Whether the account may take this seat at all: filed under it, or filed under one of `units`, the units
+  /// of the account's path, the way a unit's supply is taken by its people (`docs/supply.md`, 「Organisation
+  /// supply」; docs/role-agents.md, 「A unit's seats run their people's work」). The account is its id in
+  /// digits as the slot's line holds it, none for the deployment's own, which takes the platform's seats alone.
+  pub fn may_take(&self, account: Option<&str>, units: &[i64]) -> bool {
+    match (self.owner_account, self.owner_unit) {
+      (Some(owner), _) => Some(owner.to_string().as_str()) == account,
+      (None, Some(unit)) => units.contains(&unit),
+      (None, None) => account.is_none(),
+    }
+  }
+
   /// Whether it is a candidate for an item naming this model in this role, for a launch of this account: switched
-  /// on, of the role and the account, and on a road that runs the model (docs/role-agents.md, 「Which agent a run
-  /// takes」). A seat filed under a unit is no one's candidate yet: letting a unit's people run on its seats
-  /// stands with the unit's supply, not here.
-  pub fn candidate_for(&self, role: &str, model: &str, account: Option<i64>) -> bool {
+  /// on, of the role, on a road that runs the model, and one the account may take — its own seat, or a seat of
+  /// a unit of its path (docs/role-agents.md, 「Which agent a run takes」).
+  pub fn candidate_for(&self, role: &str, model: &str, account: Option<i64>, units: &[i64]) -> bool {
     self.enabled
       && self.role == role
-      && self.owner_account == account
-      && self.owner_unit.is_none()
+      && self.may_take(account.map(|owner| owner.to_string()).as_deref(), units)
       && self.runs(model)
   }
 }
@@ -162,21 +172,38 @@ pub fn roads_held(role: &str, agents: &[RoleAgent]) -> String {
   }
 }
 
-/// The candidates of a role for an item naming a model, for a launch of this account, by name
-/// (docs/role-agents.md, 「Which agent a run takes」).
-pub async fn candidates<C: ConnectionTrait>(
-  db: &C,
+/// The candidates of a role for an item naming a model, for a launch of this account, by name: its own seats
+/// and those of the units of its path (docs/role-agents.md, 「Which agent a run takes」).
+pub async fn candidates(
+  ground: &crate::places::Ground,
   role: &str,
   model: &str,
   account: Option<i64>,
 ) -> Result<Vec<RoleAgent>, Fault> {
+  let held = of_role(&ground.db, role).await?;
+  let units = seat_units(ground, &held, account).await;
+
   Ok(
-    of_role(db, role)
-      .await?
+    held
       .into_iter()
-      .filter(|agent| agent.candidate_for(role, model, account))
+      .filter(|agent| agent.candidate_for(role, model, account, &units))
       .collect(),
   )
+}
+
+/// The units a run of this account may take seats under: its path, when its role actually files seats under
+/// units; none where it files none, so no common ask pays for a chain read the deployment never uses, and none
+/// for an account that is no person's (docs/role-agents.md, 「A unit's seats run their people's work」).
+pub async fn seat_units(
+  ground: &crate::places::Ground,
+  agents: &[RoleAgent],
+  account: Option<i64>,
+) -> Vec<i64> {
+  let Some(account) = account.filter(|_| agents.iter().any(|agent| agent.owner_unit.is_some())) else {
+    return Vec::new();
+  };
+
+  crate::supply::sources::path_for(ground, account).await
 }
 
 /// Every agent the store holds, by role and then by name.

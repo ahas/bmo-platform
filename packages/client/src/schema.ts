@@ -3782,17 +3782,33 @@ export interface components {
             provider: string;
             /**
              * Format: int64
-             * @description The user id it belongs to; null for the platform's.
+             * @description The user id it belongs to; null where it is no person's.
              */
             account: number | null;
+            /**
+             * Format: int64
+             * @description The organisation unit it is filed under; null where it is no unit's. At most one of `account` and
+             *     `unit` stands, and neither for the platform's.
+             * @default null
+             */
+            unit: number | null;
         };
-        /** @description A change of a gateway member's owner. */
+        /**
+         * @description A change of a gateway member's owner: exactly one of the two fields is named; whichever it is, the other
+         *     owner is given back at the same write, and null gives the named one back too — the member then stands the
+         *     platform's (docs/own-llm.md, 「The gateway's members」).
+         */
         GatewayMemberChange: {
             /**
              * Format: int64
-             * @description The user id the member belongs to, or null to give it back to the platform.
+             * @description The user id the member belongs to, or null for no account's.
              */
-            account: number | null;
+            account?: number | null;
+            /**
+             * Format: int64
+             * @description The organisation unit the member is filed under, or null for no unit's.
+             */
+            unit?: number | null;
         };
         /** @description ModelPage: */
         ModelPage: {
@@ -4698,6 +4714,22 @@ export interface components {
              * @default false
              */
             localAi: boolean;
+            /**
+             * @description Every provider the build carries as it stands for the person, closed ones named with what closed them.
+             * @default []
+             */
+            providers: components["schemas"]["SupplyProvider"][];
+        };
+        /** @description One provider the build carries, as a person's supply reads leave it. */
+        SupplyProvider: {
+            provider: string;
+            /**
+             * @description null while its sources stand open for the person; `owner` where the owner's switch stands it off,
+             *     `chain` where the person's chain holds `provider.<code>.offered` off.
+             */
+            off: string | null;
+            /** @description The link that closed it, where the chain did. */
+            from: string | null;
         };
         /** @description Whether a source of a road answers now, and where it does not, why. */
         SupplyTested: {
@@ -5789,11 +5821,25 @@ export interface components {
             /** @description Whether the agent stands otherwise than supplied: on another road, or switched off. */
             changed: boolean;
         };
-        /** @description A provider a person's road may name. */
+        /**
+         * @description A provider a person's road may name: every provider the build carries, each standing off for the person
+         *     where the owner's switch or their chain says so.
+         */
         OwnProvider: {
             name: string;
             label: string;
             lines: string[];
+            /**
+             * @description null while its sources stand open for the person; `owner` where the owner's switch stands it off,
+             *     `chain` where the person's chain holds `provider.<code>.offered` off.
+             * @default null
+             */
+            off: string | null;
+            /**
+             * @description The link that closed it, where the chain did.
+             * @default null
+             */
+            from: string | null;
         };
         /** @description The models of a provider a person may stand an agent on. */
         OwnModels: {

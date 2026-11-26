@@ -644,7 +644,7 @@ pub async fn gateway_command(
   };
   let person = crate::supply::person(ground, account).await?;
   let name = match (&held.registration, person) {
-    (None, Some(_)) => crate::supply::personal_member(chosen.as_ref(), &placed).unwrap_or(placed),
+    (None, Some(_)) => crate::supply::personal_member(chosen.as_ref(), machine, &placed).unwrap_or(placed),
     _ => placed,
   };
   let key_file = match person {

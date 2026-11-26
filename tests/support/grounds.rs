@@ -219,9 +219,7 @@ pub async fn job_slot(ground: &Ground, job: i64, let_in: bool) -> dispatch::Requ
     },
     ..dispatch::Asked::default()
   };
-  let held = dispatch::enqueue(&ground.db, &ground.events, &asked, dispatch::JOB, async |_, _| Ok(()))
-    .await
-    .unwrap();
+  let held = dispatch::enqueue(ground, &asked, dispatch::JOB, async |_, _| Ok(())).await.unwrap();
 
   if !let_in {
     assert!(dispatch::acquire(ground, &held).await.unwrap().is_none(), "the job's slot waits");

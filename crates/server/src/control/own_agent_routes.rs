@@ -114,18 +114,24 @@ async fn roles_view(ground: &Ground, person: i64) -> Result<Vec<Value>, Refused>
   Ok(out)
 }
 
-// The providers on now, each with the lines its program carries, for a road's chooser.
-async fn providers_view(ground: &Ground) -> Result<Vec<Value>, Refused> {
+// Every provider the build carries for a road's chooser, each with the lines its program carries and how it
+// stands for the person: `off` `owner` where the owner's switch holds it, `chain` where their chain closes it
+// with `from`, the link that said so, and null where its sources stand open for them
+// (docs/supply.md, 「A closed provider is read as closed, not as absent」).
+async fn providers_view(ground: &Ground, person: i64) -> Result<Vec<Value>, Refused> {
   let mut out = Vec::new();
 
   for name in ARCHIVE_PROVIDERS {
-    if !super::harness::provider_enabled(&ground.db, name).await? {
-      continue;
-    }
-
+    let off = crate::supply::provider_state(ground, name, person).await?;
     let declared = super::harness::named(name)?.declared();
 
-    out.push(json!({ "name": name, "label": declared.label, "lines": declared.lines }));
+    out.push(json!({
+      "name": name,
+      "label": declared.label,
+      "lines": declared.lines,
+      "off": off.as_ref().map(|off| off.word()),
+      "from": off.as_ref().and_then(|off| off.link()),
+    }));
   }
 
   Ok(out)
@@ -142,7 +148,7 @@ async fn whole_view(ground: &Ground, person: i64) -> Result<Value, Refused> {
     "add": add.view(),
     "road": road.view(),
     "roles": roles_view(ground, person).await?,
-    "providers": providers_view(ground).await?,
+    "providers": providers_view(ground, person).await?,
   }))
 }
 
@@ -176,7 +182,8 @@ impl Route for OwnAgentList {
 crate::moved!(OwnAgentList);
 
 /// `GET /own-agents/{ownerAccount}/models/{providerName}`: the models of a provider the person may stand an agent
-/// on — a model another person owns left out — each with whether their supply carries it now.
+/// on — a model another person owns and a model filed under a unit the person does not stand on left out —
+/// each with whether their supply carries it now, which a closed provider leaves none of.
 pub struct OwnAgentModels;
 
 impl Route for OwnAgentModels {
@@ -191,13 +198,27 @@ impl Route for OwnAgentModels {
       .await
       .map_err(|why| Refused::new(StatusCode::SERVICE_UNAVAILABLE, why))?;
     let mut open = Vec::new();
+    let mut units = Vec::new();
 
     for model in &offered.models {
       let owner = crate::supply::owner_of(call.ground(), &name, &model.id).await?;
 
-      if owner.is_none_or(|owner| owner == person) {
-        open.push(model);
+      if owner.is_some_and(|owner| owner != person) {
+        continue;
       }
+
+      match crate::supply::model_unit(call.ground(), &name, &model.id).await? {
+        None => open.push(model),
+        Some(unit) => units.push((model, unit)),
+      }
+    }
+
+    // A unit's model stands before the unit's people alone: the same path that takes the unit's supply
+    // (docs/supply.md, 「Organisation supply」).
+    if !units.is_empty() {
+      let path = crate::supply::sources::path_for(call.ground(), person).await;
+
+      open.extend(units.into_iter().filter(|(_, unit)| path.contains(unit)).map(|(model, _)| model));
     }
 
     let ids: Vec<String> = open.iter().map(|model| model.id.clone()).collect();

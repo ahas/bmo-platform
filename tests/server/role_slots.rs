@@ -6,7 +6,7 @@
 use agency_server::order_run::dispatch::{self, Asked, Wanted, acquire, enqueue, finish, used};
 use agency_server::places::Ground;
 
-use crate::support::grounds::{deepseek_balance, openrouter_road, provider_balance, seeded};
+use crate::support::grounds::{deepseek_balance, openrouter_road, provider_balance, seeded, seeded_with};
 use crate::support::scratch::Scratch;
 
 fn asked<'a>(role: &'a str, key: &str) -> Asked<'a> {
@@ -25,9 +25,7 @@ fn asked<'a>(role: &'a str, key: &str) -> Asked<'a> {
 }
 
 async fn ask(ground: &Ground, role: &str, key: &str) -> dispatch::Request {
-  enqueue(&ground.db, &ground.events, &asked(role, key), "job", async |_, _| Ok(()))
-    .await
-    .unwrap()
+  enqueue(ground, &asked(role, key), "job", async |_, _| Ok(())).await.unwrap()
 }
 
 async fn admitted(ground: &Ground, held: &dispatch::Request) -> bool {
@@ -140,14 +138,7 @@ async fn a_slot_asked_under_a_role_the_store_does_not_hold_is_refused() {
   let scratch = Scratch::new().await;
   let home = tempfile::tempdir().unwrap();
   let ground = seeded(scratch.db(), home.path()).await;
-  let refused = enqueue(
-    &ground.db,
-    &ground.events,
-    &asked("general-purpose", "unknown"),
-    "native",
-    async |_, _| Ok(()),
-  )
-  .await;
+  let refused = enqueue(&ground, &asked("general-purpose", "unknown"), "native", async |_, _| Ok(())).await;
 
   assert!(refused.is_err_and(|why| why.contains("No role named general-purpose")));
   assert_eq!(
@@ -198,7 +189,7 @@ async fn a_run_of_a_role_that_follows_its_supervisor_holds_a_slot_of_that_role_o
         ..Asked::default()
       };
 
-      held.push(enqueue(&ground.db, &ground.events, &run, "job", async |_, _| Ok(())).await.unwrap());
+      held.push(enqueue(&ground, &run, "job", async |_, _| Ok(())).await.unwrap());
     }
 
     held
@@ -248,7 +239,7 @@ async fn a_run_of_a_role_that_follows_its_supervisor_waits_on_that_road_and_neve
     },
     ..Asked::default()
   };
-  let held = enqueue(&ground.db, &ground.events, &run, "job", async |_, _| Ok(())).await.unwrap();
+  let held = enqueue(&ground, &run, "job", async |_, _| Ok(())).await.unwrap();
 
   assert!(!admitted(&ground, &held).await, "its supervisor's provider has no quota: it waits");
 
@@ -269,8 +260,7 @@ async fn a_request_key_answers_its_standing_request_and_is_spent_once_the_reques
 
   assert!(finish(&ground.db, &ground.events, &first.token, "done", false).await.unwrap());
 
-  let spent =
-    enqueue(&ground.db, &ground.events, &asked("worker", "again"), "job", async |_, _| Ok(())).await;
+  let spent = enqueue(&ground, &asked("worker", "again"), "job", async |_, _| Ok(())).await;
 
   assert!(spent.is_err(), "a key whose request was given back opens nothing: {spent:?}");
   assert_ne!(
@@ -393,8 +383,8 @@ async fn an_owner_s_release_gives_back_everything_it_holds_and_nothing_of_anothe
   first.owner = "restarting".to_owned();
   second.owner = "restarting".to_owned();
 
-  let first = enqueue(&ground.db, &ground.events, &first, "job", async |_, _| Ok(())).await.unwrap();
-  let second = enqueue(&ground.db, &ground.events, &second, "job", async |_, _| Ok(())).await.unwrap();
+  let first = enqueue(&ground, &first, "job", async |_, _| Ok(())).await.unwrap();
+  let second = enqueue(&ground, &second, "job", async |_, _| Ok(())).await.unwrap();
   let other = ask(&ground, "worker", "other").await;
 
   assert!(admitted(&ground, &first).await);
@@ -527,7 +517,7 @@ async fn a_lease_let_in_whose_owner_never_starts_a_session_stands_until_its_owne
 
   lone.owner = "research:185".to_owned();
 
-  let held = enqueue(&ground.db, &ground.events, &lone, "search", async |_, _| Ok(())).await.unwrap();
+  let held = enqueue(&ground, &lone, "search", async |_, _| Ok(())).await.unwrap();
 
   assert!(admitted(&ground, &held).await);
 
@@ -656,7 +646,7 @@ async fn a_following_roles_session_goes_out_on_its_asking_supervisors_step_on_a_
     asked_by: Some("chat"),
     ..Asked::default()
   };
-  let held = enqueue(&ground.db, &ground.events, &run, "job", async |_, _| Ok(())).await.unwrap();
+  let held = enqueue(&ground, &run, "job", async |_, _| Ok(())).await.unwrap();
   let active = acquire(&ground, &held).await.unwrap().expect("let in on the supervisor's road");
   let mut apart = agent_session::Apart::default();
 
@@ -890,7 +880,7 @@ async fn a_role_of_both_kinds_of_agent_seats_a_supervisors_run_in_one_order() {
         asked_by,
         ..Asked::default()
       };
-      let held = enqueue(db, &ground.events, &asked, "job", async |_, _| Ok(())).await.unwrap();
+      let held = enqueue(&ground, &asked, "job", async |_, _| Ok(())).await.unwrap();
 
       acquire(&ground, &held).await.unwrap()
     };
@@ -974,7 +964,7 @@ async fn a_run_keeps_its_session_as_its_agent_says() {
     },
     ..asked("worker", "two")
   };
-  let second = enqueue(db, &ground.events, &second, "job", async |_, _| Ok(())).await.unwrap();
+  let second = enqueue(&ground, &second, "job", async |_, _| Ok(())).await.unwrap();
 
   assert!(admitted(&ground, &first).await && admitted(&ground, &second).await);
   assert_eq!(sessions_at(db, "worker", Some("/checkouts/one")).await.unwrap(), Sessions::Fresh);
@@ -1000,7 +990,7 @@ async fn a_run_that_names_an_agent_is_let_in_on_that_agent_alone_and_waits_for_i
   };
 
   // The first ask naming the second agent is let in on it, passing the first agent over.
-  let one = enqueue(db, &ground.events, &wanted("one"), "job", async |_, _| Ok(())).await.unwrap();
+  let one = enqueue(&ground, &wanted("one"), "job", async |_, _| Ok(())).await.unwrap();
 
   assert!(admitted(&ground, &one).await, "the named agent is free");
 
@@ -1014,7 +1004,7 @@ async fn a_run_that_names_an_agent_is_let_in_on_that_agent_alone_and_waits_for_i
   );
 
   // A second ask naming the same agent waits, though the role has free agents.
-  let two = enqueue(db, &ground.events, &wanted("two"), "job", async |_, _| Ok(())).await.unwrap();
+  let two = enqueue(&ground, &wanted("two"), "job", async |_, _| Ok(())).await.unwrap();
 
   assert!(!admitted(&ground, &two).await, "the named agent carries a run, so the ask waits");
   assert!(
@@ -1034,7 +1024,7 @@ async fn a_run_that_names_an_agent_is_let_in_on_that_agent_alone_and_waits_for_i
   let mut stranger = asked("worker", "four");
 
   stranger.wanted.agent = Some("nobody-01");
-  assert!(enqueue(db, &ground.events, &stranger, "job", async |_, _| Ok(())).await.is_err());
+  assert!(enqueue(&ground, &stranger, "job", async |_, _| Ok(())).await.is_err());
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -1057,9 +1047,7 @@ async fn an_accounts_runs_take_its_own_agents_and_count_against_its_own_cap() {
     asked_by: Some("secretary-a"),
     ..asked("worker", key)
   };
-  let first = enqueue(&ground.db, &ground.events, &of_account("account-one"), "job", async |_, _| Ok(()))
-    .await
-    .unwrap();
+  let first = enqueue(&ground, &of_account("account-one"), "job", async |_, _| Ok(())).await.unwrap();
 
   assert_eq!(first.account.as_deref(), Some("7"), "a slot belongs to its asking supervisor's account");
   assert!(
@@ -1094,9 +1082,7 @@ async fn an_accounts_runs_take_its_own_agents_and_count_against_its_own_cap() {
   assert_eq!(used(&ground.db, "worker", None).await.unwrap(), 3);
 
   // A second run of the account waits on the account's cap of one, whatever the deployment's seats do.
-  let second = enqueue(&ground.db, &ground.events, &of_account("account-two"), "job", async |_, _| Ok(()))
-    .await
-    .unwrap();
+  let second = enqueue(&ground, &of_account("account-two"), "job", async |_, _| Ok(())).await.unwrap();
 
   assert!(!admitted(&ground, &second).await, "the account's cap is its own agents switched on");
   assert!(finish(&ground.db, &ground.events, &deployment[0].token, "done", false).await.unwrap());
@@ -1109,6 +1095,120 @@ async fn an_accounts_runs_take_its_own_agents_and_count_against_its_own_cap() {
     admitted(&ground, &second).await,
     "the account's own seat given back lets its next run in"
   );
+}
+
+// The chain as the stand-in answers it for the seats test: account 7 stands in unit 4 under unit 3, and no
+// other account stands under any unit.
+async fn chain_service() -> (String, tokio::task::JoinHandle<()>) {
+  let app = axum::Router::new().route(
+    "/chain/kinds/{key}/resolve",
+    axum::routing::get(
+      |axum::extract::Query(asked): axum::extract::Query<std::collections::HashMap<String, String>>| async move {
+        let path: Vec<&str> = match asked.get("person").map(String::as_str) {
+          Some("7") => vec!["platform", "unit:3", "unit:4", "person:7"],
+          _ => vec!["platform"],
+        };
+
+        axum::Json(serde_json::json!({ "value": true, "layers": [], "path": path }))
+      },
+    ),
+  );
+  let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0)).await.unwrap();
+  let address = format!("http://{}", listener.local_addr().unwrap());
+  let serving = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+  (address, serving)
+}
+
+// A unit's seat runs its people's work (docs/role-agents.md, 「A unit's seats run their people's work」): the
+// ask of an account whose path names the unit takes the unit's seat and counts against that account's cap, an
+// account whose path names no unit is left with none of it, and the seat given back lets the next of its
+// people in.
+#[tokio::test(flavor = "multi_thread")]
+async fn a_person_on_a_unit_s_path_takes_the_unit_s_seat_and_counts_against_their_own_cap() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (address, serving) = chain_service().await;
+  let vars = std::collections::BTreeMap::from([
+    ("WEB_ADDRESS".to_owned(), address),
+    ("WEB_TOKEN".to_owned(), "chain".to_owned()),
+  ]);
+  let ground = seeded_with(scratch.db(), home.path(), &vars).await;
+
+  deepseek_balance(&ground, 5.0).await;
+
+  // Two secretaries: one of the person whose path names unit 4, one of an account standing under no unit.
+  scratch
+    .run(
+      r#"INSERT INTO "supervisors" ("name", "session_scope", "turn_shape", "provider", "model", "effort",
+           "created_at", "updated_at", "owner_account")
+         VALUES ('secretary-path', 'agent', 'window', 'deepseek', 'deepseek-flash', 'high', 0, 0, 7),
+                ('secretary-other', 'agent', 'window', 'deepseek', 'deepseek-flash', 'high', 0, 0, 9)"#,
+      vec![],
+    )
+    .await;
+
+  // One seat of the role filed under unit 4.
+  let mut seat = agency_server::role_agents::of_role(&ground.db, "worker").await.unwrap().remove(0);
+
+  seat.name = "worker-unit-4".into();
+  seat.owner_unit = Some(4);
+  agency_server::role_agents::write(&ground.db, &seat).await.unwrap();
+
+  let of = |asked_by: &'static str, key: &'static str| Asked {
+    asked_by: Some(asked_by),
+    ..asked("worker", key)
+  };
+  let first = enqueue(&ground, &of("secretary-path", "unit-seat-one"), "job", async |_, _| Ok(()))
+    .await
+    .unwrap();
+
+  assert_eq!(first.account.as_deref(), Some("7"));
+  assert!(
+    admitted(&ground, &first).await,
+    "the unit's seat stands in the pool of a person whose path names the unit"
+  );
+
+  let let_in = dispatch::request(&ground.db, &first.token).await.unwrap().unwrap();
+
+  assert_eq!(
+    let_in.seat.as_deref(),
+    Some("worker-unit-4"),
+    "the run stands under the seat it was let in on"
+  );
+  assert_eq!(used(&ground.db, "worker", Some("7")).await.unwrap(), 1);
+  assert_eq!(
+    used(&ground.db, "worker", None).await.unwrap(),
+    0,
+    "the unit's seat counts against no deployment"
+  );
+
+  // The seat holds one run: the person's next ask waits on a cap of one seat.
+  let second = enqueue(&ground, &of("secretary-path", "unit-seat-two"), "job", async |_, _| Ok(()))
+    .await
+    .unwrap();
+
+  assert!(!admitted(&ground, &second).await, "the cap counts the unit's seat the account may take");
+
+  // An account whose path names no unit takes none of the unit's seats.
+  let other = enqueue(&ground, &of("secretary-other", "off-path"), "job", async |_, _| Ok(()))
+    .await
+    .unwrap();
+
+  assert!(
+    !admitted(&ground, &other).await,
+    "a unit's seat runs no account whose path does not name the unit"
+  );
+
+  // The seat given back lets the waiting run of its people in, and still no other account's.
+  assert!(finish(&ground.db, &ground.events, &first.token, "done", false).await.unwrap());
+  assert!(
+    admitted(&ground, &second).await,
+    "the unit's seat given back lets its people's next run in"
+  );
+  assert!(!admitted(&ground, &other).await);
+
+  serving.abort();
 }
 
 // One role's asks are judged one at a time (docs/role-slots.md, 「The line」): two asks woken at once by the one
@@ -1179,10 +1279,9 @@ async fn an_ask_is_judged_only_while_it_holds_its_role() {
     let ground = ground.clone();
 
     tokio::spawn(async move {
-      let request =
-        enqueue(&ground.db, &ground.events, &asked("producer", "judged"), "job", async |_, _| Ok(()))
-          .await
-          .unwrap();
+      let request = enqueue(&ground, &asked("producer", "judged"), "job", async |_, _| Ok(()))
+        .await
+        .unwrap();
 
       acquire(&ground, &request).await.unwrap().is_some()
     })
@@ -1256,7 +1355,7 @@ async fn an_agent_following_its_asker_takes_the_askers_road_and_falls_back_to_it
       asked_by,
       ..Asked::default()
     };
-    let held = enqueue(&ground.db, &ground.events, &run, "voice", async |_, _| Ok(())).await.unwrap();
+    let held = enqueue(&ground, &run, "voice", async |_, _| Ok(())).await.unwrap();
 
     assert!(admitted(&ground, &held).await, "{key}: let in");
 
@@ -1298,7 +1397,7 @@ async fn an_agent_following_its_asker_takes_the_askers_road_and_falls_back_to_it
     asked_by: Some("elsewhere"),
     ..Asked::default()
   };
-  let held = enqueue(&ground.db, &ground.events, &run, "voice", async |_, _| Ok(())).await.unwrap();
+  let held = enqueue(&ground, &run, "voice", async |_, _| Ok(())).await.unwrap();
   let role = agency_server::agent_roles::named(&ground.db, "transliterator").await.unwrap().unwrap();
   let seats = dispatch::seats_for(&ground, &held, &role).await.unwrap();
   let seat = &seats[0];

@@ -44,18 +44,14 @@ pub struct AgentRole {
 }
 
 impl AgentRole {
-  /// The most of an account's runs of this role that go at once: its agents of that account switched on
-  /// (docs/role-slots.md, 「Accounts」). `account` is the account id as the slot's line holds it, in digits.
-  pub fn cap_for(&self, account: Option<&str>) -> i64 {
+  /// The most of an account's runs of this role that go at once: the agents it may take — its own, and the
+  /// seats of `units`, the units of its path — that are switched on (docs/role-slots.md, 「Accounts」).
+  /// `account` is the account id as the slot's line holds it, in digits.
+  pub fn cap_for(&self, account: Option<&str>, units: &[i64]) -> i64 {
     self
       .agents
       .iter()
-      .filter(|agent| {
-        // A seat filed under a unit caps no account's runs yet, as it takes none (`seats_for`).
-        agent.enabled
-          && agent.owner_unit.is_none()
-          && agent.owner_account.map(|owner| owner.to_string()).as_deref() == account
-      })
+      .filter(|agent| agent.enabled && agent.may_take(account, units))
       .count() as i64
   }
 

@@ -385,11 +385,15 @@ impl Route for OrganisationSupplyRemove {
 
 crate::moved!(OrganisationSupplyRemove);
 
-/// Whether any unit of `units` holds supply of its own that is on: a gateway key or a Claude account.
+/// Whether any unit of `units` holds supply of its own that is on: a gateway key, a Claude account, a member
+/// of a gateway road or a registration (`docs/supply.md`, 「Organisation supply」).
 async fn any_supply(ground: &Ground, units: &[i64]) -> Result<bool, Refused> {
   if units.is_empty() {
     return Ok(false);
   }
+
+  let members =
+    harness_machine::members::read(&harness_machine::members::path(&ground.roots.data)).unwrap_or_default();
 
   for unit in units {
     let keyed = one(
@@ -400,7 +404,17 @@ async fn any_supply(ground: &Ground, units: &[i64]) -> Result<bool, Refused> {
     .await?
     .is_some();
 
+    let registered = one(
+      &ground.db,
+      r#"SELECT 1 AS "held" FROM "registered_models" WHERE "owner_unit" = $1 LIMIT 1"#,
+      vec![(*unit).into()],
+    )
+    .await?
+    .is_some();
+
     if keyed
+      || registered
+      || members.iter().any(|member| member.unit == Some(*unit))
       || accounts(&ground.db)
         .await?
         .iter()
@@ -438,7 +452,9 @@ async fn own_supply(ground: &Ground, person: i64) -> Result<bool, Refused> {
 
 /// `GET /supply-sources`: the sources the order the signed-in person's runs walk holds — their own, their
 /// organisation's and the platform's — whether a unit on their path holds supply of its own, whether their own is
-/// all that can carry their runs, and whether they hold one of their own that is on.
+/// all that can carry their runs, whether they hold one of their own that is on, and every provider the build
+/// carries as it stands for them, closed providers named with what closes them
+/// (`docs/supply.md`, 「A closed provider is read as closed, not as absent」).
 pub struct SupplySources;
 
 impl Route for SupplySources {
@@ -473,6 +489,17 @@ impl Route for SupplySources {
     // that does not answer offers none.
     let local_ai = crate::local_ai::allowed(&ground, person).await.unwrap_or(false)
       && crate::local_ai::pc_of(&ground, person).await?.is_some();
+    let mut providers = Vec::new();
+
+    for name in harness_providers::ARCHIVE_PROVIDERS {
+      let off = crate::supply::provider_state(&ground, name, person).await?;
+
+      providers.push(json!({
+        "provider": name,
+        "off": off.as_ref().map(|off| off.word()),
+        "from": off.as_ref().and_then(|off| off.link()),
+      }));
+    }
 
     Ok(answer(
       StatusCode::OK,
@@ -484,6 +511,7 @@ impl Route for SupplySources {
         "personalOnly": personal && !platform && !organisation_supply,
         "ownSupply": own_supply,
         "localAi": local_ai,
+        "providers": providers,
       }),
     ))
   }

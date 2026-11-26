@@ -82,9 +82,7 @@ async fn an_owner_s_release_under_a_running_turn_cuts_it_and_ends_its_session_on
     },
     ..Asked::default()
   };
-  let held = dispatch::enqueue(&line.db, &line.events, &asked, "search", async |_, _| Ok(()))
-    .await
-    .unwrap();
+  let held = dispatch::enqueue(&line, &asked, "search", async |_, _| Ok(())).await.unwrap();
   let held = dispatch::acquire(&line, &held).await.unwrap().expect("let in");
 
   // The sessions, over a herdr of the test's own.

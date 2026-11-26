@@ -171,10 +171,9 @@ async fn a_job_s_slot_request_still_waiting_in_the_line_is_taken_up_again_rather
   };
 
   // The launch of the process before asked, and its request waits in the line as that process went away.
-  let waiting =
-    dispatch::enqueue(&ground.db, &ground.events, &asked("job-77-1-1"), dispatch::JOB, async |_, _| Ok(()))
-      .await
-      .unwrap();
+  let waiting = dispatch::enqueue(&ground, &asked("job-77-1-1"), dispatch::JOB, async |_, _| Ok(()))
+    .await
+    .unwrap();
 
   assert_eq!(waiting.state, "waiting");
 

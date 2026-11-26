@@ -2646,6 +2646,7 @@ own_agents:
     from_unit_unnamed: "受け取ったエージェント · 組織"
     from_platform: "受け取ったエージェント · 既定"
     role_off: "使えないロール"
+    provider_off: "使えないプロバイダー"
     add_decided: "エージェントの追加・オフ: {decided}"
     road_decided: "プロバイダー · モデルの選択: {decided}"
     instructions_decided: "自分の指示: {decided}"
@@ -4816,6 +4817,8 @@ supply:
     monthly_cap: 月間上限
     owner_shared: 共用
     owner_personal: "個人 · {name}"
+    owner_unit: 組織
+    owner_unit_named: "組織 · {name}"
     plan_applied_none: 適用プランなし
     plan_exposed_none: 公開プランなし
     plan_term: 適用期間

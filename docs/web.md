@@ -9156,8 +9156,11 @@ by the agency for them; the console decides none of it.
   and 직접 추가 for an agent of their own. Its controls stand at the row's end:
   - **되돌리기**, an icon button on a seat the reader changed or that no longer stands, which puts it back as supplied;
   - **공급자 · 모델**, which opens the agent's road in a form of its own: 공급자, its first choice 요청한 감독관을 따름
-    and then every provider whose program carries the role's line; 모델, the provider's models less any another person
-    owns, a model the reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
+    and then every provider whose program carries the role's line — one the owner switched off or the reader's
+    chain closed standing disabled too, with its 쓸 수 없는 공급자 mark naming who closed it, whose words follow
+    「A closed provider is read as closed, not as absent」 (the agency's `docs/supply.md`); 모델, the provider's
+    models less any another person owns and any filed under a unit the reader does not stand on, a model the
+    reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
     levels, 기본 first. 저장 sends the road whole, a refusal said in the form;
   - **its switch**, which turns the agent on and off; a supplied agent switched off is the reader's own change, so its
     switch stands disabled while on where the organisation withholds 에이전트 추가·끄기;
@@ -9831,8 +9834,9 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 - **공급자** — every provider the agency carries (its `docs/api.md`, 「providers, models and model files」), one row
   each in the order it lists them: the pack's word for its code with a status mark after it, under it a gateway
-  road's 소유 where every member of the road is owned by one person — 개인 with that person's name after a middle
-  dot, read off the agency's `GET /gateway-members` — and nothing where the road is the platform's, what the provider
+  road's 소유 where every member of the road is owned by one account or one unit — 개인 with that person's name, or
+  조직 with the unit's name, after a middle dot, read off the agency's `GET /gateway-members` — and nothing where
+  the road is the platform's or its members' owners differ, what the provider
   itself has left, the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
   English as its tooltip, and the owner's switch. What it has left is the title bar panel's own figures, read under
   the same key so both stand the same numbers (「Usage in the title bar」), drawn as that panel draws a group: the

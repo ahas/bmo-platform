@@ -608,10 +608,9 @@ async fn a_job_s_next_stage_runs_on_its_agent_before_a_job_waiting_for_that_agen
   assert_eq!(first.seat.as_deref(), Some(agent));
 
   // A second job naming the same agent waits for it.
-  let second =
-    dispatch::enqueue(db, &ground.events, &turn_ask(32, 1, agent), dispatch::JOB, async |_, _| Ok(()))
-      .await
-      .unwrap();
+  let second = dispatch::enqueue(&ground, &turn_ask(32, 1, agent), dispatch::JOB, async |_, _| Ok(()))
+    .await
+    .unwrap();
 
   assert!(dispatch::acquire(&ground, &second).await.unwrap().is_none());
 

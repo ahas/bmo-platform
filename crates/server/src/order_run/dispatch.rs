@@ -85,6 +85,9 @@ pub struct Request {
   /// The account it belongs to: its asking supervisor's owner account, none for the deployment's own
   /// (docs/role-slots.md, 「Accounts」).
   pub account: Option<String>,
+  /// The units of that account's path, as the chain answered them when the ask was made: the seats filed under
+  /// them stand among the agents the request may take and the cap it counts (docs/role-slots.md, 「Accounts」).
+  pub units: Vec<i64>,
   /// The run its child is, where its binding names one.
   pub agent_name: Option<String>,
   /// The one agent of its role it asks to be let in on, where its asker named one.
@@ -187,6 +190,16 @@ pub fn announce(events: &Bus, request: &Request) {
   events.publish(SlotRequestChanged::of(request));
 }
 
+// The units one request's row keeps as a JSON list; a list that does not read is none kept.
+fn units_of(row: &QueryResult) -> Result<Vec<i64>, sea_orm::DbErr> {
+  Ok(
+    row
+      .try_get::<Option<String>>("", "units")?
+      .and_then(|kept| serde_json::from_str::<Vec<i64>>(&kept).ok())
+      .unwrap_or_default(),
+  )
+}
+
 fn optional_text(stored: String) -> Option<String> {
   (!stored.is_empty()).then_some(stored)
 }
@@ -220,6 +233,7 @@ pub fn request_of(row: &QueryResult) -> Result<Request, Fault> {
     title: row.try_get("", "title").map_err(get)?,
     asked_by: row.try_get("", "asked_by").map_err(get)?,
     account: row.try_get("", "account").map_err(get)?,
+    units: units_of(row).map_err(get)?,
     agent_name: row.try_get("", "agent").map_err(get)?,
     agent_wanted: row
       .try_get::<Option<String>>("", "agent_wanted")
@@ -404,12 +418,13 @@ pub async fn role_of<C: ConnectionTrait>(db: &C, name: &str) -> Result<AgentRole
 /// holds; `retain` keeps the token beside it in the same transaction, so no process dying between the two
 /// leaves a request nobody owns.
 pub async fn enqueue(
-  db: &DatabaseConnection,
-  events: &Bus,
+  ground: &Ground,
   asked: &Asked<'_>,
   source: &str,
   retain: impl AsyncFnOnce(&sea_orm::DatabaseTransaction, &Request) -> Result<(), Fault>,
 ) -> Result<Request, Fault> {
+  let db = &ground.db;
+  let events = &ground.events;
   if !KEY.is_match(&asked.request_key) || !KEY.is_match(&asked.owner) {
     return Err("Invalid slot request identity".to_owned());
   }
@@ -472,14 +487,19 @@ pub async fn enqueue(
   }
 
   let account = account_of(db, asked.asked_by).await?;
+  // The units of the account's path are read once, as the ask is made, and kept on its row: the seats it may
+  // take and the cap it counts stand on them for its whole life in the line (docs/role-slots.md, 「Accounts」).
+  let units =
+    crate::role_agents::seat_units(ground, &role.agents, account.as_ref().and_then(|one| one.parse().ok()))
+      .await;
   let written = db.begin().await.map_err(faulted)?;
 
   let opened = run(
     &written,
     r#"INSERT INTO "role_slot_requests" ("token", "request_key", "owner", "source", "role", "path", "provider",
          "model", "effort", "capacity", "state", "enqueued_at", "class", "place_key", "session", "title",
-         "asked_by", "agent_wanted", "account")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'waiting', $11, $12, $13, $14, $15, $16, $17, $18)
+         "asked_by", "agent_wanted", "account", "units")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'waiting', $11, $12, $13, $14, $15, $16, $17, $18, $19)
        ON CONFLICT ("request_key") DO NOTHING"#,
     vec![
       uuid::Uuid::new_v4().to_string().into(),
@@ -491,7 +511,7 @@ pub async fn enqueue(
       fixed.map(|entry| entry.provider.clone()).unwrap_or_default().into(),
       fixed.map(|entry| entry.model.clone()).unwrap_or_default().into(),
       fixed.and_then(|entry| entry.effort.clone()).unwrap_or_default().into(),
-      role.cap_for(account.as_deref()).into(),
+      role.cap_for(account.as_deref(), &units).into(),
       crate::now_ms().into(),
       (if asked.yielding { "yielding" } else { "foreground" }).into(),
       place_key.clone().into(),
@@ -500,6 +520,7 @@ pub async fn enqueue(
       asked.asked_by.map(str::to_owned).into(),
       asked.wanted.agent.map(str::to_owned).into(),
       account.clone().into(),
+      serde_json::to_string(&units).expect("units are numbers").into(),
     ],
   )
   .await
@@ -596,12 +617,11 @@ pub struct Seat {
 pub async fn seats_for(ground: &Ground, held: &Request, role: &AgentRole) -> Result<Vec<Seat>, Fault> {
   // A request that names an agent is let in on that agent alone (docs/role-agents.md, 「Which agent a run
   // takes」).
-  // A request is let in only on its own account's agents (docs/role-slots.md, 「Accounts」).
+  // A request is let in only on the agents its account may take: its own, and the seats of the units its ask
+  // was made under (docs/role-slots.md, 「Accounts」; docs/role-agents.md, 「A unit's seats run their people's work」).
   let on = role.agents.iter().filter(|agent| {
     agent.enabled
-      && agent.owner_account.map(|owner| owner.to_string()) == held.account
-      // A seat filed under a unit is let in on no request yet, as a candidate is not (`candidate_for`).
-      && agent.owner_unit.is_none()
+      && agent.may_take(held.account.as_deref(), &held.units)
       && held.agent_wanted.as_deref().is_none_or(|wanted| wanted == agent.name)
   });
   let mut seats: Vec<Seat> = vec![];
@@ -869,7 +889,8 @@ async fn admission<C: ConnectionTrait>(
     changed.push(ended);
   }
 
-  let admitted = admit(db, token, &entry, &agent, role.cap_for(held.account.as_deref()), now).await?;
+  let admitted =
+    admit(db, token, &entry, &agent, role.cap_for(held.account.as_deref(), &held.units), now).await?;
 
   Ok((admitted, changed))
 }
@@ -965,7 +986,9 @@ async fn judge<C: ConnectionTrait>(
       Some(_) => return Ok(Judged::HeldBack),
     };
 
-  if used(db, &held.role, held.account.as_deref()).await? >= role.cap_for(held.account.as_deref()) {
+  if used(db, &held.role, held.account.as_deref()).await?
+    >= role.cap_for(held.account.as_deref(), &held.units)
+  {
     return Ok(Judged::HeldBack);
   }
 
@@ -983,7 +1006,10 @@ async fn judge<C: ConnectionTrait>(
 pub async fn first_ask_waits(ground: &Ground, asked: &Asked<'_>, source: &str) -> Result<bool, Fault> {
   let role = role_of(&ground.db, asked.wanted.role).await?;
   let account = account_of(&ground.db, asked.asked_by).await?;
-  let unasked = unasked(asked, source, &role, account);
+  let units =
+    crate::role_agents::seat_units(ground, &role.agents, account.as_ref().and_then(|one| one.parse().ok()))
+      .await;
+  let unasked = unasked(asked, source, &role, account, units);
   let seats = seats_for(ground, &unasked, &role).await?;
 
   Ok(!matches!(judge(&ground.db, &unasked, &role, &seats, None).await?, Judged::LetIn { .. }))
@@ -991,7 +1017,13 @@ pub async fn first_ask_waits(ground: &Ground, asked: &Asked<'_>, source: &str) -
 
 // A request asked so as the line would hold it the moment it is written: waiting, behind every request in the
 // line, with no token yet.
-fn unasked(asked: &Asked<'_>, source: &str, role: &AgentRole, account: Option<String>) -> Request {
+fn unasked(
+  asked: &Asked<'_>,
+  source: &str,
+  role: &AgentRole,
+  account: Option<String>,
+  units: Vec<i64>,
+) -> Request {
   let fixed = asked.wanted.fixed.as_ref();
 
   Request {
@@ -1005,7 +1037,7 @@ fn unasked(asked: &Asked<'_>, source: &str, role: &AgentRole, account: Option<St
     provider: fixed.map(|entry| entry.provider.clone()).unwrap_or_default(),
     model: fixed.map(|entry| entry.model.clone()).unwrap_or_default(),
     effort: fixed.and_then(|entry| entry.effort.clone()),
-    capacity: role.cap_for(account.as_deref()),
+    capacity: role.cap_for(account.as_deref(), &units),
     state: "waiting".to_owned(),
     enqueued_at: crate::now_ms(),
     leased_at: None,
@@ -1019,6 +1051,7 @@ fn unasked(asked: &Asked<'_>, source: &str, role: &AgentRole, account: Option<St
     title: asked.title.map(str::to_owned),
     asked_by: asked.asked_by.map(str::to_owned),
     account,
+    units,
     agent_name: None,
     agent_wanted: asked.wanted.agent.map(str::to_owned),
     seat: None,
@@ -1405,7 +1438,7 @@ pub async fn promote_role<C: ConnectionTrait>(db: &C, role: &str, now: i64) -> R
   };
   let seats = all(
     db,
-    r#"SELECT "token", "sequence", "asked", "account" FROM "role_slot_requests" AS "waiting"
+    r#"SELECT "token", "sequence", "asked", "account", "units" FROM "role_slot_requests" AS "waiting"
        WHERE "role" = $1 AND "state" = 'waiting' AND "class" = 'foreground' AND "reservation" IS NOT NULL
          AND ("place_key" IS NULL OR NOT EXISTS (SELECT 1 FROM "role_slot_requests" AS "held"
            WHERE "held"."place_key" = "waiting"."place_key" AND "held"."state" = 'active'))
@@ -1431,7 +1464,8 @@ pub async fn promote_role<C: ConnectionTrait>(db: &C, role: &str, now: i64) -> R
     let since: Option<i64> = seat.try_get("", "asked").map_err(faulted)?;
     let sequence: i64 = seat.try_get("", "sequence").map_err(faulted)?;
     let account: Option<String> = seat.try_get("", "account").map_err(faulted)?;
-    let cap = held_role.cap_for(account.as_deref());
+    let units: Vec<i64> = units_of(&seat).map_err(faulted)?;
+    let cap = held_role.cap_for(account.as_deref(), &units);
 
     // Each account's line and cap stand apart: one account's full cap holds back none of another's.
     if in_the_way(db, role, account.as_deref(), sequence, since, None).await?.is_some()

@@ -24,6 +24,7 @@ fn registration(name: &str, addresses: Vec<RegisteredAddress>) -> Registration {
     card_service: None,
     role_files: false,
     owner_account: None,
+    owner_unit: None,
     addresses,
   }
 }
@@ -239,6 +240,7 @@ fn members_are_served_under_their_own_names_on_their_providers() {
       thinking: Some(true),
       free: None,
       account: None,
+      unit: None,
     },
     Member {
       name: "openrouter-deepseek-flash".into(),
@@ -253,6 +255,7 @@ fn members_are_served_under_their_own_names_on_their_providers() {
       thinking: Some(true),
       free: None,
       account: None,
+      unit: None,
     },
   ];
   let table = gateway_table_with_members(&[], &members).unwrap();
@@ -286,6 +289,7 @@ fn a_member_naming_a_registration_refuses_the_table() {
     thinking: None,
     free: None,
     account: None,
+    unit: None,
   };
   let refused = gateway_table_with_members(&[registration("taken", vec![])], &[member]);
 
@@ -361,6 +365,7 @@ fn road_member(name: &str, road: Option<&str>) -> Member {
     thinking: Some(false),
     free: None,
     account: None,
+    unit: None,
   }
 }
 
@@ -421,6 +426,7 @@ fn a_persons_lowest_open_key_of_a_road_lays_one_personal_member_beside_each_memb
       road: None,
       key_file: "users/7/router-first".into(),
       account: Some(7),
+      unit: None,
       ..members[0].clone()
     },
     "a personal member is its road member's copy on the person's key, of no road"
@@ -487,4 +493,36 @@ fn a_units_lowest_open_key_of_a_road_lays_one_member_of_the_unit_beside_each_mem
   assert_eq!(personal[1].member.account, None, "a unit's member belongs to no account");
   assert!(!Owner::Organisation(12).admits(llm_gateway::supply::Payer::Account(12), None));
   assert!(!Owner::Organisation(12).admits(llm_gateway::supply::Payer::Platform, None));
+}
+
+// A member of the members file or a registration filed under a unit stands in the owners' reading as the
+// unit's, under each name it is served by — no payer's key is admitted to it by the name alone, and the front
+// opens it only to an account holding that unit's reservation (docs/own-llm.md, 「The gateway's members」).
+#[test]
+fn rows_filed_under_a_unit_stand_owned_by_the_unit_under_every_name_they_are_served_by() {
+  let filed = Member {
+    unit: Some(4),
+    ..road_member("team-flash", Some("openrouter"))
+  };
+  let unit_registration = Registration {
+    owner_unit: Some(4),
+    ..nodes()
+  };
+  let person_registration = Registration {
+    owner_account: Some(7),
+    ..single()
+  };
+
+  assert_eq!(
+    owners(&[unit_registration, person_registration], &[filed], &[]),
+    BTreeMap::from([
+      ("nodes".to_owned(), Owner::Organisation(4)),
+      ("nodes@alpha".to_owned(), Owner::Organisation(4)),
+      ("nodes@bravo".to_owned(), Owner::Organisation(4)),
+      ("single".to_owned(), Owner::Owned(7)),
+      ("single@d-vex".to_owned(), Owner::Owned(7)),
+      ("team-flash".to_owned(), Owner::Organisation(4)),
+    ]),
+    "one row has one owner: the account it is owned by, or the unit it is filed under, on every name it is served by"
+  );
 }

@@ -142,15 +142,10 @@ async fn an_agent_whose_only_job_waits_in_the_testbed_s_line_is_offered_its_next
   // While it writes, the agent is busy: its next item is not offered, and a job asking for it waits.
   assert!(offered().await.is_empty(), "a busy agent is not idle, its next item not offered");
 
-  let second = dispatch::enqueue(
-    db,
-    &ground.events,
-    &ask(42, "/checkouts/second", agent),
-    dispatch::JOB,
-    async |_, _| Ok(()),
-  )
-  .await
-  .unwrap();
+  let second =
+    dispatch::enqueue(&ground, &ask(42, "/checkouts/second", agent), dispatch::JOB, async |_, _| Ok(()))
+      .await
+      .unwrap();
 
   assert!(dispatch::acquire(&ground, &second).await.unwrap().is_none());
 

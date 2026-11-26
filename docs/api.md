@@ -520,10 +520,14 @@ both. `road-verbs` is what the procedures tool asks a room's road.
   order and then the person's own, each `name`, `agent` (the row as `GET /role-agents` answers it, null for a seat
   supplied that no longer stands), `supplied` (`road`, its `provider`, `model` and `effort` or null to follow the
   asker, and `from`, the link whose composition supplied it or null for the platform's own rule; null for an agent
-  of the person's own) and `changed`; and `providers`, each provider on now with its `name`, `label` and `lines`.
+  of the person's own) and `changed`; and `providers`, every provider the build carries with its `name`, `label`
+  and `lines`, each with `off` — `owner` where the owner's switch stands it off, `chain` where the person's chain
+  closes it, `from` naming the link that said so, and null where its sources stand open for the person
+  (`docs/supply.md`, 「A closed provider is read as closed, not as absent」).
 - **`GET /own-agents/{ownerAccount}/models/{providerName}`** answers `provider` and `models`, the provider's offered
-  models less any another person owns, each `id`, `efforts`, `inService` and `supplied`, whether the person's supply
-  carries it now.
+  models less any another person owns and any filed under a unit the person's account does not stand on, each
+  `id`, `efforts`, `inService` and `supplied`, whether the person's supply
+  carries it now — which a provider the chain closes leaves every model of without exception.
 - **`POST /own-agents/{ownerAccount}`** takes `role` and, optionally, `provider`, `model` and `effort`; it answers
   201 with the agent. Refusals: 403 `own-agents-withheld`, 403 `role-off`, 422 `unknown-role`, 409
   `too-many-agents`, and for a road named 403 `road-choice-withheld` and 409 `road-not-supplied`.
@@ -1182,12 +1186,17 @@ A provider that reads its own key from a file answers `keyFile`, that file's nam
 deployment's secrets there sets the key where the provider reads it. Its content is never reported.
 
 The gateway's members are the members file's (`docs/own-llm.md`, 「The gateway's members」): each `name`, `road`
-or null, `label`, `provider` and `account`, the account it belongs to or null for the platform's; no key file and no
-key is answered. A member's change takes `account`, a user id or null, and writes it into the file, every other
+or null, `label`, `provider`, `account`, the account it belongs to or null, and `unit`, the organisation unit it
+is filed under or null — never both owners, and neither for the platform's; no key file and no
+key is answered. The list answers what the caller reaches: the administrator's and the deployment's own read
+every member, and a member reads its own members and those filed under the units they head, the members of the
+platform and of other accounts and units standing in no such list. A member's change takes `account` or `unit`,
+a whole number or null, one owner at most, and writes it into the file, every other
 field and member left as it stands; it answers the member as it now stands, 404 `unknown-member` for a name the file
-holds none of, 400 with `field` for an account that is not a whole number, 503 `members-unread` where the file
-cannot be read and 500 `members-unwritten` where it cannot be written. Both are the administrator's and the
-deployment's own: a member's call is refused 403 `forbidden`. A registration's owner is its `account`, a user
+holds none of, 400 with `field` for an owner that is not a whole number or for a change naming both, 503
+`members-unread` where the file
+cannot be read and 500 `members-unwritten` where it cannot be written. The change is the administrator's and the
+deployment's own: a member's `PATCH` is refused 403 `forbidden`. A registration's owner is its `account`, a user
 id or null, or, filed under an organisation unit, its `unit` — never both, answered with the registration and
 changed with `PATCH /models/{modelKey}` (`docs/supply.md`, 「Owned supply」). The account is the owner's alone to
 set, a member's `PATCH` naming it refused; the unit is the platform's call's or a head of that unit's, and a
@@ -1500,7 +1509,12 @@ configuration home of its own under the data root; it answers 201 with the item,
 already as a key of the road, and 422 `unknown-road` as a person's is. `PATCH` takes `enabled` and answers the
 page; turning a refused key on clears `refusedAt`. `DELETE` answers 204. An item of no such unit's is 404
 `unknown-supply`. `GET /supply-sources` answers a person's call `personal`, `platform`, `organisation`,
-`organisationSupply`, `personalOnly`, `ownSupply` and `localAi` (`docs/supply.md`, 「The sources a run walks」); a
+`organisationSupply`, `personalOnly`, `ownSupply`, `localAi` (`docs/supply.md`, 「The sources a run walks」) and
+`providers`, every provider the build carries as the person's chain and the owner's switch leave it — each
+`provider` with `off`, `owner` for the owner's switch or `chain` for the chain's
+`provider.<code>.offered`, null while its sources stand open, and `from`, the link that said so, where the chain
+closed it (「A closed provider is
+read as closed, not as absent」 in `docs/supply.md`); a
 call naming no person is refused 403.
 
 **A person's local AI** (`docs/supply.md`, 「A person's local AI」) is a registration they own, served on their own

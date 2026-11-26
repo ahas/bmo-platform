@@ -2646,6 +2646,7 @@ own_agents:
     from_unit_unnamed: "收到的智能体 · 组织"
     from_platform: "收到的智能体 · 默认"
     role_off: "不可用的角色"
+    provider_off: "不可用的提供商"
     add_decided: "添加和关闭智能体: {decided}"
     road_decided: "选择提供商 · 模型: {decided}"
     instructions_decided: "我的指示: {decided}"
@@ -4816,6 +4817,8 @@ supply:
     monthly_cap: 每月上限
     owner_shared: 共用
     owner_personal: "个人 · {name}"
+    owner_unit: 组织
+    owner_unit_named: "组织 · {name}"
     plan_applied_none: 无已应用套餐
     plan_exposed_none: 无可见套餐
     plan_term: 适用期间

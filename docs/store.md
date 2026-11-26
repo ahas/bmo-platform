@@ -107,7 +107,8 @@ seeds. The other crates and the server reach the store only through it.
     node is shared with other accounts, and when it was set (`docs/person-nodes.md`, 「Which node is a person's」,
     「Several accounts on one node」);
   - the role slots: `role_slot_requests`, one row a slot request with its lease — the account it belongs to or
-    none, the one agent it asks to be
+    none, the `units` of that account's path as the chain answered them when the ask was made, which say the
+    seats it may take and the cap it counts (the deployment's own ask keeps none), the one agent it asks to be
     let in on, `agent_wanted`, where its asker named one, its title and the supervisor that asked it where its
     asker named them, the agent it was let in on, its `seat`, what it is
     bound to, the role session among it, whether the line has seen its bound run standing, and who gave it

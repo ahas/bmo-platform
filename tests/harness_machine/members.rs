@@ -18,6 +18,7 @@ fn member(name: &str, road: Option<&str>) -> Member {
     thinking: Some(true),
     free: None,
     account: None,
+    unit: None,
   }
 }
 
@@ -96,6 +97,20 @@ fn a_file_that_does_not_read_or_a_member_that_breaks_a_rule_is_refused() {
   let mut bad_provider = member("deepseek-flash", Some("deepseek"));
   bad_provider.provider = "nobody".into();
   assert!(validate(&[bad_provider]).is_err());
+
+  // One member has one owner at most: the account's and the unit's at once breaks the rule (docs/own-llm.md,
+  // 「The gateway's members」).
+  let mut two_owners = member("deepseek-flash", Some("deepseek"));
+
+  two_owners.account = Some(7);
+  two_owners.unit = Some(4);
+  assert!(validate(&[two_owners]).is_err());
+
+  // Either owner alone stands.
+  let mut unit_only = member("deepseek-flash", Some("deepseek"));
+
+  unit_only.unit = Some(4);
+  assert!(validate(&[unit_only]).is_ok());
 }
 
 #[test]

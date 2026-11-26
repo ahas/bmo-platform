@@ -147,7 +147,9 @@ What each turn shape composes inside its role is `docs/agent-documents.md` (the 
   minutes `agency.deploy-flush-minutes` and the DeepSeek top-up's `agency.deepseek.card-secret` and
   `agency.deepseek.login-secret`, each read and written as `docs/api.md`, 「settings」 tells — and one
   `provider.<code>.offered` flag for every provider the build carries, which turns that provider's sources off
-  below a link that says it (`docs/supply.md`, 「The sources a run walks」). A `json` kind's value agency judges on its own route and writes on the chain naming itself the
+  below a link that says it (`docs/supply.md`, 「The sources a run walks」) — and a person's supply reads say so
+  of it, naming the link, rather than leaving the provider out of the reads altogether
+  (`docs/supply.md`, 「A closed provider is read as closed, not as absent」). A `json` kind's value agency judges on its own route and writes on the chain naming itself the
   kind's declarer.
 - **Every value is read afresh** as a supervisor's prompt is composed — each turn, and each read of its prompt
   on the console — and as a run of an account's role agent starts, with `GET /chain/kinds/{key}/resolve?person=`,

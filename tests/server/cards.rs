@@ -209,6 +209,7 @@ fn seat(token: &str) -> Request {
     request_key: "research:7".into(),
     owner: "research:7".into(),
     source: "search".into(),
+    units: Vec::new(),
     role: "scout".into(),
     path: None,
     ended_at: None,

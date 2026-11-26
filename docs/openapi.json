@@ -14447,7 +14447,16 @@
               "null"
             ],
             "format": "int64",
-            "description": "The user id it belongs to; null for the platform's."
+            "description": "The user id it belongs to; null where it is no person's."
+          },
+          "unit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The organisation unit it is filed under; null where it is no unit's. At most one of `account` and\n`unit` stands, and neither for the platform's.",
+            "default": null
           }
         },
         "required": [
@@ -14455,7 +14464,8 @@
           "road",
           "label",
           "provider",
-          "account"
+          "account",
+          "unit"
         ],
         "description": "One member of the gateway's members file; its key file is never reported."
       },
@@ -14468,13 +14478,18 @@
               "null"
             ],
             "format": "int64",
-            "description": "The user id the member belongs to, or null to give it back to the platform."
+            "description": "The user id the member belongs to, or null for no account's."
+          },
+          "unit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The organisation unit the member is filed under, or null for no unit's."
           }
         },
-        "required": [
-          "account"
-        ],
-        "description": "A change of a gateway member's owner."
+        "description": "A change of a gateway member's owner: exactly one of the two fields is named; whichever it is, the other\nowner is given back at the same write, and null gives the named one back too — the member then stands the\nplatform's (docs/own-llm.md, 「The gateway's members」)."
       },
       "ModelPage": {
         "type": "object",
@@ -16941,6 +16956,14 @@
             "type": "boolean",
             "description": "Whether they may add a local AI of their own now: their chain allows it and they hold a PC of their own.",
             "default": false
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplyProvider"
+            },
+            "description": "Every provider the build carries as it stands for the person, closed ones named with what closed them.",
+            "default": []
           }
         },
         "required": [
@@ -16950,9 +16973,38 @@
           "organisationSupply",
           "personalOnly",
           "ownSupply",
-          "localAi"
+          "localAi",
+          "providers"
         ],
         "description": "The supply sources the signed-in person's delegation chain leaves open."
+      },
+      "SupplyProvider": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "off": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null while its sources stand open for the person; `owner` where the owner's switch stands it off,\n`chain` where the person's chain holds `provider.<code>.offered` off."
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The link that closed it, where the chain did."
+          }
+        },
+        "required": [
+          "provider",
+          "off",
+          "from"
+        ],
+        "description": "One provider the build carries, as a person's supply reads leave it."
       },
       "SupplyTested": {
         "type": "object",
@@ -19854,14 +19906,32 @@
             "items": {
               "type": "string"
             }
+          },
+          "off": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null while its sources stand open for the person; `owner` where the owner's switch stands it off,\n`chain` where the person's chain holds `provider.<code>.offered` off.",
+            "default": null
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The link that closed it, where the chain did.",
+            "default": null
           }
         },
         "required": [
           "name",
           "label",
-          "lines"
+          "lines",
+          "off",
+          "from"
         ],
-        "description": "A provider a person's road may name."
+        "description": "A provider a person's road may name: every provider the build carries, each standing off for the person\nwhere the owner's switch or their chain says so."
       },
       "OwnModels": {
         "type": "object",

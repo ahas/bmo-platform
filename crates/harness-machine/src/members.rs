@@ -47,10 +47,15 @@ pub struct Member {
   /// Whether a run on the member costs nothing; none where the member leaves it to its road's provider.
   #[serde(default)]
   pub free: Option<bool>,
-  /// The account the member belongs to, which alone reaches it beside the deployment's own runs; none for
-  /// the platform's (docs/supply.md, 「Owned supply」).
+  /// The account the member belongs to, whose call key alone reaches it beside the deployment's own runs;
+  /// none for the platform's (docs/supply.md, 「Owned supply」).
   #[serde(default)]
   pub account: Option<i64>,
+  /// The organisation unit the member is filed under instead of an account, whose people's runs reach it on a
+  /// reservation naming the unit; none where it is no unit's, and never both owners
+  /// (docs/own-llm.md, 「The gateway's members」).
+  #[serde(default)]
+  pub unit: Option<i64>,
 }
 
 /// A member of a road, with the three values a run on it is sized to.
@@ -127,6 +132,9 @@ pub fn validate(members: &[Member]) -> Result<(), String> {
     }
     if member.label.as_deref().is_some_and(|label| label.chars().count() > REGISTRY.label_most) {
       return Err(format!("{who} names a label longer than {} characters", REGISTRY.label_most));
+    }
+    if member.account.is_some() && member.unit.is_some() {
+      return Err(format!("{who} names both an account and a unit; one member has one owner at most"));
     }
     if let Some(base) = &member.api_base
       && Url::parse(base).is_err()

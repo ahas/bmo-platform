@@ -1,7 +1,9 @@
-//! The gateway's members as the owner reads them and sets their owners (docs/api.md, 「providers, models and
-//! model files」; docs/own-llm.md, 「The gateway's members」): each member of the members file with its road,
-//! label, provider and the account it belongs to, and that account set or taken away in the file, every
-//! other field and member left as it stands. Both are the administrator's and the deployment's own.
+//! The gateway's members as the platform sets their owners and their owners read them (docs/api.md,
+//! 「providers, models and model files」; docs/own-llm.md, 「The gateway's members」): each member of the members
+//! file with its road, label, provider and owner — the account it belongs to or the unit it is filed under —
+//! and that owner set or taken away in the file, every other field and member left as it stands. The list
+//! answers what the caller reaches: every member to the administrator and the deployment's own, a member their
+//! own members and those of the units they head. The change is the administrator's and the deployment's own.
 
 use std::path::Path;
 use std::sync::Mutex;
@@ -13,7 +15,8 @@ use policy::control_words::CONTROL_WORDS;
 use policy::fill_marks;
 use serde_json::{Value, json};
 
-use super::registry::checked_account;
+use super::fault::Fault;
+use super::registry::{checked_account, checked_unit};
 use super::{Call, Refused, Route, answer};
 use crate::access::Acting;
 
@@ -44,6 +47,16 @@ fn unwritten(path: &Path, why: std::io::Error) -> Refused {
     .with_code("members-unwritten")
 }
 
+// An owner the change names that does not read: the refusal naming the field it asked for.
+fn faulted(fault: Fault) -> Refused {
+  match fault {
+    Fault::Field(field, error) => {
+      Refused::new(StatusCode::BAD_REQUEST, format!("{field}: {error}")).with_field(field)
+    }
+    Fault::Failed(refused) => refused,
+  }
+}
+
 fn unknown(name: &str) -> Refused {
   Refused::new(
     StatusCode::NOT_FOUND,
@@ -60,6 +73,7 @@ fn item(member: &Member) -> Value {
     "label": member.label,
     "provider": member.provider,
     "account": member.account,
+    "unit": member.unit,
   })
 }
 
@@ -67,10 +81,18 @@ fn read(path: &Path) -> Result<Vec<Member>, Refused> {
   members::read(path).map_err(unread)
 }
 
+/// Whose the change makes the member: the account named, or the unit named — one at most, each or none for
+/// none; the other owner is given back to the platform by the same write, which never leaves a member with
+/// two (docs/own-llm.md, 「The gateway's members」).
+enum Owned {
+  Account(Option<i64>),
+  Unit(Option<i64>),
+}
+
 // The file with one member's owner written into it, every other field and member as it stands, published
 // whole by a rename at the mode the file held; whether the file held the member. A file that does not read as
 // members is refused before anything is written.
-fn rewritten(path: &Path, name: &str, account: Option<i64>) -> Result<bool, Refused> {
+fn rewritten(path: &Path, name: &str, owned: Owned) -> Result<bool, Refused> {
   let _writing = WRITING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
 
   if !read(path)?.iter().any(|member| member.name == name) {
@@ -88,9 +110,23 @@ fn rewritten(path: &Path, name: &str, account: Option<i64>) -> Result<bool, Refu
     return Ok(false);
   };
 
-  match account {
-    Some(account) => member.insert("account".to_owned(), account.into()),
-    None => member.remove("account"),
+  match owned {
+    Owned::Account(account) => {
+      member.remove("unit");
+
+      match account {
+        Some(account) => member.insert("account".to_owned(), account.into()),
+        None => member.remove("account"),
+      }
+    }
+    Owned::Unit(unit) => {
+      member.remove("account");
+
+      match unit {
+        Some(unit) => member.insert("unit".to_owned(), unit.into()),
+        None => member.remove("unit"),
+      }
+    }
   };
 
   let written = serde_json::to_string_pretty(&held).expect("a file read is written") + "\n";
@@ -108,7 +144,9 @@ fn rewritten(path: &Path, name: &str, account: Option<i64>) -> Result<bool, Refu
   Ok(true)
 }
 
-/// `GET /gateway-members`: every member of the members file, each with its road, label, provider and owner.
+/// `GET /gateway-members`: the members of the members file the caller reaches, each with its road, label,
+/// provider and owner: the administrator's and the deployment's own read every one, a member their own members
+/// and those filed under the units they head, the units below included as the chain answers them.
 pub struct ListGatewayMembers;
 
 impl Route for ListGatewayMembers {
@@ -116,9 +154,15 @@ impl Route for ListGatewayMembers {
   const PATH: &'static str = "/gateway-members";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
-    owner_only(&call)?;
+    let acting = Acting::of(&call)?;
+    let mut reach = crate::organisation::resources::Reach::new(call.ground(), acting);
+    let mut items: Vec<Value> = Vec::new();
 
-    let items: Vec<Value> = read(&members::path(&call.data_root()))?.iter().map(item).collect();
+    for member in read(&members::path(&call.data_root()))? {
+      if reach.reaches_row(member.account, member.unit).await? {
+        items.push(item(&member));
+      }
+    }
 
     Ok(answer(StatusCode::OK, json!({ "items": items })))
   }
@@ -126,7 +170,8 @@ impl Route for ListGatewayMembers {
 
 crate::moved!(ListGatewayMembers);
 
-/// `PATCH /gateway-members/{memberName}`: a member's owner set to a user's id, or taken away with null.
+/// `PATCH /gateway-members/{memberName}`: a member's owner set to a user's id or to an organisation unit —
+/// one, never both — or taken away with the owner named null. The administrator's and the deployment's own.
 pub struct ChangeGatewayMember;
 
 impl Route for ChangeGatewayMember {
@@ -138,12 +183,21 @@ impl Route for ChangeGatewayMember {
 
     let name = call.param("memberName").unwrap_or_default().to_owned();
     let body = call.body().await?;
-    let Some(Ok(account)) = body.get("account").map(checked_account) else {
-      return Err(Refused::failed(&CONTROL_WORDS.registry.account).with_field("account"));
+    let owned = match (body.get("account"), body.get("unit")) {
+      (Some(account), None) => Owned::Account(checked_account(account).map_err(faulted)?),
+      (None, Some(unit)) => Owned::Unit(checked_unit(unit).map_err(faulted)?),
+      (Some(_), Some(_)) => {
+        return Err(
+          Refused::failed("A member names one owner: account, or unit, never both.").with_field("account"),
+        );
+      }
+      (None, None) => {
+        return Err(Refused::failed(&CONTROL_WORDS.registry.account).with_field("account"));
+      }
     };
     let path = members::path(&call.data_root());
 
-    if !rewritten(&path, &name, account)? {
+    if !rewritten(&path, &name, owned)? {
       return Err(unknown(&name));
     }
 

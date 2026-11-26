@@ -41,10 +41,8 @@ pub(crate) struct Grown {
 // The agents an item's labels name for its job, as its launch would read them: the agent its `agent` label names
 // where that agent has a road of its own, else the candidates of its role for the model its `model` label names.
 // None where it names neither or nothing answers, since no launch would seat it.
-async fn candidates(
-  db: &sea_orm::DatabaseConnection,
-  seating: &Seating<'_>,
-) -> Result<Vec<RoleAgent>, Refused> {
+async fn candidates(ground: &Ground, seating: &Seating<'_>) -> Result<Vec<RoleAgent>, Refused> {
+  let db = &ground.db;
   let labels = &seating.item["labels"];
 
   if let Some(agent) = named_by(labels, AGENT_LABEL) {
@@ -58,7 +56,7 @@ async fn candidates(
   }
 
   match named_by(labels, MODEL_LABEL) {
-    Some(model) => Ok(role_agents::candidates(db, seating.role, model, seating.account).await?),
+    Some(model) => Ok(role_agents::candidates(ground, seating.role, model, seating.account).await?),
     None => Ok(vec![]),
   }
 }
@@ -115,7 +113,7 @@ pub(crate) async fn grow(
   let db = &ground.db;
   let agents = match &seating {
     Some(seating) => {
-      let agents = candidates(db, seating).await?;
+      let agents = candidates(ground, seating).await?;
 
       if agents.is_empty() {
         return Ok(None);

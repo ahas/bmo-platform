@@ -1,7 +1,8 @@
 //! Who a request is for and what it may reach, as the store says (docs/own-llm.md, 「The keys」, 「Personal
 //! members」 and 「The gateway」): the call keys by their digests, the people's own keys for a gateway road,
-//! the administrator, whose owned supply the gateway's own key reaches, and which accounts hold an open
-//! platform reservation, without which a call key reaches nothing of the platform's. All of it is
+//! the administrator, whose owned supply the gateway's own key reaches, which accounts hold an open
+//! platform reservation, without which a call key reaches nothing of the platform's, and which hold an open
+//! reservation of an organisation unit's supply, which opens that unit's names and no others. All of it is
 //! read on the launcher's beat, on a connection opened read-only for each reading, and what a request finds
 //! missing from the last reading is looked up in the store once more before it is refused, so a key issued
 //! or a reservation opened a moment ago is taken.
@@ -78,6 +79,9 @@ pub struct Reading {
   /// Each account holding an open platform reservation, with the latest moment one of them expires, none
   /// where one never does.
   pub reservations: HashMap<i64, Option<i64>>,
+  /// Each account holding an open reservation of an organisation unit's supply, with the units it names;
+  /// these open the unit's names alone, never the platform's.
+  pub unit_reservations: HashMap<i64, Vec<i64>>,
 }
 
 /// The digest the store keeps of a call key: the lowercase hex SHA-256 of the key trimmed.
@@ -131,17 +135,39 @@ async fn read_on(store: &mut AnyConnection) -> Result<Reading, sqlx::Error> {
   .collect::<Result<Vec<_>, sqlx::Error>>()?;
   let administrator = store::settings::administrator(store).await?;
   let mut reservations: HashMap<i64, Option<i64>> = HashMap::new();
-  for row in sqlx::query("SELECT account, expires_at FROM supply_reservations WHERE state = 'open'")
-    .fetch_all(&mut *store)
-    .await?
+  let mut unit_reservations: HashMap<i64, Vec<i64>> = HashMap::new();
+  for row in sqlx::query(
+    "SELECT account, unit_id, expires_at FROM supply_reservations WHERE state = 'open' \
+     AND (expires_at IS NULL OR expires_at > $1)",
+  )
+  .bind(now_ms())
+  .fetch_all(&mut *store)
+  .await?
   {
-    let (account, expires_at) =
-      (row.try_get::<i64, _>("account")?, row.try_get::<Option<i64>, _>("expires_at")?);
-    let latest = reservations.entry(account).or_insert(expires_at);
-    *latest = match (*latest, expires_at) {
-      (Some(held), Some(read)) => Some(held.max(read)),
-      _ => None,
-    };
+    let (account, unit, expires_at) = (
+      row.try_get::<i64, _>("account")?,
+      row.try_get::<Option<i64>, _>("unit_id")?,
+      row.try_get::<Option<i64>, _>("expires_at")?,
+    );
+
+    match unit {
+      // An organisation reservation opens its unit's names alone; the platform's door asks a reservation
+      // of the platform's own (docs/own-llm.md, 「The gateway」).
+      Some(unit) => {
+        let held = unit_reservations.entry(account).or_default();
+
+        if !held.contains(&unit) {
+          held.push(unit);
+        }
+      }
+      None => {
+        let latest = reservations.entry(account).or_insert(expires_at);
+        *latest = match (*latest, expires_at) {
+          (Some(held), Some(read)) => Some(held.max(read)),
+          _ => None,
+        };
+      }
+    }
   }
 
   Ok(Reading {
@@ -149,6 +175,7 @@ async fn read_on(store: &mut AnyConnection) -> Result<Reading, sqlx::Error> {
     personal,
     administrator,
     reservations,
+    unit_reservations,
   })
 }
 
@@ -171,7 +198,7 @@ async fn supplied_now(address: &str, account: i64) -> Result<Option<Option<i64>>
   let mut store = open_read(address).await?;
   let read = async {
     sqlx::query(
-      "SELECT expires_at FROM supply_reservations WHERE account = $1 AND state = 'open' \
+      "SELECT expires_at FROM supply_reservations WHERE account = $1 AND unit_id IS NULL AND state = 'open' \
        AND (expires_at IS NULL OR expires_at > $2) ORDER BY expires_at DESC NULLS FIRST LIMIT 1",
     )
     .bind(account)

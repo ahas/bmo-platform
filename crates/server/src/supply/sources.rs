@@ -1,7 +1,8 @@
 //! The sources a run walks (docs/supply.md, 「The sources a run walks」): the order the supply hook answers, which
 //! names them — the person's own, their organisation's and the platform's — and which agency walks as it stands. What
-//! agency reads here is only where organisation supply goes out: the units of the person's path, the nearest first,
-//! read off the delegation chain's answer for the person, read afresh for every run.
+//! agency reads here is the units of the person's path, the nearest first, read off the delegation chain's answer
+//! for the person, read afresh for every run: organisation supply goes out on them, and so a run is read for the
+//! seats of those units it may take (docs/role-agents.md, 「A unit's seats run their people's work」).
 
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
@@ -45,13 +46,20 @@ pub fn path_units(answer: Option<&Value>) -> Vec<i64> {
 }
 
 /// The units whose own supply a person's run may take, where the order names organisation supply: the units of their
-/// path, the nearest first; none where it does not. Where the account service does not answer, the path this process
-/// last read for the person stands, else none.
+/// path, the nearest first; none where it does not.
 pub async fn units_for(ground: &Ground, account: i64, order: &[String]) -> Vec<i64> {
   if !order.iter().any(|source| source == organisation_word()) {
     return Vec::new();
   }
 
+  path_for(ground, account).await
+}
+
+/// The units of a person's path, the nearest first, as the delegation chain answers them for them now; where the
+/// account service does not answer, the path this process last read for the person stands, else none. The supply
+/// walk takes its units from this reading, and so does the line of the seats a run may take, which asks for the
+/// path itself and not for the supply flag's value.
+pub async fn path_for(ground: &Ground, account: i64) -> Vec<i64> {
   let service = crate::apps::service(ground);
 
   match chain::resolve(&service, &ORGANISATION.sources.organisation_kind, Subject::Person(account)).await {

@@ -140,16 +140,28 @@ pub fn owners(
   let mut owners: BTreeMap<String, Owner> = BTreeMap::new();
 
   for registration in registrations {
-    if let Some(account) = registration.owner_account {
-      owners.insert(registration.name.clone(), Owner::Owned(account));
+    let owner = match (registration.owner_account, registration.owner_unit) {
+      (Some(account), _) => Some(Owner::Owned(account)),
+      (None, Some(unit)) => Some(Owner::Organisation(unit)),
+      (None, None) => None,
+    };
+
+    if let Some(owner) = owner {
+      owners.insert(registration.name.clone(), owner);
       for address in &registration.addresses {
-        owners.insert(format!("{}@{}", registration.name, address.node), Owner::Owned(account));
+        owners.insert(format!("{}@{}", registration.name, address.node), owner);
       }
     }
   }
   for member in members {
-    if let Some(account) = member.account {
-      owners.insert(member.name.clone(), Owner::Owned(account));
+    match (member.account, member.unit) {
+      (Some(account), _) => {
+        owners.insert(member.name.clone(), Owner::Owned(account));
+      }
+      (None, Some(unit)) => {
+        owners.insert(member.name.clone(), Owner::Organisation(unit));
+      }
+      (None, None) => {}
     }
   }
   for one in personal {

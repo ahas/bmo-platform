@@ -2706,7 +2706,7 @@ async fn item_seat(
   if label.is_none()
     && let Some(model) = named_by(labels, MODEL_LABEL)
   {
-    let candidates = crate::role_agents::candidates(db, role, model, account).await?;
+    let candidates = crate::role_agents::candidates(ground, role, model, account).await?;
 
     if !candidates.is_empty() {
       return Ok(Seat {
@@ -2960,9 +2960,7 @@ pub async fn job_seat(
 
   let mut held = match waiting_seat(ground, id, asked).await? {
     Some(waiting) => waiting,
-    None => {
-      dispatch::enqueue(&ground.db, &ground.events, asked, dispatch::JOB, async |_, _| Ok(())).await?
-    }
+    None => dispatch::enqueue(ground, asked, dispatch::JOB, async |_, _| Ok(())).await?,
   };
   let mut told = false;
   // A job written waiting for its seat (docs/api.md, 「assignments and jobs」) that the line lets in at its first
