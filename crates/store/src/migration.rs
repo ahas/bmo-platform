@@ -18,6 +18,15 @@ pub const MIGRATIONS_TABLE: &str = "agency_migrations";
 /// The migration that makes every table; a seed given once is given as it runs (`crate::seed`).
 pub const BASELINE: &str = m20270124_000001_baseline::NAME;
 
+/// The migrations that ran after the 1.0.0 baseline and are folded into it, in the order they run; every one
+/// holds an install that already laid the baseline to the shape this build states, and a fresh one takes the
+/// same shape from the baseline alone.
+pub const POST_BASELINE: [&str; 3] = [
+  m20270125_000001_person_nodes_many::NAME,
+  m20270125_000002_agent_home_node::NAME,
+  m20270125_000003_person_nodes_own::NAME,
+];
+
 /// The migration that lays the two owner columns over the baseline, renames what named its owner otherwise,
 /// and gives the run ledger its `work_unit` (`docs/store.md`, 「Its tables」).
 pub const OWNERSHIP: &str = m20270126_000001_platform_ownership::NAME;

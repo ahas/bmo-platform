@@ -5,7 +5,9 @@
 
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
 use sea_orm_migration::MigratorTrait;
-use store::migration::{BASELINE, BEFORE, MIGRATIONS_TABLE, Migrator, OWN_TABLES, OWNERSHIP, SEAT_UNITS};
+use store::migration::{
+  BASELINE, BEFORE, MIGRATIONS_TABLE, Migrator, OWN_TABLES, OWNERSHIP, POST_BASELINE, SEAT_UNITS,
+};
 
 use crate::support::scratch::Scratch;
 
@@ -204,6 +206,14 @@ async fn recorded(db: &DatabaseConnection) -> Vec<String> {
   texts(db, &format!(r#"SELECT "version" FROM "{MIGRATIONS_TABLE}" ORDER BY "version""#)).await
 }
 
+// Every migration this build carries, the baseline first and the ones that ran after it.
+fn every_run() -> Vec<String> {
+  std::iter::once(BASELINE.to_owned())
+    .chain(POST_BASELINE.iter().map(|name| (*name).to_owned()))
+    .chain([OWNERSHIP.to_owned(), SEAT_UNITS.to_owned()])
+    .collect()
+}
+
 // A blank database holding the baseline's schema and a row, recorded as an install from before 1.0.0 that ran
 // the first `through` migrations of its last release.
 async fn installed(through: usize) -> Scratch {
@@ -240,7 +250,7 @@ async fn a_blank_database_gets_the_baseline_and_every_migration_made_since() {
   laid.db().execute_unprepared(SEAT_UNITS_SQL).await.unwrap();
 
   assert_eq!(shape(migrated.db()).await, shape(laid.db()).await);
-  assert_eq!(recorded(migrated.db()).await, [BASELINE, OWNERSHIP, SEAT_UNITS]);
+  assert_eq!(recorded(migrated.db()).await, every_run());
   assert!(!store::migration::up(migrated.db()).await.unwrap());
 }
 
@@ -249,21 +259,27 @@ async fn an_install_at_the_last_release_before_the_baseline_only_has_its_record_
  {
   let scratch = installed(BEFORE.len()).await;
   let db = scratch.db();
+  let current = {
+    let fresh = Scratch::blank().await;
+    store::migration::up(fresh.db()).await.unwrap();
+    shape(fresh.db()).await
+  };
 
   // The record is rewritten to name the baseline alone, touching no table; the migrations made since the
   // baseline then run onto the standing shape, which needs the renames and the new columns.
   assert!(!store::migration::up(db).await.unwrap());
-  assert_eq!(recorded(db).await, [BASELINE, OWNERSHIP, SEAT_UNITS]);
-
-  let laid = installed(BEFORE.len()).await;
-  laid.db().execute_unprepared(OWNERSHIP_SQL).await.unwrap();
-  laid.db().execute_unprepared(SEAT_UNITS_SQL).await.unwrap();
-  assert_eq!(shape(db).await, shape(laid.db()).await);
+  assert_eq!(recorded(db).await, every_run());
+  assert_eq!(
+    shape(db).await,
+    current,
+    "the carried migrations bring the laid baseline to this build's shape"
+  );
   assert_eq!(texts(db, r#"SELECT "key" || '=' || "value" FROM "settings""#).await, ["rest_kind=day"]);
 
-  // A second start finds all recorded and changes nothing.
+  // A second start finds every migration recorded and changes nothing.
   assert!(!store::migration::up(db).await.unwrap());
-  assert_eq!(recorded(db).await, [BASELINE, OWNERSHIP, SEAT_UNITS]);
+  assert_eq!(recorded(db).await, every_run());
+  assert_eq!(shape(db).await, current);
 }
 
 #[tokio::test]

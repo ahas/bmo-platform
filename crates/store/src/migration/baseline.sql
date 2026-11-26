@@ -685,7 +685,8 @@ CREATE TABLE public.person_nodes (
     owner_account text NOT NULL,
     node text NOT NULL,
     set_at bigint NOT NULL,
-    shared boolean DEFAULT false NOT NULL
+    shared boolean DEFAULT false NOT NULL,
+    own boolean DEFAULT false NOT NULL
 );
 
 CREATE TABLE public.personal_supply (
@@ -865,6 +866,7 @@ CREATE TABLE public.role_agents (
     added_at bigint DEFAULT 0 NOT NULL,
     sessions text DEFAULT 'keep'::text NOT NULL,
     owner_account text,
+    home_node text,
     advisor text,
     follows_asker bigint
 );
@@ -1463,7 +1465,9 @@ ALTER TABLE ONLY public.notices
     ADD CONSTRAINT notices_pkey PRIMARY KEY (key);
 
 ALTER TABLE ONLY public.person_nodes
-    ADD CONSTRAINT person_nodes_pkey PRIMARY KEY (owner_account);
+    ADD CONSTRAINT person_nodes_pkey PRIMARY KEY (owner_account, node);
+
+CREATE UNIQUE INDEX person_nodes_one_own ON public.person_nodes USING btree (owner_account) WHERE own;
 
 ALTER TABLE ONLY public.personal_supply
     ADD CONSTRAINT personal_supply_pkey PRIMARY KEY (id);
