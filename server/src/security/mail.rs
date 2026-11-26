@@ -282,6 +282,25 @@ pub async fn kept<C: ConnectionTrait>(db: &C) -> Result<Kept, Refusal> {
   }
 }
 
+/// The system mail the recipient's chain answers: the nearest value standing over them, with its login
+/// secret's name written as an address under `env/` for the link that answers, so a unit's own login is read
+/// from that unit's space (docs/accounts.md, 「The platform's own mail」). None where the chain answers no
+/// usable mail.
+pub async fn kept_for<C: ConnectionTrait>(db: &C, recipient: i32) -> Result<Option<Kept>, Refusal> {
+  let (_path, resolved) =
+    crate::chain::resolve(db, &system_kind(), crate::chain::Subject::Person(recipient)).await?;
+  let Some(value) = resolved.value else {
+    return Ok(None);
+  };
+  let mut kept: Kept = serde_json::from_value(value).unwrap_or_default();
+
+  if let (Some(Link::Unit(unit)), Some(secret)) = (resolved.from, &kept.secret) {
+    kept.secret = Some(format!("units/{unit}/{secret}"));
+  }
+
+  Ok((kept.server.is_some() && !kept.from.trim().is_empty()).then_some(kept))
+}
+
 /// The system mail moved once off the `settings` row it stood in before the chain: where the row holds a value
 /// and the platform link holds none, the row's value is written to the link and the row let go (docs/accounts.md,
 /// 「The platform's own mail」).
@@ -314,14 +333,24 @@ pub async fn write_platform(db: &DatabaseConnection, by: i32, kept: &Kept) -> Re
   crate::chain::put_value(db, &system_kind(), Link::Platform, Some(&value), Some(by)).await
 }
 
-/// Whether system mail is set up: bmo-mail named, a server chosen and a sender's address standing.
+/// Whether the platform link's system mail is set up: bmo-mail named, a server chosen and a sender's address
+/// standing.
 pub async fn configured(service: &Service) -> Result<Option<Kept>, Refusal> {
   let kept = kept(&service.db).await?;
 
   Ok((service.mail.named() && kept.server.is_some() && !kept.from.trim().is_empty()).then_some(kept))
 }
 
-/// A mail of one kind sent to `to` in `language`, its marks filled.
+/// Whether a mail to `recipient` can go: bmo-mail named, and their chain's nearest mail usable.
+pub async fn configured_for(service: &Service, recipient: i32) -> Result<Option<Kept>, Refusal> {
+  if !service.mail.named() {
+    return Ok(None);
+  }
+
+  kept_for(&service.db, recipient).await
+}
+
+/// A mail of one kind sent to `to` on the platform link's mail.
 pub async fn send(
   service: &Service,
   kind: MailKind,
@@ -330,6 +359,33 @@ pub async fn send(
   marks: &[(&str, &str)],
 ) -> Result<(), Refusal> {
   let kept = configured(service).await?.ok_or_else(unset)?;
+
+  dispatch(service, kind, &kept, to, language, marks).await
+}
+
+/// A mail of one kind sent to `to` on the mail the recipient's own chain answers, so a unit's people are told
+/// by their unit's mail where it keeps one (docs/accounts.md, 「The platform's own mail」).
+pub async fn send_to(
+  service: &Service,
+  kind: MailKind,
+  recipient: i32,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) -> Result<(), Refusal> {
+  let kept = configured_for(service, recipient).await?.ok_or_else(unset)?;
+
+  dispatch(service, kind, &kept, to, language, marks).await
+}
+
+async fn dispatch(
+  service: &Service,
+  kind: MailKind,
+  kept: &Kept,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) -> Result<(), Refusal> {
   let words = ACCOUNT_MAIL.in_language(language);
   let letter: &Letter = match kind {
     MailKind::Test => &words.test,
@@ -367,6 +423,23 @@ pub async fn notify(
   marks: &[(&str, &str)],
 ) {
   if let Err(why) = send(service, kind, to, language, marks).await
+    && why.code != "mail-unset"
+  {
+    eprintln!("bmo-web-server: a {} notice was not sent: {}", kind.word(), why.detail);
+  }
+}
+
+/// A notice to `recipient` sent on their own chain's mail beside another act, standing where it does not go.
+#[allow(clippy::too_many_arguments)]
+pub async fn notify_to(
+  service: &Service,
+  kind: MailKind,
+  recipient: i32,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) {
+  if let Err(why) = send_to(service, kind, recipient, to, language, marks).await
     && why.code != "mail-unset"
   {
     eprintln!("bmo-web-server: a {} notice was not sent: {}", kind.word(), why.detail);

@@ -1075,6 +1075,10 @@ section states what each does.
   - **The administrator's agents** (the supervisor of no account, and the workers and runners it orders) are handed
     a name and read it in `env/`, where the chat agent's request names it (agency's chat procedure 「Asking for a
     secret」).
+  - **An agent filed under an organisation unit** — agency's supervisor or seat row carrying the unit and no
+    account — is handed its names from `units/<unit>/` instead: its run opens on this machine as an
+    administrator's does, but the space resolved for it is the unit's, so it reaches its unit's keys and login
+    and no other space's.
   - **A person's own secret is read on this machine, by a unit acting for that person,** which takes the person from
     the account its caller's credential names, never from an argument, and reads `users/<user>/<name>`. A person's
     agents stand on their own PC (agency's `docs/person-nodes.md`, 「Which node is a person's」), where the data
@@ -1570,9 +1574,11 @@ under its token; the console is the one caller, and a browser reaches none of th
   own consumers declare」): its value at the platform link is the platform's system mail, and the 메일 tab reads and
   writes that link. An organisation unit may hold a mail of its own as the same kind's value at its unit link, set
   through the chain's own routes (「A link's entry」) and readable and settable only down the chain, its login a name
-  in that unit's space; a unit that says none follows the platform's. The service's own sends go on the platform
-  link's value until each unit's send is wired to its own; the `GET /mail` and `PUT /mail` routes are the platform
-  link alone.
+  in that unit's space; a unit that says none follows the platform's.
+- **A send to a person goes on the nearest mail their chain answers:** their unit's own where it holds one, the
+  platform's otherwise. A login named in a value answered at a unit link goes to bmo-mail as its address under
+  `env/` — `units/<unit>/<name>` — so it is read in that unit's space; the platform link's name goes as it
+  stands. The `GET /mail` and `PUT /mail` routes and the administrator's test send are the platform link alone.
 - **No password of the mail server stands here.** The setting names the secret alone, and the send names it to
   bmo-mail, which reads it off the data root's `env/` as every unit reads a secret by its name; the service never
   reads its value, and no route answers it.

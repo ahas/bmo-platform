@@ -400,19 +400,40 @@ async fn issued_for(
 // runs personal tools for; and an account on a shared PC or with no PC is named no runner.
 async fn owned(ground: &Ground, request: &mut SessionRequest, caller: Caller<'_>) -> Result<(), Refusal> {
   let acting = acting_for(&ground.db, &ground.roots.data, caller).await?;
-  let account = match (acting.account, acting.administrator) {
-    (Some(account), _) => account,
-    (None, true) => match crate::account_isolation::administrator(&ground.db).await? {
-      Some(account) => account,
-      None => return Ok(()),
-    },
-    (None, false) => return Ok(()),
+  let administrator = if acting.administrator && acting.account.is_none() {
+    crate::account_isolation::administrator(&ground.db).await?
+  } else {
+    None
+  };
+  let account = acting.account.clone().or(administrator.clone());
+  // The folder the record is handed secrets from: the unit's where the caller's agent row is filed under a
+  // unit, whatever account it otherwise acts for; else the account's own space; else none, and the record
+  // names no owner.
+  let space = match (acting.unit, &account) {
+    (Some(unit), _) => Some(unit_secret_space(ground, unit)),
+    (None, Some(account)) => Some(secret_space_of(ground, account).await?),
+    _ => None,
   };
 
-  request.runner = runner_of(ground, &account).await?;
-  request.secret_space = Some(secret_space_of(ground, &account).await?);
-  request.owner_account = Some(account);
+  if space.is_none() && account.is_none() {
+    return Ok(());
+  }
+
+  request.secret_space = space;
+
+  if let Some(account) = &account {
+    request.runner = runner_of(ground, account).await?;
+    request.owner_account = Some(account.clone());
+  }
+
   Ok(())
+}
+
+/// The folder an organisation unit's secrets stand in, which the runs of agents filed under it are handed the
+/// secrets they name from (docs/accounts.md, 「The secret store」): the console's secret store's space of the
+/// unit, the data root's `env/units/<unit>/`.
+pub fn unit_secret_space(ground: &Ground, unit: i64) -> PathBuf {
+  ground.roots.data.join("env").join("units").join(unit.to_string())
 }
 
 /// The folder an account's secrets stand in, which its personal tools are handed the secrets they name from

@@ -247,8 +247,10 @@ them for one call at a time, where the delegation chain allows them for the pers
   to the PC alone.
 - **A secret is read at home and lives in the confinement's memory for the call alone:**
   - the tool host's relay reads each name from the record's secret space — the person's space of the console's secret
-    store, `env/users/<account>/` under the data root, or `env/` itself for the administrator (`docs/tools.md`, 「The
-    owner and the runner a record names」) — and refuses the call naming a secret the space holds no file of;
+    store, `env/users/<account>/` under the data root; `env/` itself for the administrator; and the unit's space
+    `env/units/<unit>/` for a caller whose agent row is filed under an organisation unit, whatever account it
+    otherwise acts for (`docs/tools.md`, 「The owner and the runner a record names」) — and refuses the call naming
+    a secret the space holds no file of;
   - the values travel on the call's first line alone, in base64, and are never written on the PC: the runner hands
     each to bubblewrap through a pipe, which copies it into a file of the confinement's own memory, `/secrets/<name>`,
     read alone, the folder named in `BMO_SECRETS`, gone with the confinement as the call ends;

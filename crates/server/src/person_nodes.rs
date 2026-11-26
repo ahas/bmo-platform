@@ -330,12 +330,14 @@ pub struct Caller<'a> {
   pub checkout: Option<&'a str>,
 }
 
-/// What a caller acts as: the account it acts for, none for the deployment's own, and whether it holds the
-/// administrator's grant, which an administrator's supervisor alone does.
+/// What a caller acts as: the account it acts for, none for the deployment's own, whether it holds the
+/// administrator's grant, which an administrator's supervisor alone does, and the organisation unit its agent
+/// row is filed under where that row names no account, whose secret space such a caller is handed.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ActingFor {
   pub account: Option<String>,
   pub administrator: bool,
+  pub unit: Option<i64>,
 }
 
 impl ActingFor {
@@ -382,21 +384,25 @@ pub async fn acting_for<C: ConnectionTrait>(
     return Ok(ActingFor {
       administrator,
       account,
+      unit: supervisor.owner_unit.filter(|_| supervisor.owner_account.is_none()),
     });
   }
 
-  let account = match crate::role_agents::named(db, &agent).await? {
-    Some(seat) => seat.owner_account.map(|account| account.to_string()),
+  let seat = match crate::role_agents::named(db, &agent).await? {
+    Some(seat) => Some(seat),
     None if caller.role.is_none() && caller.checkout.is_none() => None,
-    None => crate::role_agents::seated_at(db, caller.role, caller.checkout)
-      .await?
-      .and_then(|seat| seat.owner_account)
-      .map(|account| account.to_string()),
+    None => crate::role_agents::seated_at(db, caller.role, caller.checkout).await?,
   };
+  let account = seat.as_ref().and_then(|seat| seat.owner_account).map(|account| account.to_string());
+  let unit = seat
+    .as_ref()
+    .filter(|seat| seat.owner_account.is_none())
+    .and_then(|seat| seat.owner_unit);
 
   Ok(ActingFor {
     account,
     administrator: false,
+    unit,
   })
 }
 
@@ -428,6 +434,7 @@ pub async fn access<C: ConnectionTrait>(
   let ActingFor {
     account,
     administrator,
+    ..
   } = acting_for(db, data_root, caller).await?;
   let reaches = administrator || account.as_ref().is_some_and(|account| owners.contains(account));
   let root = match &account {

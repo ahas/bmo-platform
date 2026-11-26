@@ -12,12 +12,12 @@ use axum::body::Body;
 use axum::http::{HeaderMap, Method, Request, StatusCode, header};
 use bmo_web_client::MailServer;
 use bmo_web_server::Refusal;
-use bmo_web_server::chain::{Link, value_at};
+use bmo_web_server::chain::{Link, put_value, value_at};
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::routes::in_force;
-use bmo_web_server::security::mail::{MailService, Outgoing, seed_once};
+use bmo_web_server::security::mail::{MailService, Outgoing, seed_once, system_kind};
 use bmo_web_server::users::set_sign_in;
-use bmo_web_server::{all, run};
+use bmo_web_server::{all, one, run};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use support::{Scratch, console_hash, ready};
@@ -947,5 +947,68 @@ async fn an_account_is_disabled_and_enabled_by_the_administrator_alone_and_never
       )
       .await,
     2
+  );
+}
+
+#[tokio::test]
+async fn a_unit_s_own_mail_tells_its_people() {
+  let world = world().await;
+
+  mail_set(&world).await;
+  verified(&world, world.member, "member@example.com").await;
+
+  // The member stands in a unit, and that unit keeps its own system mail with a login secret of its space.
+  let company: i32 = one(
+    world.scratch.db(),
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ('company-a', NULL) RETURNING "id""#,
+    vec![],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get("", "id")
+  .unwrap();
+
+  world
+    .scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![company.into(), world.member.into()],
+    )
+    .await;
+  put_value(
+    world.scratch.db(),
+    &system_kind(),
+    Link::Unit(company),
+    Some(&json!({
+      "server": "server-a",
+      "from": "company@example.com",
+      "fromName": "Company A",
+      "secret": "smtp-login",
+    })),
+    Some(world.boss),
+  )
+  .await
+  .unwrap();
+
+  let asked = ask(
+    &world.app,
+    Method::POST,
+    "/password-resets",
+    Some(json!({ "who": "member@example.com", "linkBase": BASE })),
+    &[],
+  )
+  .await;
+
+  assert_eq!(asked.status, StatusCode::ACCEPTED, "{}", asked.body);
+
+  let mails = world.mailbox.0.lock().unwrap();
+  let reset = mails.iter().rev().find(|mail| mail.kind == "password-reset").expect("the notice went");
+
+  assert_eq!(reset.from, "company@example.com", "the unit's mail tells its own people");
+  assert_eq!(
+    reset.secret.as_deref(),
+    Some(format!("units/{company}/smtp-login").as_str()),
+    "the login goes as its address under the data root's env, read from the unit's space"
   );
 }
