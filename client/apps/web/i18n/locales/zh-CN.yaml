@@ -1248,7 +1248,6 @@ monitor_logs:
     read_failed: 无法加载日志。
 screens:
   label:
-    agents: 代理中心
     agents_group: "智能体 · {name}"
     artifact: 制品
     chat_id: 聊天编号
@@ -2556,7 +2555,7 @@ org_agents:
     person_change_instructions: "我的指示"
     person_change_road: "选择提供商 · 模型"
     person_change_agents: "添加和关闭智能体"
-    tab: 智能体
+    tab: 智能体设置
     instructions_own: 指引
     instructions_none: 无指引
     instructions_above: "上级组织的 {count} 条指引优先适用。"
@@ -3068,7 +3067,6 @@ agents:
     prefix_document_remove: "移除 {path}"
     provider_of: "{name} 提供商"
     search_depth: 搜索深度
-    settings_sections: 设置分区
     switch_on: "开启 {name}"
     vitals: 智能体指标
     stage_in: "将 {name} 添加到指令阶段"

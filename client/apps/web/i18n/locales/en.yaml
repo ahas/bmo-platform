@@ -1248,7 +1248,6 @@ monitor_logs:
     read_failed: "Couldn't load the logs."
 screens:
   label:
-    agents: Agency
     agents_group: "Agents · {name}"
     artifact: Artifacts
     chat_id: Chat ID
@@ -2540,7 +2539,7 @@ org_agents:
     person_change_instructions: "My instructions"
     person_change_road: "Choose provider · model"
     person_change_agents: "Add and turn off agents"
-    tab: Agents
+    tab: Agent settings
     instructions_own: Instructions
     instructions_none: No instructions
     instructions_above: "{count} instructions from the organizations above apply first."
@@ -3046,7 +3045,6 @@ agents:
     prefix_document_remove: "Remove {path}"
     provider_of: "{name} provider"
     search_depth: Search depth
-    settings_sections: Settings sections
     switch_on: "Turn on {name}"
     vitals: Agent metrics
     stage_in: "Add {name} to instruction stages"

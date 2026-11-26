@@ -83,8 +83,10 @@
   역할, and the agent role keeps the bare word. A function bundle → 기능 묶음; how many of a role's runs go at once → 동시
   실행, with what goes and waits as `2/3 실행 · 1 대기` and no agent switched on as 막힘. The text a role's runs carry
   after its prompt on one provider → 공급자별 프롬프트, each box named `<provider> 프롬프트`.
-- the screen where the roles, the agents, the repositories and the models are kept → 에이전시. Its tabs → 역할,
-  에이전트, 저장소, 등록 모델, 모델 파일. Never 에이전트 관리 for the screen.
+- the tabs of 시스템 및 조직 where the roles, the agents, the repositories and the models are kept → 역할,
+  에이전트, 저장소, 등록 모델, 모델 파일. Never 에이전트 관리 for them; 에이전시 names the unit, never a screen.
+- the tab of 시스템 및 조직 where a unit's or a person's own agent settings stand → 에이전트 설정, beside the
+  에이전트 tab of the rows.
 - one seat of a role, on one road → 에이전트: 에이전트, 에이전트 추가, 에이전트 없음. An agent that names no road, and
   the setting by which an agent or a role follows its asker while naming a road of its own →
   요청한 감독관을 따름, its choices 켬 and 끔; what it lays over its role's preset → 역할 위에 덮어쓰기; one that carries a run → 실행 중. Never

@@ -1257,7 +1257,6 @@ monitor_logs:
     read_failed: 로그를 불러오지 못했습니다.
 screens:
   label:
-    agents: 에이전시
     agents_group: "에이전트 · {name}"
     artifact: 아티팩트
     chat_id: 채팅 번호
@@ -2557,7 +2556,7 @@ org_agents:
     person_change_instructions: "내 지침"
     person_change_road: "공급자 · 모델 선택"
     person_change_agents: "에이전트 추가·끄기"
-    tab: 에이전트
+    tab: 에이전트 설정
     instructions_own: 지침
     instructions_none: 지침 없음
     instructions_above: "상위 조직 지침 {count}개가 먼저 적용됩니다."
@@ -3061,7 +3060,6 @@ agents:
     prefix_document_remove: "{path} 빼기"
     provider_of: "{name} 공급자"
     search_depth: 검색 깊이
-    settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
     vitals: 에이전트 지표
     stage_in: "{name} 지시 단계에 추가"

@@ -1248,7 +1248,6 @@ monitor_logs:
     read_failed: ログを読み込めませんでした。
 screens:
   label:
-    agents: エージェンシー
     agents_group: "エージェント · {name}"
     artifact: アーティファクト
     chat_id: チャット番号
@@ -2556,7 +2555,7 @@ org_agents:
     person_change_instructions: "自分の指示"
     person_change_road: "プロバイダー · モデルの選択"
     person_change_agents: "エージェントの追加・オフ"
-    tab: エージェント
+    tab: エージェント設定
     instructions_own: 指針
     instructions_none: 指針なし
     instructions_above: "上位組織の指針 {count} 件が先に適用されます。"
@@ -3068,7 +3067,6 @@ agents:
     prefix_document_remove: "{path} を外す"
     provider_of: "{name} のプロバイダー"
     search_depth: 検索の深さ
-    settings_sections: 設定セクション
     switch_on: "{name} をオン"
     vitals: エージェントの指標
     stage_in: "{name} を指示ステージに追加"

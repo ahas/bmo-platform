@@ -1634,7 +1634,7 @@ Four groups.
   the deployment running, what the heads of the organisations set for the people under them, and the company's
   스토어 every person opens; **애플리케이션**,
   every other screen a unit brings; and **내 앱**, the reader's own screens.
-  - **시스템 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
+  - **시스템 서비스** holds the console's own cache siren, DB, document viewer,
     리서치, monitor, 시스템 및 조직 and 스토어 (「App catalogue」), and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
@@ -2949,8 +2949,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   here. Only the open tab reads anything. The console search finds each tab as it finds a screen. On a phone
   the tabs stand by their names alone, their marks giving way, so they fit the row.
 - `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
-  board, and `/live` sends a reader on to `/agents?tab=supervisors`, so a link made to that address lands on the
-  agents and what each is doing.
+  board, and `/live` sends a reader on to the 에이전트 tab at the platform's own link of the system and organisation
+  screen (`/organization?company=platform&tab=supervisors`), so a link made to that address lands on the agents and
+  what each is doing.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
   then the monitored nodes in the node list's order, one tile each; a node that is this machine is shown as this
   machine's tile alone. A node is monitored where the node list says so: every shared node, and a personal node of
@@ -3367,31 +3368,45 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 ### Agent management screen
 
-- **Its name on the screen is 에이전시.** The sidebar, the title bar and every sentence that names the screen
-  call it so.
+- **Its parts are the 에이전트 tabs of 「System and organisation」.** The five sections stand in that screen's tab
+  row at the node the reader chose, and their address is its address: `?company=<node>&tab=<section>`, a unit named
+  by `&unit=<unit>` beside its company. The address `/agents` stands for no page: it lands the reader on the platform's
+  own link with the tab its key names, and a key naming none opens that screen's first tab. The old administrator
+  address `/admin` lands the same way (「System and organisation」).
 - **What it is for.** The two axes the agency runs work on and the places it runs it (the agency's
   `docs/agents.md`, 「Two axes」): the roles, the agents — the supervisors and the agents of the roles — and the
   repositories, and the two things a road
   may name of the deployment's own, the registered models and the model files. Everything this screen edits is
   written through the agency's routes; the console keeps none of it.
-- **A section to a tab.** A tab stands only where the reader may read its part, and its 추가 and its row
-  changes stand only where they may write it (「Access」). The tabs are 역할, 에이전트, 저장소, 등록 모델 and 모델 파일, keyed in the address as
-  `?tab=roles`, `supervisors`, `repositories`, `models` and `model-files`, so a shared link opens the same section and
-  moving between tabs is a step of the history; a key that names no tab opens 역할. The 에이전트 tab keeps the key and
-  the access section it stood under as the supervisors' tab; it holds every agent, the supervisors' table first and
-  the table of the roles' agents under it (「에이전트」 below). The tab row stands under the
-  title bar and carries, at its right end, the settings search, the one button that reads every section again,
-  which spins while it reads, and last the open section's 추가, the row's grey icon on a phone too (「The title bar」)
-  named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. The title bar keeps only what every page carries, and no
+- **A node's reach, a section's tabs.** Where the row holds one of these tabs it follows the node chosen (the
+  agency's `docs/api.md`, 「Who a caller acts for」): the lists are the rows that node reaches — the whole at the
+  platform's own link for the administrator, the reader's own rows at their own link, the unit and the units under it
+  at a company or a unit — and a row added at a node is filed under it: the supervisors and the roles' agents by the
+  unit's `ownerUnit`, the repositories by theirs, a registered model by its `unit`. A supervisor the tab's 감독관 추가
+  makes is filed under the reader's own account whoever the node is, since the receiver files it there; no node files
+  one under a unit yet. A tab stands only where the reader may read its part, and its 추가 and its row
+  changes stand only where they may write it (「Access」). 역할 and 모델 파일 are the platform's own presets and files:
+  they stand at the platform's link alone, for no reader at a company or a unit however their sections read.
+  The tabs are 역할, 에이전트, 저장소, 등록 모델 and 모델 파일, keyed as `tab=roles`, `supervisors`, `repositories`,
+  `models` and `model-files` beside the node's own keys, so a shared link opens the same section of the same node and
+  moving between tabs is a step of the history; an address naming a tab the reader may not open at the node is taken
+  to the first one they may. The 에이전트 tab keeps the key and
+  the access section it stands under as the supervisors' tab; it holds every agent, the supervisors' table first and
+  the table of the roles' agents under it (「에이전트」 below). Where the row holds a tab of agent management it carries,
+  at its right end, the settings search and last the open section's 추가, the row's grey icon on a phone too
+  (「The title bar」) named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. Each part reads again
+  when the node or the tab changes; the screen holds no button that reads every part again, and no
   section repeats its tab's name as a title of its own.
-- **The settings search** looks over every section at once: section names, supervisors by their names, labels and
+- **The settings search** stands wherever the row holds a tab of agent management, and looks over every one of
+  those sections at once: section names, supervisors by their names, labels and
   the names they are called by, roles by their names, labels and bundles, repositories by their names, labels and
   paths, registered models by their names and the models behind them, and model files by their labels, names and
-  engines. It uses the console's shared list search, so a hit on what a row shows is marked there and a hit only in
+  engines. The parts not standing in this node's row say no result; what is listed is the rows the reader reaches,
+  read on the plain keys the settings share, and a pressed result lands on its tab and moves its row to the middle of
+  the view only where the node answers it. It uses the console's shared list search, so a hit on what a row shows is marked there and a hit only in
   what the row holds stands as one line under the result. Where the tab row has room the search is a box beside the
   tabs with its results under it; where it does not (a phone) it is a button opening the same search in a centred
-  modal. Pressing a result opens its tab, brings its row to the middle of the view and marks it a moment; the open
-  tab's rows mark the phrase too.
+  modal; the open tab's rows mark the phrase too.
 - **Every table on the screen is the one shared settings table.** Its box fills the section edge to edge; the table
   stands one row to a line, has no pages, and scrolls sideways inside that box once it is wider; the box is never wider
   than the panel, and neither the page nor the tab's body ever scrolls sideways. A tab's body has exactly one box
@@ -3511,8 +3526,9 @@ archive and this week's tokens remain. That is all that can actually be known th
 #### 에이전트
 
 The tab holds every agent of the screen: the supervisors, which answer rooms, and the agents of the roles, each
-a seat of its role. Both tables, and the agent an agent's dialog opens, hold the reader's own and the deployment's
-alone (「Access」); another account's agents are reached from 시스템 및 조직's 사용자 tab.
+a seat of its role. Both tables, and the agent an agent's dialog opens, hold what the node chosen reaches (above):
+the whole at the platform's own link, the unit and the units under it at a company or a unit, the reader's own rows
+at their own link; agents the node answers none of stand nowhere on it.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
   them: 감독관, its mark, its label and its name, the title column; 상태, what it is doing now (「What each agent is
@@ -3909,7 +3925,7 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
     where it keeps one in each room.
   - **설정's 내 에이전트** (「Settings」) carries a row for each supervisor filed under the reader's account, their BMO
     first, its more-menu holding both; its session is the one session, or every room session it holds.
-  - **에이전시's 에이전트 tab** (「Agent management screen」) carries both in each supervisor row's more-menu, after
+  - **The 에이전트 tab** (「Agent management screen」) carries both in each supervisor row's more-menu, after
     설정, for the administrator, every supervisor of the deployment.
   - **The dialog is one component** a screen renders from its own rows, so a screen listing a unit's agents for its
     heads offers the same two actions by rendering it.
@@ -8303,12 +8319,14 @@ their own skills alone; whether they may make one is the delegation chain's `per
 시스템 및 조직 is the screen of what is set for the platform itself and of the organisations and the people in
 them. An organisation, a company at the top of the tree of units, is chosen first; everything else is set inside the
 one chosen: its units and who stands in them, every person looked up one at a time, the invitations into its units,
-its people's BMOs and their agents, its apps, its secrets, its org memory, its people's console sections, and its
-supply with its plans. What is set for the platform as a whole — the providers every run goes out on, switched on and
+its people's BMOs and their agents, its apps, its secrets, its org memory, its people's console sections, its supply
+with its plans, and the agent parts — 역할, 에이전트, 저장소 and 등록 모델 — at the reach of the node chosen
+(「Agent management screen」). What is set for the platform as a whole — the providers every run goes out on, switched on and
 off with what they have left, the secrets the agency's provider tools read, how often the agency puts every waiting
-commit live, which operating notices the owner's private chat is told, and the kinds every person's secret form asks
-in — stands on this same screen at the 플랫폼 전체 node, on tabs of its own the administrator opens and no member
-does (「공급자」, 「비밀 종류」, 「메일」).
+commit live, which operating notices the owner's private chat is told, the kinds every person's secret form asks
+in, and the platform's own 역할 presets and 모델 파일 — stands
+on this same screen at the 플랫폼 전체 node, on tabs of its own the administrator opens and no member
+does (「공급자」, 「비밀 종류」, 「메일」, 「Agent management screen」).
 
 **One setting stands on one screen, drawn by the reader's reach.** A setting kept on the delegation chain is read and
 written here, at one link of the chain at a time: the tree at the screen's left holds exactly the links the reader
@@ -9052,7 +9070,7 @@ it, are the account service's word.
     under its name 위를 따라 허용 or 위를 따라 막음, and its 하위 조직 row under it.
   - **One row per repository the unit owns,** by its 표시 이름, its name where it has none, with its path in the
     monospace face under it, its 설정 and its 삭제, asked first, which takes the registration away and leaves the
-    checkout on disk; 조직 저장소 없음 where it owns none. 설정 opens the repository dialog of 에이전시's 저장소 tab (「Agent
+    checkout on disk; 조직 저장소 없음 where it owns none. 설정 opens the repository dialog of the 저장소 tab (「Agent
     management screen」, 저장소) on it, every field of the repository — its path, its node, its checkouts, its prefix
     documents, its preamble, its rules, its dev command and its pinned model among them — read and saved through the
     unit's own routes, `GET` and `PATCH /api/organization/units/{unit}/repositories/{name}`, with the nodes and the
@@ -9063,7 +9081,7 @@ it, are the account service's word.
   - **조직 저장소 추가** at the heading's end, open while 저장소 관리 stands allowed for the unit, opens a form of 이름 —
     lowercase letters, digits and hyphens —, 표시 이름 and 경로, the base checkout's directory, whose 추가 asks the
     agency in the reader's name to add it under the unit; the agency judges whether they head it and may, its
-    refusal said in the form. A repository's other fields are set by its row's 설정, as on 에이전시's 저장소 tab (「Agent management
+    refusal said in the form. A repository's other fields are set by its row's 설정, as on the 저장소 tab (「Agent management
     screen」).
 - **A group the reader writes none of stands not at all,** so a credit manager heading nothing in the unit, or a head
   of a unit below opening the company, finds only what they set; a reader who writes none of them is told 이 조직의

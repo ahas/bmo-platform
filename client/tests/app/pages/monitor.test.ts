@@ -36,7 +36,7 @@ describe("the monitor's tabs", () => {
 
 describe("what runs now", () => {
   test("is reached from the old live address and the stream notice on agent management's agents tab", () => {
-    expect(scriptOf(live)).toContain('definePageMeta({ redirect: { path: "/agents", query: { tab: "supervisors" } } });');
+    expect(scriptOf(live)).toContain('definePageMeta({ redirect: { path: "/organization", query: { company: "platform", tab: "supervisors" } } });');
     expect(templateOf(layout)).toContain('to="/agents?tab=supervisors"');
     expect(layout).not.toContain("tab=slots");
   });
