@@ -2417,13 +2417,17 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   4px; the screen's mark stands 12px from its name, as a room's picture does, and a room's menu 8px from the name's
   end.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
-  library's icon size with the same padding on every side, so every button in the bar that shows only a mark
-  is one size. Every button of the set at its right end is the library's own button at its default size — a
+  library's icon size with the same padding on every side, so every icon button of the bar is one size.
+  Every button of the set at its right end is the library's own button at its default size — a
   ghost one, its hover and press filling its own rounded shape and nothing round it — never a bare element
   dressed as one. A mark whose words fold away on a short bar — the deployment's, the usage figures — is the
   library's square button from the moment it stands alone, so it is that same square.
-  `client/tests/browser/topbar-square.test.ts` measures every
-  button in the title bar that shows only a mark, at a desktop width and a phone's, in light and dark.
+  **A room's picture and the presence dot on its corner are no icon buttons but the room's mark:** they
+  stand where every other screen's mark stands and at that mark's size, the picture opening whole as a
+  face in the conversation does and the dot opening the room's people, and the screen marks the cluster
+  as its mark for the bar to hold apart from its squares. `client/tests/browser/topbar-square.test.ts`
+  measures every icon button in the title bar, the room's mark apart, at a desktop width and a phone's,
+  in light and dark.
 
 ### Tab bar and toolbar
 
