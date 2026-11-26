@@ -2486,10 +2486,29 @@ pub fn openapi() -> Value {
   })
 }
 
-/// The document as `docs/openapi-accounts.json` keeps it: pretty, ending in a line break.
+/// The document as `docs/openapi-accounts.json` keeps it: pretty, ending in a line break, its object
+/// members in name order. The order is written here rather than left to the JSON map, whose entries follow
+/// whatever order the building's features give it, so the kept document is one text however the crate is
+/// built.
 pub fn openapi_json() -> String {
-  let mut written = serde_json::to_string_pretty(&openapi()).expect("the document is JSON");
+  let mut written = serde_json::to_string_pretty(&sorted(openapi())).expect("the document is JSON");
 
   written.push('\n');
   written
+}
+
+// A document with every object's members in name order, arrays standing as they are.
+fn sorted(value: Value) -> Value {
+  match value {
+    Value::Object(held) => {
+      let mut names: Vec<(String, Value)> =
+        held.into_iter().map(|(name, member)| (name, sorted(member))).collect();
+
+      names.sort_by(|one, other| one.0.cmp(&other.0));
+
+      Value::Object(names.into_iter().collect())
+    }
+    Value::Array(members) => Value::Array(members.into_iter().map(sorted).collect()),
+    other => other,
+  }
 }
