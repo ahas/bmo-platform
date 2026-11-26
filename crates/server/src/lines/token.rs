@@ -400,12 +400,11 @@ async fn issued_for(
 // runs personal tools for; and an account on a shared PC or with no PC is named no runner.
 async fn owned(ground: &Ground, request: &mut SessionRequest, caller: Caller<'_>) -> Result<(), Refusal> {
   let acting = acting_for(&ground.db, &ground.roots.data, caller).await?;
-  let administrator = if acting.administrator && acting.account.is_none() {
-    crate::account_isolation::administrator(&ground.db).await?
-  } else {
-    None
+  let account = match (acting.account, acting.administrator) {
+    (Some(account), _) => Some(account),
+    (None, true) => crate::account_isolation::administrator(&ground.db).await?,
+    (None, false) => None,
   };
-  let account = acting.account.clone().or(administrator.clone());
   // The folder the record is handed secrets from: the unit's where the caller's agent row is filed under a
   // unit, whatever account it otherwise acts for; else the account's own space; else none, and the record
   // names no owner.

@@ -601,6 +601,20 @@ impl JobSpend {
     before: i64,
     owners: Option<&crate::organisation::resources::Owners>,
   ) -> Result<Vec<Self>, Refused> {
+    // One look at whether the read is narrowed gives the inner query its alias, its joins and its keep.
+    let (qualify, join, keep) = match owners {
+      Some(owners) => (
+        r#""j"."#,
+        r#" LEFT JOIN "runs" AS "r" ON "r"."id" = "j"."run_id"
+           LEFT JOIN "supervisors" AS "hs" ON "hs"."name" = "j"."holder_name""#,
+        format!(
+          r#" AND ({} OR ("r"."id" IS NULL AND {}))"#,
+          owners.predicate(r#""r"."owner_account""#, r#""r"."owner_unit""#),
+          owners.predicate(r#""hs"."owner_account""#, r#""hs"."owner_unit""#),
+        ),
+      ),
+      None => ("", "", String::new()),
+    };
     let rows = store::all(
       db,
       &format!(
@@ -624,22 +638,7 @@ impl JobSpend {
              FROM "jobs" AS "j"{join}
              WHERE "j"."started_at" >= $1 AND "j"."started_at" <= $2{keep}
            ) AS "spent"
-           GROUP BY "key""#,
-        qualify = if owners.is_some() { r#""j"."# } else { "" },
-        join = match owners {
-          Some(_) =>
-            r#" LEFT JOIN "runs" AS "r" ON "r"."id" = "j"."run_id"
-                 LEFT JOIN "supervisors" AS "hs" ON "hs"."name" = "j"."holder_name""#,
-          None => "",
-        },
-        keep = match owners {
-          Some(owners) => format!(
-            r#" AND ({} OR ("r"."id" IS NULL AND {}))"#,
-            owners.predicate(r#""r"."owner_account""#, r#""r"."owner_unit""#),
-            owners.predicate(r#""hs"."owner_account""#, r#""hs"."owner_unit""#),
-          ),
-          None => String::new(),
-        }
+           GROUP BY "key""#
       ),
       vec![after.into(), before.into()],
     )

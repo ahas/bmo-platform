@@ -298,7 +298,12 @@ pub async fn kept_for<C: ConnectionTrait>(db: &C, recipient: i32) -> Result<Opti
     kept.secret = Some(format!("units/{unit}/{secret}"));
   }
 
-  Ok((kept.server.is_some() && !kept.from.trim().is_empty()).then_some(kept))
+  Ok(usable(&kept).then_some(kept))
+}
+
+// Whether a mail stands ready to send: an outgoing server chosen and a sender's address standing.
+fn usable(kept: &Kept) -> bool {
+  kept.server.is_some() && !kept.from.trim().is_empty()
 }
 
 /// The system mail moved once off the `settings` row it stood in before the chain: where the row holds a value
@@ -338,7 +343,7 @@ pub async fn write_platform(db: &DatabaseConnection, by: i32, kept: &Kept) -> Re
 pub async fn configured(service: &Service) -> Result<Option<Kept>, Refusal> {
   let kept = kept(&service.db).await?;
 
-  Ok((service.mail.named() && kept.server.is_some() && !kept.from.trim().is_empty()).then_some(kept))
+  Ok((service.mail.named() && usable(&kept)).then_some(kept))
 }
 
 /// Whether a mail to `recipient` can go: bmo-mail named, and their chain's nearest mail usable.
