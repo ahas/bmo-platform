@@ -8113,11 +8113,14 @@ person sees their own space and nobody else's, the administrator included.
   for it, and the sidebar's 시스템 및 조직 entry leads there. The secret form (below) is the one that list, the composer's
   clip and an agent's request open.
 - The kinds the form asks in are the deployment's, kept on the 시스템 및 조직 비밀 종류 tab with 플랫폼 전체 chosen
-  (「System and organisation」, 「비밀 종류」).
+  (「System and organisation」, 「비밀 종류」); a unit's space is offered only the kinds its chain leaves it
+  (「System and organisation」, 「비밀 보관함」).
 - **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
   foot.
-  - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
-    Choosing one stands its fields under 이름, each under its label, a required one marked so.
+  - 종류 lists the kinds the space being saved into is offered, by their names, and 직접 구성 last: every kind at
+    the reader's own space and the platform's, and at a unit's only those the chain leaves it. The chosen kind's
+    description stands under the list. Choosing one stands its fields under 이름, each under its label, a required
+    one marked so.
   - A 한 줄 field is one box, a password box with the browser's filling turned off where its value is hidden, shown
     as dots alone. A 여러 줄 field is a box that grows with its text, its letters drawn as dots where its value is
     hidden, with 파일에서 불러오기 under it, which reads a chosen file into the box as text. A 파일 field chooses a file
@@ -9403,7 +9406,10 @@ alone: no route of the console or of the account service answers a value.
   `GET` and `POST /api/organization/units/{unit}/secrets`, the name travelling in the body with the value, and `DELETE
   /api/organization/units/{unit}/secrets/{name}`, each handing the account service the reader in `Owner-Key`, so the
   service judges who holds the space; a reader it refuses is told in one line that they may not set this unit's
-  secrets, and nothing else.
+  secrets, and nothing else. Its 비밀 추가 form offers the kinds the chain leaves the unit, read through `GET
+  /api/organization/units/{unit}/secret-kinds`, which answers the registry's kinds the unit's link of the
+  `secret.kinds` setting leaves; where the chain says nothing, every kind stands offered, and the store takes a
+  value only under an offered one (`docs/accounts.md`, 「Secret kinds」).
 - **At 나** the space is the reader's own, `env/users/<user>/`, through the same `/api/secrets` routes; the sidebar's
   조직 entry is how a reader reaches it. The administrator's own space is the platform's, so for them 나 holds one line
   saying so with 열기, which chooses 플랫폼 전체.
