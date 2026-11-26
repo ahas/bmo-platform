@@ -1934,7 +1934,14 @@ async fn each_reservation_opens_what_it_names_and_nothing_else() {
   // ones, and an account holding only the platform's reservation is handed none of the unit's.
   assert_eq!(
     listed_models(&world, "/v1/models", "call-key-seven").await,
-    ["pair-0-1", "pair-0-1@alpha", "pair-0-1@bravo", "router-free", "router-team", "team-router"]
+    [
+      "pair-0-1",
+      "pair-0-1@alpha",
+      "pair-0-1@bravo",
+      "router-free",
+      "router-team",
+      "team-router"
+    ]
   );
   assert_eq!(
     listed_models(&world, "/v1/models", "call-key-eight").await,
@@ -1942,11 +1949,14 @@ async fn each_reservation_opens_what_it_names_and_nothing_else() {
   );
 
   // The description asks the same reach as the request.
-  let (answered, _, body) =
-    world.ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-seven"))], "").await;
+  let (answered, _, body) = world
+    .ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-seven"))], "")
+    .await;
   assert_eq!(answered, 200, "{body}");
   assert_openai_error(
-    world.ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-eight"))], "").await,
+    world
+      .ask("GET", "/v1/models/team-router", &[("authorization", &bearer("call-key-eight"))], "")
+      .await,
     403,
     "not-your-member",
   );
