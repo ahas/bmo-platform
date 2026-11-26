@@ -21017,6 +21017,11 @@
             "type": "boolean",
             "description": "Whether the administrator declared the node shared for the account."
           },
+          "own": {
+            "type": "boolean",
+            "description": "Whether this is the account's own machine.",
+            "default": false
+          },
           "setAt": {
             "type": "integer",
             "format": "int64",
@@ -21032,6 +21037,7 @@
           "ownerAccount",
           "node",
           "shared",
+          "own",
           "setAt",
           "linked"
         ],
