@@ -13,7 +13,7 @@ use agent_session::{
 use axum::http::{Method, StatusCode};
 use axum::response::{IntoResponse, Response};
 use policy::job_handoff::JOB_HANDOFF;
-use sea_orm::{QueryResult, TransactionTrait, Value as DbValue};
+use sea_orm::{ConnectionTrait, QueryResult, TransactionTrait, Value as DbValue};
 use serde_json::{Value, json};
 
 use super::{Call, Refused, Route, answer};
@@ -1141,7 +1141,8 @@ async fn first_wait(
     return Some(resolution.no_road.clone().unwrap_or_else(|| resolution.sentence()));
   };
   // The ask its first turn makes (`OnSession::slot`), judged without being made: the same owner, road, agent
-  // and checkout.
+  // and checkout, and the same account: that of the agent its item named.
+  let agent_account = named_agent_account(&ground.db, agent).await;
   let asked = dispatch::Asked {
     request_key: format!("job-{id}-first"),
     owner: format!("{}{id}", dispatch::JOB_OWNER),
@@ -1159,6 +1160,7 @@ async fn first_wait(
       agent: Some(agent),
     },
     place_key: Some(worker),
+    account: agent_account.as_deref(),
     ..dispatch::Asked::default()
   };
 
@@ -2940,6 +2942,12 @@ impl<S: Sessions + Send + Sync> OnSession<'_, S> {
       answer_tokens: parts.mapping.answer_tokens.and_then(|tokens| i64::try_from(tokens).ok()),
       advisor: None,
     };
+    // The ask belongs to the account of the agent the item named, where it named one: the job runs on that
+    // agent's seat (docs/role-slots.md, 「Accounts」; docs/repositories.md, 「An agent an item names」).
+    let agent_account = match self.agent {
+      Some(agent) => named_agent_account(&self.ground.db, agent).await,
+      None => None,
+    };
     let asked = dispatch::Asked {
       request_key: format!("job-{id}-{}-{}", self.began, self.roads),
       owner: format!("{}{id}", dispatch::JOB_OWNER),
@@ -2951,6 +2959,7 @@ impl<S: Sessions + Send + Sync> OnSession<'_, S> {
       },
       place_key: Some(self.worker),
       title: Some(self.title),
+      account: agent_account.as_deref(),
       ..dispatch::Asked::default()
     };
 
@@ -3001,6 +3010,17 @@ pub async fn job_seat(
       return Ok(Some(let_in));
     }
 
+    // A job whose item named an agent that no longer stands where the line could let it in is ended failed
+    // with that reason, not left waiting in `starting` on a seat that can never open (docs/api.md,
+    // 「assignments and jobs」). Its ask is given back so it keeps no place in the line.
+    if let Some(wanted) = held.agent_wanted.as_deref()
+      && let Some(why) = never_let_in(ground, &held, wanted).await
+    {
+      dispatch::finish(&ground.db, &ground.events, &held.token, &format!("cancelled: {why}"), true).await?;
+
+      return Err(why);
+    }
+
     // Not let in at its first ask: the job names the wait as its hold until it is let in, the wait is told
     // to the item's orderer once, and the job's log says it.
     if !told {
@@ -3032,6 +3052,63 @@ async fn job_held(ground: &Ground, id: i64) -> bool {
     .flatten()
     .and_then(|row| row.try_get::<Option<String>>("", "held_for").ok().flatten())
     .is_some()
+}
+
+// The account of the agent an item named, none where it named none or the register holds it as the
+// deployment's own; a read that fails waits for the next ask rather than deciding anything.
+async fn named_agent_account<C: ConnectionTrait>(db: &C, agent: &str) -> Option<String> {
+  match crate::role_agents::named(db, agent).await {
+    Ok(held) => held.and_then(|held| held.owner_account).map(|account| account.to_string()),
+    Err(why) => {
+      eprintln!("the agent {agent}'s account could not be read: {why}");
+      None
+    }
+  }
+}
+
+// Why a job waiting on the agent its item named can never be let in, if so: the register no longer holds
+// that agent, or it stands under another role or another account than the one the request belongs to. An
+// agent merely switched off waits instead: the owner switching it on frees the line again (docs/role-slots.md,
+// 「The cap」).
+async fn never_let_in(ground: &Ground, held: &Request, wanted: &str) -> Option<String> {
+  let agent = match crate::role_agents::named(&ground.db, wanted).await {
+    Ok(Some(agent)) => agent,
+    Ok(None) => {
+      return Some(format!(
+        "the agent {wanted} the item named is no longer registered, so the job cannot go out"
+      ));
+    }
+    Err(why) => {
+      eprintln!("the named agent {wanted} could not be read for the waiting job: {why}");
+      return None;
+    }
+  };
+
+  if agent.role != held.role {
+    return Some(format!(
+      "the agent {wanted} now stands under the {} role, not the {} role the job asks, so the job cannot go out",
+      agent.role, held.role
+    ));
+  }
+
+  let owner = agent.owner_account.map(|account| account.to_string());
+
+  if owner != held.account {
+    let stands = match owner.as_deref() {
+      Some(account) => format!("account {account}"),
+      None => "the deployment".to_owned(),
+    };
+    let asked_as = match held.account.as_deref() {
+      Some(account) => format!("account {account}"),
+      None => "the deployment's own".to_owned(),
+    };
+
+    return Some(format!(
+      "the agent {wanted} now belongs to {stands}, not to {asked_as} the job's slot asks as, so the job cannot go out"
+    ));
+  }
+
+  None
 }
 
 /// The seat a job holds now, kept from an earlier turn: its newest slot request still let in.
@@ -3080,7 +3157,8 @@ async fn waiting_seat(
   let road = asked.wanted.fixed.as_ref().map(|fixed| (fixed.provider.as_str(), fixed.model.as_str()));
   let same = road.is_none_or(|(provider, model)| waiting.provider == provider && waiting.model == model)
     && waiting.agent_wanted.as_deref() == asked.wanted.agent
-    && waiting.role == asked.wanted.role;
+    && waiting.role == asked.wanted.role
+    && waiting.account.as_deref() == asked.account;
 
   if same {
     println!("job {id}: its slot request {} waiting in the line is taken up again", waiting.token);

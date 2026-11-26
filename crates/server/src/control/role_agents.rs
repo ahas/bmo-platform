@@ -131,6 +131,12 @@ pub(crate) async fn judged(
     return Err(unprocessable("A row stands under an account or under a unit, never under both."));
   }
 
+  // The node its runs stand on, its home (docs/role-agents.md, 「What an agent is」); null gives this machine
+  // back. Whether the node stands open to it is judged after the owner is settled (`home_judged`).
+  if let Some(node) = body.get("homeNode") {
+    agent.home_node = text(node, "homeNode")?;
+  }
+
   if let Some(provider) = body.get("provider") {
     agent.provider = text(provider, "provider")?;
   }
@@ -304,6 +310,65 @@ async fn filed(ground: &Ground, acting: Acting, agent: &mut RoleAgent) -> Result
   Ok(())
 }
 
+// The home node judged: a hub node the node service keeps. A node some account's records name is that
+// account's — a person's own machine among them — and takes an agent only of an account standing among its
+// owners, the super-administrator's call included: no one places an agent on another person's PC. A node no
+// record names is the platform's own, this machine among them, and takes an agent only the platform's call
+// writes home to it; a person's call never stands its agent there (docs/person-nodes.md, 「Which node is a
+// person's」; docs/role-agents.md, 「What an agent is」).
+async fn home_judged(ground: &Ground, acting: Acting, agent: &mut RoleAgent) -> Result<(), Refused> {
+  let Some(node) = agent.home_node.clone() else {
+    return Ok(());
+  };
+
+  let kept = ground
+    .peers
+    .node
+    .node_reads()
+    .await
+    .map_err(|why| Refused::new(StatusCode::BAD_GATEWAY, why.to_string()).with_code("upstream-failed"))?
+    .into_iter()
+    .find(|read| read.name == node);
+
+  match kept {
+    None => {
+      return Err(
+        unprocessable(format!("{node} is no node the node service keeps")).with_code("no-such-node"),
+      );
+    }
+    Some(read) if read.kind != crate::peers::node::NodeKind::Jake => {
+      return Err(unprocessable(format!(
+        "{node} is an ssh node: no agent place stands on it; the node's link carries the place only on a hub node"
+      )));
+    }
+    Some(_) => {}
+  }
+
+  let owners = crate::person_nodes::owners_of(&ground.db, &node).await?;
+
+  if owners.is_empty() {
+    return if acting == Acting::Platform {
+      Ok(())
+    } else {
+      Err(unprocessable(format!(
+        "{node} is a platform node: a person's agent runs on the person's own machine"
+      )))
+    };
+  }
+
+  let account = agent.owner_account.map(|account| account.to_string());
+
+  if account.as_deref().is_some_and(|account| owners.iter().any(|owner| owner == account)) {
+    return Ok(());
+  }
+
+  Err(unprocessable(format!(
+    "{node} belongs to account {}; an agent of {} cannot stand there, whoever writes it",
+    owners.join(", account "),
+    account.as_deref().unwrap_or("the deployment")
+  )))
+}
+
 /// A role whose seats changed lets in at once the reserved slots a seat more frees.
 pub(crate) async fn seats_changed(
   db: &sea_orm::DatabaseConnection,
@@ -413,6 +478,7 @@ impl Route for RoleAgentCreate {
       added_at: now_ms(),
       owner_account: None,
       owner_unit: None,
+      home_node: None,
       follows_asker: None,
     };
     let mut agent = judged(call.ground(), &held, fresh, &body).await?;
@@ -433,6 +499,7 @@ impl Route for RoleAgentCreate {
     }
 
     filed(call.ground(), acting, &mut agent).await?;
+    home_judged(call.ground(), acting, &mut agent).await?;
     role_agents::write(db, &agent).await?;
     seats_changed(db, call.events(), &agent.role).await?;
     queue_told(&call);
@@ -459,8 +526,10 @@ impl Route for RoleAgentChange {
       .await?
       .ok_or_else(|| unprocessable(agent_roles::unknown(&held.role)))?;
     let mut agent = judged(call.ground(), &role, held, &body).await?;
+    let acting = Acting::of(&call)?;
 
-    filed(call.ground(), Acting::of(&call)?, &mut agent).await?;
+    filed(call.ground(), acting, &mut agent).await?;
+    home_judged(call.ground(), acting, &mut agent).await?;
     role_agents::write(db, &agent).await?;
     seats_changed(db, call.events(), &agent.role).await?;
     queue_told(&call);

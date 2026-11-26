@@ -468,7 +468,7 @@ both. `road-verbs` is what the procedures tool asks a room's road.
 - **Role agents.** `GET /role-agents` answers `items`, every agent the caller reaches by role and by name,
   narrowed to one role's by `role` and to one owner's by `ownerAccount`, `unit` and `unitSubtree` (「Who a
   caller acts for」); each is its row (`docs/role-agents.md`, 「What an agent row holds」):
-  `name`, `role`, `ownerAccount`, `ownerUnit`, `provider`, `model`, `effort`, `thinking`, `answerTokens`, `advisor`, `enabled`,
+  `name`, `role`, `ownerAccount`, `ownerUnit`, `homeNode`, `provider`, `model`, `effort`, `thinking`, `answerTokens`, `advisor`, `enabled`,
   `keepsCache`, `sessions`, `foldRatio`, `prompt`, `bundles`, `skills`, `addedAt`, `followsAsker`, true or false
   where it sets whether it follows its asker and null where its role's setting stands (`docs/role-agents.md`, 「An
   agent that follows its asker」), with `followsSupervisor`, true where it names no road or follows its asker by its
@@ -1796,23 +1796,31 @@ where the shell stands in an agent's program, else the owner.
 
 | Method | Path | Does |
 |---|---|---|
-| GET | `/person-nodes` | Every account's node, by account. |
-| PUT | `/person-nodes/{ownerAccount}` | An account's node set: `node`, and `shared`, false where left out. |
-| DELETE | `/person-nodes/{ownerAccount}` | An account's node taken away. |
-| GET | `/nodes/{nodeName}/access` | Whether a caller reaches a node: its owners, the caller's account and the administrator's grant. |
+| GET | `/person-nodes` | Every account's nodes, one row a node. |
+| PUT | `/person-nodes/{ownerAccount}` | One node an account stands on set, beside the ones its other records name: `node`, `shared` and `own`, each false where left out. |
+| DELETE | `/person-nodes/{ownerAccount}` | An account's node records, all of them, taken away; `?node=` takes one away. |
+| GET | `/nodes/{nodeName}/access` | Whose a node is, and whether a caller reaches it: its owners, the caller's account and the administrator's grant. |
 
-- **An account's node is where its runs stand** (`docs/person-nodes.md`, 「Which node is a person's」): each record is
-  `ownerAccount`, `node`, `shared`, whether the administrator declared the node shared for the account, `setAt`
-  in epoch milliseconds, and `linked`, whether the node's link is up now: connected and heard from in the last
-  twenty seconds (`docs/work-nodes.md`, 「The link」), the judgement a run of the account waits on before it starts.
-  The service that binds an account to its machine sets it once the machine is proven, and again when the account
-  is bound to another.
+- **An account's nodes are where its runs stand** (`docs/person-nodes.md`, 「Which node is a person's」): an account
+  holds one record a node it stands on — its **own node**, the machine bound to it, marked `own` and one, and any
+  number of designations onto nodes it may share, many accounts a node and many nodes an account — each row
+  `ownerAccount`, `node`, `shared`, whether the node is declared shared for the account, `own`, whether it is the
+  account's own machine, `setAt` in epoch milliseconds, and `linked`, whether the node's link is up now: connected
+  and heard from in the last twenty seconds (`docs/work-nodes.md`, 「The link」), the judgement a run of the
+  account waits on before it starts. Where an account stands on several nodes, its own node places its role runs,
+  its newest designation where it has no own node; a job's run stands on its agent's home node or at its worker,
+  whatever its agent's account (`docs/worker-slots.md`, 「Names and places」). The administrator's account needs no
+  record: its runs are the owner's own and stand on this machine. The service that binds an account to a machine
+  sets its record once the machine is proven, and again when the account is bound to another; setting one node
+  leaves the account's other records standing.
 - **The node is one the node service keeps as a hub node reserved for no service:** another is 422
   `not-a-hub-node`, and a node service
   that cannot answer is 502 `upstream-failed`. Taking away a record no account holds is 404 `not-found`.
-- **A node another account's record names is 409 `node-taken`** unless that record and this one are both shared
-  (`docs/person-nodes.md`, 「Several accounts on one node」). An account whose record is shared works on the node
-  under a workplace root of its own, `<node root>/accounts/<account>`.
+- **A node another account holds as its own machine is 409 `node-taken` to every other account, the
+  administrator's call included** (`docs/person-nodes.md`, 「Which node is a person's」). A node that is no one's
+  own takes further accounts as designations; two records naming one node without either shared are 409
+  `node-taken` as before (`docs/person-nodes.md`, 「Several accounts on one node」). An account whose record is
+  shared works on the node under a workplace root of its own, `<node root>/accounts/<account>`.
 - **These records and the session records agency issues are what the node service's tool judges a caller by**
   before it runs a command on a node (`docs/person-nodes.md`, 「Who reaches a node」). Whether an account owns a
   node is this list: the node's owners are the accounts whose record names it, and the owner of an isolation node,
@@ -1830,7 +1838,9 @@ where the shell stands in an agent's program, else the owner.
   account is among the owners; and `root`, the node path of the workplace root of the caller's account where that
   account's record names the node shared and the node's workplace is set up, null otherwise, which the node
   service's tool runs that caller's command inside. The node is not asked of the node service: a node it does not
-  keep is answered as one no record names. A missing `agent` is 400.
+  keep is answered as one no record names. `agent` may stand out, and the node service's owners' read leaves it
+  out: the answer then holds no caller — `account` and `agent` null, `administrator` and `reaches` false — and the
+  `owners` alone say whose the node is.
 - **The administrator's grant is written into the records agency issues** (`docs/tools.md`, 「The session record」):
   a record held under the name of a supervisor of no account or of the administrator's account holds each grant
   `policy/person-nodes.toml` names, `node.admin`, which the tool reads as reaching every node, and
@@ -2394,7 +2404,11 @@ service.
   review until the job ends (`docs/role-agents.md`, 「Which agent a run takes」). A job's turn not let in at its first ask for a slot of its role names that
   wait as its `heldFor` — the agent it waits for, where its item names one, else its role — until it is let
   in, so a job with a `heldFor` — still `starting`, or `running` toward a turn its review asked for — waits for its
-  turn and works on nothing meanwhile. A job's turn waiting for its card
+  turn and works on nothing meanwhile. The slot of a job whose item named an agent belongs to that agent's
+  account and asks that agent alone (`docs/role-slots.md`, 「Accounts」); where that agent has left the register,
+  stands under another role, or moved to an account the ask cannot belong to, the line can never open the seat
+  and the job is ended `failed` at once, its report naming the agent and what became of it — a job is never left
+  waiting in `starting` on an impossible seat. A job's turn waiting for its card
   names that wait as its `heldFor` until the
   card is granted (`docs/own-llm.md`, 「An engine the arbiter stands」). A job held so — for a road, for its
   card — or not let in at its first ask for a slot of its role, is told to its item's orderer once as the

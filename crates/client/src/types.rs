@@ -4115,6 +4115,9 @@ pub struct PersonNode {
   pub node: String,
   /// Whether the administrator declared the node shared for the account.
   pub shared: bool,
+  /// Whether this is the account's own machine.
+  #[serde(default)]
+  pub own: bool,
   /// epoch milliseconds
   pub set_at: i64,
   /// Whether the node's link is up now: connected and heard from in the last twenty seconds.

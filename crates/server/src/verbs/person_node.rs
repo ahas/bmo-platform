@@ -7,12 +7,13 @@ use super::{Answer, VerbError, service};
 use crate::person_nodes;
 
 /// Every account's node with no account named; the node named set for the account, shared with other accounts where
-/// `shared` says so, or its node taken away.
+/// `shared` says so and marked its own machine where `own` does, or its node taken away.
 pub async fn person_node(
   data_root: &Path,
   account: Option<String>,
   node: Option<String>,
   shared: bool,
+  own: bool,
   clear: bool,
 ) -> Result<Answer, VerbError> {
   let service = service(data_root).await?;
@@ -32,8 +33,9 @@ pub async fn person_node(
           .iter()
           .map(|one| {
             let shared = if one.shared { " (shared)" } else { "" };
+            let own = if one.own { " (own)" } else { "" };
 
-            format!("{:<12} {}{shared}", one.owner_account, one.node)
+            format!("{:<12} {}{own}{shared}", one.owner_account, one.node)
           })
           .collect::<Vec<_>>(),
       ))
@@ -54,17 +56,21 @@ pub async fn person_node(
         return Err(VerbError::Refused(why));
       }
 
-      if let Err(taken) = person_nodes::set(db, &account, &node, shared).await.map_err(refused)? {
+      if let Err(taken) = person_nodes::set(db, &account, &node, shared, own).await.map_err(refused)? {
         return Err(VerbError::Refused(taken.to_string()));
       }
 
-      let alongside = if shared { ", shared with other accounts" } else { "" };
+      let alongside = match (own, shared) {
+        (true, _) => ", its own machine",
+        (false, true) => ", shared with other accounts",
+        (false, false) => "",
+      };
 
       Ok(Answer::from(vec![format!("account {account}: its runs stand on {node}{alongside}")]))
     }
     _ => Err(VerbError::Refused(
-      "name an account and a node to set, with --shared to share the node with other accounts, an account with --clear \
-       to take its node away, or nothing to list"
+      "name an account and a node to set, with --own for the account's own machine or --shared to share the node \
+       with other accounts, an account with --clear to take its nodes away, or nothing to list"
         .into(),
     )),
   }

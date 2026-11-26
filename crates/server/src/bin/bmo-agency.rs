@@ -316,6 +316,9 @@ enum NodeVerb {
     /// The node is shared with other accounts, each under a root of its own there.
     #[arg(long)]
     shared: bool,
+    /// The node is the account's own machine: it has one, and no other account stands on it.
+    #[arg(long)]
+    own: bool,
     #[arg(long)]
     clear: bool,
   },
@@ -586,9 +589,10 @@ async fn run(verb: Verb) -> ExitCode {
         account,
         node,
         shared,
+        own,
         clear,
       } => ended(
-        agency_server::verbs::person_node::person_node(&data_root, account, node, shared, clear).await,
+        agency_server::verbs::person_node::person_node(&data_root, account, node, shared, own, clear).await,
       ),
       NodeVerb::Work { step } => ended(work_node::work_node(&data_root, step).await),
     },

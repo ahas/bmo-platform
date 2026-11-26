@@ -1,6 +1,7 @@
-//! An account's node (docs/person-nodes.md, 「Which node is a person's」): the record agency keeps of the node an
-//! account's runs stand on, set by the service that binds the account to its machine, else the account's isolation
-//! node on this machine (docs/account-isolation.md); the supervisors and role runs placed there by it; the wait of a
+//! An account's node (docs/person-nodes.md, 「Which node is a person's」): the records agency keeps of the nodes an
+//! account stands on, one a node, set by the service that binds the account to its machine, else the account's
+//! isolation node on this machine (docs/account-isolation.md), the newest record placing its runs; the supervisors
+//! and role runs placed there by it; the wait of a
 //! run of it while the node's link is not heard, placed again by the present record on every ask, told, stopped and
 //! bounded; several accounts
 //! sharing one node, each under a root of its own (「Several accounts on one node」); and who reaches a node (「Who
@@ -26,6 +27,8 @@ pub struct PersonNode {
   /// Whether the administrator declared the node shared for the account, which lets other accounts' shared records
   /// name it too and gives the account a root of its own there.
   pub shared: bool,
+  /// Whether this is the account's own machine, the node it is bound to and no other account stands on.
+  pub own: bool,
   /// When it was set, in epoch milliseconds.
   pub set_at: i64,
 }
@@ -35,6 +38,7 @@ fn of_row(row: &sea_orm::QueryResult) -> Result<PersonNode, sea_orm::DbErr> {
     owner_account: row.try_get("", "owner_account")?,
     node: row.try_get("", "node")?,
     shared: row.try_get("", "shared")?,
+    own: row.try_get("", "own")?,
     set_at: row.try_get("", "set_at")?,
   })
 }
@@ -49,17 +53,19 @@ pub fn account_root(node_root: &str, account: &str) -> String {
 
 /// Every account's node, by account.
 pub async fn every(db: &DatabaseConnection) -> Result<Vec<PersonNode>, Refusal> {
-  let rows = all(db, r#"SELECT * FROM "person_nodes" ORDER BY "owner_account""#, vec![]).await?;
+  let rows = all(db, r#"SELECT * FROM "person_nodes" ORDER BY "owner_account", "node""#, vec![]).await?;
 
   Ok(rows.iter().map(of_row).collect::<Result<_, _>>()?)
 }
 
-/// The node an account's runs stand on: the one its record names, else its isolation node; none for the
-/// administrator's account, whose runs are the owner's own (docs/account-isolation.md, 「The scope」).
+/// The node an account's runs stand on: the newest of the nodes its records name, else its isolation node;
+/// none for the administrator's account, whose runs are the owner's own (docs/account-isolation.md,
+/// 「The scope」).
 pub async fn node_of<C: ConnectionTrait>(db: &C, account: &str) -> Result<Option<String>, Refusal> {
   let row = one(
     db,
-    r#"SELECT "node" FROM "person_nodes" WHERE "owner_account" = $1"#,
+    r#"SELECT "node" FROM "person_nodes"
+       WHERE "owner_account" = $1 ORDER BY "own" DESC, "set_at" DESC, "node" LIMIT 1"#,
     vec![account.into()],
   )
   .await?;
@@ -81,8 +87,9 @@ pub async fn supervisor_node<C: ConnectionTrait>(
   }
 }
 
-/// The node the runs of an account stand on, given the node its record names: that node, else the account's
-/// isolation node; none for no account and for the administrator's.
+/// The node the runs of an account stand on, given the nodes its records name: the administrator's account
+/// stands on this machine and no record carries it away, its runs being the owner's own; for any other, its
+/// own node, else the newest of its other designations, else its isolation node; none for no account.
 pub async fn placed_for<C: ConnectionTrait>(
   db: &C,
   account: Option<&str>,
@@ -90,15 +97,11 @@ pub async fn placed_for<C: ConnectionTrait>(
 ) -> Result<Option<String>, Refusal> {
   let Some(account) = account else { return Ok(None) };
 
-  if recorded.is_some() {
-    return Ok(recorded);
-  }
-
   if crate::account_isolation::owners_own(db, account).await? {
     return Ok(None);
   }
 
-  Ok(Some(crate::account_isolation::node_name(account)))
+  Ok(recorded.or_else(|| Some(crate::account_isolation::node_name(account))))
 }
 
 /// Why a record cannot name a node: another account's record names it, and the two are not both shared.
@@ -119,19 +122,22 @@ impl std::fmt::Display for Taken {
   }
 }
 
-/// An account's node set, replacing the one it had, or why it cannot be: another account's record names the node
-/// and the two records are not both shared.
+/// One node of an account set, beside the ones its other records name: `own` marks it the account's own
+/// machine, which the account has one of and no other account stands on; any other record is a designation,
+/// the account onto a node it may share with others. Why it cannot be: the node is another account's own
+/// machine, or another account's alone-claiming record names it and the two are not both shared.
 pub async fn set(
   db: &DatabaseConnection,
   account: &str,
   node: &str,
   shared: bool,
+  own: bool,
 ) -> Result<Result<PersonNode, Taken>, Refusal> {
   let taken = one(
     db,
     r#"SELECT "owner_account" FROM "person_nodes"
-       WHERE "node" = $1 AND "owner_account" <> $2 AND NOT ("shared" AND $3)
-       ORDER BY "owner_account" LIMIT 1"#,
+       WHERE "node" = $1 AND "owner_account" <> $2 AND ("own" OR NOT ($3 AND "shared"))
+       ORDER BY "own" DESC, "owner_account" LIMIT 1"#,
     vec![node.into(), account.into(), shared.into()],
   )
   .await?;
@@ -145,11 +151,20 @@ pub async fn set(
 
   let at = crate::now_ms();
 
+  if own {
+    run(
+      db,
+      r#"DELETE FROM "person_nodes" WHERE "owner_account" = $1 AND "own" AND "node" <> $2"#,
+      vec![account.into(), node.into()],
+    )
+    .await?;
+  }
+
   run(
     db,
-    r#"INSERT INTO "person_nodes" ("owner_account", "node", "shared", "set_at") VALUES ($1, $2, $3, $4)
-       ON CONFLICT ("owner_account") DO UPDATE SET "node" = $2, "shared" = $3, "set_at" = $4"#,
-    vec![account.into(), node.into(), shared.into(), at.into()],
+    r#"INSERT INTO "person_nodes" ("owner_account", "node", "shared", "own", "set_at") VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT ("owner_account", "node") DO UPDATE SET "shared" = $3, "own" = $4, "set_at" = $5"#,
+    vec![account.into(), node.into(), shared.into(), own.into(), at.into()],
   )
   .await?;
 
@@ -157,6 +172,7 @@ pub async fn set(
     owner_account: account.to_owned(),
     node: node.to_owned(),
     shared,
+    own,
     set_at: at,
   }))
 }
@@ -214,9 +230,22 @@ pub async fn sharing_supervisors<C: ConnectionTrait>(
   )
 }
 
-/// An account's node taken away; whether it had one.
+/// An account's node taken away, every record of it; whether it had one.
 pub async fn clear(db: &DatabaseConnection, account: &str) -> Result<bool, Refusal> {
   Ok(run(db, r#"DELETE FROM "person_nodes" WHERE "owner_account" = $1"#, vec![account.into()]).await? > 0)
+}
+
+/// One node taken from an account, the rest of its records standing; whether that pair stood.
+pub async fn clear_one(db: &DatabaseConnection, account: &str, node: &str) -> Result<bool, Refusal> {
+  Ok(
+    run(
+      db,
+      r#"DELETE FROM "person_nodes" WHERE "owner_account" = $1 AND "node" = $2"#,
+      vec![account.into(), node.into()],
+    )
+    .await?
+      > 0,
+  )
 }
 
 /// Why a node cannot be an account's, or none where the node service keeps it as a hub node reserved for no
@@ -241,7 +270,11 @@ pub async fn supervisors_placed(db: &DatabaseConnection) -> Result<Vec<(String, 
   let rows = all(
     db,
     r#"SELECT s."name", s."owner_account"::text AS "account", p."node" FROM "supervisors" s
-       LEFT JOIN "person_nodes" p ON p."owner_account" = s."owner_account"::text
+       LEFT JOIN LATERAL (
+         SELECT "node" FROM "person_nodes" q
+         WHERE q."owner_account" = s."owner_account"::text
+         ORDER BY q."set_at" DESC, q."node" LIMIT 1
+       ) p ON TRUE
        ORDER BY s."name""#,
     vec![],
   )

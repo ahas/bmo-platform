@@ -104,6 +104,7 @@ fn template(role: &str) -> RoleAgent {
     added_at: 1,
     owner_account: None,
     owner_unit: None,
+    home_node: None,
     follows_asker: None,
   }
 }

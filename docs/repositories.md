@@ -125,7 +125,11 @@ preamble, the workbench, the dev server — is `docs/worker-bench.md`.
   item names them, and may change them before it launches it, choosing from what it has learned of the work and
   of its agents, unless the owner named them himself. The job runs as its agent's role, goes out on that
   agent's road — its provider, model and effort — and is let in on that agent alone, waiting for it however
-  long its provider cannot answer, never on another agent of the role and never on another road.
+  long its provider cannot answer, never on another agent of the role and never on another road. Its slot ask
+  belongs to that agent's account (`docs/role-slots.md`, 「Accounts」) and its run stands on that agent's home
+  node (`docs/role-agents.md`, 「What an agent is」). Where the named agent leaves the register, moves to
+  another role or to an account the ask cannot belong to, the job is ended failed at once with that reason in
+  its report, and never left waiting in `starting` on a seat that can never open.
 - **A name agency does not hold is refused as it is set.** The job service refuses an item filed, or an
   `agent`, `role` or `model` label changed, naming an agent, a role or a model agency does not hold, from the
   values agency publishes to it (`docs/agent-control.md`, 「A label agency does not hold is refused as it is

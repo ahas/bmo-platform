@@ -227,7 +227,10 @@ async fn a_persons_pc_is_stood_up_by_itself_once_its_hub_holds_it_and_again_past
   // u6 is off, u7 newly joined with no workplace, u8 left missing longer ago than the while, u9 just now; u5 is a
   // hub node no account's record names, left missing, which is checked again as any node is.
   for (account, node) in [("6", "u6"), ("7", "u7"), ("8", "u8"), ("9", "u9")] {
-    agency_server::person_nodes::set(db, account, node, false).await.unwrap().unwrap();
+    agency_server::person_nodes::set(db, account, node, false, false)
+      .await
+      .unwrap()
+      .unwrap();
   }
   for (node, checked_at) in [("u5", now - 3600 * 24), ("u8", now - again), ("u9", now - 1)] {
     scratch
@@ -280,7 +283,10 @@ async fn a_ready_workplace_gets_its_spec_over_the_node_services_login_or_its_hub
   crate::support::rows::repository(scratch.db(), "worker", "~/work", &[("node", "n1".into())]).await;
   // A supervisor of an account whose node is the PC u7.
   crate::support::rows::supervisor(scratch.db(), "u7-bmo", &[("owner_account", 7i64.into())]).await;
-  agency_server::person_nodes::set(scratch.db(), "7", "u7", false).await.unwrap().unwrap();
+  agency_server::person_nodes::set(scratch.db(), "7", "u7", false, false)
+    .await
+    .unwrap()
+    .unwrap();
   std::fs::create_dir_all(trees.path().join("data/nodes/n1")).unwrap();
   std::fs::write(
     trees.path().join("data/nodes/n1/setup.json"),
@@ -478,7 +484,7 @@ async fn each_account_sharing_a_node_keeps_its_supervisors_folders_under_a_root_
 
   for (supervisor, account) in [("u7-bmo", 7i64), ("u8-bmo", 8i64)] {
     crate::support::rows::supervisor(db, supervisor, &[("owner_account", account.into())]).await;
-    agency_server::person_nodes::set(db, &account.to_string(), "u7", true)
+    agency_server::person_nodes::set(db, &account.to_string(), "u7", true, false)
       .await
       .unwrap()
       .unwrap();
@@ -551,7 +557,7 @@ async fn a_program_on_a_lent_login_is_let_go_from_a_node_other_accounts_share_be
   for (account, node, shared) in
     [("7", "pc-shared", true), ("8", "pc-shared", true), ("9", "pc-nine", false)]
   {
-    person_nodes::set(db, account, node, shared).await.unwrap().unwrap();
+    person_nodes::set(db, account, node, shared, false).await.unwrap().unwrap();
   }
 
   for (name, owner) in [("u7", 7i64), ("u7-own", 7), ("u8", 8), ("u9", 9)] {

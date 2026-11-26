@@ -18,7 +18,7 @@ async fn a_running_server_answers_who_reaches_a_node_and_whether_its_link_is_up(
 
   std::fs::create_dir_all(&data).unwrap();
   supervisor(scratch.db(), "u7", &[("owner_account", 7i64.into())]).await;
-  person_nodes::set(scratch.db(), "7", "pc-7", true).await.unwrap().unwrap();
+  person_nodes::set(scratch.db(), "7", "pc-7", true, false).await.unwrap().unwrap();
   scratch
     .run(
       r#"INSERT INTO "node_workplaces" ("node", "root", "home", "state", "created_at", "updated_at")
@@ -51,7 +51,22 @@ async fn a_running_server_answers_who_reaches_a_node_and_whether_its_link_is_up(
       root: Some("/home/tester/node-root/accounts/7".into()),
     }
   );
-  assert_eq!(ask("?agent=%20").await.unwrap().status().as_u16(), 400);
+  let blank = ask("?agent=%20").await.unwrap();
+
+  assert_eq!(blank.status().as_u16(), 200);
+  assert_eq!(
+    blank.json::<NodeAccess>().await.unwrap(),
+    NodeAccess {
+      node: "pc-7".into(),
+      owners: vec!["7".into()],
+      agent: String::new(),
+      account: None,
+      administrator: false,
+      reaches: false,
+      root: None,
+    },
+    "a blank agent names no caller: the owners alone are answered, as the node service's read asks them"
+  );
 
   std::fs::create_dir_all(data.join("nodes/pc-7")).unwrap();
   std::fs::write(

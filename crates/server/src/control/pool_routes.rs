@@ -148,6 +148,7 @@ impl Route for SlotAsk {
       session: optional(&body, "session"),
       title: optional(&body, "title"),
       asked_by,
+      account: None,
     };
     let request = dispatch::enqueue(call.ground(), &asked, source, async |_, _| Ok(()))
       .await

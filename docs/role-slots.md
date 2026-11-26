@@ -40,7 +40,8 @@ is and which one a run takes is `docs/role-agents.md`.
 
 - **A slot belongs to an account:** the account of the supervisor its ask names as `askedBy`, as that supervisor's
   row names its owner account, or none, the deployment's own, where no supervisor asked or the one that did belongs
-  to none. It is kept on the request as `account`.
+  to none. A job's ask belongs instead to the account of the agent its item named: the job runs on that agent's
+  seat, and a job naming no agent belongs to the deployment's own. It is kept on the request as `account`.
 - **A slot is let in only on the agents its account may take,** counted against its account's cap — the number of
   its role's agents that are switched on and stand either under that account or under a unit of that account's
   path (`docs/role-agents.md`, 「A unit's seats run their people's work」) — and against its account's slots of the

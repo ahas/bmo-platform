@@ -7,16 +7,28 @@ desktop coding agent whose models and tools are served from elsewhere.
 
 ## Which node is a person's
 
-- **A person's node is the node agency's record names for their account:** the hub node of the machine their
-  account was bound to when its invitation was proven, `u<user>` (the account service's `docs/accounts.md`,
-  「Invitations and a person's machine」), or another the administrator bound it to. Agency keeps one record an
-  account, set and taken away by the service that binds the account (`docs/api.md`, 「person-nodes」), or with
-  `bmo-agency node person`; it names a node the node service keeps as a hub node reserved for no service. The
-  node service lists it as any hub node (`docs/work-nodes.md`, 「In herdr」). Several accounts' records name one
-  node only where the administrator declared it shared for each (「Several accounts on one node」).
-- **An account with no record has its isolation node on this machine** (`docs/account-isolation.md`), and the
-  administrator's account none: its runs are the owner's own. So every account but the administrator's works on a
-  node of its own.
+- **A person's own node is the machine agency's `own` record names for their account:** the hub node of the
+  machine their account was bound to when its invitation was proven, `u<user>` (the account service's
+  `docs/accounts.md`, 「Invitations and a person's machine」). An account has one own node, and may be
+  **designated** onto further nodes besides it: an account holds one record a node it stands on, many accounts
+  stand on one node and one account on many, each set and taken away on its own by the service that binds the
+  account or by the administrator (`docs/api.md`, 「person-nodes」), and each names a node the node service keeps
+  as a hub node. The node service lists them as any hub nodes (`docs/work-nodes.md`, 「In herdr」). A node one
+  account holds as its own belongs to it alone: no other account, the administrator's call included, is
+  designated onto it or takes it as its own. A node that is no one's own is the platform's, and an account
+  comes onto it only by designation, shared records of those that declare it working under roots of their own
+  (「Several accounts on one node」).
+- **A node an account stands on lends the account its place and nothing else:** it does not own the account's
+  agents nor judge what they run. Which node a run of an agent stands on is the agent's home
+  (`docs/role-agents.md`, 「What an agent is」), chosen from the nodes of its account — its own machine and its
+  designations — and, for a home the platform's call writes, a platform node; where an agent names no home and
+  the run is not a job's at its worker's, the account's own node places it, its newest designation where it has
+  no own node.
+- **The administrator's account needs no records: its own node is this machine.** Its runs are the owner's own
+  and stand here whatever records name it, and the administrator is the one account that places agents on
+  platform nodes. Any other account with no record waits on the node its invitation binds it to, its isolation
+  node standing in place until then (`docs/account-isolation.md`). So every account but the administrator's
+  comes to the platform with a node of its own.
 - **An account's runs go there and nowhere else:**
   - its supervisors' sessions: a supervisor of the account stands on the node as a worker of a node does, its
     head, its room panes and every turn of it in the node's herdr session;

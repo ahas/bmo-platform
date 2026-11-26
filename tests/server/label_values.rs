@@ -17,6 +17,7 @@ fn agent(name: &str, role: &str, road: Option<(&str, &str)>, enabled: bool) -> R
     role: role.to_owned(),
     owner_account: None,
     owner_unit: None,
+    home_node: None,
     provider: road.map(|(provider, _)| provider.to_owned()),
     model: road.map(|(_, model)| model.to_owned()),
     effort: None,

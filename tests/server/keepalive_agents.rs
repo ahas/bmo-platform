@@ -37,6 +37,7 @@ fn agent(enabled: bool, keeps_cache: bool) -> RoleAgent {
     added_at: 0,
     owner_account: None,
     owner_unit: None,
+    home_node: None,
     follows_asker: None,
   }
 }

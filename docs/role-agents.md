@@ -11,6 +11,14 @@ holds is `docs/agent-roles.md`; how a run waits for its turn is `docs/role-slots
   thing: the agent it is let in on is the seat it holds, and an agent busy with one run takes no other
   (「When an agent is busy」 below). A role with three agents has three of its runs at work at once, and a role
   with none runs nothing.
+- **An agent has a home node.** Its runs go out there: the machine that carries the session of the agent,
+  chosen by the administrator from the nodes it may place agents on. None names this machine, the
+  deployment's own default; a named home is a hub node the node service keeps (docs/person-nodes.md,
+  「Which node is a person's」). A person's agent only stands on a node its account stands on, which the
+  binding of the person's machine gives; nodes no account stands on — the administrator's machine among
+  them — are the platform's own and take an agent only the platform's call writes home to them. A node lends
+  its place and no more: it neither owns the agent nor judges what the agent may run, and a place that
+  cannot be given ends the run with the reason rather than leaving it to wait.
 - **An agent's road is fixed.** It names one provider, one model of it and the effort, thinking and advisor
   its runs go out with there. Its runs go out on that road and never on another: an agent whose provider cannot answer
   now, or has no quota, takes no run until it can, and no run of its moves to another provider. An agent that

@@ -53,6 +53,7 @@ fn advised(name: &str, model: &str, advisor: &str) -> agency_server::role_agents
     role: "translating".to_owned(),
     owner_account: None,
     owner_unit: None,
+    home_node: None,
     provider: Some("claude-code".to_owned()),
     model: Some(model.to_owned()),
     effort: None,

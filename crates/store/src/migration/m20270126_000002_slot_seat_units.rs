@@ -4,7 +4,7 @@
 
 use sea_orm_migration::prelude::*;
 
-pub const NAME: &str = "m20270126_000001_slot_seat_units";
+pub const NAME: &str = "m20270126_000002_slot_seat_units";
 
 pub struct Migration;
 

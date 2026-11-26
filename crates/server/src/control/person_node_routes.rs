@@ -75,6 +75,12 @@ impl Route for SetPersonNode {
         .as_bool()
         .ok_or_else(|| Refused::new(StatusCode::BAD_REQUEST, "shared is a boolean").with_field("shared"))?,
     };
+    let own = match body.get("own") {
+      None | Some(Value::Null) => false,
+      Some(own) => own
+        .as_bool()
+        .ok_or_else(|| Refused::new(StatusCode::BAD_REQUEST, "own is a boolean").with_field("own"))?,
+    };
 
     if let Some(why) = person_nodes::refusal(call.ground().peers.node.as_ref(), &node)
       .await
@@ -83,7 +89,7 @@ impl Route for SetPersonNode {
       return Err(Refused::new(StatusCode::UNPROCESSABLE_ENTITY, why).with_code("not-a-hub-node"));
     }
 
-    match person_nodes::set(call.store(), &account, &node, shared).await? {
+    match person_nodes::set(call.store(), &account, &node, shared, own).await? {
       Ok(set) => Ok(answer(StatusCode::OK, read(&call, &set))),
       Err(taken) => Err(Refused::new(StatusCode::CONFLICT, taken.to_string()).with_code("node-taken")),
     }
@@ -101,8 +107,12 @@ impl Route for ClearPersonNode {
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let account = account_of(&call)?;
+    let cleared = match given(&call, "node") {
+      Some(node) => person_nodes::clear_one(call.store(), &account, &node).await?,
+      None => person_nodes::clear(call.store(), &account).await?,
+    };
 
-    if !person_nodes::clear(call.store(), &account).await? {
+    if !cleared {
       return Err(
         Refused::new(StatusCode::NOT_FOUND, format!("account {account} has no node"))
           .with_code("not-found"),
@@ -119,7 +129,8 @@ fn given(call: &Call, name: &str) -> Option<String> {
   call.query(name).map(|value| value.trim().to_owned()).filter(|value| !value.is_empty())
 }
 
-/// `GET /nodes/{nodeName}/access`: whether a caller, named as its tool session's record names it, reaches a node.
+/// `GET /nodes/{nodeName}/access`: whose node it is, and whether a caller named as `agent` reaches it. The
+/// `agent` may stand out: the node service's owners' read wants the owners alone and names no tool session.
 pub struct NodeAccess;
 
 impl Route for NodeAccess {
@@ -133,12 +144,11 @@ impl Route for NodeAccess {
       .filter(|node| !node.is_empty())
       .ok_or_else(|| Refused::new(StatusCode::BAD_REQUEST, "a node is required"))?
       .to_owned();
-    let agent =
-      given(&call, "agent").ok_or_else(|| Refused::new(StatusCode::BAD_REQUEST, "agent is required"))?;
+    let agent = given(&call, "agent");
     let role = given(&call, "role");
     let checkout = given(&call, "checkout");
     let caller = person_nodes::Caller {
-      agent: &agent,
+      agent: agent.as_deref().unwrap_or_default(),
       role: role.as_deref(),
       checkout: checkout.as_deref(),
     };

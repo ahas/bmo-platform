@@ -71,19 +71,38 @@ impl NodeService for TwoNodes {
   }
 }
 
-// "an account's node is set, replaced, listed and taken away"
+// "an account's nodes are set, kept one a node, listed and taken away"
 #[tokio::test]
-async fn an_account_s_node_is_set_replaced_listed_and_taken_away() {
+async fn an_account_s_nodes_are_set_kept_one_a_node_listed_and_taken_away() {
   let scratch = Scratch::new().await;
   let db = scratch.db();
 
-  person_nodes::set(db, "7", "box", false).await.unwrap().unwrap();
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "box", false, false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
 
   let every = person_nodes::every(db).await.unwrap();
 
-  assert_eq!(every.len(), 1);
-  assert_eq!((every[0].owner_account.as_str(), every[0].node.as_str()), ("7", "pc-7"));
+  assert_eq!(
+    every
+      .iter()
+      .map(|one| (one.owner_account.as_str(), one.node.as_str()))
+      .collect::<Vec<_>>(),
+    [("7", "box"), ("7", "pc-7")],
+    "an account stands on several nodes, one record each; setting another leaves the first standing"
+  );
+  assert_eq!(
+    person_nodes::node_of(db, "7").await.unwrap().as_deref(),
+    Some("pc-7"),
+    "the newest record places the account's runs"
+  );
+  assert!(person_nodes::clear_one(db, "7", "pc-7").await.unwrap());
+  assert!(!person_nodes::clear_one(db, "7", "pc-7").await.unwrap());
+  assert_eq!(
+    person_nodes::node_of(db, "7").await.unwrap().as_deref(),
+    Some("box"),
+    "taking one node away leaves the account on its other"
+  );
+  assert_eq!(person_nodes::owners_of(db, "box").await.unwrap(), ["7"]);
   assert!(person_nodes::clear(db, "7").await.unwrap());
   assert!(!person_nodes::clear(db, "7").await.unwrap());
   assert_eq!(
@@ -103,22 +122,22 @@ async fn a_node_another_account_s_record_names_is_refused_unless_both_records_ar
     by: by.into(),
   };
 
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
   assert_eq!(
-    person_nodes::set(db, "8", "pc-7", true).await.unwrap(),
+    person_nodes::set(db, "8", "pc-7", true, false).await.unwrap(),
     Err(taken("7")),
     "7's is not shared"
   );
 
-  person_nodes::set(db, "7", "pc-7", true).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", true, false).await.unwrap().unwrap();
   assert_eq!(
-    person_nodes::set(db, "8", "pc-7", false).await.unwrap(),
+    person_nodes::set(db, "8", "pc-7", false, false).await.unwrap(),
     Err(taken("7")),
     "8's is not shared"
   );
-  person_nodes::set(db, "8", "pc-7", true).await.unwrap().unwrap();
+  person_nodes::set(db, "8", "pc-7", true, false).await.unwrap().unwrap();
   assert_eq!(
-    person_nodes::set(db, "7", "pc-7", false).await.unwrap(),
+    person_nodes::set(db, "7", "pc-7", false, false).await.unwrap(),
     Err(taken("8")),
     "an account sharing a node cannot take it back to itself while another shares it"
   );
@@ -165,7 +184,7 @@ async fn a_supervisor_of_an_account_stands_on_its_node_and_one_of_no_account_or_
   rows::supervisor(db, "u8", &[("owner_account", 8i64.into())]).await;
   rows::supervisor(db, "u9", &[("owner_account", 9i64.into())]).await;
   rows::supervisor(db, "bmo", &[]).await;
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
   scratch
     .run(r#"INSERT INTO "settings" ("key", "value") VALUES ('users_administrator', '9')"#, vec![])
     .await;
@@ -212,7 +231,7 @@ async fn a_role_run_stands_on_its_seat_s_account_s_node_and_one_on_the_deploymen
       )
       .await;
   }
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
 
   let placed = |seat: &'static str| composed_as(seat.to_owned(), run_placed(db, Some("coder"), "/work"));
   let on = |account: Option<&str>, node: Option<&str>| RunPlaced {
@@ -407,7 +426,7 @@ async fn a_waiting_run_s_placement_is_read_from_the_present_records_and_a_role_r
   };
 
   rows::supervisor(db, "u7", &[("owner_account", 7i64.into())]).await;
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
 
   let session = SessionId("coder@apart:3".to_owned());
   let name = agency_server::apart_places::place_name(&session);
@@ -471,8 +490,8 @@ async fn an_account_s_caller_reaches_its_own_account_s_node_alone_and_a_supervis
       vec![],
     )
     .await;
-  person_nodes::set(db, "7", "pc-7", true).await.unwrap().unwrap();
-  person_nodes::set(db, "9", "pc-7", true).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", true, false).await.unwrap().unwrap();
+  person_nodes::set(db, "9", "pc-7", true, false).await.unwrap().unwrap();
   scratch
     .run(
       r#"INSERT INTO "node_workplaces" ("node", "root", "home", "state", "created_at", "updated_at")
@@ -631,7 +650,7 @@ async fn a_role_session_s_turn_runs_as_the_seat_of_its_slot_one_asked_with_no_pa
       vec![seat.clone().into()],
     )
     .await;
-  person_nodes::set(db, "7", "pc-7", false).await.unwrap().unwrap();
+  person_nodes::set(db, "7", "pc-7", false, false).await.unwrap().unwrap();
   dispatch::bind_session(db, &ground.events, &active.token, "worker@run:1").await.unwrap();
 
   assert_eq!(

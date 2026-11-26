@@ -484,12 +484,15 @@ async fn no_login_is_lent_to_a_person_whose_node_other_accounts_share() {
   );
 
   // Declared shared but alone on it, the person is lent the login.
-  person_nodes::set(scratch.db(), &person, "pc-shared", true).await.unwrap().unwrap();
+  person_nodes::set(scratch.db(), &person, "pc-shared", true, false)
+    .await
+    .unwrap()
+    .unwrap();
   assert_eq!(person_nodes::shared_node(scratch.db(), &person).await.unwrap(), None);
   assert_eq!(carried(&scratch, Carrying::Lent(PERSON)).await, ["owner"]);
 
   // Another account on the same PC, and nothing is lent to either.
-  person_nodes::set(scratch.db(), "8", "pc-shared", true).await.unwrap().unwrap();
+  person_nodes::set(scratch.db(), "8", "pc-shared", true, false).await.unwrap().unwrap();
   assert_eq!(
     person_nodes::shared_node(scratch.db(), &person).await.unwrap().as_deref(),
     Some("pc-shared")
@@ -513,7 +516,8 @@ async fn no_login_is_lent_to_a_person_whose_node_other_accounts_share() {
   }
 
   // The other account moved to a PC of its own, the person's PC is theirs alone again.
-  person_nodes::set(scratch.db(), "8", "pc-eight", false).await.unwrap().unwrap();
+  person_nodes::set(scratch.db(), "8", "pc-eight", false, false).await.unwrap().unwrap();
+  person_nodes::clear_one(scratch.db(), "8", "pc-shared").await.unwrap();
 
   let chosen = going(choose(&ground, &asked(Some(PERSON), "claude-code")).await.unwrap());
 
