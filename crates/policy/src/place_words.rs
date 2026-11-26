@@ -4,6 +4,16 @@
 
 use serde::Deserialize;
 
+/// A job's run shown in the place of the session it works in: the item it works, {item}, the seat agent
+/// doing its work, {agent}, and the {between} the parts named are joined with.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobPlace {
+  pub item: String,
+  pub agent: String,
+  pub between: String,
+}
+
 /// The notes a worker's log is given when its pane's program is replaced for its pin.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -20,6 +30,7 @@ pub struct PlaceWords {
   pub copy_label: String,
   pub dev_tab: String,
   pub coworker_place: String,
+  pub job_place: JobPlace,
   pub standby: Standby,
 }
 

@@ -3023,10 +3023,18 @@ agent's character.
   - **Every turn of a resident supervisor goes into its head** — a chat round, a keepalive, a fold — and
     **every structured execution of a host agent runs in the agent host and shows in its head** — a
     search's coordinator, one room's sort — so none of them opens a pane.
-- **Every run of a role stands in a workspace of its own,** opened for the run and labelled with what the
-  run is, its role and its model, and closed with the run (`docs/agents.md`, 「A run in a pane of its
-  own」). A co-work branch's workspace is labelled with its task (`#721 scout 01`), as its place names it
-  (`docs/role-slots.md`, 「Standing branch checkouts and their list」).
+- **Every run of a role stands in a workspace of its own,** opened for the run and closed with it
+  (`docs/agents.md`, 「A run in a pane of its own」). What its label names is what whoever reads the sidebar is
+  looking for.
+  - **A run that opens its own pane** is labelled with what the run is, its role and its model.
+  - **A run whose turns go into the place of its own session** is labelled with the job it works: the run's
+    own name, the item it works and the seat agent that does its work (`job-814206 · #721 · coder-01`). The
+    item is left out where the job holds none and the agent where the job has none yet; a run that works for
+    no job, and one whose job cannot be read, is labelled with that place's own name. The name a place is
+    kept under — its folder, its record, its lock and the key the sweeps read it by — never moves with the
+    label it is shown by.
+  - **A co-work branch's workspace** is labelled with its task (`#721 scout 01`), as its place names it
+    (`docs/role-slots.md`, 「Standing branch checkouts and their list」).
 - **What still stands beside a head stands in a tab of its own:** a run apart from the supervisor's
   program. `layout.apply` given only `workspace_id` makes a new tab running the
   command in that workspace. Nothing is split into the head's tab and nothing is moved into it.

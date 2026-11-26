@@ -9,6 +9,7 @@ mod relays;
 
 mod agent_fold;
 mod agent_roles;
+mod apart_places;
 mod apart_session;
 mod apps;
 mod attachments;

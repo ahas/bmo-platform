@@ -74,8 +74,9 @@ impl Job {
     RUNNING.contains(&self.state.as_str())
   }
 
-  /// The run the job's lines stand under where no turn of it works now.
-  fn own_run(&self) -> String {
+  /// The run the job's lines stand under where no turn of it works now, and the name the job is read by: the
+  /// one its row holds, or one made from its own id where the row holds none.
+  pub fn own_run(&self) -> String {
     self.run.clone().unwrap_or_else(|| format!("job-{}", self.id))
   }
 

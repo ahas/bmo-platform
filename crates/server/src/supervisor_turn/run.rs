@@ -372,9 +372,10 @@ fn failed(ending: &Ending) -> String {
 }
 
 /// The label an agent's place is shown by and the node it stands on, as the store and its place say now; none
-/// where no agent of the name stands. A gate place and a thrown-away session's place stand under no agent's row,
-/// by their own names (docs/agent-control.md, 「A gate's places」; docs/api.md, 「sessions」), and a thrown-away
-/// session's place of an account is placed by that account's present record.
+/// where no agent of the name stands. A gate place and a thrown-away session's place stand under no agent's row
+/// (docs/agent-control.md, 「A gate's places」; docs/api.md, 「sessions」): a gate place and a thrown-away place
+/// of a run that works for no job by their own names, and a thrown-away place where a job's run works by that
+/// job. A thrown-away session's place of an account is placed by that account's present record.
 pub async fn placed(ground: &Ground, agent: &str) -> Result<Option<(String, Option<String>)>, Refusal> {
   if let Some(row) = AgentRow::named(&ground.db, agent).await? {
     return Ok(Some((row.shown().to_owned(), row.node)));
@@ -385,7 +386,9 @@ pub async fn placed(ground: &Ground, agent: &str) -> Result<Option<(String, Opti
   }
 
   if crate::apart_places::is_apart_place(&ground.roots.data, agent) {
-    return Ok(Some((agent.to_owned(), crate::apart_places::placed_now(ground, agent).await?)));
+    let shown = crate::apart_places::label(ground, agent).await;
+
+    return Ok(Some((shown, crate::apart_places::placed_now(ground, agent).await?)));
   }
 
   Ok(None)

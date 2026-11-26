@@ -139,7 +139,11 @@ pub async fn stand_all(places: &Places) {
       continue;
     }
 
-    if let Some(home) = ground.home_of(&name, &name) {
+    // A thrown-away place is stood under the label it shows, so replacing its head never writes the
+    // place's own name over the job its run works.
+    let shown = crate::apart_places::label(ground, &name).await;
+
+    if let Some(home) = ground.home_of(&name, &shown) {
       replace_other_heads(&home, &busy).await;
     }
   }

@@ -116,8 +116,9 @@ flowchart TD
 ```
 
 - **Each run is the interactive program in a pane of its own,** opened for the run in a workspace of its
-  own, labelled with what the run is, its role and its model, and closed with the run. Two runs of one role
-  at once are two panes, so overlapping jobs, searches and branches never wait on each other's program.
+  own, its workspace labelled for whoever watches it (`docs/agent-control.md`, 「What goes where」), and closed
+  with the run. Two runs of one role at once are two panes, so overlapping jobs, searches and branches never
+  wait on each other's program.
 - **Its command is its line's,** without print mode: the model and effort its road names, the tools
   it is shown, denied or allowed, the MCP configuration, the permission mode and the system prompt, and the
   session its role's setting gives it.

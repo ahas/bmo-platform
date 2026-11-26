@@ -9,6 +9,8 @@
 use std::path::Path;
 
 use agent_session::SessionId;
+use policy::fill_marks;
+use policy::place_words::PLACE_WORDS;
 use serde_json::{Value, json};
 
 use crate::Refusal;
@@ -38,20 +40,68 @@ pub fn is_apart_place(data: &Path, name: &str) -> bool {
     .is_some_and(|record| record["place"] == name)
 }
 
-/// The agent whose thrown-away session a place is, as its record names the session: the name before the
-/// session's `@`; none for a name that is no such place.
-pub fn session_agent(data: &Path, name: &str) -> Option<String> {
+/// The session a thrown-away session's place stands for, as its record names it; none for a name that is no
+/// such place or whose record names no session.
+pub fn session_of(data: &Path, name: &str) -> Option<String> {
   let record = agent_host::disk::read_json::<Value>(&Place::of(data, name).path.join(PLACE_RECORD))?;
 
   if record["place"] != name {
     return None;
   }
 
-  record["session"]
-    .as_str()
-    .and_then(|session| session.split('@').next())
-    .filter(|agent| !agent.is_empty())
-    .map(str::to_owned)
+  record["session"].as_str().filter(|session| !session.is_empty()).map(str::to_owned)
+}
+
+/// The agent whose thrown-away session a place is, as its record names the session: the name before the
+/// session's `@`; none for a name that is no such place.
+pub fn session_agent(data: &Path, name: &str) -> Option<String> {
+  let session = session_of(data, name)?;
+
+  session.split('@').next().filter(|agent| !agent.is_empty()).map(str::to_owned)
+}
+
+/// A job's run as the place it works in is shown to a person: the run's own name, the item it works where
+/// the job holds one, and the seat agent that does its work where the job has one yet, joined as the place's
+/// words join them.
+pub fn job_label(run: &str, item: Option<i64>, agent: Option<&str>) -> String {
+  let words = &PLACE_WORDS.job_place;
+  let mut parts = vec![run.to_owned()];
+
+  if let Some(item) = item {
+    parts.push(fill_marks(&words.item, &[("item", &item.to_string())]));
+  }
+
+  if let Some(agent) = agent {
+    parts.push(fill_marks(&words.agent, &[("agent", agent)]));
+  }
+
+  parts.join(&words.between)
+}
+
+/// What a thrown-away session's place is shown as by a person reading herdr: the job whose run works in it,
+/// named by its run, its item and the agent that does its work; the place's own name for a place that stands
+/// for no session, for a run that works for no job, and for a place whose job cannot be read. The name a
+/// place is kept under — its folder, its record, its lock and the key the sweeps read it by — never moves
+/// with this label.
+pub async fn label(ground: &Ground, name: &str) -> String {
+  let Some(session) = session_of(&ground.roots.data, name) else {
+    return name.to_owned();
+  };
+  let job = match crate::job_words::of_session(&ground.db, &session).await {
+    Ok(Some(job)) => job,
+    Ok(None) => return name.to_owned(),
+    Err(why) => {
+      eprintln!("{name}: its job was not read, so its place keeps its own name: {}", why.detail);
+
+      return name.to_owned();
+    }
+  };
+
+  job_label(
+    &job.own_run(),
+    (job.item > 0).then_some(job.item),
+    job.agent.as_deref().filter(|agent| !agent.is_empty()),
+  )
 }
 
 /// Every thrown-away session's place standing now, by its name.
@@ -133,7 +183,8 @@ pub async fn end(ground: &Ground, name: &str) {
     token::revoke(ground, token).await;
   }
 
-  match ground.home_on(name, name, node.as_deref()).await {
+  // Stood under the label the place shows, since a herdr that lost its tokens finds a home by that label.
+  match ground.home_on(name, &label(ground, name).await, node.as_deref()).await {
     Ok(Some(home)) => {
       let _ = home.close().await;
     }
