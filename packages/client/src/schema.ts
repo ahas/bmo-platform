@@ -6158,6 +6158,11 @@ export interface components {
             /** @description Whether the administrator declared the node shared for the account. */
             shared: boolean;
             /**
+             * @description Whether this is the account's own machine.
+             * @default false
+             */
+            own: boolean;
+            /**
              * Format: int64
              * @description epoch milliseconds
              */
