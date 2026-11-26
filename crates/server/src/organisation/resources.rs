@@ -199,6 +199,114 @@ impl<'a> Reach<'a> {
       }
     }
   }
+
+  /// The agents whose log a member reaches, from the names a log read stands on: a name's owner is the owners
+  /// of its agent row where the agency still holds one, else the owners a ledger run of that agent was opened
+  /// on, else neither, which is the platform's own and stands in no member's log. The platform's call keeps
+  /// every name (docs/api.md, 「Who a caller acts for」).
+  pub async fn reached_agents(&mut self, names: &[String]) -> Result<Vec<String>, Refused> {
+    if names.is_empty() {
+      return Ok(Vec::new());
+    }
+
+    if matches!(self.acting, Acting::Platform) {
+      return Ok(names.to_vec());
+    }
+
+    let held = store::all(
+      &self.ground.db,
+      r#"SELECT 1 AS "first", "name", "owner_account", "owner_unit" FROM "supervisors"
+           WHERE "name" IN (SELECT jsonb_array_elements_text($1::jsonb))
+         UNION ALL
+         SELECT 2, "name", "owner_account", "owner_unit" FROM "role_agents"
+           WHERE "name" IN (SELECT jsonb_array_elements_text($1::jsonb))
+         UNION ALL
+         SELECT DISTINCT 3, "agent", "owner_account", "owner_unit" FROM "runs"
+           WHERE "agent" IN (SELECT jsonb_array_elements_text($1::jsonb))
+         ORDER BY 2, 1"#,
+      vec![serde_json::to_string(names).unwrap_or_else(|_| "[]".to_owned()).into()],
+    )
+    .await?;
+    let mut owners: HashMap<String, (Option<i64>, Option<i64>)> = HashMap::new();
+
+    for row in held.iter() {
+      let name: String = row.try_get("", "name")?;
+      let pair = (
+        row.try_get::<Option<i64>>("", "owner_account")?,
+        row.try_get::<Option<i64>>("", "owner_unit")?,
+      );
+
+      owners.entry(name).or_insert(pair);
+    }
+
+    let mut reached = Vec::new();
+
+    for name in names {
+      let (account, unit) = owners.get(name).copied().unwrap_or((None, None));
+
+      if self.reaches_row(account, unit).await? {
+        reached.push(name.clone());
+      }
+    }
+
+    Ok(reached)
+  }
+
+  /// The owner pairs a member's aggregate read keeps, from the pairs the data shows: the accounts and units
+  /// the caller reaches, written for the read's queries to filter by. The platform's call narrows nothing and
+  /// answers none here, which its reads read as no filter at all (docs/api.md, 「Who a caller acts for」).
+  pub async fn owners_among(
+    &mut self,
+    pairs: &[(Option<i64>, Option<i64>)],
+  ) -> Result<Option<Owners>, Refused> {
+    if matches!(self.acting, Acting::Platform) {
+      return Ok(None);
+    }
+
+    let mut accounts = Vec::new();
+    let mut units = Vec::new();
+
+    for (account, unit) in pairs.iter().copied() {
+      if !self.reaches_row(account, unit).await? {
+        continue;
+      }
+
+      match (account, unit) {
+        (Some(account), _) if !accounts.contains(&account) => accounts.push(account),
+        (None, Some(unit)) if !units.contains(&unit) => units.push(unit),
+        _ => {}
+      }
+    }
+
+    Ok(Some(Owners { accounts, units }))
+  }
+}
+
+/// The owners a member's aggregate read keeps: the accounts and the units standing under the pairs the data
+/// shows that the caller reaches. The predicate is written into a query as whole numbers only, which is why
+/// these carry no parameters of their own.
+pub struct Owners {
+  accounts: Vec<i64>,
+  units: Vec<i64>,
+}
+
+impl Owners {
+  /// The rows kept, as SQL over the two owner columns named by `account` and `unit`: one's own account's, or a
+  /// unit's the caller heads; the platform's rows, filed under neither, stand for the platform's call alone.
+  pub fn predicate(&self, account: &str, unit: &str) -> String {
+    let accounts = owned(&self.accounts);
+    let units = owned(&self.units);
+
+    format!(r#"({account} = ANY({accounts}) OR ({account} IS NULL AND {unit} = ANY({units})))"#)
+  }
+}
+
+// A list of whole numbers as a SQL array; an empty one is typed, so the comparison still reads.
+fn owned(ids: &[i64]) -> String {
+  match ids.is_empty() {
+    true => "ARRAY[]::bigint[]".to_owned(),
+    false => format!("ARRAY[{}]", ids.iter().map(i64::to_string).collect::<Vec<_>>().join(", ")),
+  }
 }
 
 /// The unit and every unit under it, as the account service's subtree answers them to the reader; empty where

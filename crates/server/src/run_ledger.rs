@@ -402,18 +402,26 @@ pub async fn spent_by_round<C: ConnectionTrait>(
   db: &C,
   after: i64,
   before: i64,
+  keep: Option<&str>,
 ) -> Result<Vec<RoundSpend>, Refusal> {
+  let kept = match keep {
+    Some(predicate) => format!(r#" AND {predicate}"#),
+    None => String::new(),
+  };
+
   all(
     db,
-    r#"SELECT "round", COUNT(*) AS "turns",
+    &format!(
+      r#"SELECT "round", COUNT(*) AS "turns",
               SUM("input_tokens")::bigint AS "input_tokens", SUM("output_tokens")::bigint AS "output_tokens",
               SUM("cache_read_tokens")::bigint AS "cache_read_tokens",
               SUM("cache_write_tokens")::bigint AS "cache_write_tokens", SUM("cost_micros")::bigint AS "cost_micros",
               MIN("started_at") AS "first_at", MAX("started_at") AS "last_at"
        FROM "runs"
-       WHERE "round" IS NOT NULL AND "input_tokens" IS NOT NULL AND "started_at" >= $1 AND "started_at" <= $2
+       WHERE "round" IS NOT NULL AND "input_tokens" IS NOT NULL AND "started_at" >= $1 AND "started_at" <= $2{kept}
        GROUP BY "round"
-       ORDER BY SUM("input_tokens" + "output_tokens" + "cache_read_tokens" + "cache_write_tokens") DESC, "round""#,
+       ORDER BY SUM("input_tokens" + "output_tokens" + "cache_read_tokens" + "cache_write_tokens") DESC, "round""#
+    ),
     vec![after.into(), before.into()],
   )
   .await?

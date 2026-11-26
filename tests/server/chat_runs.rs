@@ -311,7 +311,7 @@ async fn every_turn_of_a_round_keeps_what_it_spent_and_the_usage_groups_it_by_ro
   assert_eq!(read.spent, spent(1000, 50));
   assert_eq!(run_ledger::read(scratch.db(), silent).await.unwrap().unwrap().spent, None);
 
-  let rounds = run_ledger::spent_by_round(scratch.db(), now - 60_000, now).await.unwrap();
+  let rounds = run_ledger::spent_by_round(scratch.db(), now - 60_000, now, None).await.unwrap();
 
   assert_eq!(rounds.len(), 2, "{rounds:?}");
   assert_eq!(

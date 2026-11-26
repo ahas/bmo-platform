@@ -136,6 +136,11 @@ a field's exact shape matters, the OpenAPI document is the one to read.
   member may name their own account and a unit they head alone, refused 403 `forbidden` otherwise, and values
   that are not ids or name both axes at once are refused 400. The administrator's and the deployment's own
   calls name any owner and reach every row.
+- **The run log and the usage answer the same reach.** A member's read of the log of a run, an agent or a job
+  meets the lines written under the agents they reach alone, and a note they write goes into such a log only,
+  refused 403 `forbidden` elsewhere; a member's usage figures stand over the work they reach (「log-lines」,
+  「accounts, rest and usage」). The administrator's and the deployment's own calls read and write every line
+  and group over everything.
 - **A person's own supply is theirs alone** (`docs/supply.md`, 「What a person brings」). On `/fallback`,
   `/accounts`, `/claude-logins` and `/personal-supply`, a call naming a person with `Owner-Key` and
   `Owner-Role: member` acts on that person's own Claude accounts and keys alone: what it reads holds no other
@@ -949,6 +954,14 @@ alone, the page just before that line id; with both, the lines between them. Eac
 first and answers `items`, with `more` saying further lines wait the way it was read; `limit` is 500 where
 left out and at most 500.
 
+A signed-in member's read of these routes, and of a job's lines, stands over the agents they reach — one's own
+account's and those of the units they head — alone: a line written under an agent outside that reach goes from
+every page and count, the reached names standing inside the query so a page keeps its cursors whole, and a log
+whose every agent lies outside reads as none stands there. A role's name carries no owner of its own, so its
+page goes on over the agents of it the reader reaches. A note a member posts `POST /log-lines` goes into the
+log of a reached agent only, refused 403 `forbidden` elsewhere; the deployment's own call and the
+administrator's read and write every line (「Who a caller acts for」).
+
 `runId` names a run as its lines were written under it, or a run of the ledger by its id, whose lines
 are the ones written under its unit. Each line answers the ledger's `runId` where the ledger holds its run, and
 that run's `roomId`, `round` and `messageId`, null where it holds none.
@@ -1456,6 +1469,12 @@ round: each group's `tokens` is what its turns spent, `turns` how many there wer
 group carries, the four kinds the spend apart, and `firstAt` and `lastAt` the span they cover; its `jobs`,
 `unsplitJobs` and `unsplitTokens` are 0 and its `contextTokens` null. Every group has the `UsageGroup` shape
 of `docs/openapi.json`. The span is two moments in epoch milliseconds, yesterday to now where none is given.
+
+A signed-in member's usage stands over the work they reach: for the ledger's groupings, the runs filed under
+their own account and under the units they head, and for the job's, the jobs whose run is so filed — a job
+standing on no run by its holder's filing. The platform's own work, filed under neither owner, stands in no
+member's figures, and a member's read answers no `contextTokens`, whose sessions are summed over every
+reader's work (「Who a caller acts for」).
 
 **Personal supply** (`docs/supply.md`, 「What a person brings」) is a person's own keys for the gateway's roads.
 `GET /personal-supply` answers, for a person's call, `items`, each key's `id`, `road` (`codex`, `deepseek` or

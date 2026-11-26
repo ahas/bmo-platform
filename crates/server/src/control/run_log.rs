@@ -141,9 +141,63 @@ impl Route for RunLogLines {
       Some(Ok(id)) => run_ledger::read(call.store(), id).await?.map(|held| held.work_unit),
       _ => None,
     };
+    // Whose lines the reader reaches: a member reads the log only of agents they reach, and the reached names
+    // stand inside the query itself, so a page keeps its cursors whole (docs/api.md, 「Who a caller acts for」).
+    let acting = crate::access::Acting::of(&call)?;
+    let reached = match acting {
+      crate::access::Acting::Platform => None,
+      crate::access::Acting::Person(_) => {
+        let mut reach = crate::organisation::resources::Reach::new(call.ground(), acting);
+        let met = store::all(
+          call.store(),
+          r#"SELECT DISTINCT "agent" FROM "agent_log"
+             WHERE ($1::text IS NULL OR "run" IN ($1, $2))
+               AND ($3::bigint IS NULL OR "job_id" = $3)
+               AND ($4::text IS NULL OR "agent" = $4)
+             LIMIT 500"#,
+          vec![
+            run.clone().into(),
+            unit.clone().or_else(|| run.clone()).into(),
+            job.into(),
+            agent.clone().into(),
+          ],
+        )
+        .await?;
+        let names = met
+          .iter()
+          .map(|row| row.try_get::<String>("", "agent"))
+          .collect::<Result<Vec<_>, _>>()?;
+        let reached = reach.reached_agents(&names).await?;
+
+        if reached.is_empty() {
+          return Ok(answer(StatusCode::OK, json!({ "items": [], "more": false })));
+        }
+
+        Some(reached)
+      }
+    };
+    let reached_sql = match &reached {
+      Some(_) => r#" AND "agent" IN (SELECT jsonb_array_elements_text($9::jsonb))"#,
+      None => "",
+    };
     // Before a cursor with none after it, the nearest lines are the newest of the older ones, so they are read
     // downward and turned back to stand oldest first.
     let downward = before.is_some() && after.is_none();
+    let mut params = vec![
+      run.clone().into(),
+      unit.or(run).into(),
+      job.into(),
+      agent.into(),
+      serde_json::to_string(&kinds).unwrap_or_else(|_| "[]".to_owned()).into(),
+      after.unwrap_or(0).into(),
+      before.into(),
+      (limit + 1).into(),
+    ];
+
+    if let Some(names) = &reached {
+      params.push(serde_json::to_string(names).unwrap_or_else(|_| "[]".to_owned()).into());
+    }
+
     let rows = all(
       call.store(),
       &format!(
@@ -153,20 +207,11 @@ impl Route for RunLogLines {
              AND ($4::text IS NULL OR "agent" = $4)
              AND ($5::jsonb = '[]'::jsonb OR "kind" IN (SELECT jsonb_array_elements_text($5::jsonb)))
              AND "id" > $6
-             AND ($7::bigint IS NULL OR "id" < $7)
+             AND ($7::bigint IS NULL OR "id" < $7){reached_sql}
            ORDER BY "id" {} LIMIT $8"#,
         if downward { "DESC" } else { "ASC" }
       ),
-      vec![
-        run.clone().into(),
-        unit.or(run).into(),
-        job.into(),
-        agent.into(),
-        serde_json::to_string(&kinds).unwrap_or_else(|_| "[]".to_owned()).into(),
-        after.unwrap_or(0).into(),
-        before.into(),
-        (limit + 1).into(),
-      ],
+      params,
     )
     .await?;
     let more = rows.len() as i64 > limit;
@@ -260,6 +305,47 @@ impl Route for AgentLogLines {
     let after = call.query("after").and_then(|after| after.parse::<i64>().ok());
     let at = call.query("at").and_then(|at| at.parse::<i64>().ok());
     let chat = call.query("chat").and_then(|chat| chat.parse::<i64>().ok());
+    // A role's lines stand under its name and the names of its agents; a member reads only the lines of the
+    // agents they reach, and those names alone go into the queries (docs/api.md, 「Who a caller acts for」).
+    let acting = crate::access::Acting::of(&call)?;
+    let reached: Option<Vec<String>> = match acting {
+      crate::access::Acting::Platform => None,
+      crate::access::Acting::Person(_) => {
+        let mut reach = crate::organisation::resources::Reach::new(call.ground(), acting);
+        let own = all(
+          db,
+          &format!(r#"SELECT "name" FROM ({OWN_AGENTS}) AS "own""#),
+          vec![agent.clone().into()],
+        )
+        .await?;
+        let names =
+          own.iter().map(|row| row.try_get::<String>("", "name")).collect::<Result<Vec<_>, _>>()?;
+        let reached = reach.reached_agents(&names).await?;
+
+        if reached.is_empty() {
+          // Nothing the path names stands in this reader's log: it answers as none stands there. A role's name
+          // carries no owner of its own, so the page goes on where any one of its agents is reached.
+          return Ok(answer(StatusCode::OK, json!({ "items": [], "hasMore": false, "hasOlder": false })));
+        }
+
+        Some(reached)
+      }
+    };
+    let names_sql = |at: usize| format!(r#""agent" IN (SELECT jsonb_array_elements_text(${at}::jsonb))"#);
+    let reached_on = |at: usize| match &reached {
+      Some(_) => format!(" AND {}", names_sql(at)),
+      None => String::new(),
+    };
+    let filter_on = |base: &str, at: usize| match &reached {
+      Some(_) if base.is_empty() => names_sql(at),
+      Some(_) => format!("{base}{}", reached_on(at)),
+      None => base.to_owned(),
+    };
+    let reached_param = || {
+      reached
+        .as_ref()
+        .map(|names| serde_json::to_string(names).unwrap_or_else(|_| "[]".to_owned()).into())
+    };
     let rows;
     let mut reversed = false;
     let mut has_older = false;
@@ -269,20 +355,37 @@ impl Route for AgentLogLines {
       // of the unbroken stretch of its run: a run's name is not unique for ever.
       let found = match chat {
         Some(chat) => {
+          let mut params =
+            vec![agent.clone().into(), at.into(), (at + ANCHOR_WINDOW_MS).into(), chat.into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
           one(
             db,
-            &format!(r#"SELECT "id", "run" FROM "agent_log"
-               WHERE {OWN_LINES} AND "chat_id" = $4 AND "at" >= $2 AND "at" <= $3 ORDER BY "id" ASC LIMIT 1"#),
-            vec![agent.clone().into(), at.into(), (at + ANCHOR_WINDOW_MS).into(), chat.into()],
+            &format!(
+              r#"SELECT "id", "run" FROM "agent_log"
+                 WHERE {OWN_LINES} AND "chat_id" = $4 AND "at" >= $2 AND "at" <= $3{r} ORDER BY "id" ASC LIMIT 1"#,
+              r = reached_on(5)
+            ),
+            params,
           )
           .await?
         }
         None => {
+          let mut params = vec![agent.clone().into(), at.into(), (at + ANCHOR_WINDOW_MS).into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
           one(
             db,
-            &format!(r#"SELECT "id", "run" FROM "agent_log"
-               WHERE {OWN_LINES} AND "at" >= $2 AND "at" <= $3 ORDER BY "id" ASC LIMIT 1"#),
-            vec![agent.clone().into(), at.into(), (at + ANCHOR_WINDOW_MS).into()],
+            &format!(
+              r#"SELECT "id", "run" FROM "agent_log"
+                 WHERE {OWN_LINES} AND "at" >= $2 AND "at" <= $3{r} ORDER BY "id" ASC LIMIT 1"#,
+              r = reached_on(4)
+            ),
+            params,
           )
           .await?
         }
@@ -292,18 +395,28 @@ impl Route for AgentLogLines {
         Some(found) => {
           let id: i64 = found.try_get("", "id")?;
           let run: String = found.try_get("", "run")?;
+          let mut params = vec![agent.clone().into(), id.into(), run.clone().into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
           let before_run = one(
             db,
-            &own_lines(r#""id""#, r#""id" < $2 AND "run" <> $3"#, Toward::Older, "1"),
-            vec![agent.clone().into(), id.into(), run.clone().into()],
+            &own_lines(r#""id""#, &filter_on(r#""id" < $2 AND "run" <> $3"#, 4), Toward::Older, "1"),
+            params,
           )
           .await?
           .and_then(|row| row.try_get::<i64>("", "id").ok())
           .unwrap_or(0);
+          let mut params = vec![agent.clone().into(), run.into(), before_run.into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
           let head = one(
             db,
-            &own_lines(r#""id""#, r#""run" = $2 AND "id" > $3"#, Toward::Newer, "1"),
-            vec![agent.clone().into(), run.into(), before_run.into()],
+            &own_lines(r#""id""#, &filter_on(r#""run" = $2 AND "id" > $3"#, 4), Toward::Newer, "1"),
+            params,
           )
           .await?
           .and_then(|row| row.try_get::<i64>("", "id").ok());
@@ -315,52 +428,58 @@ impl Route for AgentLogLines {
 
       if first == 0 {
         // A moment already pruned out of the log, or before its first line: the newest page stands in.
-        rows = all(
-          db,
-          &own_lines(LINE_COLUMNS, "", Toward::Older, "$2"),
-          vec![agent.clone().into(), window.into()],
-        )
-        .await?;
+        let mut params = vec![agent.clone().into(), window.into()];
+
+        if let Some(names) = reached_param() {
+          params.push(names);
+        }
+        rows = all(db, &own_lines(LINE_COLUMNS, &filter_on("", 3), Toward::Older, "$2"), params).await?;
         reversed = true;
       } else {
-        rows = all(
-          db,
-          &own_lines(LINE_COLUMNS, r#""id" > $2"#, Toward::Newer, "$3"),
-          vec![agent.clone().into(), (first - 1).into(), window.into()],
-        )
-        .await?;
-        has_older = one(
-          db,
-          &own_lines(r#""id""#, r#""id" < $2"#, Toward::Older, "1"),
-          vec![agent.clone().into(), first.into()],
-        )
-        .await?
-        .is_some();
+        let mut params = vec![agent.clone().into(), (first - 1).into(), window.into()];
+
+        if let Some(names) = reached_param() {
+          params.push(names);
+        }
+        rows =
+          all(db, &own_lines(LINE_COLUMNS, &filter_on(r#""id" > $2"#, 4), Toward::Newer, "$3"), params)
+            .await?;
+        let mut params = vec![agent.clone().into(), first.into()];
+
+        if let Some(names) = reached_param() {
+          params.push(names);
+        }
+        has_older =
+          one(db, &own_lines(r#""id""#, &filter_on(r#""id" < $2"#, 3), Toward::Older, "1"), params)
+            .await?
+            .is_some();
       }
     } else if let Some(after) = after {
-      rows = all(
-        db,
-        &own_lines(LINE_COLUMNS, r#""id" > $2"#, Toward::Newer, "$3"),
-        vec![agent.clone().into(), after.into(), window.into()],
-      )
-      .await?;
+      let mut params = vec![agent.clone().into(), after.into(), window.into()];
+
+      if let Some(names) = reached_param() {
+        params.push(names);
+      }
+      rows = all(db, &own_lines(LINE_COLUMNS, &filter_on(r#""id" > $2"#, 4), Toward::Newer, "$3"), params)
+        .await?;
     } else {
       rows = match before {
         Some(before) => {
-          all(
-            db,
-            &own_lines(LINE_COLUMNS, r#""id" < $2"#, Toward::Older, "$3"),
-            vec![agent.clone().into(), before.into(), window.into()],
-          )
-          .await?
+          let mut params = vec![agent.clone().into(), before.into(), window.into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
+          all(db, &own_lines(LINE_COLUMNS, &filter_on(r#""id" < $2"#, 4), Toward::Older, "$3"), params)
+            .await?
         }
         None => {
-          all(
-            db,
-            &own_lines(LINE_COLUMNS, "", Toward::Older, "$2"),
-            vec![agent.clone().into(), window.into()],
-          )
-          .await?
+          let mut params = vec![agent.clone().into(), window.into()];
+
+          if let Some(names) = reached_param() {
+            params.push(names);
+          }
+          all(db, &own_lines(LINE_COLUMNS, &filter_on("", 3), Toward::Older, "$2"), params).await?
         }
       };
       reversed = true;
@@ -400,6 +519,38 @@ async fn read_body<T: DeserializeOwned>(call: &mut Call, what: &str) -> Result<T
   serde_json::from_value(call.body().await?).map_err(|error| bad(format!("{what}: {error}")))
 }
 
+// The agents whose lines a member reaches among those the job wrote, as the option a job's queries carry a
+// reached-names clause on (docs/api.md, 「Who a caller acts for」).
+async fn job_reached(
+  ground: &crate::places::Ground,
+  db: &sea_orm::DatabaseConnection,
+  acting: crate::access::Acting,
+  job: i64,
+) -> Result<Option<Vec<String>>, Refused> {
+  match acting {
+    crate::access::Acting::Platform => Ok(None),
+    crate::access::Acting::Person(_) => {
+      let mut reach = crate::organisation::resources::Reach::new(ground, acting);
+      let met = all(
+        db,
+        r#"SELECT DISTINCT "agent" FROM "agent_log" WHERE "job_id" = $1 LIMIT 500"#,
+        vec![job.into()],
+      )
+      .await?;
+      let names = met
+        .iter()
+        .map(|row| row.try_get::<String>("", "agent"))
+        .collect::<Result<Vec<_>, _>>()?;
+
+      Ok(Some(reach.reached_agents(&names).await?))
+    }
+  }
+}
+
+fn reached_json(names: &[String]) -> sea_orm::Value {
+  serde_json::to_string(names).unwrap_or_else(|_| "[]".to_owned()).into()
+}
+
 /// A job's last line.
 pub struct JobLastLine;
 
@@ -409,12 +560,20 @@ impl Route for JobLastLine {
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let job = job_of(&call)?;
-    let row = one(
-      call.store(),
-      r#"SELECT "id", "at", "kind", "name" FROM "agent_log" WHERE "job_id" = $1 ORDER BY "id" DESC LIMIT 1"#,
-      vec![job.into()],
-    )
-    .await?;
+    let acting = crate::access::Acting::of(&call)?;
+    let reached = job_reached(call.ground(), call.store(), acting, job).await?;
+    let (sql, params) = match &reached {
+      Some(names) => (
+        r#"SELECT "id", "at", "kind", "name" FROM "agent_log" WHERE "job_id" = $1
+             AND "agent" IN (SELECT jsonb_array_elements_text($2::jsonb)) ORDER BY "id" DESC LIMIT 1"#,
+        vec![job.into(), reached_json(names)],
+      ),
+      None => (
+        r#"SELECT "id", "at", "kind", "name" FROM "agent_log" WHERE "job_id" = $1 ORDER BY "id" DESC LIMIT 1"#,
+        vec![job.into()],
+      ),
+    };
+    let row = one(call.store(), sql, params).await?;
     let Some(row) = row else {
       return Ok(WireError::new(ErrorCode::NotFound, format!("job {job} wrote no line")).into_response());
     };
@@ -449,30 +608,44 @@ impl Route for JobLines {
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let job = job_of(&call)?;
     let db = call.store();
+    let acting = crate::access::Acting::of(&call)?;
+    let reached = job_reached(call.ground(), db, acting, job).await?;
+    let on = match &reached {
+      Some(_) => r#" AND "agent" IN (SELECT jsonb_array_elements_text($2::jsonb))"#,
+      None => "",
+    };
+    let params = || match &reached {
+      Some(names) => vec![job.into(), reached_json(names)],
+      None => vec![job.into()],
+    };
     let called = all(
       db,
       &format!(
         r#"SELECT "id", "agent", "run", "ref", "name", "source", "at", {CALLED} AS "arguments"
-           FROM "agent_log" WHERE "job_id" = $1 AND "kind" = 'tool' AND "parent" IS NULL ORDER BY "id""#
+           FROM "agent_log" WHERE "job_id" = $1 AND "kind" = 'tool' AND "parent" IS NULL{on} ORDER BY "id""#
       ),
-      vec![job.into()],
+      params(),
     )
     .await?;
     let answered = all(
       db,
-      r#"SELECT "id", "agent", "run", "ref", "detail_complete", "detail_length", "at"
-         FROM "agent_log" WHERE "job_id" = $1 AND "kind" = 'tool-result' AND "parent" IS NULL ORDER BY "id""#,
-      vec![job.into()],
+      &format!(
+        r#"SELECT "id", "agent", "run", "ref", "detail_complete", "detail_length", "at"
+           FROM "agent_log" WHERE "job_id" = $1 AND "kind" = 'tool-result' AND "parent" IS NULL{on} ORDER BY "id""#
+      ),
+      params(),
     )
     .await?;
     let counted = one(
       db,
-      r#"SELECT
-           (SELECT COUNT(DISTINCT "source_id") FROM "agent_log"
-              WHERE "job_id" = $1 AND "parent" IS NULL AND "kind" IN ('tool', 'text', 'thinking')) AS "requests",
-           (SELECT COUNT(*) FROM "agent_log"
-              WHERE "job_id" = $1 AND "parent" IS NULL AND "kind" = 'compact') AS "compactions""#,
-      vec![job.into()],
+      &format!(
+        r#"SELECT
+             (SELECT COUNT(DISTINCT "source_id") FROM "agent_log"
+                WHERE "job_id" = $1 AND "parent" IS NULL AND "kind" IN ('tool', 'text', 'thinking'){on}) AS "requests",
+             (SELECT COUNT(*) FROM "agent_log"
+                WHERE "job_id" = $1 AND "parent" IS NULL AND "kind" = 'compact'{on}) AS "compactions""#
+      ),
+      params(),
     )
     .await?;
     let mut calls = Vec::with_capacity(called.len());
@@ -567,6 +740,21 @@ impl Route for WriteNote {
 
     if note.agent.is_empty() || run.is_empty() {
       return Err(bad("a note names the agent and the run it is kept under"));
+    }
+
+    // A note joins the log of an agent the caller reaches; a member writing into another's log is refused,
+    // the deployment's own call stands (docs/api.md, 「Who a caller acts for」).
+    let acting = crate::access::Acting::of(&call)?;
+
+    if matches!(acting, crate::access::Acting::Person(_)) {
+      let mut reach = crate::organisation::resources::Reach::new(call.ground(), acting);
+
+      if reach.reached_agents(std::slice::from_ref(&note.agent)).await?.is_empty() {
+        return Err(
+          Refused::new(StatusCode::FORBIDDEN, "The signed-in person may not write in that log".to_owned())
+            .with_code("forbidden"),
+        );
+      }
     }
 
     let agent = note.agent.clone();

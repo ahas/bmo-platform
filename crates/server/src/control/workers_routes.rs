@@ -433,25 +433,37 @@ impl Grouping {
     }
   }
 
-  /// The groups the jobs started in the span make, the most tokens first.
-  async fn groups(&self, ground: &Ground, after: i64, before: i64) -> Result<Vec<UsageGroup>, Refused> {
+  /// The groups the jobs started in the span make, the most tokens first. A member's read keeps only the
+  /// groups' own spends and no sessions' context, whose totals stand over every reader's sessions
+  /// (docs/api.md, 「accounts, rest and usage」).
+  async fn groups(
+    &self,
+    ground: &Ground,
+    after: i64,
+    before: i64,
+    owners: Option<&crate::organisation::resources::Owners>,
+  ) -> Result<Vec<UsageGroup>, Refused> {
     let db = &ground.db;
-    let (jobs_by, contexts) = match self {
-      Self::Model => ("model", session_contexts(db, "model", after, before).await?),
-      Self::Column(column) => (*column, HashMap::new()),
-      Self::Checkout => (
-        "worker_name",
-        checkout_contexts(ground, after, before, |checkout| checkout.name.clone()).await?,
-      ),
-      Self::Repository => (
-        "worker_name",
+    let jobs_by = match self {
+      Self::Model => "model",
+      Self::Column(column) => *column,
+      Self::Checkout | Self::Repository => "worker_name",
+    };
+    let contexts = match (self, owners) {
+      (_, Some(_)) => HashMap::new(),
+      (Self::Model, None) => session_contexts(db, "model", after, before).await?,
+      (Self::Column(_), None) => HashMap::new(),
+      (Self::Checkout, None) => {
+        checkout_contexts(ground, after, before, |checkout| checkout.name.clone()).await?
+      }
+      (Self::Repository, None) => {
         checkout_contexts(ground, after, before, |checkout| {
           checkout.support_of.clone().unwrap_or_else(|| checkout.name.clone())
         })
-        .await?,
-      ),
+        .await?
+      }
     };
-    let mut spends = JobSpend::by_column(db, jobs_by, after, before).await?;
+    let mut spends = JobSpend::by_column(db, jobs_by, after, before, owners).await?;
 
     if let Self::Repository = self {
       spends = by_repository(db, spends).await?;
@@ -579,12 +591,15 @@ fn kinds_added(one: Option<i64>, other: Option<i64>) -> Option<i64> {
 }
 
 impl JobSpend {
-  /// The jobs started in the span, a spend to each value of one of their columns.
+  /// The jobs started in the span, a spend to each value of one of their columns. Where the read is a member's,
+  /// each job stands on its run's owners, or on its holder's where the job opened no run, and only the jobs kept
+  /// by those owners are summed (docs/api.md, 「accounts, rest and usage」).
   async fn by_column(
     db: &sea_orm::DatabaseConnection,
     column: &str,
     after: i64,
     before: i64,
+    owners: Option<&crate::organisation::resources::Owners>,
   ) -> Result<Vec<Self>, Refused> {
     let rows = store::all(
       db,
@@ -599,13 +614,32 @@ impl JobSpend {
                   COALESCE(SUM("token_count") FILTER (WHERE NOT "split"), 0)::bigint AS "unsplit_tokens",
                   SUM("cost_micros")::bigint AS "cost"
            FROM (
-             SELECT COALESCE(CAST("{column}" AS text), '') AS "key", "token_count", "started_at", "ended_at",
-                    "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost_micros",
-                    ("input_tokens" IS NOT NULL AND "output_tokens" IS NOT NULL
-                      AND "cache_read_tokens" IS NOT NULL AND "cache_write_tokens" IS NOT NULL) AS "split"
-             FROM "jobs" WHERE "started_at" >= $1 AND "started_at" <= $2
+             SELECT COALESCE(CAST({qualify}"{column}" AS text), '') AS "key", {qualify}"token_count",
+                    {qualify}"started_at", {qualify}"ended_at",
+                    {qualify}"input_tokens", {qualify}"output_tokens", {qualify}"cache_read_tokens",
+                    {qualify}"cache_write_tokens", {qualify}"cost_micros",
+                    ({qualify}"input_tokens" IS NOT NULL AND {qualify}"output_tokens" IS NOT NULL
+                      AND {qualify}"cache_read_tokens" IS NOT NULL
+                      AND {qualify}"cache_write_tokens" IS NOT NULL) AS "split"
+             FROM "jobs" AS "j"{join}
+             WHERE "j"."started_at" >= $1 AND "j"."started_at" <= $2{keep}
            ) AS "spent"
-           GROUP BY "key""#
+           GROUP BY "key""#,
+        qualify = if owners.is_some() { r#""j"."# } else { "" },
+        join = match owners {
+          Some(_) =>
+            r#" LEFT JOIN "runs" AS "r" ON "r"."id" = "j"."run_id"
+                 LEFT JOIN "supervisors" AS "hs" ON "hs"."name" = "j"."holder_name""#,
+          None => "",
+        },
+        keep = match owners {
+          Some(owners) => format!(
+            r#" AND ({} OR ("r"."id" IS NULL AND {}))"#,
+            owners.predicate(r#""r"."owner_account""#, r#""r"."owner_unit""#),
+            owners.predicate(r#""hs"."owner_account""#, r#""hs"."owner_unit""#),
+          ),
+          None => String::new(),
+        }
       ),
       vec![after.into(), before.into()],
     )
@@ -685,10 +719,22 @@ impl Route for UsageRoute {
       .unwrap_or(now - 86_400_000);
     let before = call.query("before").and_then(|before| before.parse::<i64>().ok()).unwrap_or(now);
     let word = call.query("groupBy").unwrap_or_else(|| "model".to_owned());
+    // A member's read stands over only the work they reach: the pairs that own the span's runs and jobs are
+    // judged once, and their reaches filter every grouping (docs/api.md, 「accounts, rest and usage」).
+    let acting = crate::access::Acting::of(&call)?;
+    let owners = match acting {
+      crate::access::Acting::Platform => None,
+      crate::access::Acting::Person(_) => {
+        let mut reach = crate::organisation::resources::Reach::new(call.ground(), acting);
+        let pairs = owner_pairs_in_span(call.store(), after, before).await?;
+
+        reach.owners_among(&pairs).await?
+      }
+    };
     let groups = if word == "round" {
-      by_round(call.store(), after, before).await?
+      by_round(call.store(), after, before, owners.as_ref()).await?
     } else if let Some(key) = RunKey::named(&word) {
-      by_runs(call.store(), key, after, before).await?
+      by_runs(call.store(), key, after, before, owners.as_ref()).await?
     } else {
       Grouping::named(&word)
         .ok_or_else(|| {
@@ -696,7 +742,7 @@ impl Route for UsageRoute {
             "groupBy is model, agent, repository, user, room, round, account or supply, not {word}"
           ))
         })?
-        .groups(call.ground(), after, before)
+        .groups(call.ground(), after, before, owners.as_ref())
         .await?
     };
 
@@ -713,14 +759,48 @@ impl Route for UsageRoute {
 
 crate::moved!(UsageRoute);
 
+// The owner pairs standing over the span's work: the runs' own, and the holders' of jobs that opened no run.
+// A member's usage read judges these once and filters every grouping by what it reaches.
+async fn owner_pairs_in_span(
+  db: &sea_orm::DatabaseConnection,
+  after: i64,
+  before: i64,
+) -> Result<Vec<(Option<i64>, Option<i64>)>, Refused> {
+  let rows = store::all(
+    db,
+    r#"SELECT "owner_account", "owner_unit" FROM "runs" WHERE "started_at" >= $1 AND "started_at" <= $2
+       UNION
+       SELECT "s"."owner_account", "s"."owner_unit" FROM "jobs" "j"
+         LEFT JOIN "runs" "r" ON "r"."id" = "j"."run_id"
+         JOIN "supervisors" "s" ON "s"."name" = "j"."holder_name"
+         WHERE "r"."id" IS NULL AND "j"."started_at" >= $1 AND "j"."started_at" <= $2"#,
+    vec![after.into(), before.into()],
+  )
+  .await?;
+
+  rows
+    .iter()
+    .map(|row| {
+      Ok((
+        row.try_get::<Option<i64>>("", "owner_account")?,
+        row.try_get::<Option<i64>>("", "owner_unit")?,
+      ))
+    })
+    .collect::<Result<Vec<_>, sea_orm::DbErr>>()
+    .map_err(Refused::from)
+}
+
 // What the chat turns' runs started in a span spent, a group to a round (docs/run-records.md, 「The run
-// ledger」), the span in epoch milliseconds as the route's.
+// ledger」), the span in epoch milliseconds as the route's, kept down to a member's owners where the read is a
+// member's.
 async fn by_round(
   db: &sea_orm::DatabaseConnection,
   after: i64,
   before: i64,
+  owners: Option<&crate::organisation::resources::Owners>,
 ) -> Result<Vec<UsageGroup>, Refused> {
-  let rounds = crate::run_ledger::spent_by_round(db, after, before).await?;
+  let keep = owners.map(|owners| owners.predicate(r#""owner_account""#, r#""owner_unit""#));
+  let rounds = crate::run_ledger::spent_by_round(db, after, before, keep.as_deref()).await?;
 
   Ok(
     rounds
@@ -767,8 +847,8 @@ impl RunKey {
   fn expression(self) -> &'static str {
     match self {
       Self::Account => {
-        r#"COALESCE(CAST("s"."owner_account" AS text), CAST("a"."owner_account" AS text),
-             CAST("h"."owner_account" AS text), 'none')"#
+        r#"COALESCE(CAST("r"."owner_account" AS text), CAST("s"."owner_account" AS text),
+             CAST("a"."owner_account" AS text), CAST("h"."owner_account" AS text), 'none')"#
       }
       Self::Supply => r#"COALESCE("r"."supply_source", 'platform')"#,
     }
@@ -781,7 +861,14 @@ async fn by_runs(
   key: RunKey,
   after: i64,
   before: i64,
+  owners: Option<&crate::organisation::resources::Owners>,
 ) -> Result<Vec<UsageGroup>, Refused> {
+  let keep = match owners {
+    Some(owners) => {
+      format!(r#" AND {}"#, owners.predicate(r#""r"."owner_account""#, r#""r"."owner_unit""#))
+    }
+    None => String::new(),
+  };
   let rows = store::all(
     db,
     &format!(
@@ -799,7 +886,7 @@ async fn by_runs(
          LEFT JOIN "role_agents" AS "a" ON "a"."name" = "r"."agent"
          LEFT JOIN "jobs" AS "j" ON "j"."run_id" = "r"."id"
          LEFT JOIN "supervisors" AS "h" ON "h"."name" = "j"."holder_name"
-         WHERE "r"."started_at" >= $1 AND "r"."started_at" <= $2
+         WHERE "r"."started_at" >= $1 AND "r"."started_at" <= $2{keep}
          GROUP BY 1 ORDER BY "tokens" DESC, 1"#,
       key = key.expression()
     ),

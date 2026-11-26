@@ -898,3 +898,213 @@ async fn a_registration_filed_under_a_unit_is_no_platform_source() {
     "the platform's own registration stands open"
   );
 }
+
+/// One line in the log, written by `agent` under `run`.
+async fn line(scratch: &Scratch, agent: &str, run: &str, at: i64, text: &str) {
+  scratch
+    .run(
+      r#"INSERT INTO "agent_log" ("agent", "run", "at", "kind", "text") VALUES ($1, $2, $3, 'text', $4)"#,
+      vec![agent.into(), run.into(), at.into(), text.into()],
+    )
+    .await;
+}
+
+// The times the log lines and usage rows of these tests stand on: a fixed span, and a window wide enough to
+// hold it whole.
+const AT: i64 = 1_700_000_000_000;
+
+fn texts(page: &Value) -> Vec<String> {
+  page["items"]
+    .as_array()
+    .expect("a log page answers items")
+    .iter()
+    .filter_map(|one| one["text"].as_str().map(str::to_owned))
+    .collect()
+}
+
+fn group_keys(page: &Value) -> BTreeSet<String> {
+  page["groups"]
+    .as_array()
+    .expect("usage answers groups")
+    .iter()
+    .filter_map(|one| one["key"].as_str().map(str::to_owned))
+    .collect()
+}
+
+fn group(page: &Value, key: &str) -> Value {
+  page["groups"]
+    .as_array()
+    .expect("usage answers groups")
+    .iter()
+    .find(|one| one["key"].as_str() == Some(key))
+    .cloned()
+    .unwrap_or(Value::Null)
+}
+
+#[tokio::test]
+async fn a_member_reads_the_log_of_the_agents_they_reach_alone() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (port, stub, _ground) = stand(&scratch, home.path()).await;
+
+  supervisor(&scratch, "sup-seven", Some(MEMBER), None).await;
+  supervisor(&scratch, "sup-unit", None, Some(5)).await;
+  supervisor(&scratch, "sup-plain", None, None).await;
+  line(&scratch, "sup-seven", "r-seven", AT, "mine").await;
+  line(&scratch, "sup-unit", "r-unit", AT, "the unit's").await;
+  line(&scratch, "sup-plain", "r-plain", AT, "the platform's").await;
+
+  // A head of unit 5: their own lines and the unit's, and no line of the platform's agent.
+  stub.head(&[(MEMBER, 5)]);
+
+  let (status, body) = member_get(port, "/log-lines?runId=r-seven").await;
+  assert_eq!((status, texts(&body)), (200, vec!["mine".to_owned()]), "{body}");
+
+  let (status, body) = member_get(port, "/log-lines?runId=r-unit").await;
+  assert_eq!((status, texts(&body)), (200, vec!["the unit's".to_owned()]), "{body}");
+
+  let (status, body) = member_get(port, "/log-lines?runId=r-plain").await;
+  assert_eq!(
+    (status, texts(&body)),
+    (200, Vec::<String>::new()),
+    "the platform's log is none of theirs"
+  );
+
+  // An agent's own log page answers the same judgement, and an unreached agent as none standing.
+  let (status, body) = member_get(port, "/log/agents/sup-unit/lines").await;
+  assert_eq!((status, texts(&body)), (200, vec!["the unit's".to_owned()]), "{body}");
+
+  let (status, body) = member_get(port, "/log/agents/sup-plain/lines").await;
+  assert_eq!(status, 200, "{body}");
+  assert!(body["items"].as_array().is_some_and(|items| items.is_empty()), "{body}");
+
+  // Heading nothing: the unit's lines fall away, one's own stand.
+  stub.head(&[]);
+
+  let (_, body) = member_get(port, "/log-lines?runId=r-unit").await;
+  assert!(texts(&body).is_empty(), "{body}");
+
+  let (status, body) = member_get(port, "/log-lines?runId=r-seven").await;
+  assert_eq!((status, texts(&body)), (200, vec!["mine".to_owned()]), "{body}");
+
+  // The deployment's own call reads every line, and a stranger's page keeps the shape whole.
+  let (status, body) = keyless(port, "/log-lines?runId=r-plain").await;
+  assert_eq!((status, texts(&body)), (200, vec!["the platform's".to_owned()]), "{body}");
+}
+
+#[tokio::test]
+async fn a_role_s_log_page_shows_a_member_only_their_own_agents_lines() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (port, _stub, _ground) = stand(&scratch, home.path()).await;
+
+  scratch
+    .run(
+      r#"INSERT INTO "role_agents" ("name", "role", "owner_account") VALUES ('role-own', 'worker', $1)"#,
+      vec![MEMBER.into()],
+    )
+    .await;
+  scratch
+    .run(r#"INSERT INTO "role_agents" ("name", "role") VALUES ('role-other', 'worker')"#, vec![])
+    .await;
+  line(&scratch, "role-own", "w1", AT, "hers").await;
+  line(&scratch, "role-other", "w2", AT, "not hers").await;
+  line(&scratch, "worker", "w3", AT, "the role's own").await;
+
+  // The role's name carries no owner, so the page goes on over the agents of it the reader reaches alone.
+  let (status, body) = member_get(port, "/log/agents/worker/lines").await;
+  assert_eq!((status, texts(&body)), (200, vec!["hers".to_owned()]), "{body}");
+
+  let (status, body) = keyless(port, "/log/agents/worker/lines").await;
+  assert_eq!(status, 200, "{body}");
+  assert_eq!(texts(&body).len(), 3, "{body}");
+}
+
+#[tokio::test]
+async fn a_member_writes_a_note_only_into_a_log_they_reach() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (port, _stub, _ground) = stand(&scratch, home.path()).await;
+
+  supervisor(&scratch, "sup-seven", Some(MEMBER), None).await;
+  supervisor(&scratch, "sup-plain", None, None).await;
+
+  let (status, body) = send(
+    port,
+    reqwest::Method::POST,
+    "/log-lines",
+    Some("7"),
+    Some("member"),
+    json!({ "agentName": "sup-plain", "runId": "r-plain", "text": "into another's log" }),
+  )
+  .await;
+  assert_eq!(status, 403, "{body}");
+
+  let (status, body) = send(
+    port,
+    reqwest::Method::POST,
+    "/log-lines",
+    Some("7"),
+    Some("member"),
+    json!({ "agentName": "sup-seven", "runId": "r-seven", "text": "into one's own log" }),
+  )
+  .await;
+  assert_eq!(status, 201, "{body}");
+
+  let (status, body) = member_get(port, "/log-lines?runId=r-seven").await;
+  assert_eq!((status, texts(&body)), (200, vec!["into one's own log".to_owned()]), "{body}");
+}
+
+#[tokio::test]
+async fn a_member_s_usage_stands_over_only_the_work_they_reach() {
+  let scratch = Scratch::new().await;
+  let home = tempfile::tempdir().unwrap();
+  let (port, stub, _ground) = stand(&scratch, home.path()).await;
+
+  supervisor(&scratch, "sup-seven", Some(MEMBER), None).await;
+  supervisor(&scratch, "sup-unit", None, Some(5)).await;
+  supervisor(&scratch, "sup-plain", None, None).await;
+
+  for agent in ["sup-seven", "sup-unit", "sup-plain"] {
+    open_run(port, agent, &format!("w-{agent}")).await;
+  }
+  scratch
+    .run(
+      r#"INSERT INTO "jobs" ("id", "item_id", "lease_id", "holder_name", "assignment_id", "worker_name",
+                             "state", "started_at", "prompt", "item_agent", "model", "token_count")
+         VALUES (70, 7, 1, 'sup-seven', 1, 'c7', 'done', $1, 'p', 'sup-seven', 'g-test', 100),
+                (71, 7, 2, 'sup-plain', 2, 'cp', 'done', $1, 'p', 'sup-plain', 'g-test', 900)"#,
+      vec![AT.into()],
+    )
+    .await;
+  let window = "&after=0&before=4000000000000";
+
+  // The head of unit 5: their own account's turns, the unit's under the platform-named key, and no others'.
+  stub.head(&[(MEMBER, 5)]);
+
+  let (status, body) = member_get(port, &format!("/usage?groupBy=account{window}")).await;
+  assert_eq!(status, 200, "{body}");
+  assert_eq!(group_keys(&body), names(&["7", "none"]), "{body}");
+  assert_eq!(group(&body, "none")["turns"], 1, "the unit's run alone stands in it: {body}");
+
+  let (status, body) = member_get(port, &format!("/usage?groupBy=model{window}")).await;
+  assert_eq!(status, 200, "{body}");
+  assert_eq!(group(&body, "g-test")["tokens"], 100, "only their own job is summed: {body}");
+  assert!(group(&body, "g-test")["contextTokens"].is_null(), "no others' sessions show: {body}");
+
+  // Heading nothing: the unit's run falls away too, the account's stands.
+  stub.head(&[]);
+
+  let (_, body) = member_get(port, &format!("/usage?groupBy=account{window}")).await;
+  assert_eq!(group_keys(&body), names(&["7"]), "{body}");
+
+  let (_, body) = member_get(port, &format!("/usage?groupBy=model{window}")).await;
+  assert_eq!(group(&body, "g-test")["tokens"], 100, "{body}");
+
+  // The deployment's own call stands over everything.
+  let (_, body) = keyless(port, &format!("/usage?groupBy=account{window}")).await;
+  assert_eq!(group(&body, "none")["turns"], 2, "the unit's and the platform's run together: {body}");
+
+  let (_, body) = keyless(port, &format!("/usage?groupBy=model{window}")).await;
+  assert_eq!(group(&body, "g-test")["tokens"], 1000, "{body}");
+}
