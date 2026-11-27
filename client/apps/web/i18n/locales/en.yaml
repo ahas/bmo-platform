@@ -623,7 +623,7 @@ room:
     no_account: You need to sign in with an account.
     private_room: "You can't change another person's private room."
     open_title: Enter a room name.
-    open_no_bmo: "You don't have your own BMO, so you can't create a room."
+    open_no_bmo: "You don't have your own supervisor, so you can't create a room."
     open_failed: "Couldn't create the room."
     session_failed: "Couldn't load session details."
     unpin_failed: "Couldn't unpin the room."
@@ -650,7 +650,7 @@ room:
     attach_file: Attach file
     attach_media: "Photos & videos"
     brain_read_page: View in Brain
-    overlay: Talk to my BMO privately
+    overlay: Talk to my supervisor privately
     cancel_recording: Cancel recording
     cancel_reply: Cancel reply
     choose_messages: Select messages
@@ -1795,7 +1795,7 @@ account:
     nothing_subscribed: No notifications
     other_devices: "{n} other devices"
     own_bmo: "{name}'s {agent}"
-    bmo_name: BMO
+    bmo_name: Supervisor
     own_bmo_room: "{name}"
     palette: Palette
     palette_description: Room colors
@@ -1857,13 +1857,13 @@ settings:
     settings: Settings
   label:
     account: Account
-    agent: My BMO
+    agent: My supervisor
     briefing: Voice briefing
     notifications: Notifications
     palette: Rooms
     permissions: Permissions
     invites: Invites
-    bmo: BMO
+    bmo: Supervisor
     providers: Providers
     machine: Machine
     desktop: Desktop
@@ -1929,7 +1929,7 @@ roster:
     history_enabled: "Account enabled"
     left_by: "{time} · by {name}"
     choose: Select a user.
-    no_bmo: No BMO
+    no_bmo: No supervisor
     persona_length: "{count} characters"
     runs: Recent activity
     activity: Activity
@@ -1961,7 +1961,7 @@ roster:
     loading: Loading users…
     more_loading: Loading more users…
     person_loading: Loading user details…
-    bmo_loading: Loading BMO…
+    bmo_loading: Loading the supervisor…
     rooms_loading: Loading rooms…
     agents_loading: Loading agents…
     sessions_loading: Loading sessions…
@@ -1978,7 +1978,7 @@ roster:
   error:
     read_failed: "Couldn't load the user list."
     person_read_failed: "Couldn't load user details."
-    bmo_read_failed: "Couldn't load BMO."
+    bmo_read_failed: "Couldn't load the supervisor."
     rooms_read_failed: "Couldn't load rooms."
     agents_read_failed: "Couldn't load agents."
     sessions_read_failed: "Couldn't load sessions."
@@ -2068,11 +2068,11 @@ organization:
     end_acting: End the acting role?
     remove_post: Remove the concurrent post?
   message:
-    mark_left: "This person will no longer be able to sign in, and their BMO won't wake up again. Work this person owns for an organization stays, and its heads can keep reading and changing it. Their personal work, private chats and BMO's memories can be read only by platform administrators. This can't be undone."
-    unbind: "This account can sign in without a connected machine, and this person's BMO and agents will no longer run on this machine."
+    mark_left: "This person will no longer be able to sign in, and their supervisor won't wake up again. Work this person owns for an organization stays, and its heads can keep reading and changing it. Their personal work, private chats and supervisor's memories can be read only by platform administrators. This can't be undone."
+    unbind: "This account can sign in without a connected machine, and this person's supervisor and agents will no longer run on this machine."
     end_acting: This person loses head permissions right away.
     remove_post: The position and head role in this organization are removed too.
-    install: "Run one of the commands below on the PC to connect to install jake.\nOnce it connects, this person's BMO and agents run on that machine."
+    install: "Run one of the commands below on the PC to connect to install jake.\nOnce it connects, this person's supervisor and agents run on that machine."
   action:
     add: Add organization
     add_company: Add company
@@ -2164,7 +2164,7 @@ org_memory:
     locked: Fixed
     locked_help: "Sub-organizations can't override it on the same topic."
     internal: Internal only
-    internal_help: "BMO won't mention it in rooms with people from outside the company."
+    internal_help: "The supervisor won't mention it in rooms with people from outside the company."
     instead: "{unit}'s memory applies instead."
     instead_locked: "{unit}'s fixed memory applies instead."
     source_work_pattern: This memory comes from a work pattern.
@@ -2197,9 +2197,9 @@ org_memory:
     delete_info: "Delete information"
   message:
     delete_info: "Delete this information?"
-    delete_info_effect: "The organization's BMOs will no longer receive this information."
+    delete_info_effect: "The organization's supervisors will no longer receive this information."
     delete: Delete this memory?
-    delete_effect: BMOs in this organization and its sub-organizations will no longer receive this memory.
+    delete_effect: Supervisors in this organization and its sub-organizations will no longer receive this memory.
     decline: Decline this proposal?
     keep_effect: "It is not raised to the platform and stays in {brain} alone."
     drop_effect: "It is not raised, and it is invalidated in {brain} as well, so nothing reads it again."
@@ -2284,18 +2284,18 @@ invites:
     share_gone: "This request has already been decided."
 overlay:
   title:
-    panel: My BMO
+    panel: My supervisor
   label:
-    none: "You don't have a BMO of your own, so you can't talk to it separately."
+    none: "You don't have a supervisor of your own, so you can't talk to it separately."
     empty: Nothing said yet.
     input: Not visible to people in this room
   action:
     send: Send
-    log: "View my BMO's log"
+    log: "View my supervisor's log"
   status:
-    loading: Loading my BMO…
+    loading: Loading my supervisor…
   error:
-    load_failed: "Couldn't load my BMO."
+    load_failed: "Couldn't load my supervisor."
     send_failed: "Couldn't send."
 members:
   title:
@@ -2481,10 +2481,10 @@ guide:
     machine_attached: The machine is connected.
   message:
     no_roads: No provider can be chosen.
-    no_room: Your BMO has no chat yet.
+    no_room: Your supervisor has no chat yet.
     first_words: Hi! What can you do for me?
     desktop_unavailable: "The desktop app can't be downloaded yet.\nIf the app is already installed on this PC, connect it with the steps below; otherwise connect a machine later under Machine in settings."
-    step_welcome: Set up what BMO needs to work for you, one step at a time.
+    step_welcome: Set up what the supervisor needs to work for you, one step at a time.
     step_supply_optional: "Your organization supplies your agents.\nYou can add your own Claude sign-in or key beside it."
     step_supply_required: "In this organization, agents work only with your own sign-in or key.\nConnect one first."
     step_provider: Choose the provider your agents use.
@@ -2493,10 +2493,10 @@ guide:
     step_connect_key: Enter the provider's key once to keep it in your secrets.
     step_connect_local: Register a local AI by its OpenAI-compatible address.
     step_test: Test whether the chosen supply answers now.
-    step_machine: Connect your PC so BMO works on it.
-    step_model: Choose the provider and model of the BMO that answers rooms naming no one.
+    step_machine: Connect your PC so the supervisor works on it.
+    step_model: Choose the provider and model of the supervisor that answers rooms naming no one.
     step_company: Name the company at the top of the organization chart.
-    step_talk: Send your BMO a first message.
+    step_talk: Send your supervisor a first message.
     reason_no_source: No supply is turned on.
     reason_login_needed: A sign-in is needed.
     reason_not_ready: "Not ready yet.\nTest again in a few seconds."
@@ -2528,7 +2528,7 @@ org_agents:
   status:
     loading: Loading agent settings…
   label:
-    personalize: "Own BMO settings"
+    personalize: "Own supervisor settings"
     choice_default: "Follow the default"
     road_role_default: "Follow the role agent"
     composition_agent: "{name} agent {count}"
@@ -2826,7 +2826,7 @@ machines:
     unbind_confirm: Disconnect
   message:
     none: Open the desktop app to connect a device to this account.
-    unbind: "This account's BMO and agents will no longer run on this device."
+    unbind: "This account's supervisor and agents will no longer run on this device."
     unbind_desktop: "The desktop app will be disconnected too, so you'll need to connect the app again to use it."
     unbind_installed: "The installed program on this device will be removed, so you'll need to install it again to use it."
   status:
@@ -3113,7 +3113,7 @@ agents:
     supervisor_unknown: "There's no supervisor {supervisor}."
     word_empty: Enter a message.
     word_owner_only: Only the owner can message a worker.
-    supervisor_own_only: "You can only add your own BMO. An admin adds other people's supervisors."
+    supervisor_own_only: "You can only add your own supervisor. An admin adds other people's supervisors."
     role_delete_refused: "Couldn't delete the role because it has running or waiting runs, or a policy defines it."
     role_agent_refused: "The agent is running, or the name already exists"
     agent_save_failed: "Couldn't save the agent."
@@ -4408,17 +4408,17 @@ picture:
     saved: Photo changed.
 bmo_profile:
   label:
-    platform_default: "Platform default BMO"
+    platform_default: "Platform default supervisor"
     inherit_platform: "Follow the platform setting"
     follows_platform_allowed: "Allowed by the platform setting"
     follows_platform_denied: "Blocked by the platform setting"
-    company_default: Default BMO
+    company_default: Default supervisor
     name: Name
     call_names: Call names
     call_name_new: Name to add
     picture: Profile photo
     persona: Persona
-    permission: BMO settings permission
+    permission: Supervisor settings permission
     default_value: "{value} (default)"
     from_own: Set by you
     from_company: Set by company
@@ -4429,34 +4429,34 @@ bmo_profile:
     follows_denied: "Blocked, following parent organization"
     persona_count: "{count}/{max} characters"
     no_call_names: No call names
-    company_picture_note: "Once saved, this photo becomes the BMO photo for people in the company."
-    own_picture_note: "Once saved, this photo becomes your BMO's photo."
-    reset_title: Reset your BMO?
+    company_picture_note: "Once saved, this photo becomes the supervisor photo for people in the company."
+    own_picture_note: "Once saved, this photo becomes your supervisor's photo."
+    reset_title: Reset your supervisor?
     reset_description: "Clears the name, call names, photo and persona you set, and follows the company settings."
   aria:
     call_name_remove: "Remove {name}"
-    tree: BMO settings permission org chart
+    tree: Supervisor settings permission org chart
   action:
     reset: Reset
     picture_remove: Remove photo
     picture_company: Revert to company photo
   status:
-    loading: Loading BMO settings…
+    loading: Loading supervisor settings…
   message:
     saved: Saved.
     reset: Reset.
     picture_removed: Photo removed.
     picture_company: Reverted to the company photo.
   error:
-    withheld: "You don't have permission to set up your own BMO."
+    withheld: "You don't have permission to set up your own supervisor."
     bad_profile: "The name, call names or persona isn't in the right format."
     call_name_taken: That name already exists.
     call_name_comma: "Call names can't contain commas."
     call_names_full: You can have up to 10 call names.
     forbidden: "You don't have permission to change this setting."
     not_found: Company or organization not found.
-    read_failed: "Couldn't load BMO settings."
-    failed: "Couldn't save BMO settings."
+    read_failed: "Couldn't load the supervisor settings."
+    failed: "Couldn't save the supervisor settings."
 apps:
   label:
     personal_make: "Make personal apps"
@@ -4597,12 +4597,12 @@ app_catalogue:
     install_effect: "Your PC fetches the source and builds it.\nIts data stays on your PC."
     update_effect: "Your PC fetches the new version and builds it."
     update_grown: "The new version asks for more permissions."
-    clone_effect: "It becomes your own personal app, which your BMO can change for you.\nIt is cut off from the original, so it no longer receives its maker's new versions."
+    clone_effect: "It becomes your own personal app, which your supervisor can change for you.\nIt is cut off from the original, so it no longer receives its maker's new versions."
     uninstall_effect: "The app is deleted from your PC.\nIts data stays on the PC."
     withdraw_effect: "Nobody can install it from now on.\nThose who installed it keep using it."
     promote_effect: "The administrator reviews it and ships it as a platform app."
     shared: "Shared {app}."
-    install_skill_effect: "It is kept by BMO.\nOnly the agents you attach it to use it."
+    install_skill_effect: "It is kept on the platform.\nOnly the agents you attach it to use it."
     install_mcp_effect: "It is installed on your PC.\nOnly the agents you attach it to use its tools."
     shared_skill: "{app} skill shared."
   status:
@@ -4642,7 +4642,7 @@ personal_apps:
     back_confirm: Go back to the earlier version?
     back_effect: The current version is deleted from the PC.
     delete_confirm: Delete the personal app?
-    delete_effect: 'BMO can no longer use this app.
+    delete_effect: 'The supervisor can no longer use this app.
 
       Its source and data stay on the PC.'
   status:
@@ -4730,7 +4730,7 @@ app_permissions:
     network_note: Reaches only the addresses listed, and nowhere else.
     network_withheld: Your organisation does not allow personal apps the network, so this app does not run.
     secrets: Uses secrets
-    secrets_note: Receives their values from your secret store only while it runs, and BMO never sees them.
+    secrets_note: Receives their values from your secret store only while it runs, and the supervisor never sees them.
     secrets_missing: Not in your secret store
     secrets_withheld: Your organisation does not allow personal apps secrets, so this app does not run.
 
@@ -5133,7 +5133,7 @@ removal:
       history: History
       invitations: Invitations
       profiles: Profiles
-      own_agents: Own BMO profiles
+      own_agents: Own supervisor profiles
       console_settings: Console settings
       sign_ins: Sign-in records
       supply: Supply records
@@ -5147,7 +5147,7 @@ removal:
       units: Organizations
       unit_attributes: Organization attributes
       unit_kinds: Organization kinds
-      company_agents: Company BMO pictures
+      company_agents: Company supervisor pictures
       supervisors: Supervisors
       role_agents: Role agents
       repositories: Repositories

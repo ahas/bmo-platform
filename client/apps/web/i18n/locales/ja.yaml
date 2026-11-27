@@ -623,7 +623,7 @@ room:
     no_account: アカウントでログインする必要があります。
     private_room: 他の人の個人ルームは変更できません。
     open_title: ルーム名を入力してください。
-    open_no_bmo: 自分の BMO がないため、ルームを作成できません。
+    open_no_bmo: 自分のスーパーバイザーがないため、ルームを作成できません。
     open_failed: ルームを作成できませんでした。
     session_failed: セッション情報を読み込めませんでした。
     unpin_failed: ルームの固定を解除できませんでした。
@@ -650,7 +650,7 @@ room:
     attach_file: ファイルを添付
     attach_media: 写真・動画
     brain_read_page: ブレインで表示
-    overlay: 自分の BMO と個別に話す
+    overlay: 自分のスーパーバイザーと個別に話す
     cancel_recording: 録音をキャンセル
     cancel_reply: 返信をキャンセル
     choose_messages: メッセージを選択
@@ -1799,7 +1799,7 @@ account:
     nothing_subscribed: 受け取る通知なし
     other_devices: "他のデバイス {n}台"
     own_bmo: "{name}の{agent}"
-    bmo_name: BMO
+    bmo_name: スーパーバイザー
     own_bmo_room: "{name}"
     palette: パレット
     palette_description: ルームの色
@@ -1861,13 +1861,13 @@ settings:
     settings: 設定
   label:
     account: アカウント
-    agent: マイBMO
+    agent: マイスーパーバイザー
     briefing: ボイスブリーフィング
     notifications: 通知
     palette: ルーム
     permissions: 権限
     invites: 招待
-    bmo: BMO
+    bmo: スーパーバイザー
     providers: プロバイダー
     machine: デバイス
     desktop: デスクトップ
@@ -1933,7 +1933,7 @@ roster:
     history_enabled: "アカウント有効化"
     left_by: "{time} · {name}が処理"
     choose: ユーザーを選択してください。
-    no_bmo: BMOなし
+    no_bmo: スーパーバイザーなし
     persona_length: "{count}文字"
     runs: 最近のアクティビティ
     activity: アクティビティ
@@ -1965,7 +1965,7 @@ roster:
     loading: ユーザーを読み込み中…
     more_loading: ユーザーをさらに読み込み中…
     person_loading: ユーザー情報を読み込み中…
-    bmo_loading: BMOを読み込み中…
+    bmo_loading: スーパーバイザーを読み込み中…
     rooms_loading: ルームを読み込み中…
     agents_loading: エージェントを読み込み中…
     sessions_loading: セッションを読み込み中…
@@ -1982,7 +1982,7 @@ roster:
   error:
     read_failed: ユーザー一覧を読み込めませんでした。
     person_read_failed: ユーザー情報を読み込めませんでした。
-    bmo_read_failed: BMOを読み込めませんでした。
+    bmo_read_failed: スーパーバイザーを読み込めませんでした。
     rooms_read_failed: ルームを読み込めませんでした。
     agents_read_failed: エージェントを読み込めませんでした。
     sessions_read_failed: セッションを読み込めませんでした。
@@ -2072,8 +2072,8 @@ organization:
     end_acting: 職務代行を解除しますか？
     remove_post: 兼務を解除しますか？
   message:
-    mark_left: この人はログインできなくなり、この人のBMOも再び起動しなくなります。この人が担当している組織の業務はそのまま残り、組織長が引き続き閲覧・変更できます。個人の業務と個人トーク、BMOの記憶はプラットフォーム管理者のみ閲覧できます。元に戻せません。
-    unbind: このアカウントは接続されたデバイスなしでログインでき、この人のBMOとエージェントはこのデバイスで実行されなくなります。
+    mark_left: この人はログインできなくなり、この人のスーパーバイザーも再び起動しなくなります。この人が担当している組織の業務はそのまま残り、組織長が引き続き閲覧・変更できます。個人の業務と個人トーク、スーパーバイザーの記憶はプラットフォーム管理者のみ閲覧できます。元に戻せません。
+    unbind: このアカウントは接続されたデバイスなしでログインでき、この人のスーパーバイザーとエージェントはこのデバイスで実行されなくなります。
     end_acting: この人はすぐに組織長の権限を失います。
     remove_post: この組織での役職と組織長の兼任も一緒に解除されます。
     install: '接続するPCで以下のコマンドのいずれかを実行して、jakeをインストールしてください。
@@ -2178,7 +2178,7 @@ org_memory:
     locked: 固定
     locked_help: 下位組織が同じトピックで上書きできません。
     internal: 社内限定
-    internal_help: 社外の人がいるルームではBMOは話しません。
+    internal_help: 社外の人がいるルームではスーパーバイザーは話しません。
     instead: "{unit}の記憶が代わりに適用されます。"
     instead_locked: "{unit}の固定された記憶が代わりに適用されます。"
     source_work_pattern: 勤務パターンから取り込んだ記憶です。
@@ -2211,9 +2211,9 @@ org_memory:
     delete_info: "情報を削除"
   message:
     delete_info: "この情報を削除しますか？"
-    delete_info_effect: "組織のBMOはこの情報を受け取らなくなります。"
+    delete_info_effect: "組織のスーパーバイザーはこの情報を受け取らなくなります。"
     delete: この記憶を削除しますか？
-    delete_effect: この組織と下位組織のBMOは、今後この記憶を受け取らなくなります。
+    delete_effect: この組織と下位組織のスーパーバイザーは、今後この記憶を受け取らなくなります。
     decline: この提案を断りますか？
     keep_effect: "全体の記憶には上げず、{brain}にだけ残します。"
     drop_effect: "全体の記憶に上げず、{brain}でも無効にし、どこからも読まれなくなります。"
@@ -2300,18 +2300,18 @@ invites:
     share_gone: "このリクエストはすでに処理されています。"
 overlay:
   title:
-    panel: マイBMO
+    panel: マイスーパーバイザー
   label:
-    none: 自分専用のBMOがないため、個別に話しかけることはできません。
+    none: 自分専用のスーパーバイザーがないため、個別に話しかけることはできません。
     empty: まだ会話がありません。
     input: このルームの人には表示されません
   action:
     send: 送信
-    log: マイBMOの記録を見る
+    log: マイスーパーバイザーの記録を見る
   status:
-    loading: マイBMOを読み込み中…
+    loading: マイスーパーバイザーを読み込み中…
   error:
-    load_failed: マイBMOを読み込めませんでした。
+    load_failed: マイスーパーバイザーを読み込めませんでした。
     send_failed: 送信できませんでした。
 members:
   title:
@@ -2497,10 +2497,10 @@ guide:
     machine_attached: デバイスが接続されました。
   message:
     no_roads: 選べるプロバイダーがありません。
-    no_room: 自分のBMOのルームがまだありません。
+    no_room: 自分のスーパーバイザーのルームがまだありません。
     first_words: こんにちは！あなたは私のために何ができる？
     desktop_unavailable: "デスクトップアプリのインストーラーはまだ入手できません。\nこのPCにアプリがすでにインストールされていれば下の手順で接続し、そうでなければあとで設定のデバイスから接続できます。"
-    step_welcome: BMOがあなたのために働けるよう、必要なことを順に設定します。
+    step_welcome: スーパーバイザーがあなたのために働けるよう、必要なことを順に設定します。
     step_supply_optional: "組織がエージェントの供給を担っています。\n自分のClaudeログインやキーを並べて置くこともできます。"
     step_supply_required: "この組織では、自分のログインまたはキーでのみエージェントが動作します。\nまず一つ接続してください。"
     step_provider: エージェントが使うプロバイダーを選びます。
@@ -2509,10 +2509,10 @@ guide:
     step_connect_key: プロバイダーのキーを一度入力してシークレットに保管します。
     step_connect_local: OpenAI互換のアドレスでローカルAIを登録します。
     step_test: 選んだ供給がいま応答するかをテストします。
-    step_machine: PCを接続して、BMOがそのPCで働けるようにします。
-    step_model: 担当が決まっていないルームに答えるBMOのプロバイダーとモデルを選びます。
+    step_machine: PCを接続して、スーパーバイザーがそのPCで働けるようにします。
+    step_model: 担当が決まっていないルームに答えるスーパーバイザーのプロバイダーとモデルを選びます。
     step_company: 組織図の最上位に置く会社名を決めます。
-    step_talk: 自分のBMOに最初のメッセージを送ります。
+    step_talk: 自分のスーパーバイザーに最初のメッセージを送ります。
     reason_no_source: オンになっている供給がありません。
     reason_login_needed: ログインが必要です。
     reason_not_ready: "まだ準備中です。\n数秒後にもう一度テストしてください。"
@@ -2544,7 +2544,7 @@ org_agents:
   status:
     loading: エージェント設定を読み込み中…
   label:
-    personalize: "自分のBMOの設定"
+    personalize: "自分のスーパーバイザーの設定"
     choice_default: "既定値に従う"
     road_role_default: "ロールのエージェントに従う"
     composition_agent: "{name} エージェント {count}"
@@ -2846,7 +2846,7 @@ machines:
     unbind_confirm: 接続解除
   message:
     none: デスクトップアプリを開くと、このアカウントにデバイスを接続できます。
-    unbind: このアカウントの BMO とエージェントは、このデバイスで実行されなくなります。
+    unbind: このアカウントのスーパーバイザーとエージェントは、このデバイスで実行されなくなります。
     unbind_desktop: デスクトップアプリの接続も切れるため、再び使うにはアプリをもう一度接続する必要があります。
     unbind_installed: このデバイスのインストール型プログラムは削除されるため、再び使うにはもう一度インストールする必要があります。
   status:
@@ -3135,7 +3135,7 @@ agents:
     supervisor_unknown: "スーパーバイザー {supervisor} がありません。"
     word_empty: メッセージを入力してください。
     word_owner_only: ワーカーへのメッセージはオーナーだけが送れます。
-    supervisor_own_only: 追加できるのは自分の BMO だけです。ほかの人のスーパーバイザーは管理者が追加します。
+    supervisor_own_only: 追加できるのは自分のスーパーバイザーだけです。ほかの人のスーパーバイザーは管理者が追加します。
     role_delete_refused: 実行中または待機中の実行があるか、ポリシーで定められたロールのため削除できませんでした。
     role_agent_refused: 実行中のエージェントか、すでにある名前です
     agent_save_failed: エージェントを保存できませんでした。
@@ -4434,17 +4434,17 @@ picture:
     saved: 写真を変更しました。
 bmo_profile:
   label:
-    platform_default: "全体の既定BMO"
+    platform_default: "全体の既定スーパーバイザー"
     inherit_platform: "全体設定に従う"
     follows_platform_allowed: "全体設定に従い許可"
     follows_platform_denied: "全体設定に従いブロック"
-    company_default: 標準 BMO
+    company_default: 標準スーパーバイザー
     name: 名前
     call_names: 呼び名
     call_name_new: 追加する名前
     picture: プロフィール写真
     persona: ペルソナ
-    permission: BMO 設定権限
+    permission: スーパーバイザー設定権限
     default_value: "{value}（デフォルト）"
     from_own: 自分で設定
     from_company: 会社で設定
@@ -4455,34 +4455,34 @@ bmo_profile:
     follows_denied: 上位組織に従いブロック
     persona_count: "{count}/{max}文字"
     no_call_names: 呼び名なし
-    company_picture_note: 保存すると、この写真が会社のメンバーの BMO の写真になります。
-    own_picture_note: 保存すると、この写真があなたの BMO の写真になります。
-    reset_title: あなたの BMO をリセットしますか？
+    company_picture_note: 保存すると、この写真が会社のメンバーのスーパーバイザーの写真になります。
+    own_picture_note: 保存すると、この写真があなたのスーパーバイザーの写真になります。
+    reset_title: あなたのスーパーバイザーをリセットしますか？
     reset_description: 自分で設定した名前、呼び名、写真、ペルソナを消去し、会社の設定に従います。
   aria:
     call_name_remove: "{name}を削除"
-    tree: BMO 設定権限の組織図
+    tree: スーパーバイザー設定権限の組織図
   action:
     reset: リセット
     picture_remove: 写真を削除
     picture_company: 会社の写真に戻す
   status:
-    loading: BMO の設定を読み込み中…
+    loading: スーパーバイザーの設定を読み込み中…
   message:
     saved: 保存しました。
     reset: リセットしました。
     picture_removed: 写真を削除しました。
     picture_company: 会社の写真に戻しました。
   error:
-    withheld: BMO を自分で設定する権限がありません。
+    withheld: スーパーバイザーを自分で設定する権限がありません。
     bad_profile: 名前、呼び名、またはペルソナの形式が正しくありません。
     call_name_taken: すでにある名前です。
     call_name_comma: 呼び名にはカンマを使えません。
     call_names_full: 呼び名は10個まで設定できます。
     forbidden: この設定を変更する権限がありません。
     not_found: 会社または組織が見つかりません。
-    read_failed: BMO の設定を読み込めませんでした。
-    failed: BMO の設定を保存できませんでした。
+    read_failed: スーパーバイザーの設定を読み込めませんでした。
+    failed: スーパーバイザーの設定を保存できませんでした。
 apps:
   label:
     personal_make: "個人アプリの作成"
@@ -4625,12 +4625,12 @@ app_catalogue:
     install_effect: "自分の PC がソースを受け取ってビルドします。\nデータは自分の PC にだけ保存されます。"
     update_effect: "新しいバージョンを受け取ってビルドします。"
     update_grown: "新しいバージョンはより多くの権限を要求します。"
-    clone_effect: "自分の個人アプリになり、BMOに修正を頼めます。\n元のアプリとのつながりが切れるため、作成者の新しいバージョンは届かなくなります。"
+    clone_effect: "自分の個人アプリになり、スーパーバイザーに修正を頼めます。\n元のアプリとのつながりが切れるため、作成者の新しいバージョンは届かなくなります。"
     uninstall_effect: "自分の PC からアプリを削除します。\nデータは PC に残ります。"
     withdraw_effect: "新しくインストールできなくなります。\nインストール済みの人は使い続けます。"
     promote_effect: "管理者が確認してからプラットフォームアプリとして配布します。"
     shared: "{app} を共有しました。"
-    install_skill_effect: "BMO に保管されます。\n付けたエージェントだけがこのスキルを使います。"
+    install_skill_effect: "プラットフォームに保管されます。\n付けたエージェントだけがこのスキルを使います。"
     install_mcp_effect: "自分の PC にインストールします。\n付けたエージェントだけがこの MCP サーバーのツールを使います。"
     shared_skill: "{app} スキルを共有しました。"
   status:
@@ -4670,7 +4670,7 @@ personal_apps:
     back_confirm: 以前のバージョンに戻しますか?
     back_effect: 現在のバージョンは PC から削除されます。
     delete_confirm: 個人アプリを削除しますか?
-    delete_effect: 'BMO はこのアプリを使えなくなります。
+    delete_effect: 'スーパーバイザーはこのアプリを使えなくなります。
 
       ソースとデータは PC に残ります。'
   status:
@@ -4760,7 +4760,7 @@ app_permissions:
     network_note: 記載したアドレスにのみ接続し、ほかには接続できません。
     network_withheld: 組織の設定でネットワークを使えないため、このアプリは実行されません。
     secrets: シークレット使用
-    secrets_note: 実行中のみシークレット保管庫から値を受け取り、値はBMOには見えません。
+    secrets_note: 実行中のみシークレット保管庫から値を受け取り、値はスーパーバイザーには見えません。
     secrets_missing: シークレット保管庫にありません
     secrets_withheld: 組織の設定でシークレットを使えないため、このアプリは実行されません。
 
@@ -5163,7 +5163,7 @@ removal:
       history: 履歴
       invitations: 招待
       profiles: プロフィール
-      own_agents: 個人BMOプロフィール
+      own_agents: 個人スーパーバイザープロフィール
       console_settings: コンソール設定
       sign_ins: ログイン記録
       supply: 供給記録
@@ -5177,7 +5177,7 @@ removal:
       units: 組織
       unit_attributes: 組織の属性
       unit_kinds: 組織の種類
-      company_agents: 会社のBMO写真
+      company_agents: 会社のスーパーバイザー写真
       supervisors: スーパーバイザー
       role_agents: 役割エージェント
       repositories: リポジトリ

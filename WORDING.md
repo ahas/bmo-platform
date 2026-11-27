@@ -105,15 +105,16 @@
   there → 부를 수 있는 감독관; the agents already answering in the room are said to be there already (이미 이 방에서
   답하고 있는 감독관은 여기에 고를 수 없습니다) and never offered as choices. Never 호출할 수 있는 감독관; 호출 stays the
   mention's never-word.
-- a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
+- a person's own supervisor, as it is titled → `{name}의 감독관`, the person's name with 감독관, or with the name its
   profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
-  alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside
-  a name, nor 비서, 개인 감독관 or 전용 BMO. The person themselves calls it 내 BMO, and its group on 플랫폼's 에이전트 at 나 is 내 BMO.
-- the names that call a BMO in a room → 부르는 이름: 부르는 이름, 부르는 이름 없음, 추가할 이름. Never 호출 이름, 웨이크
+  alone, `{name}`. The person's name stands there, the login only where none stands; never the login with 감독관 beside
+  a name, nor 비서, 개인 감독관 or 전용 감독관. The person themselves calls it 내 감독관, and its group on 플랫폼's 에이전트 at 나 is
+  내 감독관. An agent is never called BMO, which is the product's name alone: BMO 서버, BMO 데스크톱 앱.
+- the names that call a supervisor in a room → 부르는 이름: 부르는 이름, 부르는 이름 없음, 추가할 이름. Never 호출 이름, 웨이크
   워드, 별칭; 호출 stays the mention's never-word.
-- a company's default for its people's BMOs → 기본 BMO, the platform's → 전역 기본 BMO; who may set their own BMO → BMO
-  설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
-  상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 BMO 설정, its choices
+- a company's default for its people's supervisors → 기본 감독관, the platform's → 전역 기본 감독관; who may set their own
+  supervisor → 감독관 설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
+  상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 감독관 설정, its choices
   기본값을 따름, 허용 and 막음. Never 개인화 권한, 커스터마이즈.
 - a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 플랫폼, at every node
   of its tree 나 among them, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
@@ -127,11 +128,11 @@
   `<앱> 앱을 이 조직에서 회수할까요?`; a call to an app turned off → 조직 설정으로 꺼진 앱입니다. 잠금 here is the delegation
   chain's own word.
   Never 활성화, 비활성화, 사용 설정, 차단. 애플리케이션 stays the sidebar section's word.
-- a tool of a person's own, which their BMO makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
+- a tool of a person's own, which their supervisor makes on their PC → 개인 앱: 개인 앱, 내 개인 앱 (its settings section),
   개인 앱 없음; one placed build of it → 버전, when it was put → `{time} 업데이트`; going to the one before → 이전 버전으로,
   its question 이전 버전으로 되돌릴까요?; what it may reach → `자기 데이터만 사용`, `네트워크 사용 {addresses}`, `비밀 사용
   {names}`, each said under it — 적어 둔 주소에만 접속하고, 다른 곳에는 접속할 수 없습니다; 실행할 때만 내 비밀 보관함에서 값을
-  받고, 값은 BMO에게 보이지 않습니다 — and what keeps it from running → `비밀 보관함에 없음 {names}`, 조직 설정으로 네트워크를 쓸
+  받고, 값은 감독관에게 보이지 않습니다 — and what keeps it from running → `비밀 보관함에 없음 {names}`, 조직 설정으로 네트워크를 쓸
   수 없어 이 앱은 실행되지 않습니다, 조직 설정으로 비밀을 쓸 수 없어 이 앱은 실행되지 않습니다. Never 나만의 앱, 커스텀 도구,
   롤백, 복원, 인터넷 권한.
 - the screens of a person's own apps, as the sidebar groups them → 내 앱; a screen of one that cannot open because the
@@ -162,8 +163,8 @@
   않음, a company or a unit counted by 곳. Turning an app off everywhere at once → 긴급 회수, its question
   `<앱> 앱을 모든 곳에서 끌까요?` and its way through 회수; its state → 긴급 회수됨; its undoing → 회수 해제. Never 강제
   종료, 비상 정지, 철회.
-- where a part of a BMO's profile came from → 직접 정함, 회사에서 정함; the deployment's own wears the default's mark,
-  `BMO (기본값)`. How a BMO speaks and behaves, as text → 페르소나. Never 성격, 말투 설정, 프롬프트.
+- where a part of a supervisor's profile came from → 직접 정함, 회사에서 정함; the deployment's own wears the default's
+  mark, `감독관 (기본값)`. How a supervisor speaks and behaves, as text → 페르소나. Never 성격, 말투 설정, 프롬프트.
 - a role's slot, one of the runs its agents let in at once → 역할 슬롯, 슬롯; a slot kept by a reservation → 예약, counted
   as `1 예약`. Never 자리, 칸, 풀.
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
@@ -342,7 +343,7 @@
 - a setting a unit above or the platform decided or locks, wherever a lock or a decision shows — a person's own row, a
   unit's, a company's — → 조직이 정함 · `{unit}`, 조직이 정함 where no unit is named, 전역 설정으로 정함 for the platform;
   its state → 켜짐 or 꺼짐. Never 관리자 지정, 강제됨, 상위 조직에서 잠금, 조직에서 잠금.
-- the guided first run, a step at a time, before a person's BMO can answer them → 시작 안내, opened again from 계정 by
+- the guided first run, a step at a time, before a person's supervisor can answer them → 시작 안내, opened again from 계정 by
   시작 안내 다시 보기; its steps 환영, 공급, 공급자, 연결, 연결 시험, 기기, 첫 대화, and the administrator's 플랫폼 공급,
   기본 모델, 회사 이름; its way in from the join page where their own supply comes first 로그인하고 설정하기; putting a
   step off 나중에, taking it now 지금 설정; a source that answered 연결됨. Never 온보딩, 튜토리얼, 마법사.
@@ -482,10 +483,10 @@
   파일, 링크, 음악, 음성, 상황, 세션 정보, 채팅 서비스. Never 방 설정, 채팅방 정보, 방 서랍.
 - a room in the mode where its supervisors answer as the person's own account → 아바타 모드, its line on → 이 방에서
   감독관이 내 계정으로 대신 답합니다, off → 기록만 하고 답하지 않습니다; where the mode cannot apply nothing of it is shown.
-  Never 모드가 없습니다 or any line explaining its absence, and never the on-line naming one BMO, which is one
+  Never 모드가 없습니다 or any line explaining its absence, and never the on-line naming one supervisor, which is one
   person's supervisor rather than every room's.
-- who may call their own BMO into a room is no setting: every member may, so no screen names a 호출 권한 or 호출
-  허용. Letting a member in that fails to give that right → 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다. A room
+- who may call their own supervisor into a room is no setting: every member may, so no screen names a 호출 권한 or 호출
+  허용. Letting a member in that fails to give that right → 이 방에서 자기 감독관을 부를 수 있게 하지 못했습니다. A room
   standing in 아바타 모드 names the supervisors its own words may call (부를 수 있는 감독관 above): that is the room's
   choice of agents, never a person's right, and it is never worded as 권한.
 - a room's chat service, fixed as the room is added → 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수
@@ -553,7 +554,7 @@
 - the organisation screen's tab where accounts are looked up across companies → 사용자: 사용자, 사용자 없음, 사용자를
   선택해 주세요, 찾은 사용자 {n}명; where an account stands → 상태: 활성, 기기 연결 대기, 탈퇴; when it was made → 만든
   날짜; when it last signed in → 최근 로그인; a person's latest runs → 최근 활동; the menu of what may be done for one →
-  관리, its acts 조직 이동, 기기 연결, 프로필 변경, BMO 설정 권한, 탈퇴 처리; one person's tabs → 계정, 조직, 권한, BMO and
+  관리, its acts 조직 이동, 기기 연결, 프로필 변경, 감독관 설정 권한, 탈퇴 처리; one person's tabs → 계정, 조직, 권한, 감독관 and
   활동, 조직 holding the groups 소속, 겸직 and 이력, and 활동 holding their rooms, agents, sessions and latest runs.
   Never 회원, 계정 목록, 마지막 접속, 활동 내역.
 - a person in the console's directory → 사람: 사람, 같은 조직의 사람. Never 사용자 for a person found by search; 사용자 stays for a login or an account.
@@ -703,7 +704,7 @@
   임시저장, 진행 중, 승인, 반려. Never 제출 or 취소 for leave.
 - one entry of what a day's hours went to → 업무 기록, its fields 시작, 시간, 업무코드, 업무명; the company's catalogue of codes →
   업무코드, 새 업무코드, 업무코드 없음, a code no longer used → 보관, 보관됨, and back → 복원; the hours of a day by code → 업무코드별 시간. An entry the
-  person's BMO drafted → 초안, waiting ones → 확정할 초안 {n}건, keeping one → 확정. Never 작업 기록, 업무일지, 작업명, 승인 for
+  person's supervisor drafted → 초안, waiting ones → 확정할 초안 {n}건, keeping one → 확정. Never 작업 기록, 업무일지, 작업명, 승인 for
   확정.
 - a post a person holds beside their home unit → 겸직: 겸직 추가, 겸직 편집, 겸직 해제, 겸직 없음, 대상자, 조직장 겸임. Never
   겸임 for the post itself, 파견, 소속 추가.
@@ -743,15 +744,15 @@
   signal → 정상, 주의, 위험; risks in the works under it → 하위 위험 {n}건. Its due date → 기한, `{n}일 남음` while it is
   still to come, 오늘 마감 on the day, 기한 지남 once past; its start → 시작일. Never 순조 for 정상, 진행률 for 진척,
   마감일 or 데드라인 for a due date.
-- an entry the person's BMO drafted → 초안, keeping it → 확정, letting it go → 철회; the drafts on a work another reads →
+- an entry the person's supervisor drafted → 초안, keeping it → 확정, letting it go → 철회; the drafts on a work another reads →
   `확정 전 초안 {n}건`; one drafted from what an agent did → AI 작업. What an entry rests on → 증거, counted `증거 {n}건`;
   one resting on the person's word alone → 진술. Never 미확인, 승인 for 확정, 취소 or 삭제 for 철회, 근거 for 증거.
 - the ways the chosen place's works are read on 일정 관리 → 보기: 요약, 타임라인, 백로그, 보드, 캘린더, 목록, and for a
   head 오늘, 주간 보고, 월간 보고. 일정 is never a view's name: it is a calendar event alone. The works at risk
   gathered at the list's head → 위험 업무; a scope that changed this week → 범위 변경; the signal's column → 전망. A
-  person's day: a line their BMO wrote → BMO 작성; a line left unmoved day after day → `{n}일째 진척 없음`; nothing
-  written → 기록 없음; nothing written on a day whose end-of-day question found the person's BMO not connected →
-  BMO 연결 안 됨, never 연결 실패 or BMO 오프라인; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
+  person's day: a line their supervisor wrote → 감독관 작성; a line left unmoved day after day → `{n}일째 진척 없음`; nothing
+  written → 기록 없음; nothing written on a day whose end-of-day question found the person's supervisor not connected →
+  감독관 연결 안 됨, never 연결 실패 or 감독관 오프라인; a day off in its place in the attendance screen's words (휴가, 오전 반차, 오후 반차, 출장, 휴무,
   대휴, 공휴일). The weekly report's parts → 중점 업무, 진척 변화, 밀린 업무, 다음 주 기한 조건, 사람별 요약, 가치 분류 (분류
   없음 for works with none), 조직장 의견; its columns 시작 진척, 종료 진척, 최근 진척; its weeks → 이전 주, 다음 주; the
   sheet → 다운로드. A reader's remark on a work, or a head's on a person → 의견: 의견, 의견 추가, 등록, 의견이 아직
