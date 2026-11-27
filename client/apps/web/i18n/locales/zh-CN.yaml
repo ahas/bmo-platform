@@ -3967,7 +3967,6 @@ usage:
     window_weekly: 每周
     window_weekly_overage: 每周+超额
     balance: 余额
-    balance_seen: "{wait}前"
     requests_day: 每日请求
     requests_free_models: 免费模型请求
     requests_left: "剩余 {left} / {limit}"

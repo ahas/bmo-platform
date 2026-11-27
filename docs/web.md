@@ -1285,14 +1285,13 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   holding that account's own session and weekly windows as the share remaining, each with a bar of that share and
   how long is left until it resets. A group's rows stand on shared columns, so the names read down one column, the
   bars start on one line and the figures end on one line, each row ending on its figure with what it is read against —
-  how long until the window resets, how long ago a balance was read — just before it; a balance, which has no whole, keeps the bar's place
+  how long until the window resets — just before it; a balance, which has no whole, keeps the bar's place
   empty, and where the group is narrower than about 28rem, as the panel is, each bar takes a line of its own under
   its row. No group is marked as the one in use, since the chat agent and each of a role's agents run on
   roads of their own and one mark cannot say whose run it means. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
-  endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
-  read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
+  endpoint account — carries it as a row of its own: 「잔액」 and the amount in its currency, with no word of when it was read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
   one more row under it: what the allowance covers in the pack's words for it, 「무료 모델 요청」 for
   `free-models` and 「하루 요청」 for one the pack has no word for or that covers every request, and how many
   are left of the day's ceiling, 「988 / 1,000 남음」, with a bar of that share. A provider that is switched on and keeps a balance on

@@ -3967,7 +3967,6 @@ usage:
     window_weekly: 週間
     window_weekly_overage: 週間+超過
     balance: 残高
-    balance_seen: "{wait}前"
     requests_day: 1日のリクエスト
     requests_free_models: 無料モデルのリクエスト
     requests_left: "残り {left} / {limit}"

@@ -3943,7 +3943,6 @@ usage:
     window_weekly: Weekly
     window_weekly_overage: Weekly + overage
     balance: Balance
-    balance_seen: "{wait} ago"
     requests_day: Requests per day
     requests_free_models: Free model requests
     requests_left: "{left} / {limit} left"
