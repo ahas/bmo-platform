@@ -148,6 +148,8 @@ const ACCOUNTS: readonly [string, string][] = [
   ["person-tabs", "fixture-password-3363"],
   ["date-escape", "fixture-password-3374"],
   ["opened-with", "fixture-password-3376"],
+  // The administrator who reads what lies over what with a sheet open (tests/browser/layers.test.ts).
+  ["layers", "fixture-password-3377"],
   ["choice-select", "fixture-password-3413"],
   ["input-menu-name", "fixture-password-3562"],
   ["qa-admin", "fixture-password-3765"],

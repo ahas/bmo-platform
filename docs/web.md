@@ -10363,6 +10363,14 @@ so a reader sees and does what their own account may alone, and the agency's wor
 
 ### Floating things
 
+- **Layers: one order every floating part follows,** said once as the console's layer values (`main.css`) and
+  given to each kind through the theme, never by a number a screen picks for itself. From the bottom: the page and
+  its sidebar, at their own order among themselves; a sheet's shade and the sheet — a dialog, a drawer, a slideover,
+  the sidebar's search palette — over them whatever an element of the page is given, a later sheet over an earlier
+  one by standing after it; the briefing's player while it plays, over the sheets, so a briefing tried from a
+  settings dialog is seen and pressed over that dialog; what drops from a control — a menu, a select's list, a
+  popover, a tooltip — over those, since it is opened from them; and a notice over everything. With a dialog open
+  the sidebar lies under its shade and nothing of it is pressed.
 - **A dialog's close stands in its head's row,** at the row's trailing end and on the head's one centre line with
   the title, or with the title and its description taken as one block, never held at a fixed distance from the
   dialog's top; the title takes the rest of the row, so a long one stops short of the close, 8px clear of it.
