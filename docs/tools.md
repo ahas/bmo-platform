@@ -193,7 +193,7 @@ here.
 - **`tools/worker_ask`** declares `bmo/worker_ask` to a session holding `room.tools`: a supervisor hands a
   small coding task to a run of the `worker` role, with no queue item, lease or report.
 - **It carries no room check** (`docs/launch-lines.md`, 「What a room's words may make a supervisor do」): what a
-  room's words may have the supervisor ask is the supervisor's rules' and the owner's room rules'. A person asking
+  room's words may have the supervisor ask is the supervisor's rules'. A person asking
   their own BMO for an app of their own is held by the chain's `personal-apps.make` at the app's put
   (`docs/person-nodes.md`, 「Personal apps」).
 - **Its arguments** are the words and an optional folder or app. The folder is the asking supervisor's scratch

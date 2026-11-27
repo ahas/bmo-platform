@@ -51,12 +51,6 @@ pub struct Room {
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Rules {
-  pub room_rules: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Downgrade {
   pub fact: String,
   pub intent: String,
@@ -86,7 +80,6 @@ pub struct ChatLine {
   pub room: Room,
   pub downgrade: Downgrade,
   pub fallback: Fallback,
-  pub rules: Rules,
 }
 
 crate::part!(pub CHAT_LINE: ChatLine = "chat-line.toml");

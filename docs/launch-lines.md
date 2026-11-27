@@ -225,7 +225,7 @@
   the program comes up with no person to answer it. A line that names fewer servers than these leaves the
   supervisor with no tool of its own: a configuration that drops the tool host drops sending and memory
   with it. What is the owner's alone — approving, launching or finishing work, deploying, reading another
-  room — is held by the session's own judgement under its rules and the owner's room rules (「What a room's
+  room — is held by the session's own judgement under its rules (「What a room's
   words may make a supervisor do」 below), not by a permission list. The chat stands as the
   supervisor's resident program, whose line keeps its slash commands — `/compact` is one, typed into the program to fold the
   session in place, on the same prefix its turns stand on. There is no separate fold line for the chat. It
@@ -656,9 +656,8 @@
 - **The tools a supervisor acts with carry no room check.** `bmo/worker_ask`, `bmo/app_put`, `bmo/skill_put` and
   `run_job` on the supervisor's own `agency` server do what they are asked whoever sent the words the turn
   answers; agency asks no other unit who may ask them.
-- **What a room's words may make it do is its rules' and the owner's room rules'.** The absolute rules say what is
-  the owner's alone, and the room's block names the owner's room rules in force there, the one place what a
-  group room's members are allowed stands (`docs/agent-documents.md`, 「How the documents are composed」). An
+- **What a room's words may make it do is its rules'.** The absolute rules say what is the owner's alone, and no
+  member of a room holds his authority (`docs/agent-documents.md`, 「How the documents are composed」). An
   item the supervisor files on a turn not the owner's stands a draft that an approver's approval opens
   (`docs/api.md`, 「assignments and jobs」).
 - **What stands outside agency.** A deploy, `testbed/deploy`, is the testbed's hosted tool and a capability `bmo

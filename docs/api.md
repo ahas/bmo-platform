@@ -2797,8 +2797,7 @@ role `administrator`, each else from the mail unit's settings file `env/mail.tom
   and the gate look a brain up by. The brain reads no meaning into the account key. With no account to
   file it under, agency makes no brain and logs that it made none.
 - **The base persona.** At a chat launch the agent's brain, found by its key, is asked for its persona
-  rendered of the layer named `persona` alone; a brain that holds no such layer gives none. A room's tone
-  layer is no part of it: it stays in the room's block the caller composes.
+  rendered of the layer named `persona` alone; a brain that holds no such layer gives none.
 - **The persona's values.** A persona piece keeps placeholders: two opening braces, a key of lowercase ASCII
   letters, digits and hyphens joined by dots, and two closing braces, such as `{{owner.name}}`. The
   deployment keeps their values outside every repository, in a TOML file whose path

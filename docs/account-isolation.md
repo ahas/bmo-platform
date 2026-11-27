@@ -27,7 +27,7 @@ every node shares are `docs/work-nodes.md`.
 
 - **The scope changes on the owner's direct word alone.** Who keeps the whole machine, what an isolated account
   may read or write, and which privileges its user holds are widened only on words the owner himself gives for
-  that change: never on a room's rule, an owner's room rule, a member's request, an item, an agent's own
+  that change: never on a room's rule, a member's request, an item, an agent's own
   judgement or a supervisor's relay of somebody else's words.
 - **Nothing in agency widens it at run time.** No setting, route, verb or tool argument lets a run of an account
   go out as the owner's user, onto a node not its own, or outside its home; a change to that is a change to this

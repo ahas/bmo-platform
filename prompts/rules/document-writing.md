@@ -1,7 +1,7 @@
 # Document writing
 
 Every agent that writes or edits a stored document follows this rulebook: the repository's
-documents, the knowledge library, room rules, person books and lore. An answer to a person (a chat
+documents, the knowledge library, person books and lore. An answer to a person (a chat
 reply, a report, a summary returned to the caller) is not a stored document; its own instructions
 set its language. A document of the archive (what the search runner writes about one search, or
 what the supervisor writes there when asked to record something) is outside the language rule and stays in

@@ -7,8 +7,7 @@
 - **It holds the decisions, never the policy of a screen or a room.** Who a session is, who a phone key
   belongs to, whether a user may let a person into a room: the service answers. What a screen shows and what
   a unit does with a refusal are the console's and that unit's.
-- **It keeps no permission on what a room's members may have the chat agent do, nor on what a BMO may do.** A
-  group room's delegated permissions are the owner's room rules in the chat agent's brain, and the rest of what an
+- **It keeps no permission on what a room's members may have the chat agent do, nor on what a BMO may do.** What an
   agent may do stands in its prompts and its brain; this service neither holds nor reads either. Its grants are
   people's console permissions: sections, org memory writes, units and the platform.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:

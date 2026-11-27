@@ -275,9 +275,8 @@ composed into a system prompt, and what the supervisor's own prompt is made of.
   - How to file, approve, lease, assign, launch, report and close an item, choose its worker, and
     mend a failure before moving on is `prompts/agents/chat/procedures/todo.md`.
 - **The room context:** a group room's turn carries `prompts/agents/chat/rules.md`, how its
-  standing requests are read: the owner's room rules its block lists, brain memories of type `rule`
-  linked to the room and to any person they name, are the one place a group room's delegated
-  permissions stand. The owner's chat gets `prompts/agents/chat/owner.md` there instead: the names
+  standing requests are read: no member holds the owner's authority, so a member's request beyond
+  what everyone may use is filed for his approval. The owner's chat gets `prompts/agents/chat/owner.md` there instead: the names
   the owner calls the agents by (the supervisor and its per-room presences, the gates, the runners,
   the worker), which no room needs.
 - **After them come the three rulebooks every answer has to satisfy:**

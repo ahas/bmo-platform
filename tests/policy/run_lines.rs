@@ -54,7 +54,7 @@ fn only_the_worker_runner_and_chat_lines_show_their_most_called_entries_by_name(
   assert!(RUN_LINES.shows("chat", "bmo/say"));
   assert!(
     RUN_LINES.shows("chat", "bmo/brain_move"),
-    "an owner's room rule is taken back where its turns read it"
+    "a memory shown wrong is closed where it stands"
   );
   for gone in [
     "bmo/task",
