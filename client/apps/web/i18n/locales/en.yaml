@@ -1634,6 +1634,7 @@ todo:
     state_done: Done
     state_held: On hold
     state_merged: Merged
+    state_dropped: Discarded
     state_pending: Awaiting approval
     state_reporting: Reporting completion
     state_running: In progress
@@ -1652,6 +1653,8 @@ todo:
     stop_failures: "Failed {n} times"
     stop_reason: Stop reason
     hold_reason: Reason for putting on hold
+    drop_reason: Reason for discarding
+    dropped_reason: "Reason: {reason}"
     notices_reason: Reason for turning notices off
     notices_off: "Notices off · {reason}"
     notices_off_since: "Notices off since {since} · {reason}"
@@ -1685,7 +1688,7 @@ todo:
     awaiting_question: Awaiting answer
   message:
     discard_confirm: "Discard #{id}?"
-    discard_effect: "The item is deleted and can't be restored."
+    discard_effect: "The item moves to Discarded and can't be restored."
     done_all_found: "Loaded all {n} completed items found."
     done_all_loaded: "Loaded all {n} completed items."
     note_delivered: "The chat agent's edit carrying this instruction has already reached the running Job, so it stays in that Job."
@@ -1706,6 +1709,7 @@ todo:
     section_done_empty: No completed items
     section_held_empty: No items on hold
     section_merged_empty: No merged items
+    section_dropped_empty: No discarded items
     section_pending_empty: No pending requests
     section_queue_empty: No items left
     time_inside_note: "Tools that ran at the same time overlap, so the total can exceed the actual time"
@@ -1764,6 +1768,7 @@ todo:
     section_done: Done
     section_held: On hold
     section_merged: Merged
+    section_dropped: Discarded
     section_pending: Awaiting approval
     section_queue: Queue
     time_inside: Time per tool during the agent run

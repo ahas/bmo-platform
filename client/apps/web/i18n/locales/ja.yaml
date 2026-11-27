@@ -1634,6 +1634,7 @@ todo:
     state_done: 完了
     state_held: 保留
     state_merged: 統合済み
+    state_dropped: 破棄済み
     state_pending: 承認待ち
     state_reporting: 完了報告中
     state_running: 進行中
@@ -1652,6 +1653,8 @@ todo:
     stop_failures: "失敗 {n} 回"
     stop_reason: 停止理由
     hold_reason: 保留理由
+    drop_reason: 破棄理由
+    dropped_reason: "理由: {reason}"
     notices_reason: 通知をオフにする理由
     notices_off: "通知オフ · {reason}"
     notices_off_since: "{since} から通知オフ · {reason}"
@@ -1685,7 +1688,7 @@ todo:
     awaiting_question: 回答待ち
   message:
     discard_confirm: "#{id} を破棄しますか？"
-    discard_effect: 項目は削除され、元に戻せません。
+    discard_effect: 項目は破棄済みに移り、元に戻せません。
     done_all_found: "検索された完了項目 {n} 件をすべて読み込みました。"
     done_all_loaded: "完了項目 {n} 件をすべて読み込みました。"
     note_delivered: この指示を含むチャットエージェントの修正内容は、実行中の Job にすでに届いているため、その Job にはそのまま残ります。
@@ -1710,6 +1713,7 @@ todo:
     section_done_empty: 完了した項目なし
     section_held_empty: 保留した項目なし
     section_merged_empty: 統合された項目なし
+    section_dropped_empty: 破棄された項目なし
     section_pending_empty: 待機中の依頼なし
     section_queue_empty: 残りの項目なし
     time_inside_note: 同時に実行されたツールは時間が重なるため、合計が実際の時間より長くなることがあります
@@ -1768,6 +1772,7 @@ todo:
     section_done: 完了
     section_held: 保留
     section_merged: 統合済み
+    section_dropped: 破棄済み
     section_pending: 承認待ち
     section_queue: 待ち行列
     time_inside: エージェント実行中のツール別時間

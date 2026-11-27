@@ -7301,6 +7301,11 @@ Four bounds keep it from growing forever.
     one further back than the finished page in hand is read on its own, so the link never lands on nothing. Nothing acts on
     a merged item: the 관리 tab says only which item carries it, and no words are added to it. Once the carrying item is
     finished, the merged ones are finished with it and stand among the 완료 with a **#N에 병합** line.
+  - **버림** — items the owner or a supervisor discarded: finished without being done, so they never stand among the
+    완료. Like the hold group it is unseen when viewing all, and stands under its own chip and in a search, newest first
+    and paged with the finished list. A line wears **버림** with a blocked mark and, under it, the note the drop was made
+    with as **사유: …**, read from the last note written on the item by the time it was dropped; a drop that carried none
+    says nothing more.
   - **완료** — items whose report is done. Completion is marking not deleting, so what has been done stays here.
     - **The most recently filed stands first,** by item number, highest first: bmo-job's lines carry no moment an item
       was closed, and the number is the order items were filed in.
@@ -7337,7 +7342,7 @@ Four bounds keep it from growing forever.
   colour — the only line asking the owner something. And **a completed line reads at the same brightness as others** — a record of
   what was done, not to be dimmed.
 - **The state tabs and the filter narrow the groups together.** The tabs under the search pick a state — 전체, 대기,
-  진행 중, 결재 대기, 보류, 병합됨, 완료. Beside them a filter button opens a popover at every width, the panel being a
+  진행 중, 결재 대기, 보류, 병합됨, 버림, 완료. Beside them a filter button opens a popover at every width, the panel being a
   narrow column wherever it stands, and it sets conditions on the table's own columns:
   - **저장소** — the repository whose worker does the line. A line with no assignment is the Built-in worker's, so
     picking that worker finds those lines too. The names come from the agents table, with any other name a line

@@ -19,7 +19,7 @@ afterAll(async () => { await browser?.close(); });
 // The board is typed as the screen's own, so a column added to it fails the static check here
 // rather than throwing inside a render nobody is watching.
 const empty: TodoBoard = {
-  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0,
+  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0, dropped: [], droppedTotal: 0,
   choices: { workers: [], chats: [], requesters: [] },
   standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false, deployHold: null
@@ -32,6 +32,7 @@ const item = (id: number, title: string): TodoItem => ({
   holdPending: false, orderActive: false, seconds: null, spans: [], note: null, reports: [],
   unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null,
   heldReason: null, heldKind: null, noticesOff: null, mergedInto: null, mergedAt: null, mergedIntoTitle: null,
+  dropReason: null,
   mergedFrom: [], createdAt: 1, doneAt: null
 });
 

@@ -1634,6 +1634,7 @@ todo:
     state_done: 完成
     state_held: 暂缓
     state_merged: 已合并
+    state_dropped: 已丢弃
     state_pending: 待审批
     state_reporting: 正在提交完成报告
     state_running: 进行中
@@ -1652,6 +1653,8 @@ todo:
     stop_failures: "失败 {n} 次"
     stop_reason: 停止原因
     hold_reason: 暂缓原因
+    drop_reason: 丢弃原因
+    dropped_reason: "原因: {reason}"
     notices_reason: 关闭通知的原因
     notices_off: "通知已关闭 · {reason}"
     notices_off_since: "自 {since} 起通知已关闭 · {reason}"
@@ -1685,7 +1688,7 @@ todo:
     awaiting_question: 等待答复
   message:
     discard_confirm: "要丢弃 #{id} 吗？"
-    discard_effect: 条目将被删除且无法恢复。
+    discard_effect: 该条目将移至已丢弃，且无法恢复。
     done_all_found: "已加载找到的全部 {n} 个已完成条目。"
     done_all_loaded: "已加载全部 {n} 个已完成条目。"
     note_delivered: 包含此指示的聊天智能体修改已送达正在运行的 Job，因此会保留在该 Job 中。
@@ -1710,6 +1713,7 @@ todo:
     section_done_empty: 无已完成条目
     section_held_empty: 无暂缓条目
     section_merged_empty: 无已合并条目
+    section_dropped_empty: 无已丢弃条目
     section_pending_empty: 无等待中的请求
     section_queue_empty: 无剩余条目
     time_inside_note: 同时运行的工具时间会重叠，因此合计可能比实际时间长
@@ -1768,6 +1772,7 @@ todo:
     section_done: 完成
     section_held: 暂缓
     section_merged: 已合并
+    section_dropped: 已丢弃
     section_pending: 待审批
     section_queue: 队列
     time_inside: 智能体运行期间各工具用时
