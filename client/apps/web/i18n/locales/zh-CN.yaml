@@ -1265,7 +1265,7 @@ screens:
     live: 实时状态
     mail: 邮件
     monitor: 监控
-    organization: 系统及组织
+    organization: 平台
     remote: 远程
     research: 调研
     search: 搜索
@@ -1373,7 +1373,7 @@ todo:
     bad_agent: 智能体名称无效。
     bad_role: 角色名称无效。
     no_candidate: "没有在 {role} 角色中运行 {model} 模型的智能体。\n{role} 角色的智能体：{agents}"
-    unknown_role: "代理中心中没有 {role} 角色。"
+    unknown_role: "平台中没有 {role} 角色。"
     bad_item_id: 条目编号无效。
     bad_note: 审批意见过长或无效。
     bad_order: 要保存的顺序无效。
@@ -2008,14 +2008,14 @@ permissions:
     write_of: "写入{name}"
 organization:
   aria:
-    tabs: 系统及组织标签页
+    tabs: 平台标签页
   label:
     chart: 组织架构图
     none: 无组织
     list: 组织列表
     list_none: 没有可设置的组织
     list_no_match: 未找到组织
-    platform: 整个平台
+    platform: 全部
     person: 我
     name: 名称
     parent: 上级组织
@@ -2114,7 +2114,7 @@ organization:
     waiting: 等待连接
     shared: 共享设备
   error:
-    agency_node_taken: '代理中心将这台设备记录为其他账号的节点而非共享设备，因此无法处理。
+    agency_node_taken: '平台将这台设备记录为其他账号的节点而非共享设备，因此无法处理。
 
       设备连接保持不变。'
     bad_request: 名称或组织编号无效。
@@ -2960,7 +2960,7 @@ secrets:
     note: 你的机密只有你自己能看到。智能体和各服务的设置中只传递名称。值只保留在机密库的文件中，不会出现在对话和日志里。
     unit_note: "这是该组织的机密，只有组织负责人和平台管理员能看到。\n代理和服务只拿到名称，值只保存在保管库的文件里。"
     platform_note: "这是平台的机密，由所有平台管理员共用，各服务按其设置中的文件名读取。\n代理只拿到名称。"
-    administrator_own: "管理员的机密位于整个平台的机密保管库中。"
+    administrator_own: "管理员的机密位于“全部”的机密保管库中。"
     unit_forbidden: "你无权管理该组织的机密。"
     replace: 替换现有值
     replace_note: "之前的值会保留在 {name}.previous 文件中。"
@@ -3050,6 +3050,7 @@ agents:
     road_of: "{name} 提供商 · 模型"
     agent_enabled_of: "使用 {name}"
     agent_tabs: 智能体设置
+    supervisor_tabs: 主管设置
     agent_keeps_cache_of: "保持 {name} 缓存"
     provider_prompt_of: "{provider} 提示词"
     room_last_run: "{room}，运行 {n} 次，上次运行 {time}，打开日志"
@@ -3085,14 +3086,14 @@ agents:
     account_fields_needed: 请输入账号名称和凭据文件路径。
     account_order_list: 请以列表形式发送账号顺序。
     account_switch_needed: 需要账号和开/关值。
-    agency_access_unchecked: 无法确认权限，代理中心未处理该请求。请稍后重试。
-    agency_bad_request: 代理中心未接受该请求。
-    agency_conflict: 与当前状态不符，代理中心未接受。
-    agency_failed: 代理中心无法处理该请求。
-    agency_forbidden: 你没有在代理中心执行此操作的权限。
-    agency_not_found: 代理中心中没有该项。
-    agency_unavailable: 代理中心现在无法处理此请求。
-    agency_unprocessable: 代理中心无法接受此值。
+    agency_access_unchecked: 无法确认权限，平台未处理该请求。请稍后重试。
+    agency_bad_request: 平台未接受该请求。
+    agency_conflict: 与当前状态不符，平台未接受。
+    agency_failed: 平台无法处理该请求。
+    agency_forbidden: 你没有在平台执行此操作的权限。
+    agency_not_found: 平台中没有该项。
+    agency_unavailable: 平台现在无法处理此请求。
+    agency_unprocessable: 平台无法接受此值。
     agent_name_taken: 此键已存在。
     bad_agent_name: 智能体名称无效。
     bad_job_id: Job 编号无效。
@@ -3166,7 +3167,7 @@ agents:
   label:
     sleep_on: "每晚睡眠"
     sleep_hour: "睡眠时间"
-    agency: 代理中心
+    agency: 平台
     account_kind_sign_in: 在此登录
     notice_rest: "休息通知"
     notice_rest_note: "在休息开始时和解除时发送通知。"
@@ -3562,7 +3563,6 @@ agents:
     accounts: Claude 账号
     catalogue_add: 添加模型文件
     catalogue_uses: 模型更改记录
-    chat_documents: 系统提示词
     registry: 注册模型
     registry_add: 添加注册模型
     work_log: 日志
@@ -3987,7 +3987,7 @@ job:
     action_wrong: 此路由不接受该操作。
     add_anchor: 新任务只能放在等待中的构建任务旁边。
     after_not_open: 暂缓后要恢复的条目不是另一个尚未结束的条目。
-    agency: bmo-job 无法调用代理中心。
+    agency: bmo-job 无法调用平台。
     agent_name_taken: 该智能体名称已存在。
     append_empty: 要追加的内容为空。
     back_here_needs_path: 调回本机的工作器需要本机上的路径。
@@ -4132,7 +4132,7 @@ job:
     path_not_absolute: 工作器的路径不是绝对路径。
     path_not_directory: 工作器的路径不是文件夹。
     phase_wrong: 当前阶段不会重新运行此任务。
-    pin_wrong: 代理中心未接受工作器的固定值。
+    pin_wrong: 平台未接受工作器的固定值。
     plan_model_form: 模型须写成提供方和模型。
     plan_no_stages: 计划中没有阶段列表。
     plan_not_object: 计划不是 JSON 对象。
@@ -4358,7 +4358,7 @@ documents:
     translation_unreachable: 无法连接翻译器，无法请求翻译。
   message:
     choose_document: 请选择文档。
-    root_unread_agency: 这是代理中心的文档。代理中心尚未开放提供完整文档的途径，因此无法在此控制台中阅读。
+    root_unread_agency: 这是平台的文档。平台尚未开放提供完整文档的途径，因此无法在此控制台中阅读。
     translation_unavailable: 翻译器尚未向此控制台提供翻译，因此无法阅读译文。
     unanswered_limit: 已达到使用上限，未能回复这条消息。
     unanswered_other: 这条消息未收到回复。
@@ -4963,7 +4963,7 @@ supply:
     plan_applied: 正在应用的套餐无法隐藏。
     plan_not_exposed: 未向此组织显示的套餐无法应用。
     not_in_force: 此部署尚未开启供给功能。
-    no_agency: 此部署未指定代理中心，无法获知个人供给。
+    no_agency: 此部署未指定平台，无法获知个人供给。
     upstream_failed: 其他单元无响应，无法加载供给信息。
     bad_request: 无法处理该供给请求。
     unknown_road: 未知的供给方。
@@ -5239,7 +5239,7 @@ removal:
       other: 其他记录
     unit:
       web: 账号服务
-      agency: 代理中心
+      agency: 平台
       receiver: 接收器
       brain: Brain
       artifact: 制品

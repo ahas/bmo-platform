@@ -1265,7 +1265,7 @@ screens:
     live: リアルタイム状態
     mail: メール
     monitor: モニター
-    organization: システムおよび組織
+    organization: プラットフォーム
     remote: リモート
     research: リサーチ
     search: 検索
@@ -1373,7 +1373,7 @@ todo:
     bad_agent: エージェント名が正しくありません。
     bad_role: ロール名が正しくありません。
     no_candidate: "{role} ロールで {model} モデルを実行するエージェントがありません。\n{role} ロールのエージェント: {agents}"
-    unknown_role: "{role} ロールがエージェンシーにありません。"
+    unknown_role: "{role} ロールがプラットフォームにありません。"
     bad_item_id: 項目番号が正しくありません。
     bad_note: 承認コメントが長すぎるか、正しくありません。
     bad_order: 保存する順序が正しくありません。
@@ -2008,14 +2008,14 @@ permissions:
     write_of: "{name}の編集"
 organization:
   aria:
-    tabs: システムおよび組織タブ
+    tabs: プラットフォームタブ
   label:
     chart: 組織図
     none: 組織なし
     list: 組織一覧
     list_none: 設定する組織なし
     list_no_match: 該当する組織なし
-    platform: プラットフォーム全体
+    platform: 全体
     person: 自分
     name: 名前
     parent: 上位組織
@@ -2114,7 +2114,7 @@ organization:
     waiting: 接続待ち
     shared: 共用デバイス
   error:
-    agency_node_taken: 'エージェンシーがこのデバイスを共用デバイスではなく別のアカウントのノードとして記録しているため、処理できませんでした。
+    agency_node_taken: 'プラットフォームがこのデバイスを共用デバイスではなく別のアカウントのノードとして記録しているため、処理できませんでした。
 
       デバイスの接続はそのままです。'
     bad_request: 名前または組織番号が正しくありません。
@@ -2960,7 +2960,7 @@ secrets:
     note: 自分のシークレットは自分だけが見られます。エージェントと各サービスの設定には名前だけを渡します。値は保管庫のファイルにだけ残り、会話やログには残りません。
     unit_note: "この組織の秘密で、組織長とプラットフォーム管理者だけが見られます。\nエージェントとサービスには名前だけを渡し、値は保管庫のファイルにだけ残ります。"
     platform_note: "プラットフォームの秘密で、プラットフォーム管理者が共有し、各サービスは設定にあるファイル名でこの値を読みます。\nエージェントには名前だけを渡します。"
-    administrator_own: "管理者の秘密はプラットフォーム全体の秘密保管庫にあります。"
+    administrator_own: "管理者の秘密は「全体」の秘密保管庫にあります。"
     unit_forbidden: "この組織の秘密を管理する権限がありません。"
     replace: 既存の値を置き換え
     replace_note: "以前の値は {name}.previous ファイルに残ります。"
@@ -3050,6 +3050,7 @@ agents:
     road_of: "{name} のプロバイダー · モデル"
     agent_enabled_of: "{name} を使用"
     agent_tabs: エージェント設定
+    supervisor_tabs: スーパーバイザー設定
     agent_keeps_cache_of: "{name} のキャッシュ維持"
     provider_prompt_of: "{provider} プロンプト"
     room_last_run: "{room}、実行 {n} 回、最終実行 {time}、ログを開く"
@@ -3085,14 +3086,14 @@ agents:
     account_fields_needed: アカウント名と認証情報ファイルのパスを入力してください。
     account_order_list: アカウントの順序をリストで送ってください。
     account_switch_needed: アカウントとオン・オフの値が必要です。
-    agency_access_unchecked: 権限を確認できなかったため、エージェンシーはリクエストを処理しませんでした。しばらくしてからもう一度お試しください。
-    agency_bad_request: エージェンシーがリクエストを受け付けませんでした。
-    agency_conflict: 現在の状態と合わないため、エージェンシーが受け付けませんでした。
-    agency_failed: エージェンシーがリクエストを処理できませんでした。
-    agency_forbidden: エージェンシーでこの操作を行う権限がありません。
-    agency_not_found: エージェンシーに該当する項目がありません。
-    agency_unavailable: エージェンシーは今このリクエストを処理できません。
-    agency_unprocessable: エージェンシーが受け付けられない値です。
+    agency_access_unchecked: 権限を確認できなかったため、プラットフォームはリクエストを処理しませんでした。しばらくしてからもう一度お試しください。
+    agency_bad_request: プラットフォームがリクエストを受け付けませんでした。
+    agency_conflict: 現在の状態と合わないため、プラットフォームが受け付けませんでした。
+    agency_failed: プラットフォームがリクエストを処理できませんでした。
+    agency_forbidden: プラットフォームでこの操作を行う権限がありません。
+    agency_not_found: プラットフォームに該当する項目がありません。
+    agency_unavailable: プラットフォームは今このリクエストを処理できません。
+    agency_unprocessable: プラットフォームが受け付けられない値です。
     agent_name_taken: すでにあるキーです。
     bad_agent_name: エージェント名が正しくありません。
     bad_job_id: Job番号が正しくありません。
@@ -3166,7 +3167,7 @@ agents:
   label:
     sleep_on: "毎晩眠る"
     sleep_hour: "睡眠の時刻"
-    agency: エージェンシー
+    agency: プラットフォーム
     account_kind_sign_in: ここでログイン
     notice_rest: "休憩通知"
     notice_rest_note: "休憩が始まるときと解除されたときに知らせます。"
@@ -3562,7 +3563,6 @@ agents:
     accounts: Claude アカウント
     catalogue_add: モデルファイルを追加
     catalogue_uses: モデル変更履歴
-    chat_documents: システムプロンプト
     registry: 登録モデル
     registry_add: 登録モデルを追加
     work_log: ログ
@@ -3987,7 +3987,7 @@ job:
     action_wrong: このルートでは受け付けない操作です。
     add_anchor: 新しいタスクは待機中のビルドタスクの隣にしか置けません。
     after_not_open: 保留後に再開する項目が、まだ終わっていない別の項目ではありません。
-    agency: bmo-job がエージェンシーを呼び出せませんでした。
+    agency: bmo-job がプラットフォームを呼び出せませんでした。
     agent_name_taken: すでにあるエージェント名です。
     append_empty: 追記する内容が空です。
     back_here_needs_path: このマシンに戻すワーカーには、このマシンのパスが必要です。
@@ -4132,7 +4132,7 @@ job:
     path_not_absolute: ワーカーのパスが絶対パスではありません。
     path_not_directory: ワーカーのパスがフォルダーではありません。
     phase_wrong: 現在の段階ではこのタスクを再実行しません。
-    pin_wrong: エージェンシーがワーカーの固定値を受け付けませんでした。
+    pin_wrong: プラットフォームがワーカーの固定値を受け付けませんでした。
     plan_model_form: モデルはプロバイダーとモデルで指定してください。
     plan_no_stages: 計画に段階の一覧がありません。
     plan_not_object: 計画が JSON オブジェクトではありません。
@@ -4358,7 +4358,7 @@ documents:
     translation_unreachable: 翻訳機に接続できないため、翻訳をリクエストできません。
   message:
     choose_document: 文書を選択してください。
-    root_unread_agency: エージェンシーの文書です。エージェンシーが文書全体を提供する経路をまだ開いていないため、このコンソールでは読めません。
+    root_unread_agency: プラットフォームの文書です。プラットフォームが文書全体を提供する経路をまだ開いていないため、このコンソールでは読めません。
     translation_unavailable: 翻訳機がまだこのコンソールに翻訳を提供していないため、翻訳して読むことはできません。
     unanswered_limit: 利用上限に達したため、このメッセージには回答できませんでした。
     unanswered_other: このメッセージには回答がありませんでした。
@@ -4963,7 +4963,7 @@ supply:
     plan_applied: 適用中のプランは非公開にできません。
     plan_not_exposed: この組織に公開されていないプランは適用できません。
     not_in_force: 供給機能はまだこのデプロイで有効になっていません。
-    no_agency: このデプロイにはエージェンシーが指定されていないため、個人供給を確認できません。
+    no_agency: このデプロイにはプラットフォームが指定されていないため、個人供給を確認できません。
     upstream_failed: 他のユニットが応答しなかったため、供給情報を読み込めませんでした。
     bad_request: 供給リクエストを処理できません。
     unknown_road: 不明なプロバイダーです。
@@ -5239,7 +5239,7 @@ removal:
       other: その他の記録
     unit:
       web: アカウントサービス
-      agency: エージェンシー
+      agency: プラットフォーム
       receiver: レシーバー
       brain: ブレイン
       artifact: アーティファクト

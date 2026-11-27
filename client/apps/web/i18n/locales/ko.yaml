@@ -1274,7 +1274,7 @@ screens:
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
-    organization: 시스템 및 조직
+    organization: 플랫폼
     remote: 원격
     research: 리서치
     search: 검색
@@ -1384,7 +1384,7 @@ todo:
     bad_agent: 에이전트 이름이 올바르지 않습니다.
     bad_role: 역할 이름이 올바르지 않습니다.
     no_candidate: "{role} 역할에 {model} 모델을 실행하는 에이전트가 없습니다.\n{role} 역할의 에이전트: {agents}"
-    unknown_role: "{role} 역할이 에이전시에 없습니다."
+    unknown_role: "{role} 역할이 플랫폼에 없습니다."
     bad_item_id: 항목 번호가 올바르지 않습니다.
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
@@ -2027,14 +2027,14 @@ permissions:
     write_of: "{name} 쓰기"
 organization:
   aria:
-    tabs: 시스템 및 조직 탭
+    tabs: 플랫폼 탭
   label:
     chart: 조직도
     none: 조직 없음
     list: 조직 목록
     list_none: 설정할 조직 없음
     list_no_match: 찾은 조직 없음
-    platform: 플랫폼 전체
+    platform: 전체
     person: 나
     name: 이름
     parent: 상위 조직
@@ -2131,7 +2131,7 @@ organization:
     waiting: 연결 대기 중
     shared: 공유 기기
   error:
-    agency_node_taken: "에이전시가 이 기기를 공유 기기가 아닌 다른 계정의 노드로 기록하고 있어 처리하지 못했습니다.\n기기 연결은 그대로입니다."
+    agency_node_taken: "플랫폼가 이 기기를 공유 기기가 아닌 다른 계정의 노드로 기록하고 있어 처리하지 못했습니다.\n기기 연결은 그대로입니다."
     bad_request: 이름이나 조직 번호가 올바르지 않습니다.
     cycle: "조직을 자기 하위 조직 밑으로 옮기거나, 결재선이 같은 조직을 두 번 지나게 할 수 없습니다."
     short_name_taken: 이 회사의 다른 조직이 이미 쓰는 약칭입니다.
@@ -2953,7 +2953,7 @@ secrets:
     note: 내 비밀은 나만 봅니다. 에이전트와 각 서비스의 설정에는 이름만 전합니다. 값은 보관함의 파일에만 남고 대화와 로그에는 남지 않습니다.
     unit_note: "이 조직의 비밀이며, 조직장과 플랫폼 관리자만 봅니다.\n에이전트와 서비스에는 이름만 전하고, 값은 보관함의 파일에만 남습니다."
     platform_note: "플랫폼의 비밀이며, 플랫폼 관리자가 함께 보고 각 서비스는 설정에 적힌 파일 이름으로 이 값을 읽습니다.\n에이전트에는 이름만 전합니다."
-    administrator_own: "관리자의 비밀은 플랫폼 전체의 비밀 보관함에 있습니다."
+    administrator_own: "관리자의 비밀은 '전체'의 비밀 보관함에 있습니다."
     unit_forbidden: "이 조직의 비밀을 관리할 권한이 없습니다."
     replace: 기존 값 교체
     replace_note: "이전 값은 {name}.previous 파일로 남습니다."
@@ -3043,6 +3043,7 @@ agents:
     road_of: "{name} 공급자 · 모델"
     agent_enabled_of: "{name} 사용"
     agent_tabs: 에이전트 설정
+    supervisor_tabs: 감독관 설정
     agent_keeps_cache_of: "{name} 캐시 유지"
     provider_prompt_of: "{provider} 프롬프트"
     room_last_run: "{room}, 실행 {n}회, 마지막 실행 {time}, 로그 열기"
@@ -3078,14 +3079,14 @@ agents:
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.
-    agency_access_unchecked: 권한을 확인하지 못해 에이전시가 요청을 처리하지 않았습니다. 잠시 후 다시 시도해 주세요.
-    agency_bad_request: 에이전시가 요청을 받아들이지 않았습니다.
-    agency_conflict: 지금 상태와 맞지 않아 에이전시가 받아들이지 않았습니다.
-    agency_failed: 에이전시가 요청을 처리하지 못했습니다.
-    agency_forbidden: 에이전시에서 이 일을 할 권한이 없습니다.
-    agency_not_found: 에이전시에 해당 항목이 없습니다.
-    agency_unavailable: 에이전시가 지금 이 요청을 처리할 수 없습니다.
-    agency_unprocessable: 에이전시가 받아들일 수 없는 값입니다.
+    agency_access_unchecked: 권한을 확인하지 못해 플랫폼가 요청을 처리하지 않았습니다. 잠시 후 다시 시도해 주세요.
+    agency_bad_request: 플랫폼가 요청을 받아들이지 않았습니다.
+    agency_conflict: 지금 상태와 맞지 않아 플랫폼가 받아들이지 않았습니다.
+    agency_failed: 플랫폼가 요청을 처리하지 못했습니다.
+    agency_forbidden: 플랫폼에서 이 일을 할 권한이 없습니다.
+    agency_not_found: 플랫폼에 해당 항목이 없습니다.
+    agency_unavailable: 플랫폼가 지금 이 요청을 처리할 수 없습니다.
+    agency_unprocessable: 플랫폼가 받아들일 수 없는 값입니다.
     agent_name_taken: 이미 있는 키입니다.
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
     bad_job_id: Job 번호가 올바르지 않습니다.
@@ -3159,7 +3160,7 @@ agents:
   label:
     sleep_on: "매일 밤 수면"
     sleep_hour: "수면 시각"
-    agency: 에이전시
+    agency: 플랫폼
     account_kind_sign_in: 여기서 로그인
     notice_rest: "휴식 알림"
     notice_rest_note: "휴식이 시작될 때와 풀렸을 때 알립니다."
@@ -3553,7 +3554,6 @@ agents:
     accounts: Claude 계정
     catalogue_add: 모델 파일 추가
     catalogue_uses: 모델 변경 기록
-    chat_documents: 시스템 프롬프트
     registry: 등록 모델
     registry_add: 등록 모델 추가
     work_log: 로그
@@ -3978,7 +3978,7 @@ job:
     action_wrong: 이 경로가 받지 않는 동작입니다.
     add_anchor: 새 태스크는 기다리는 빌드 태스크 옆에만 둘 수 있습니다.
     after_not_open: 보류 뒤에 재개할 항목이 아직 끝나지 않은 다른 항목이 아닙니다.
-    agency: bmo-job이 에이전시를 부르지 못했습니다.
+    agency: bmo-job이 플랫폼를 부르지 못했습니다.
     agent_name_taken: 이미 있는 에이전트 이름입니다.
     append_empty: 덧붙일 말이 비어 있습니다.
     back_here_needs_path: 이 머신으로 데려오는 워커에는 이 머신의 경로가 필요합니다.
@@ -4121,7 +4121,7 @@ job:
     path_not_absolute: 워커의 경로가 절대 경로가 아닙니다.
     path_not_directory: 워커의 경로가 폴더가 아닙니다.
     phase_wrong: 지금 단계에서는 이 태스크를 다시 돌리지 않습니다.
-    pin_wrong: 에이전시가 워커의 고정 값을 받아들이지 않았습니다.
+    pin_wrong: 플랫폼가 워커의 고정 값을 받아들이지 않았습니다.
     plan_model_form: 모델은 제공자와 모델로 적어야 합니다.
     plan_no_stages: 계획에 단계 목록이 없습니다.
     plan_not_object: 계획이 JSON 객체가 아닙니다.
@@ -4347,7 +4347,7 @@ documents:
     translation_unreachable: 번역기에 연결되지 않아 번역을 요청할 수 없습니다.
   message:
     choose_document: 문서를 선택하세요.
-    root_unread_agency: 에이전시의 문서입니다. 에이전시가 문서를 통째로 내주는 길을 아직 열지 않아 이 콘솔에서는 읽을 수 없습니다.
+    root_unread_agency: 플랫폼의 문서입니다. 플랫폼가 문서를 통째로 내주는 길을 아직 열지 않아 이 콘솔에서는 읽을 수 없습니다.
     translation_unavailable: 번역기가 아직 이 콘솔에 번역을 주지 않아 번역해서 읽을 수 없습니다.
     unanswered_limit: 사용 한도에 닿아 이번 말에는 답하지 못했습니다.
     unanswered_other: 이번 말에는 답을 받지 못했습니다.
@@ -4955,7 +4955,7 @@ supply:
     plan_applied: 적용 중인 플랜은 노출을 끌 수 없습니다.
     plan_not_exposed: 이 조직에 노출되지 않은 플랜은 적용할 수 없습니다.
     not_in_force: 공급 기능이 아직 이 배포에 켜지지 않았습니다.
-    no_agency: 이 배포에는 에이전시가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
+    no_agency: 이 배포에는 플랫폼가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
     upstream_failed: 다른 단위가 답하지 않아 공급 정보를 불러오지 못했습니다.
     bad_request: 공급 요청을 처리할 수 없습니다.
     unknown_road: 알 수 없는 공급처입니다.
@@ -5231,7 +5231,7 @@ removal:
       other: 기타 기록
     unit:
       web: 계정 서비스
-      agency: 에이전시
+      agency: 플랫폼
       receiver: 리시버
       brain: 브레인
       artifact: 아티팩트

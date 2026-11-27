@@ -1513,7 +1513,8 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   profile stands with (`docs/accounts.md`, 「A person's BMO profile」), the pack's word for a BMO where the profile
   names none, and for an agent of no account its label; never a label made with the person's name. In a person's own
   BMO's room that agent's own rows stand under the same name. The owner's private chat is answered by the supervisor
-  it names, else the default answerer, and keeps the name the console calls its chat agent by. Its face is the one
+  it names, else the default answerer, and keeps the name the console calls its chat agent by: that supervisor's own
+  label, the chat agent's label the settings name only where it has none, so the room and the agent's row read alike. Its face is the one
   that agent wears everywhere (above), its name's letter on the agent's own colour where it has no picture. The person
   stands only in 방 정보's 대화상대. The receiver's own title for the room stays the person's name, which the agent's
   turns read (「The join page」).
@@ -1815,7 +1816,8 @@ Four groups.
     each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
     answerer every room that names none as well, each only while it stands in the room list above, so a room never
-    added stands under no supervisor either. The three branches therefore wait for the room list's first answer as
+    added stands under no supervisor either. The room that stands as the supervisor itself — its own private room,
+    which the room list shows under the supervisor's own name — is not listed under it again. The three branches therefore wait for the room list's first answer as
     well as the agency's, so a supervisor first stands with its rooms already under it rather than growing them a
     moment later. Which rooms a supervisor answers is the receiver's word,
     read there

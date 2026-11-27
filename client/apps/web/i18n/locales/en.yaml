@@ -1265,7 +1265,7 @@ screens:
     live: Live status
     mail: Mail
     monitor: Monitor
-    organization: System and Organization
+    organization: Platform
     remote: Remote
     research: Research
     search: Search
@@ -1373,7 +1373,7 @@ todo:
     bad_agent: Invalid agent name.
     bad_role: Invalid role name.
     no_candidate: "No agent runs the {model} model in the {role} role.\nAgents in the {role} role: {agents}"
-    unknown_role: "The agency has no {role} role."
+    unknown_role: "The platform has no {role} role."
     bad_item_id: Invalid item number.
     bad_note: The approval note is too long or invalid.
     bad_order: The order to save is invalid.
@@ -2004,14 +2004,14 @@ permissions:
     write_of: "Write {name}"
 organization:
   aria:
-    tabs: System and Organization tabs
+    tabs: Platform tabs
   label:
     chart: Org chart
     none: No organizations
     list: Organizations
     list_none: No organizations to set up
     list_no_match: No organizations found
-    platform: Whole platform
+    platform: All
     person: Me
     name: Name
     parent: Parent organization
@@ -2108,7 +2108,7 @@ organization:
     waiting: Waiting to connect
     shared: Shared machine
   error:
-    agency_node_taken: "The agency records this machine as another account's node rather than a shared machine, so this couldn't be done.\nThe machine connection is unchanged."
+    agency_node_taken: "The platform records this machine as another account's node rather than a shared machine, so this couldn't be done.\nThe machine connection is unchanged."
     bad_request: The name or organization number is not valid.
     cycle: "An organization can't be moved under its own sub-organization, and an approval line can't pass the same organization twice."
     short_name_taken: Another organization in this company already uses that short name.
@@ -2938,7 +2938,7 @@ secrets:
     note: "Only you can see your secrets. Agents and services are given only their names in their settings. Values stay only in files in the secret store, never in chats or logs."
     unit_note: "These are this unit's secrets, seen by its heads and the platform administrator alone.\nAgents and services are given the name; the value stays in the store's file."
     platform_note: "These are the platform's secrets, shared by every platform administrator; each service reads its value by the file name its settings name.\nAgents are given the name alone."
-    administrator_own: "An administrator's secrets are the platform's, kept under the whole platform."
+    administrator_own: "An administrator's secrets are the platform's, kept under All."
     unit_forbidden: "You may not manage this unit's secrets."
     replace: Replace existing value
     replace_note: "The previous value is kept in the file {name}.previous."
@@ -3028,6 +3028,7 @@ agents:
     road_of: "{name} provider · model"
     agent_enabled_of: "Use {name}"
     agent_tabs: Agent settings
+    supervisor_tabs: Supervisor settings
     agent_keeps_cache_of: "Keep {name} cache warm"
     provider_prompt_of: "{provider} prompt"
     room_last_run: "{room}, {n} runs, last run {time}, open log"
@@ -3063,14 +3064,14 @@ agents:
     account_fields_needed: Enter the account name and the credential file path.
     account_order_list: Send the account order as a list.
     account_switch_needed: An account and an on/off value are required.
-    agency_access_unchecked: "The agency couldn't check permissions, so it didn't process the request. Try again in a moment."
-    agency_bad_request: "The agency didn't accept the request."
-    agency_conflict: "The agency didn't accept the request because it conflicts with the current state."
-    agency_failed: "The agency couldn't process the request."
-    agency_forbidden: "You don't have permission to do this in the agency."
-    agency_not_found: The agency has no such item.
-    agency_unavailable: "The agency can't process this request right now."
-    agency_unprocessable: "The agency can't accept this value."
+    agency_access_unchecked: "The platform couldn't check permissions, so it didn't process the request. Try again in a moment."
+    agency_bad_request: "The platform didn't accept the request."
+    agency_conflict: "The platform didn't accept the request because it conflicts with the current state."
+    agency_failed: "The platform couldn't process the request."
+    agency_forbidden: "You don't have permission to do this in the platform."
+    agency_not_found: The platform has no such item.
+    agency_unavailable: "The platform can't process this request right now."
+    agency_unprocessable: "The platform can't accept this value."
     agent_name_taken: This key already exists.
     bad_agent_name: Invalid agent name.
     bad_job_id: Invalid job number.
@@ -3144,7 +3145,7 @@ agents:
   label:
     sleep_on: "Sleep every night"
     sleep_hour: "Sleep hour"
-    agency: Agency
+    agency: Platform
     account_kind_sign_in: Sign in here
     notice_rest: "Rest notices"
     notice_rest_note: "Tells when a rest begins and when it lifts."
@@ -3538,7 +3539,6 @@ agents:
     accounts: Claude accounts
     catalogue_add: Add model file
     catalogue_uses: Model change history
-    chat_documents: System prompt
     registry: Registered models
     registry_add: Add registered model
     work_log: Log
@@ -3963,7 +3963,7 @@ job:
     action_wrong: "This route doesn't accept that action."
     add_anchor: A new task can only go next to a waiting build task.
     after_not_open: "The item that an on-hold item resumes after isn't another unfinished item."
-    agency: "bmo-job couldn't reach the agency."
+    agency: "bmo-job couldn't reach the platform."
     agent_name_taken: An agent with that name already exists.
     append_empty: The note to add is empty.
     back_here_needs_path: A worker brought back to this machine needs a path on this machine.
@@ -4106,7 +4106,7 @@ job:
     path_not_absolute: "The worker's path isn't absolute."
     path_not_directory: "The worker's path isn't a folder."
     phase_wrong: "This task isn't run again at the current stage."
-    pin_wrong: "The agency didn't accept the worker's pinned value."
+    pin_wrong: "The platform didn't accept the worker's pinned value."
     plan_model_form: A model must be written as a provider and a model.
     plan_no_stages: The plan has no list of stages.
     plan_not_object: "The plan isn't a JSON object."
@@ -4332,7 +4332,7 @@ documents:
     translation_unreachable: "Couldn't connect to the translator, so a translation can't be requested."
   message:
     choose_document: Select a document.
-    root_unread_agency: "This document belongs to the agency. The agency doesn't yet offer whole documents, so it can't be read in this console."
+    root_unread_agency: "This document belongs to the platform. The platform doesn't yet offer whole documents, so it can't be read in this console."
     translation_unavailable: "The translator doesn't provide translations to this console yet, so it can't be read in translation."
     unanswered_limit: "The usage limit was reached, so this message wasn't answered."
     unanswered_other: No answer was received for this message.
@@ -4933,7 +4933,7 @@ supply:
     plan_applied: "A plan in use can't be hidden."
     plan_not_exposed: "A plan not shown to this organization can't be applied."
     not_in_force: "Supply isn't turned on for this deployment yet."
-    no_agency: "No agency is set for this deployment, so personal supply can't be known."
+    no_agency: "No platform is set for this deployment, so personal supply can't be known."
     upstream_failed: "Another unit didn't respond, so supply info couldn't be loaded."
     bad_request: "The supply request can't be processed."
     unknown_road: Unknown provider.
@@ -5209,7 +5209,7 @@ removal:
       other: Other records
     unit:
       web: Account service
-      agency: Agency
+      agency: Platform
       receiver: Receiver
       brain: Brain
       artifact: Artifact
